@@ -81,14 +81,16 @@ impl<T: TextureDataType> Texture3D<T> {
             wrap_t,
             Some(wrap_r),
         );
-        context.tex_storage_3d(
-            glow::TEXTURE_3D,
-            number_of_mip_maps as i32,
-            T::internal_format(format),
-            width as i32,
-            height as i32,
-            depth as i32,
-        );
+        unsafe {
+            context.tex_storage_3d(
+                glow::TEXTURE_3D,
+                number_of_mip_maps as i32,
+                T::internal_format(format),
+                width as i32,
+                height as i32,
+                depth as i32,
+            );
+        }
         Ok(tex)
     }
 
@@ -101,19 +103,21 @@ impl<T: TextureDataType> Texture3D<T> {
     pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
         check_data_length(self.width, self.height, self.depth, self.format, data.len())?;
         self.bind();
-        self.context.tex_sub_image_3d(
-            glow::TEXTURE_3D,
-            0,
-            0,
-            0,
-            0,
-            self.width as i32,
-            self.height as i32,
-            self.depth as i32,
-            self.format.as_const(),
-            T::data_type(),
-            glow::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(data)),
-        );
+        unsafe {
+            self.context.tex_sub_image_3d(
+                glow::TEXTURE_3D,
+                0,
+                0,
+                0,
+                0,
+                self.width as i32,
+                self.height as i32,
+                self.depth as i32,
+                self.format.as_const(),
+                T::data_type(),
+                glow::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(data)),
+            );
+        }
         self.generate_mip_maps();
         Ok(())
     }
@@ -141,11 +145,15 @@ impl<T: TextureDataType> Texture3D<T> {
     fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.bind();
-            self.context.generate_mipmap(glow::TEXTURE_3D);
+            unsafe {
+                self.context.generate_mipmap(glow::TEXTURE_3D);
+            }
         }
     }
     fn bind(&self) {
-        self.context.bind_texture(glow::TEXTURE_3D, Some(self.id));
+        unsafe {
+            self.context.bind_texture(glow::TEXTURE_3D, Some(self.id));
+        }
     }
 }
 
@@ -159,6 +167,8 @@ impl<T: TextureDataType> Texture for Texture3D<T> {}
 
 impl<T: TextureDataType> Drop for Texture3D<T> {
     fn drop(&mut self) {
-        self.context.delete_texture(self.id);
+        unsafe {
+            self.context.delete_texture(self.id);
+        }
     }
 }

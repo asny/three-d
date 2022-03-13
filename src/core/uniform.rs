@@ -49,142 +49,190 @@ mod internal {
 
     impl UniformDataTypeExtension for i32 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_1_i32(Some(location), *self);
+            unsafe {
+                context.uniform_1_i32(Some(location), *self);
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_1_i32_slice(Some(location), &data);
+            unsafe {
+                context.uniform_1_i32_slice(Some(location), &data);
+            }
         }
     }
 
     impl UniformDataTypeExtension for f32 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_1_f32(Some(location), *self);
+            unsafe {
+                context.uniform_1_f32(Some(location), *self);
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_1_f32_slice(Some(location), &data);
+            unsafe {
+                context.uniform_1_f32_slice(Some(location), &data);
+            }
         }
     }
 
     impl UniformDataTypeExtension for Vec2 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_2_f32_slice(Some(location), &self.as_array());
+            unsafe {
+                context.uniform_2_f32_slice(Some(location), &self.as_array());
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_2_f32_slice(
-                Some(location),
-                &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_2_f32_slice(
+                    Some(location),
+                    &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 
     impl UniformDataTypeExtension for Vec3 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_3_f32_slice(Some(location), &self.as_array());
+            unsafe {
+                context.uniform_3_f32_slice(Some(location), &self.as_array());
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_3_f32_slice(
-                Some(location),
-                &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_3_f32_slice(
+                    Some(location),
+                    &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 
     impl UniformDataTypeExtension for Vec4 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_4_f32_slice(Some(location), &self.as_array());
+            unsafe {
+                context.uniform_4_f32_slice(Some(location), &self.as_array());
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_4_f32_slice(
-                Some(location),
-                &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_4_f32_slice(
+                    Some(location),
+                    &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 
     impl UniformDataTypeExtension for [f32; 2] {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_2_f32_slice(Some(location), self);
+            unsafe {
+                context.uniform_2_f32_slice(Some(location), self);
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_2_f32_slice(
-                Some(location),
-                &data.iter().flat_map(|v| *v).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_2_f32_slice(
+                    Some(location),
+                    &data.iter().flat_map(|v| *v).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 
     impl UniformDataTypeExtension for [f32; 3] {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_3_f32_slice(Some(location), self);
+            unsafe {
+                context.uniform_3_f32_slice(Some(location), self);
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_3_f32_slice(
-                Some(location),
-                &data.iter().flat_map(|v| *v).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_3_f32_slice(
+                    Some(location),
+                    &data.iter().flat_map(|v| *v).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 
     impl UniformDataTypeExtension for [f32; 4] {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_4_f32_slice(Some(location), self);
+            unsafe {
+                context.uniform_4_f32_slice(Some(location), self);
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_4_f32_slice(
-                Some(location),
-                &data.iter().flat_map(|v| *v).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_4_f32_slice(
+                    Some(location),
+                    &data.iter().flat_map(|v| *v).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 
     impl UniformDataTypeExtension for Quat {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_4_f32_slice(Some(location), &self.as_array());
+            unsafe {
+                context.uniform_4_f32_slice(Some(location), &self.as_array());
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_4_f32_slice(
-                Some(location),
-                &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_4_f32_slice(
+                    Some(location),
+                    &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 
     impl UniformDataTypeExtension for Mat2 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_matrix_2_f32_slice(Some(location), false, &self.as_array());
+            unsafe {
+                context.uniform_matrix_2_f32_slice(Some(location), false, &self.as_array());
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_matrix_2_f32_slice(
-                Some(location),
-                false,
-                &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_matrix_2_f32_slice(
+                    Some(location),
+                    false,
+                    &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 
     impl UniformDataTypeExtension for Mat3 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_matrix_3_f32_slice(Some(location), false, &self.as_array());
+            unsafe {
+                context.uniform_matrix_3_f32_slice(Some(location), false, &self.as_array());
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_matrix_3_f32_slice(
-                Some(location),
-                false,
-                &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_matrix_3_f32_slice(
+                    Some(location),
+                    false,
+                    &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 
     impl UniformDataTypeExtension for Mat4 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_matrix_4_f32_slice(Some(location), false, &self.as_array());
+            unsafe {
+                context.uniform_matrix_4_f32_slice(Some(location), false, &self.as_array());
+            }
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform_matrix_4_f32_slice(
-                Some(location),
-                false,
-                &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
-            );
+            unsafe {
+                context.uniform_matrix_4_f32_slice(
+                    Some(location),
+                    false,
+                    &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
+                );
+            }
         }
     }
 }

@@ -41,7 +41,11 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
     /// Creates a new empty element buffer.
     ///
     pub fn new(context: &Context) -> ThreeDResult<Self> {
-        let id = context.create_buffer().unwrap();
+        let id = unsafe {
+            context
+                .create_buffer()
+                .map_err(|e| CoreError::BufferCreation(e))?
+        };
         Ok(Self {
             context: context.clone(),
             id,
@@ -74,12 +78,14 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
     ///
     pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
         self.bind();
-        self.context.buffer_data_u8_slice(
-            glow::ELEMENT_ARRAY_BUFFER,
-            super::internal::to_byte_slice(data),
-            glow::STATIC_DRAW,
-        );
-        self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+        unsafe {
+            self.context.buffer_data_u8_slice(
+                glow::ELEMENT_ARRAY_BUFFER,
+                super::internal::to_byte_slice(data),
+                glow::STATIC_DRAW,
+            );
+            self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+        }
         self.count = data.len();
         Ok(())
     }
@@ -107,13 +113,17 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
     }
 
     pub(crate) fn bind(&self) {
-        self.context
-            .bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(self.id));
+        unsafe {
+            self.context
+                .bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(self.id));
+        }
     }
 }
 
 impl<T: ElementBufferDataType> Drop for ElementBuffer<T> {
     fn drop(&mut self) {
-        self.context.delete_buffer(self.id);
+        unsafe {
+            self.context.delete_buffer(self.id);
+        }
     }
 }
