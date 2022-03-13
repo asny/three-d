@@ -2,9 +2,7 @@ use crate::core::*;
 use glow::HasContext;
 
 /// The basic data type used for each index in an element buffer.
-pub trait ElementBufferDataType:
-    std::fmt::Debug + Clone + internal::BufferDataTypeExtension
-{
+pub trait ElementBufferDataType: internal::DataType {
     ///
     /// Converts the index to `u32`.
     ///
@@ -76,10 +74,9 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
     ///
     pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
         self.bind();
-        T::buffer_data(
-            &self.context,
+        self.context.buffer_data_u8_slice(
             glow::ELEMENT_ARRAY_BUFFER,
-            data,
+            &T::to_bytes(data),
             glow::STATIC_DRAW,
         );
         self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);

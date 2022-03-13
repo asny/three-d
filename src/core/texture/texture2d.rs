@@ -103,7 +103,7 @@ impl<T: TextureDataType> Texture2D<T> {
             self.height as i32,
             self.format.as_const(),
             T::data_type(),
-            PixelUnpackData::Slice(data),
+            glow::PixelUnpackData::Slice(T::as_bytes(data)),
         );
         self.generate_mip_maps();
         Ok(())

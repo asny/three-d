@@ -246,7 +246,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                 self.height as i32,
                 self.format.as_const(),
                 T::data_type(),
-                PixelUnpackData::Slice(data),
+                glow::PixelUnpackData::Slice(T::as_bytes(data)),
             );
         }
         self.generate_mip_maps();
@@ -398,6 +398,6 @@ impl<T: TextureDataType> Texture for TextureCubeMap<T> {}
 
 impl<T: TextureDataType> Drop for TextureCubeMap<T> {
     fn drop(&mut self) {
-        self.context.delete_texture(&self.id);
+        self.context.delete_texture(self.id);
     }
 }

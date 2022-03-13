@@ -118,6 +118,6 @@ impl Texture for DepthTargetTexture2D {}
 
 impl Drop for DepthTargetTexture2D {
     fn drop(&mut self) {
-        self.context.delete_texture(&self.id);
+        self.context.delete_texture(self.id);
     }
 }

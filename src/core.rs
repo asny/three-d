@@ -229,3 +229,332 @@ pub enum CoreError {
     #[error("a minimum must be smaller than a maximum")]
     MinimumLargerThanMaximum,
 }
+
+mod internal {
+    use crate::core::*;
+
+    pub trait DataType: std::fmt::Debug + Clone {
+        fn to_bytes(data: &[Self]) -> Vec<u8>;
+        fn internal_format(format: Format) -> u32;
+        fn data_type() -> u32;
+        fn is_max(value: Self) -> bool;
+        fn bits_per_channel() -> u8;
+        fn size() -> u32;
+        fn default() -> Self;
+    }
+
+    impl DataType for u8 {
+        fn to_bytes(data: &[Self]) -> Vec<u8> {
+            data.to_vec()
+        }
+
+        fn data_type() -> u32 {
+            glow::UNSIGNED_BYTE
+        }
+
+        fn size() -> u32 {
+            1
+        }
+
+        fn internal_format(format: Format) -> u32 {
+            match format {
+                Format::R => glow::R8,
+                Format::RG => glow::RG8,
+                Format::RGB => glow::RGB8,
+                Format::RGBA => glow::RGBA8,
+            }
+        }
+
+        fn is_max(value: Self) -> bool {
+            value == 255u8
+        }
+
+        fn bits_per_channel() -> u8 {
+            8
+        }
+
+        fn default() -> Self {
+            0
+        }
+    }
+
+    impl DataType for u16 {
+        fn to_bytes(data: &[Self]) -> Vec<u8> {
+            data.iter()
+                .flat_map(|v| v.to_ne_bytes())
+                .collect::<Vec<_>>()
+        }
+
+        fn data_type() -> u32 {
+            glow::UNSIGNED_SHORT
+        }
+
+        fn size() -> u32 {
+            1
+        }
+
+        fn internal_format(format: Format) -> u32 {
+            match format {
+                Format::R => glow::R16UI,
+                Format::RG => glow::RG16UI,
+                Format::RGB => glow::RGB16UI,
+                Format::RGBA => glow::RGBA16UI,
+            }
+        }
+
+        fn is_max(value: Self) -> bool {
+            value == u16::MAX
+        }
+
+        fn bits_per_channel() -> u8 {
+            16
+        }
+
+        fn default() -> Self {
+            0
+        }
+    }
+
+    impl DataType for u32 {
+        fn to_bytes(data: &[Self]) -> Vec<u8> {
+            data.iter()
+                .flat_map(|v| v.to_ne_bytes())
+                .collect::<Vec<_>>()
+        }
+
+        fn data_type() -> u32 {
+            glow::UNSIGNED_INT
+        }
+
+        fn size() -> u32 {
+            1
+        }
+
+        fn internal_format(format: Format) -> u32 {
+            match format {
+                Format::R => glow::R32UI,
+                Format::RG => glow::RG32UI,
+                Format::RGB => glow::RGB32UI,
+                Format::RGBA => glow::RGBA32UI,
+            }
+        }
+
+        fn is_max(value: Self) -> bool {
+            value == u32::MAX
+        }
+
+        fn bits_per_channel() -> u8 {
+            32
+        }
+
+        fn default() -> Self {
+            0
+        }
+    }
+
+    impl DataType for f16 {
+        fn to_bytes(data: &[Self]) -> Vec<u8> {
+            data.iter()
+                .flat_map(|v| v.to_ne_bytes())
+                .collect::<Vec<_>>()
+        }
+
+        fn data_type() -> u32 {
+            glow::HALF_FLOAT
+        }
+
+        fn size() -> u32 {
+            1
+        }
+
+        fn internal_format(format: Format) -> u32 {
+            match format {
+                Format::R => crate::context::consts::R16F,
+                Format::RG => crate::context::consts::RG16F,
+                Format::RGB => crate::context::consts::RGB16F,
+                Format::RGBA => crate::context::consts::RGBA16F,
+            }
+        }
+
+        fn is_max(value: Self) -> bool {
+            value > f16::from_f32(0.99)
+        }
+
+        fn bits_per_channel() -> u8 {
+            16
+        }
+
+        fn default() -> Self {
+            f16::from_f32(0.0)
+        }
+    }
+
+    impl DataType for f32 {
+        fn to_bytes(data: &[Self]) -> Vec<u8> {
+            data.iter()
+                .flat_map(|v| v.to_ne_bytes())
+                .collect::<Vec<_>>()
+        }
+
+        fn data_type() -> u32 {
+            glow::FLOAT
+        }
+
+        fn size() -> u32 {
+            1
+        }
+
+        fn internal_format(format: Format) -> u32 {
+            match format {
+                Format::R => crate::context::consts::R32F,
+                Format::RG => crate::context::consts::RG32F,
+                Format::RGB => crate::context::consts::RGB32F,
+                Format::RGBA => crate::context::consts::RGBA32F,
+            }
+        }
+
+        fn is_max(value: Self) -> bool {
+            value > 0.99
+        }
+
+        fn bits_per_channel() -> u8 {
+            32
+        }
+
+        fn default() -> Self {
+            0.0
+        }
+    }
+
+    impl<T: DataType> DataType for Vector2<T> {
+        fn to_bytes(data: &[Self]) -> Vec<u8> {
+            T::to_bytes(&data.iter().flat_map(|v| [v.x, v.y]).collect::<Vec<_>>())
+        }
+
+        fn data_type() -> u32 {
+            T::data_type()
+        }
+
+        fn size() -> u32 {
+            2
+        }
+
+        fn internal_format(format: Format) -> u32 {
+            T::internal_format(format)
+        }
+
+        fn is_max(value: Self) -> bool {
+            T::is_max(value.x) && T::is_max(value.y)
+        }
+
+        fn bits_per_channel() -> u8 {
+            T::bits_per_channel()
+        }
+
+        fn default() -> Self {
+            Self::new(T::default(), T::default())
+        }
+    }
+
+    impl<T: DataType> DataType for Vector3<T> {
+        fn to_bytes(data: &[Self]) -> Vec<u8> {
+            T::to_bytes(
+                &data
+                    .iter()
+                    .flat_map(|v| [v.x, v.y, v.z])
+                    .collect::<Vec<_>>(),
+            )
+        }
+
+        fn data_type() -> u32 {
+            T::data_type()
+        }
+
+        fn size() -> u32 {
+            3
+        }
+
+        fn internal_format(format: Format) -> u32 {
+            T::internal_format(format)
+        }
+
+        fn is_max(value: Self) -> bool {
+            T::is_max(value.x) && T::is_max(value.y) && T::is_max(value.z)
+        }
+
+        fn bits_per_channel() -> u8 {
+            T::bits_per_channel()
+        }
+
+        fn default() -> Self {
+            Self::new(T::default(), T::default(), T::default())
+        }
+    }
+
+    impl<T: DataType> DataType for Vector4<T> {
+        fn to_bytes(data: &[Self]) -> Vec<u8> {
+            T::to_bytes(
+                &data
+                    .iter()
+                    .flat_map(|v| [v.x, v.y, v.z, v.w])
+                    .collect::<Vec<_>>(),
+            )
+        }
+
+        fn data_type() -> u32 {
+            T::data_type()
+        }
+
+        fn size() -> u32 {
+            4
+        }
+
+        fn internal_format(format: Format) -> u32 {
+            T::internal_format(format)
+        }
+
+        fn is_max(value: Self) -> bool {
+            T::is_max(value.x) && T::is_max(value.y) && T::is_max(value.z) && T::is_max(value.w)
+        }
+
+        fn bits_per_channel() -> u8 {
+            T::bits_per_channel()
+        }
+
+        fn default() -> Self {
+            Self::new(T::default(), T::default(), T::default(), T::default())
+        }
+    }
+
+    impl DataType for Color {
+        fn to_bytes(data: &[Self]) -> Vec<u8> {
+            data.iter()
+                .flat_map(|v| [v.r, v.g, v.b, v.a])
+                .collect::<Vec<_>>()
+        }
+
+        fn data_type() -> u32 {
+            u8::data_type()
+        }
+
+        fn size() -> u32 {
+            4
+        }
+
+        fn internal_format(format: Format) -> u32 {
+            u8::internal_format(format)
+        }
+
+        fn is_max(value: Self) -> bool {
+            u8::is_max(value.r) && u8::is_max(value.g) && u8::is_max(value.b) && u8::is_max(value.a)
+        }
+
+        fn bits_per_channel() -> u8 {
+            u8::bits_per_channel()
+        }
+
+        fn default() -> Self {
+            Color::WHITE
+        }
+    }
+}
