@@ -285,7 +285,9 @@ impl Program {
     ///
     pub fn use_texture(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
-        self.context.active_texture(glow::TEXTURE0 + index);
+        unsafe {
+            self.context.active_texture(glow::TEXTURE0 + index);
+        }
         texture.bind();
         self.use_uniform(name, index as i32)?;
         Ok(())
@@ -330,17 +332,20 @@ impl Program {
     pub fn use_uniform_block(&self, name: &str, buffer: &UniformBuffer) -> ThreeDResult<()> {
         if !self.uniform_blocks.borrow().contains_key(name) {
             let mut map = self.uniform_blocks.borrow_mut();
-            let location = self
-                .context
-                .get_uniform_block_index(self.id, name)
-                .ok_or(CoreError::UnusedUniform(name.to_string()))?;
+            let location = unsafe {
+                self.context
+                    .get_uniform_block_index(self.id, name)
+                    .ok_or(CoreError::UnusedUniform(name.to_string()))?
+            };
             let index = map.len() as u32;
             map.insert(name.to_owned(), (location, index));
         };
         let (location, index) = self.uniform_blocks.borrow().get(name).unwrap().clone();
-        self.context.uniform_block_binding(self.id, location, index);
-        buffer.bind(index);
-        self.context.bind_buffer(glow::UNIFORM_BUFFER, None);
+        unsafe {
+            self.context.uniform_block_binding(self.id, location, index);
+            buffer.bind(index);
+            self.context.bind_buffer(glow::UNIFORM_BUFFER, None);
+        }
         Ok(())
     }
 
@@ -361,17 +366,19 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context.vertex_attrib_pointer_f32(
-                loc,
-                T::size() as i32,
-                T::data_type(),
-                false,
-                0,
-                0,
-            );
-            self.context.vertex_attrib_divisor(loc, 0);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context.vertex_attrib_pointer_f32(
+                    loc,
+                    T::size() as i32,
+                    T::data_type(),
+                    false,
+                    0,
+                    0,
+                );
+                self.context.vertex_attrib_divisor(loc, 0);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -394,17 +401,19 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context.vertex_attrib_pointer_f32(
-                loc,
-                T::size() as i32,
-                T::data_type(),
-                false,
-                0,
-                0,
-            );
-            self.context.vertex_attrib_divisor(loc, 1);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context.vertex_attrib_pointer_f32(
+                    loc,
+                    T::size() as i32,
+                    T::data_type(),
+                    false,
+                    0,
+                    0,
+                );
+                self.context.vertex_attrib_divisor(loc, 1);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -427,11 +436,13 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context
-                .vertex_attrib_pointer_f32(loc, 1, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, 0);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context
+                    .vertex_attrib_pointer_f32(loc, 1, T::data_type(), false, 0, 0);
+                self.context.vertex_attrib_divisor(loc, 0);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -454,11 +465,13 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context
-                .vertex_attrib_pointer_f32(loc, 1, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, 1);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context
+                    .vertex_attrib_pointer_f32(loc, 1, T::data_type(), false, 0, 0);
+                self.context.vertex_attrib_divisor(loc, 1);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -481,11 +494,13 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context
-                .vertex_attrib_pointer_f32(loc, 2, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, 0);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context
+                    .vertex_attrib_pointer_f32(loc, 2, T::data_type(), false, 0, 0);
+                self.context.vertex_attrib_divisor(loc, 0);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -508,11 +523,13 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context
-                .vertex_attrib_pointer_f32(loc, 2, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, 1);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context
+                    .vertex_attrib_pointer_f32(loc, 2, T::data_type(), false, 0, 0);
+                self.context.vertex_attrib_divisor(loc, 1);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -535,11 +552,13 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(&name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context
-                .vertex_attrib_pointer_f32(loc, 3, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, 0);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context
+                    .vertex_attrib_pointer_f32(loc, 3, T::data_type(), false, 0, 0);
+                self.context.vertex_attrib_divisor(loc, 0);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -562,11 +581,13 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(&name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context
-                .vertex_attrib_pointer_f32(loc, 3, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, 1);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context
+                    .vertex_attrib_pointer_f32(loc, 3, T::data_type(), false, 0, 0);
+                self.context.vertex_attrib_divisor(loc, 1);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -589,11 +610,13 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context
-                .vertex_attrib_pointer_f32(loc, 4, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, 0);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context
+                    .vertex_attrib_pointer_f32(loc, 4, T::data_type(), false, 0, 0);
+                self.context.vertex_attrib_divisor(loc, 0);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -612,11 +635,13 @@ impl Program {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
-            self.context.enable_vertex_attrib_array(loc);
-            self.context
-                .vertex_attrib_pointer_f32(loc, 4, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, 1);
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            unsafe {
+                self.context.enable_vertex_attrib_array(loc);
+                self.context
+                    .vertex_attrib_pointer_f32(loc, 4, T::data_type(), false, 0, 0);
+                self.context.vertex_attrib_divisor(loc, 1);
+                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            }
             self.unuse_program();
         }
         Ok(())
@@ -632,9 +657,11 @@ impl Program {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.use_program();
-        self.context.draw_arrays(glow::TRIANGLES, 0, count as i32);
-        for location in self.attributes.values() {
-            self.context.disable_vertex_attrib_array(*location);
+        unsafe {
+            self.context.draw_arrays(glow::TRIANGLES, 0, count as i32);
+            for location in self.attributes.values() {
+                self.context.disable_vertex_attrib_array(*location);
+            }
         }
         self.unuse_program();
     }
@@ -653,11 +680,17 @@ impl Program {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.use_program();
-        self.context
-            .draw_arrays_instanced(glow::TRIANGLES, 0, count as i32, instance_count as i32);
-        self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
-        for location in self.attributes.values() {
-            self.context.disable_vertex_attrib_array(*location);
+        unsafe {
+            self.context.draw_arrays_instanced(
+                glow::TRIANGLES,
+                0,
+                count as i32,
+                instance_count as i32,
+            );
+            self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+            for location in self.attributes.values() {
+                self.context.disable_vertex_attrib_array(*location);
+            }
         }
         self.unuse_program();
     }
@@ -699,12 +732,14 @@ impl Program {
         Self::set_states(&self.context, render_states);
         self.use_program();
         element_buffer.bind();
-        self.context
-            .draw_elements(glow::TRIANGLES, count as i32, T::data_type(), first as i32);
-        self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+        unsafe {
+            self.context
+                .draw_elements(glow::TRIANGLES, count as i32, T::data_type(), first as i32);
+            self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
 
-        for location in self.attributes.values() {
-            self.context.disable_vertex_attrib_array(*location);
+            for location in self.attributes.values() {
+                self.context.disable_vertex_attrib_array(*location);
+            }
         }
         self.unuse_program();
     }
@@ -747,16 +782,18 @@ impl Program {
         Self::set_states(&self.context, render_states);
         self.use_program();
         element_buffer.bind();
-        self.context.draw_elements_instanced(
-            glow::TRIANGLES,
-            count as i32,
-            T::data_type(),
-            first as i32,
-            instance_count as i32,
-        );
-        self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
-        for location in self.attributes.values() {
-            self.context.disable_vertex_attrib_array(*location);
+        unsafe {
+            self.context.draw_elements_instanced(
+                glow::TRIANGLES,
+                count as i32,
+                T::data_type(),
+                first as i32,
+                instance_count as i32,
+            );
+            self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+            for location in self.attributes.values() {
+                self.context.disable_vertex_attrib_array(*location);
+            }
         }
         self.unuse_program();
     }
@@ -1008,6 +1045,8 @@ impl Program {
 
 impl Drop for Program {
     fn drop(&mut self) {
-        self.context.delete_program(self.id);
+        unsafe {
+            self.context.delete_program(self.id);
+        }
     }
 }

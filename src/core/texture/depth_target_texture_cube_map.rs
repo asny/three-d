@@ -42,13 +42,15 @@ impl DepthTargetTextureCubeMap {
             wrap_t,
             Some(wrap_r),
         );
-        context.tex_storage_2d(
-            glow::TEXTURE_CUBE_MAP,
-            1,
-            internal_format_from_depth(format),
-            width as i32,
-            height as i32,
-        );
+        unsafe {
+            context.tex_storage_2d(
+                glow::TEXTURE_CUBE_MAP,
+                1,
+                internal_format_from_depth(format),
+                width as i32,
+                height as i32,
+            );
+        }
         Ok(texture)
     }
 
@@ -83,18 +85,22 @@ impl DepthTargetTextureCubeMap {
     }
 
     pub(in crate::core) fn bind_as_depth_target(&self, side: CubeMapSide) {
-        self.context.framebuffer_texture_2d(
-            glow::DRAW_FRAMEBUFFER,
-            glow::DEPTH_ATTACHMENT,
-            side.to_const(),
-            Some(self.id),
-            0,
-        );
+        unsafe {
+            self.context.framebuffer_texture_2d(
+                glow::DRAW_FRAMEBUFFER,
+                glow::DEPTH_ATTACHMENT,
+                side.to_const(),
+                Some(self.id),
+                0,
+            );
+        }
     }
 
     fn bind(&self) {
-        self.context
-            .bind_texture(glow::TEXTURE_CUBE_MAP, Some(self.id));
+        unsafe {
+            self.context
+                .bind_texture(glow::TEXTURE_CUBE_MAP, Some(self.id));
+        }
     }
 }
 
@@ -108,6 +114,8 @@ impl Texture for DepthTargetTextureCubeMap {}
 
 impl Drop for DepthTargetTextureCubeMap {
     fn drop(&mut self) {
-        self.context.delete_texture(self.id);
+        unsafe {
+            self.context.delete_texture(self.id);
+        }
     }
 }

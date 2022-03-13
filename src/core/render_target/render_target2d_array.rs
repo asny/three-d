@@ -97,17 +97,19 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     }
 
     fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> ThreeDResult<()> {
-        self.context
-            .bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(self.id));
-        if let Some(ref color_texture) = self.color_texture {
-            if let Some(color_layers) = color_layers {
-                self.context.draw_buffers(
-                    &(0..color_layers.len())
-                        .map(|i| glow::COLOR_ATTACHMENT0 + i as u32)
-                        .collect::<Vec<u32>>(),
-                );
-                for channel in 0..color_layers.len() {
-                    color_texture.bind_as_color_target(color_layers[channel], channel as u32);
+        unsafe {
+            self.context
+                .bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(self.id));
+            if let Some(ref color_texture) = self.color_texture {
+                if let Some(color_layers) = color_layers {
+                    self.context.draw_buffers(
+                        &(0..color_layers.len())
+                            .map(|i| glow::COLOR_ATTACHMENT0 + i as u32)
+                            .collect::<Vec<u32>>(),
+                    );
+                    for channel in 0..color_layers.len() {
+                        color_texture.bind_as_color_target(color_layers[channel], channel as u32);
+                    }
                 }
             }
         }
@@ -124,6 +126,8 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
 
 impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
     fn drop(&mut self) {
-        self.context.delete_framebuffer(self.id);
+        unsafe {
+            self.context.delete_framebuffer(self.id);
+        }
     }
 }

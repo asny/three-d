@@ -70,14 +70,16 @@ impl<T: TextureDataType> Texture2DArray<T> {
             wrap_t,
             None,
         );
-        context.tex_storage_3d(
-            glow::TEXTURE_2D_ARRAY,
-            number_of_mip_maps as i32,
-            T::internal_format(format),
-            width as i32,
-            height as i32,
-            depth as i32,
-        );
+        unsafe {
+            context.tex_storage_3d(
+                glow::TEXTURE_2D_ARRAY,
+                number_of_mip_maps as i32,
+                T::internal_format(format),
+                width as i32,
+                height as i32,
+                depth as i32,
+            );
+        }
         Ok(texture)
     }
 
@@ -126,23 +128,29 @@ impl<T: TextureDataType> Texture2DArray<T> {
     pub(in crate::core) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.bind();
-            self.context.generate_mipmap(glow::TEXTURE_2D_ARRAY);
+            unsafe {
+                self.context.generate_mipmap(glow::TEXTURE_2D_ARRAY);
+            }
         }
     }
 
     pub(in crate::core) fn bind_as_color_target(&self, layer: u32, channel: u32) {
-        self.context.framebuffer_texture_layer(
-            glow::DRAW_FRAMEBUFFER,
-            glow::COLOR_ATTACHMENT0 + channel,
-            Some(self.id),
-            0,
-            layer as i32,
-        );
+        unsafe {
+            self.context.framebuffer_texture_layer(
+                glow::DRAW_FRAMEBUFFER,
+                glow::COLOR_ATTACHMENT0 + channel,
+                Some(self.id),
+                0,
+                layer as i32,
+            );
+        }
     }
 
     fn bind(&self) {
-        self.context
-            .bind_texture(glow::TEXTURE_2D_ARRAY, Some(self.id));
+        unsafe {
+            self.context
+                .bind_texture(glow::TEXTURE_2D_ARRAY, Some(self.id));
+        }
     }
 }
 
@@ -156,6 +164,8 @@ impl<T: TextureDataType> Texture for Texture2DArray<T> {}
 
 impl<T: TextureDataType> Drop for Texture2DArray<T> {
     fn drop(&mut self) {
-        self.context.delete_texture(self.id);
+        unsafe {
+            self.context.delete_texture(self.id);
+        }
     }
 }

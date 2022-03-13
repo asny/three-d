@@ -94,11 +94,13 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.context
-            .bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(self.id));
-        if let Some(ref color_texture) = self.color_texture {
-            self.context.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
-            color_texture.bind_as_color_target(side, 0, mip_level);
+        unsafe {
+            self.context
+                .bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(self.id));
+            if let Some(ref color_texture) = self.color_texture {
+                self.context.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
+                color_texture.bind_as_color_target(side, 0, mip_level);
+            }
         }
         if let Some(ref depth_texture) = self.depth_texture {
             depth_texture.bind_as_depth_target(side);
@@ -123,6 +125,8 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
 
 impl<T: TextureDataType> Drop for RenderTargetCubeMap<'_, '_, T> {
     fn drop(&mut self) {
-        self.context.delete_framebuffer(self.id);
+        unsafe {
+            self.context.delete_framebuffer(self.id);
+        }
     }
 }

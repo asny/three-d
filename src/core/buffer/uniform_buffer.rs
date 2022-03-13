@@ -20,9 +20,11 @@ impl UniformBuffer {
     /// The variables are initialized to 0.
     ///
     pub fn new(context: &Context, sizes: &[u32]) -> ThreeDResult<UniformBuffer> {
-        let id = context
-            .create_buffer()
-            .map_err(|e| CoreError::BufferCreation(e))?;
+        let id = unsafe {
+            context
+                .create_buffer()
+                .map_err(|e| CoreError::BufferCreation(e))?
+        };
 
         let mut offsets = Vec::new();
         let mut length = 0;
@@ -41,8 +43,10 @@ impl UniformBuffer {
     }
 
     pub(crate) fn bind(&self, id: u32) {
-        self.context
-            .bind_buffer_base(glow::UNIFORM_BUFFER, id, Some(self.id));
+        unsafe {
+            self.context
+                .bind_buffer_base(glow::UNIFORM_BUFFER, id, Some(self.id))
+        };
     }
 
     ///
@@ -93,19 +97,23 @@ impl UniformBuffer {
     }
 
     fn send(&self) {
-        self.context
-            .bind_buffer(glow::UNIFORM_BUFFER, Some(self.id));
-        self.context.buffer_data_u8_slice(
-            glow::UNIFORM_BUFFER,
-            super::internal::to_byte_slice(&self.data),
-            glow::STATIC_DRAW,
-        );
-        self.context.bind_buffer(glow::UNIFORM_BUFFER, None);
+        unsafe {
+            self.context
+                .bind_buffer(glow::UNIFORM_BUFFER, Some(self.id));
+            self.context.buffer_data_u8_slice(
+                glow::UNIFORM_BUFFER,
+                super::internal::to_byte_slice(&self.data),
+                glow::STATIC_DRAW,
+            );
+            self.context.bind_buffer(glow::UNIFORM_BUFFER, None);
+        }
     }
 }
 
 impl Drop for UniformBuffer {
     fn drop(&mut self) {
-        self.context.delete_buffer(self.id);
+        unsafe {
+            self.context.delete_buffer(self.id);
+        }
     }
 }

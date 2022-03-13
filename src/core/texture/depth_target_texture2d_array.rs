@@ -44,14 +44,16 @@ impl DepthTargetTexture2DArray {
             wrap_t,
             None,
         );
-        context.tex_storage_3d(
-            glow::TEXTURE_2D_ARRAY,
-            1,
-            internal_format_from_depth(format),
-            width as i32,
-            height as i32,
-            depth as i32,
-        );
+        unsafe {
+            context.tex_storage_3d(
+                glow::TEXTURE_2D_ARRAY,
+                1,
+                internal_format_from_depth(format),
+                width as i32,
+                height as i32,
+                depth as i32,
+            );
+        }
         Ok(texture)
     }
 
@@ -92,18 +94,22 @@ impl DepthTargetTexture2DArray {
     }
 
     pub(in crate::core) fn bind_as_depth_target(&self, layer: u32) {
-        self.context.framebuffer_texture_layer(
-            glow::DRAW_FRAMEBUFFER,
-            glow::DEPTH_ATTACHMENT,
-            Some(self.id),
-            0,
-            layer as i32,
-        );
+        unsafe {
+            self.context.framebuffer_texture_layer(
+                glow::DRAW_FRAMEBUFFER,
+                glow::DEPTH_ATTACHMENT,
+                Some(self.id),
+                0,
+                layer as i32,
+            );
+        }
     }
 
     fn bind(&self) {
-        self.context
-            .bind_texture(glow::TEXTURE_2D_ARRAY, Some(self.id));
+        unsafe {
+            self.context
+                .bind_texture(glow::TEXTURE_2D_ARRAY, Some(self.id));
+        }
     }
 }
 
@@ -117,6 +123,8 @@ impl Texture for DepthTargetTexture2DArray {}
 
 impl Drop for DepthTargetTexture2DArray {
     fn drop(&mut self) {
-        self.context.delete_texture(self.id);
+        unsafe {
+            self.context.delete_texture(self.id);
+        }
     }
 }

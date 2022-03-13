@@ -17,7 +17,9 @@ impl Screen {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        context.bind_framebuffer(glow::DRAW_FRAMEBUFFER, None);
+        unsafe {
+            context.bind_framebuffer(glow::DRAW_FRAMEBUFFER, None);
+        }
         clear(context, &clear_state);
         render()?;
         Ok(())
@@ -28,16 +30,18 @@ impl Screen {
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<u8>> {
         let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
-        context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
-        context.read_pixels(
-            viewport.x as i32,
-            viewport.y as i32,
-            viewport.width as i32,
-            viewport.height as i32,
-            glow::RGBA,
-            glow::UNSIGNED_BYTE,
-            glow::PixelPackData::Slice(&mut pixels),
-        );
+        unsafe {
+            context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
+            context.read_pixels(
+                viewport.x as i32,
+                viewport.y as i32,
+                viewport.width as i32,
+                viewport.height as i32,
+                glow::RGBA,
+                glow::UNSIGNED_BYTE,
+                glow::PixelPackData::Slice(&mut pixels),
+            );
+        }
         Ok(pixels)
     }
 
@@ -48,16 +52,18 @@ impl Screen {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
         let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
-        context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
-        context.read_pixels(
-            viewport.x as i32,
-            viewport.y as i32,
-            viewport.width as i32,
-            viewport.height as i32,
-            glow::DEPTH_COMPONENT,
-            glow::FLOAT,
-            glow::PixelPackData::Slice(&mut pixels),
-        );
+        unsafe {
+            context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
+            context.read_pixels(
+                viewport.x as i32,
+                viewport.y as i32,
+                viewport.width as i32,
+                viewport.height as i32,
+                glow::DEPTH_COMPONENT,
+                glow::FLOAT,
+                glow::PixelPackData::Slice(&mut pixels),
+            );
+        }
         Ok(super::internal::from_byte_slice(&pixels).to_vec())
     }
 
