@@ -1,5 +1,5 @@
-use crate::context::consts;
 use crate::core::*;
+use glow::HasContext;
 
 ///
 /// A buffer for transferring a set of uniform variables to the shader program
@@ -7,7 +7,7 @@ use crate::core::*;
 ///
 pub struct UniformBuffer {
     context: Context,
-    id: crate::context::Buffer,
+    id: glow::Buffer,
     offsets: Vec<usize>,
     data: Vec<f32>,
 }
@@ -20,7 +20,9 @@ impl UniformBuffer {
     /// The variables are initialized to 0.
     ///
     pub fn new(context: &Context, sizes: &[u32]) -> ThreeDResult<UniformBuffer> {
-        let id = context.create_buffer().unwrap();
+        let id = context
+            .create_buffer()
+            .map_err(|e| CoreError::BufferCreation(e))?;
 
         let mut offsets = Vec::new();
         let mut length = 0;
@@ -40,7 +42,7 @@ impl UniformBuffer {
 
     pub(crate) fn bind(&self, id: u32) {
         self.context
-            .bind_buffer_base(consts::UNIFORM_BUFFER, id, &self.id);
+            .bind_buffer_base(glow::UNIFORM_BUFFER, id, Some(self.id));
     }
 
     ///
@@ -91,15 +93,16 @@ impl UniformBuffer {
     }
 
     fn send(&self) {
-        self.context.bind_buffer(consts::UNIFORM_BUFFER, &self.id);
         self.context
-            .buffer_data_f32(consts::UNIFORM_BUFFER, &self.data, consts::STATIC_DRAW);
-        self.context.unbind_buffer(consts::UNIFORM_BUFFER);
+            .bind_buffer(glow::UNIFORM_BUFFER, Some(self.id));
+        self.context
+            .buffer_data_f32(glow::UNIFORM_BUFFER, &self.data, glow::STATIC_DRAW);
+        self.context.bind_buffer(glow::UNIFORM_BUFFER, None);
     }
 }
 
 impl Drop for UniformBuffer {
     fn drop(&mut self) {
-        self.context.delete_buffer(&self.id);
+        self.context.delete_buffer(self.id);
     }
 }
