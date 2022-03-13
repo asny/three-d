@@ -238,7 +238,7 @@ mod internal {
         fn from_bytes(data: &[u8]) -> Vec<Self>;
         fn internal_format(format: Format) -> u32;
         fn data_type() -> u32;
-        fn is_max(value: Self) -> bool;
+        fn is_max(&self) -> bool;
         fn bits_per_channel() -> u8;
         fn size() -> u32;
         fn default() -> Self;
@@ -270,8 +270,8 @@ mod internal {
             }
         }
 
-        fn is_max(value: Self) -> bool {
-            value == 255u8
+        fn is_max(&self) -> bool {
+            *self == 255u8
         }
 
         fn bits_per_channel() -> u8 {
@@ -311,8 +311,8 @@ mod internal {
             }
         }
 
-        fn is_max(value: Self) -> bool {
-            value == u16::MAX
+        fn is_max(&self) -> bool {
+            *self == u16::MAX
         }
 
         fn bits_per_channel() -> u8 {
@@ -352,8 +352,8 @@ mod internal {
             }
         }
 
-        fn is_max(value: Self) -> bool {
-            value == u32::MAX
+        fn is_max(&self) -> bool {
+            *self == u32::MAX
         }
 
         fn bits_per_channel() -> u8 {
@@ -393,8 +393,8 @@ mod internal {
             }
         }
 
-        fn is_max(value: Self) -> bool {
-            value > f16::from_f32(0.99)
+        fn is_max(&self) -> bool {
+            *self > f16::from_f32(0.99)
         }
 
         fn bits_per_channel() -> u8 {
@@ -434,8 +434,8 @@ mod internal {
             }
         }
 
-        fn is_max(value: Self) -> bool {
-            value > 0.99
+        fn is_max(&self) -> bool {
+            *self > 0.99
         }
 
         fn bits_per_channel() -> u8 {
@@ -468,8 +468,8 @@ mod internal {
             T::internal_format(format)
         }
 
-        fn is_max(value: Self) -> bool {
-            T::is_max(value.x) && T::is_max(value.y)
+        fn is_max(&self) -> bool {
+            self.x.is_max() && self.y.is_max()
         }
 
         fn bits_per_channel() -> u8 {
@@ -507,8 +507,8 @@ mod internal {
             T::internal_format(format)
         }
 
-        fn is_max(value: Self) -> bool {
-            T::is_max(value.x) && T::is_max(value.y) && T::is_max(value.z)
+        fn is_max(&self) -> bool {
+            self.x.is_max() && self.y.is_max() && self.z.is_max()
         }
 
         fn bits_per_channel() -> u8 {
@@ -546,8 +546,8 @@ mod internal {
             T::internal_format(format)
         }
 
-        fn is_max(value: Self) -> bool {
-            T::is_max(value.x) && T::is_max(value.y) && T::is_max(value.z) && T::is_max(value.w)
+        fn is_max(&self) -> bool {
+            self.x.is_max() && self.y.is_max() && self.z.is_max() && self.w.is_max()
         }
 
         fn bits_per_channel() -> u8 {
@@ -582,8 +582,8 @@ mod internal {
             u8::internal_format(format)
         }
 
-        fn is_max(value: Self) -> bool {
-            u8::is_max(value.r) && u8::is_max(value.g) && u8::is_max(value.b) && u8::is_max(value.a)
+        fn is_max(&self) -> bool {
+            self.r.is_max() && self.g.is_max() && self.b.is_max() && self.a.is_max()
         }
 
         fn bits_per_channel() -> u8 {

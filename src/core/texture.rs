@@ -152,7 +152,7 @@ impl<T: TextureDataType> CpuTexture<T> {
     pub fn is_transparent(&self) -> bool {
         if self.format == Format::RGBA {
             for i in 0..self.width as usize * self.height as usize {
-                if !T::is_max(self.data[i * 4 + 3]) {
+                if !self.data[i * 4 + 3].is_max() {
                     return true;
                 }
             }
