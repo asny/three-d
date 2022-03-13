@@ -1,13 +1,12 @@
-use crate::context::consts;
 use crate::core::texture::*;
-use crate::core::*;
+use glow::HasContext;
 
 ///
 /// A depth texture cube map that can be rendered into and read from. See also [RenderTargetCubeMap].
 ///
 pub struct DepthTargetTextureCubeMap {
     context: Context,
-    id: crate::context::Texture,
+    id: glow::Texture,
     width: u32,
     height: u32,
 }
@@ -26,10 +25,16 @@ impl DepthTargetTextureCubeMap {
         format: DepthFormat,
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
+        let texture = Self {
+            context: context.clone(),
+            id,
+            width,
+            height,
+        };
+        texture.bind();
         set_parameters(
             context,
-            &id,
-            consts::TEXTURE_CUBE_MAP,
+            glow::TEXTURE_CUBE_MAP,
             Interpolation::Nearest,
             Interpolation::Nearest,
             None,
@@ -37,20 +42,14 @@ impl DepthTargetTextureCubeMap {
             wrap_t,
             Some(wrap_r),
         );
-        context.bind_texture(consts::TEXTURE_CUBE_MAP, &id);
         context.tex_storage_2d(
-            consts::TEXTURE_CUBE_MAP,
+            glow::TEXTURE_CUBE_MAP,
             1,
             internal_format_from_depth(format),
-            width,
-            height,
+            width as i32,
+            height as i32,
         );
-        Ok(Self {
-            context: context.clone(),
-            id,
-            width,
-            height,
-        })
+        Ok(texture)
     }
 
     ///
@@ -85,19 +84,23 @@ impl DepthTargetTextureCubeMap {
 
     pub(in crate::core) fn bind_as_depth_target(&self, side: CubeMapSide) {
         self.context.framebuffer_texture_2d(
-            consts::DRAW_FRAMEBUFFER,
-            consts::DEPTH_ATTACHMENT,
+            glow::DRAW_FRAMEBUFFER,
+            glow::DEPTH_ATTACHMENT,
             side.to_const(),
-            &self.id,
+            Some(self.id),
             0,
         );
+    }
+
+    fn bind(&self) {
+        self.context
+            .bind_texture(glow::TEXTURE_CUBE_MAP, Some(self.id));
     }
 }
 
 impl super::internal::TextureExtensions for DepthTargetTextureCubeMap {
     fn bind(&self) {
-        self.context
-            .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
+        self.bind();
     }
 }
 
@@ -105,6 +108,6 @@ impl Texture for DepthTargetTextureCubeMap {}
 
 impl Drop for DepthTargetTextureCubeMap {
     fn drop(&mut self) {
-        self.context.delete_texture(&self.id);
+        self.context.delete_texture(self.id);
     }
 }

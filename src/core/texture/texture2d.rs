@@ -1,11 +1,12 @@
 use crate::core::texture::*;
+use glow::HasContext;
 
 ///
 /// A 2D texture, basically an image that is transferred to the GPU.
 ///
 pub struct Texture2D<T: TextureDataType> {
     context: Context,
-    id: crate::context::Texture,
+    id: glow::Texture,
     width: u32,
     height: u32,
     format: Format,
@@ -49,10 +50,19 @@ impl<T: TextureDataType> Texture2D<T> {
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
+        let texture = Self {
+            context: context.clone(),
+            id,
+            width,
+            height,
+            number_of_mip_maps,
+            format,
+            _dummy: T::default(),
+        };
+        texture.bind();
         set_parameters(
             context,
-            &id,
-            consts::TEXTURE_2D,
+            glow::TEXTURE_2D,
             min_filter,
             mag_filter,
             if number_of_mip_maps == 1 {
@@ -65,21 +75,12 @@ impl<T: TextureDataType> Texture2D<T> {
             None,
         );
         context.tex_storage_2d(
-            consts::TEXTURE_2D,
-            number_of_mip_maps,
-            T::internal_format(format)?,
-            width,
-            height,
+            glow::TEXTURE_2D,
+            number_of_mip_maps as i32,
+            T::internal_format(format),
+            width as i32,
+            height as i32,
         );
-        let texture = Self {
-            context: context.clone(),
-            id,
-            width,
-            height,
-            number_of_mip_maps,
-            format,
-            _dummy: T::default(),
-        };
         texture.generate_mip_maps();
         Ok(texture)
     }
@@ -92,15 +93,17 @@ impl<T: TextureDataType> Texture2D<T> {
     ///
     pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
-        self.context.bind_texture(consts::TEXTURE_2D, &self.id);
-        T::fill(
-            &self.context,
-            consts::TEXTURE_2D,
-            self.width,
-            self.height,
-            None,
-            self.format,
-            data,
+        self.bind();
+        self.context.tex_sub_image_2d(
+            glow::TEXTURE_2D,
+            0,
+            0,
+            0,
+            self.width as i32,
+            self.height as i32,
+            self.format.as_const(),
+            T::data_type(),
+            PixelUnpackData::Slice(data),
         );
         self.generate_mip_maps();
         Ok(())
@@ -136,13 +139,13 @@ impl<T: TextureDataType> Texture2D<T> {
         let id = crate::core::render_target::new_framebuffer(&self.context)?;
 
         self.context
-            .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&id));
-        self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
+            .bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(id));
+        self.context.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
         self.bind_as_color_target(0);
 
         self.context
-            .bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&id));
-        self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
+            .bind_framebuffer(glow::READ_FRAMEBUFFER, Some(id));
+        self.context.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
         self.bind_as_color_target(0);
 
         #[cfg(feature = "debug")]
@@ -154,7 +157,15 @@ impl<T: TextureDataType> Texture2D<T> {
                 * viewport.height as usize
                 * self.format.color_channel_count() as usize
         ];
-        T::read(&self.context, viewport, self.format, &mut pixels);
+        self.context.read_pixels(
+            viewport.x as i32,
+            viewport.y as i32,
+            viewport.width as i32,
+            viewport.height as i32,
+            self.format.as_const(),
+            T::data_type(),
+            glow::PixelPackData::Slice(&mut pixels),
+        );
         Ok(pixels)
     }
 
@@ -175,25 +186,28 @@ impl<T: TextureDataType> Texture2D<T> {
 
     pub(crate) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
-            self.context.bind_texture(consts::TEXTURE_2D, &self.id);
-            self.context.generate_mipmap(consts::TEXTURE_2D);
+            self.bind();
+            self.context.generate_mipmap(glow::TEXTURE_2D);
         }
     }
 
     pub(in crate::core) fn bind_as_color_target(&self, channel: u32) {
         self.context.framebuffer_texture_2d(
-            consts::FRAMEBUFFER,
-            consts::COLOR_ATTACHMENT0 + channel,
-            consts::TEXTURE_2D,
-            &self.id,
+            glow::FRAMEBUFFER,
+            glow::COLOR_ATTACHMENT0 + channel,
+            glow::TEXTURE_2D,
+            Some(self.id),
             0,
         );
+    }
+    fn bind(&self) {
+        self.context.bind_texture(glow::TEXTURE_2D, Some(self.id));
     }
 }
 
 impl<T: TextureDataType> internal::TextureExtensions for Texture2D<T> {
     fn bind(&self) {
-        self.context.bind_texture(consts::TEXTURE_2D, &self.id);
+        self.bind();
     }
 }
 
@@ -201,7 +215,7 @@ impl<T: TextureDataType> Texture for Texture2D<T> {}
 
 impl<T: TextureDataType> Drop for Texture2D<T> {
     fn drop(&mut self) {
-        self.context.delete_texture(&self.id);
+        self.context.delete_texture(self.id);
     }
 }
 

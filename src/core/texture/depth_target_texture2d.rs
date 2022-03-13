@@ -1,6 +1,5 @@
-use crate::context::consts;
 use crate::core::texture::*;
-use crate::core::*;
+use glow::HasContext;
 
 ///
 /// Type of formats for depth render targets ([DepthTargetTexture2D] and
@@ -21,7 +20,7 @@ pub enum DepthFormat {
 ///
 pub struct DepthTargetTexture2D {
     context: Context,
-    id: crate::context::Texture,
+    id: glow::Texture,
     width: u32,
     height: u32,
 }
@@ -39,10 +38,16 @@ impl DepthTargetTexture2D {
         format: DepthFormat,
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
+        let texture = Self {
+            context: context.clone(),
+            id,
+            width,
+            height,
+        };
+        texture.bind();
         set_parameters(
             context,
-            &id,
-            consts::TEXTURE_2D,
+            glow::TEXTURE_2D,
             Interpolation::Nearest,
             Interpolation::Nearest,
             None,
@@ -51,18 +56,13 @@ impl DepthTargetTexture2D {
             None,
         );
         context.tex_storage_2d(
-            consts::TEXTURE_2D,
+            glow::TEXTURE_2D,
             1,
             internal_format_from_depth(format),
-            width as u32,
-            height as u32,
+            width as i32,
+            height as i32,
         );
-        Ok(Self {
-            context: context.clone(),
-            id,
-            width,
-            height,
-        })
+        Ok(texture)
     }
 
     ///
@@ -95,18 +95,22 @@ impl DepthTargetTexture2D {
 
     pub(in crate::core) fn bind_as_depth_target(&self) {
         self.context.framebuffer_texture_2d(
-            consts::FRAMEBUFFER,
-            consts::DEPTH_ATTACHMENT,
-            consts::TEXTURE_2D,
-            &self.id,
+            glow::FRAMEBUFFER,
+            glow::DEPTH_ATTACHMENT,
+            glow::TEXTURE_2D,
+            Some(self.id),
             0,
         );
+    }
+
+    fn bind(&self) {
+        self.context.bind_texture(glow::TEXTURE_2D, Some(self.id));
     }
 }
 
 impl super::internal::TextureExtensions for DepthTargetTexture2D {
     fn bind(&self) {
-        self.context.bind_texture(consts::TEXTURE_2D, &self.id);
+        self.bind();
     }
 }
 
