@@ -1,12 +1,5 @@
-layout (std140) uniform Camera
-{
-    mat4 viewProjection;
-    mat4 view;
-    mat4 projection;
-    vec3 position;
-    float padding;
-} camera;
 
+uniform mat4 viewProjection;
 uniform mat4 modelMatrix;
 in vec3 position;
 
@@ -71,7 +64,7 @@ void main()
 #endif
 
     vec4 worldPosition = local2World * vec4(position, 1.);
-    gl_Position = camera.viewProjection * worldPosition;
+    gl_Position = viewProjection * worldPosition;
 
 #ifdef USE_POSITIONS
     pos = worldPosition.xyz;
