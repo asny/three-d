@@ -29,14 +29,14 @@ impl Screen {
     pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<u8>> {
         let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
-        context.read_pixels_with_u8_data(
-            viewport.x as u32,
-            viewport.y as u32,
-            viewport.width,
-            viewport.height,
+        context.read_pixels(
+            viewport.x as i32,
+            viewport.y as i32,
+            viewport.width as i32,
+            viewport.height as i32,
             glow::RGBA,
             glow::UNSIGNED_BYTE,
-            &mut pixels,
+            glow::PixelPackData::Slice(&mut pixels),
         );
         Ok(pixels)
     }
@@ -47,18 +47,19 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        let mut pixels = vec![0f32; viewport.width as usize * viewport.height as usize];
+        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
-        context.read_pixels_with_f32_data(
-            viewport.x as u32,
-            viewport.y as u32,
-            viewport.width,
-            viewport.height,
+        context.read_pixels(
+            viewport.x as i32,
+            viewport.y as i32,
+            viewport.width as i32,
+            viewport.height as i32,
             glow::DEPTH_COMPONENT,
             glow::FLOAT,
-            &mut pixels,
+            glow::PixelPackData::Slice(&mut pixels),
         );
-        Ok(pixels)
+        use super::internal::*;
+        Ok(f32::from_bytes(&pixels))
     }
 
     ///

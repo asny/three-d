@@ -36,11 +36,11 @@ impl Program {
 
         context.shader_source(
             vert_shader,
-            format!("#version 330 core\n{}", vertex_shader_source),
+            &format!("#version 330 core\n{}", vertex_shader_source),
         );
         context.shader_source(
             frag_shader,
-            format!("#version 330 core\n{}", fragment_shader_source),
+            &format!("#version 330 core\n{}", fragment_shader_source),
         );
         context.compile_shader(vert_shader);
         context.compile_shader(frag_shader);
