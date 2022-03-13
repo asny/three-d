@@ -82,7 +82,10 @@ impl Program {
                     context.get_active_attribute(id, i)
                 {
                     let location = context.get_attrib_location(id, &name).unwrap();
-                    //println!("Attribute location: {}, name: {}, type: {}, size: {}", location, name, atype, size);
+                    /*println!(
+                        "Attribute location: {}, name: {}, type: {}, size: {}",
+                        location, name, atype, size
+                    );*/
                     attributes.insert(name, location);
                 }
             }
@@ -92,16 +95,14 @@ impl Program {
             let mut uniforms = HashMap::new();
             for i in 0..num_uniforms {
                 if let Some(glow::ActiveUniform { name, .. }) = context.get_active_uniform(id, i) {
-                    let location = context.get_uniform_location(id, &name).unwrap();
-                    let name = name.split('[').collect::<Vec<_>>()[0].to_string();
-                    /*println!(
-                        "Uniform location: {:?}, name: {}, type: {}, size: {}",
-                        location,
-                        name,
-                        atype,
-                        size
-                    );*/
-                    uniforms.insert(name, location);
+                    if let Some(location) = context.get_uniform_location(id, &name) {
+                        let name = name.split('[').collect::<Vec<_>>()[0].to_string();
+                        /*println!(
+                            "Uniform location: {:?}, name: {}, type: {}, size: {}",
+                            location, name, utype, size
+                        );*/
+                        uniforms.insert(name, location);
+                    }
                 }
             }
 
