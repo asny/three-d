@@ -246,7 +246,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                 self.height as i32,
                 self.format.as_const(),
                 T::data_type(),
-                glow::PixelUnpackData::Slice(&T::to_bytes(data)),
+                glow::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(data)),
             );
         }
         self.generate_mip_maps();

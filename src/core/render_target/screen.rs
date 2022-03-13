@@ -58,8 +58,7 @@ impl Screen {
             glow::FLOAT,
             glow::PixelPackData::Slice(&mut pixels),
         );
-        use super::internal::*;
-        Ok(f32::from_bytes(&pixels))
+        Ok(super::internal::from_byte_slice(&pixels).to_vec())
     }
 
     ///
