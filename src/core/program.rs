@@ -27,93 +27,95 @@ impl Program {
         vertex_shader_source: &str,
         fragment_shader_source: &str,
     ) -> ThreeDResult<Program> {
-        let vert_shader = context
-            .create_shader(glow::VERTEX_SHADER)
-            .map_err(|e| CoreError::ShaderCreation(e))?;
-        let frag_shader = context
-            .create_shader(glow::FRAGMENT_SHADER)
-            .map_err(|e| CoreError::ShaderCreation(e))?;
+        unsafe {
+            let vert_shader = context
+                .create_shader(glow::VERTEX_SHADER)
+                .map_err(|e| CoreError::ShaderCreation(e))?;
+            let frag_shader = context
+                .create_shader(glow::FRAGMENT_SHADER)
+                .map_err(|e| CoreError::ShaderCreation(e))?;
 
-        context.shader_source(
-            vert_shader,
-            &format!("#version 330 core\n{}", vertex_shader_source),
-        );
-        context.shader_source(
-            frag_shader,
-            &format!("#version 330 core\n{}", fragment_shader_source),
-        );
-        context.compile_shader(vert_shader);
-        context.compile_shader(frag_shader);
+            context.shader_source(
+                vert_shader,
+                &format!("#version 330 core\n{}", vertex_shader_source),
+            );
+            context.shader_source(
+                frag_shader,
+                &format!("#version 330 core\n{}", fragment_shader_source),
+            );
+            context.compile_shader(vert_shader);
+            context.compile_shader(frag_shader);
 
-        let id = context
-            .create_program()
-            .map_err(|e| CoreError::ProgramCreation(e))?;
-        context.attach_shader(id, vert_shader);
-        context.attach_shader(id, frag_shader);
-        context.link_program(id);
+            let id = context
+                .create_program()
+                .map_err(|e| CoreError::ProgramCreation(e))?;
+            context.attach_shader(id, vert_shader);
+            context.attach_shader(id, frag_shader);
+            context.link_program(id);
 
-        if !context.get_program_link_status(id) {
-            let log = context.get_shader_info_log(vert_shader);
-            if log.len() > 0 {
-                Err(CoreError::ShaderCompilation("vertex".to_string(), log))?;
+            if !context.get_program_link_status(id) {
+                let log = context.get_shader_info_log(vert_shader);
+                if log.len() > 0 {
+                    Err(CoreError::ShaderCompilation("vertex".to_string(), log))?;
+                }
+                let log = context.get_shader_info_log(frag_shader);
+                if log.len() > 0 {
+                    Err(CoreError::ShaderCompilation("fragment".to_string(), log))?;
+                }
+                let log = context.get_program_info_log(id);
+                if log.len() > 0 {
+                    Err(CoreError::ShaderLink(log))?;
+                }
+                unreachable!();
             }
-            let log = context.get_shader_info_log(frag_shader);
-            if log.len() > 0 {
-                Err(CoreError::ShaderCompilation("fragment".to_string(), log))?;
+
+            context.detach_shader(id, vert_shader);
+            context.detach_shader(id, frag_shader);
+            context.delete_shader(vert_shader);
+            context.delete_shader(frag_shader);
+
+            // Init vertex attributes
+            let num_attribs = context.get_active_attributes(id);
+            let mut attributes = HashMap::new();
+            for i in 0..num_attribs {
+                if let Some(glow::ActiveAttribute { name, size, atype }) =
+                    context.get_active_attribute(id, i)
+                {
+                    let location = context.get_attrib_location(id, &name).unwrap();
+                    //println!("Attribute location: {}, name: {}, type: {}, size: {}", location, name, atype, size);
+                    attributes.insert(name, location);
+                }
             }
-            let log = context.get_program_info_log(id);
-            if log.len() > 0 {
-                Err(CoreError::ShaderLink(log))?;
+
+            // Init uniforms
+            let num_uniforms = context.get_active_uniforms(id);
+            let mut uniforms = HashMap::new();
+            for i in 0..num_uniforms {
+                if let Some(glow::ActiveUniform { name, size, utype }) =
+                    context.get_active_uniform(id, i)
+                {
+                    let location = context.get_uniform_location(id, &name).unwrap();
+                    let name = name.split('[').collect::<Vec<_>>()[0].to_string();
+                    /*println!(
+                        "Uniform location: {:?}, name: {}, type: {}, size: {}",
+                        location,
+                        name,
+                        atype,
+                        size
+                    );*/
+                    uniforms.insert(name, location);
+                }
             }
-            unreachable!();
+
+            Ok(Program {
+                context: context.clone(),
+                id,
+                attributes,
+                uniforms,
+                uniform_blocks: RefCell::new(HashMap::new()),
+                textures: RefCell::new(HashMap::new()),
+            })
         }
-
-        context.detach_shader(id, vert_shader);
-        context.detach_shader(id, frag_shader);
-        context.delete_shader(vert_shader);
-        context.delete_shader(frag_shader);
-
-        // Init vertex attributes
-        let num_attribs = context.get_active_attributes(id);
-        let mut attributes = HashMap::new();
-        for i in 0..num_attribs {
-            if let Some(glow::ActiveAttribute { name, size, atype }) =
-                context.get_active_attribute(id, i)
-            {
-                let location = context.get_attrib_location(id, &name).unwrap();
-                //println!("Attribute location: {}, name: {}, type: {}, size: {}", location, name, atype, size);
-                attributes.insert(name, location);
-            }
-        }
-
-        // Init uniforms
-        let num_uniforms = context.get_active_uniforms(id);
-        let mut uniforms = HashMap::new();
-        for i in 0..num_uniforms {
-            if let Some(glow::ActiveUniform { name, size, utype }) =
-                context.get_active_uniform(id, i)
-            {
-                let location = context.get_uniform_location(id, &name).unwrap();
-                name = name.split('[').collect::<Vec<_>>()[0].to_string();
-                /*println!(
-                    "Uniform location: {:?}, name: {}, type: {}, size: {}",
-                    location,
-                    name,
-                    atype,
-                    size
-                );*/
-                uniforms.insert(name, location);
-            }
-        }
-
-        Ok(Program {
-            context: context.clone(),
-            id,
-            attributes,
-            uniforms,
-            uniform_blocks: RefCell::new(HashMap::new()),
-            textures: RefCell::new(HashMap::new()),
-        })
     }
 
     ///
@@ -128,7 +130,7 @@ impl Program {
     pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) -> ThreeDResult<()> {
         let location = self.get_uniform_location(name)?;
         data.send(&self.context, location);
-        self.context.use_program(None);
+        self.unuse_program();
         Ok(())
     }
 
@@ -148,7 +150,7 @@ impl Program {
     ) -> ThreeDResult<()> {
         let location = self.get_uniform_location(name)?;
         T::send_array(data, &self.context, location);
-        self.context.use_program(None);
+        self.unuse_program();
         Ok(())
     }
 
@@ -261,7 +263,7 @@ impl Program {
     }
 
     fn get_uniform_location(&self, name: &str) -> ThreeDResult<&UniformLocation> {
-        self.set_used();
+        self.use_program();
         let loc = self
             .uniforms
             .get(name)
@@ -370,7 +372,7 @@ impl Program {
             );
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -403,7 +405,7 @@ impl Program {
             );
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -430,7 +432,7 @@ impl Program {
                 .vertex_attrib_pointer_f32(loc, 1, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -457,7 +459,7 @@ impl Program {
                 .vertex_attrib_pointer_f32(loc, 1, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -484,7 +486,7 @@ impl Program {
                 .vertex_attrib_pointer_f32(loc, 2, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -511,7 +513,7 @@ impl Program {
                 .vertex_attrib_pointer_f32(loc, 2, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -538,7 +540,7 @@ impl Program {
                 .vertex_attrib_pointer_f32(loc, 3, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -565,7 +567,7 @@ impl Program {
                 .vertex_attrib_pointer_f32(loc, 3, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -592,7 +594,7 @@ impl Program {
                 .vertex_attrib_pointer_f32(loc, 4, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -615,7 +617,7 @@ impl Program {
                 .vertex_attrib_pointer_f32(loc, 4, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
-            self.context.use_program(None);
+            self.unuse_program();
         }
         Ok(())
     }
@@ -629,12 +631,12 @@ impl Program {
     pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
-        self.set_used();
+        self.use_program();
         self.context.draw_arrays(glow::TRIANGLES, 0, count as i32);
         for location in self.attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
         }
-        self.context.use_program(None);
+        self.unuse_program();
     }
 
     ///
@@ -650,14 +652,14 @@ impl Program {
     ) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
-        self.set_used();
+        self.use_program();
         self.context
             .draw_arrays_instanced(glow::TRIANGLES, 0, count as i32, instance_count as i32);
         self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
         for location in self.attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
         }
-        self.context.use_program(None);
+        self.unuse_program();
     }
 
     ///
@@ -695,7 +697,7 @@ impl Program {
     ) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
-        self.set_used();
+        self.use_program();
         element_buffer.bind();
         self.context
             .draw_elements(glow::TRIANGLES, count as i32, T::data_type(), first as i32);
@@ -704,7 +706,7 @@ impl Program {
         for location in self.attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
         }
-        self.context.use_program(None);
+        self.unuse_program();
     }
 
     ///
@@ -743,7 +745,7 @@ impl Program {
     ) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
-        self.set_used();
+        self.use_program();
         element_buffer.bind();
         self.context.draw_elements_instanced(
             glow::TRIANGLES,
@@ -756,7 +758,7 @@ impl Program {
         for location in self.attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
         }
-        self.context.use_program(None);
+        self.unuse_program();
     }
 
     ///
@@ -774,7 +776,7 @@ impl Program {
     }
 
     fn location(&self, name: &str) -> ThreeDResult<u32> {
-        self.set_used();
+        self.use_program();
         let location = self
             .attributes
             .get(name)
@@ -782,8 +784,16 @@ impl Program {
         Ok(*location)
     }
 
-    fn set_used(&self) {
-        self.context.use_program(Some(self.id));
+    fn use_program(&self) {
+        unsafe {
+            self.context.use_program(Some(self.id));
+        }
+    }
+
+    fn unuse_program(&self) {
+        unsafe {
+            self.context.use_program(None);
+        }
     }
 
     fn set_states(context: &Context, render_states: RenderStates) {

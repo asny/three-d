@@ -42,9 +42,11 @@ impl<T: BufferDataType> Buffer<T> {
     pub fn new(context: &Context) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
-            id: context
-                .create_buffer()
-                .map_err(|e| CoreError::BufferCreation(e))?,
+            id: unsafe {
+                context
+                    .create_buffer()
+                    .map_err(|e| CoreError::BufferCreation(e))?
+            },
             attribute_count: 0,
             _dummy: T::default(),
         })
@@ -60,16 +62,18 @@ impl<T: BufferDataType> Buffer<T> {
 
     pub fn fill(&mut self, data: &[T]) {
         self.bind();
-        self.context.buffer_data_u8_slice(
-            glow::ARRAY_BUFFER,
-            &T::to_bytes(data),
-            if self.attribute_count > 0 {
-                glow::DYNAMIC_DRAW
-            } else {
-                glow::STATIC_DRAW
-            },
-        );
-        self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+        unsafe {
+            self.context.buffer_data_u8_slice(
+                glow::ARRAY_BUFFER,
+                &T::to_bytes(data),
+                if self.attribute_count > 0 {
+                    glow::DYNAMIC_DRAW
+                } else {
+                    glow::STATIC_DRAW
+                },
+            );
+            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+        }
         self.attribute_count = data.len() as u32;
     }
 
@@ -78,12 +82,16 @@ impl<T: BufferDataType> Buffer<T> {
     }
 
     pub fn bind(&self) {
-        self.context.bind_buffer(glow::ARRAY_BUFFER, Some(self.id));
+        unsafe {
+            self.context.bind_buffer(glow::ARRAY_BUFFER, Some(self.id));
+        }
     }
 }
 
 impl<T: BufferDataType> Drop for Buffer<T> {
     fn drop(&mut self) {
-        self.context.delete_buffer(self.id);
+        unsafe {
+            self.context.delete_buffer(self.id);
+        }
     }
 }
