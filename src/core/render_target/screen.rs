@@ -1,6 +1,5 @@
-use crate::context::{consts, DataType};
 use crate::core::render_target::*;
-use crate::core::*;
+use glow::HasContext;
 
 ///
 /// The screen render target which is essential to get something on the screen (see the [write function](Screen::write)).
@@ -18,7 +17,7 @@ impl Screen {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
+        context.bind_framebuffer(glow::DRAW_FRAMEBUFFER, None);
         clear(context, &clear_state);
         render()?;
         Ok(())
@@ -29,14 +28,14 @@ impl Screen {
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<u8>> {
         let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
-        context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
+        context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
         context.read_pixels_with_u8_data(
             viewport.x as u32,
             viewport.y as u32,
             viewport.width,
             viewport.height,
-            consts::RGBA,
-            DataType::UnsignedByte,
+            glow::RGBA,
+            glow::UNSIGNED_BYTE,
             &mut pixels,
         );
         Ok(pixels)
@@ -49,14 +48,14 @@ impl Screen {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
         let mut pixels = vec![0f32; viewport.width as usize * viewport.height as usize];
-        context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
+        context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
         context.read_pixels_with_f32_data(
             viewport.x as u32,
             viewport.y as u32,
             viewport.width,
             viewport.height,
-            consts::DEPTH_COMPONENT,
-            DataType::Float,
+            glow::DEPTH_COMPONENT,
+            glow::FLOAT,
             &mut pixels,
         );
         Ok(pixels)
