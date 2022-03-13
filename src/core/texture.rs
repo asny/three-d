@@ -386,9 +386,11 @@ impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {}
 
 // COMMON TEXTURE FUNCTIONS
 fn generate(context: &Context) -> ThreeDResult<glow::Texture> {
-    Ok(context
-        .create_texture()
-        .map_err(|e| CoreError::TextureCreation(e))?)
+    unsafe {
+        Ok(context
+            .create_texture()
+            .map_err(|e| CoreError::TextureCreation(e))?)
+    }
 }
 
 fn set_parameters(
@@ -401,52 +403,54 @@ fn set_parameters(
     wrap_t: Wrapping,
     wrap_r: Option<Wrapping>,
 ) {
-    match mip_map_filter {
-        None => context.tex_parameter_i32(
+    unsafe {
+        match mip_map_filter {
+            None => context.tex_parameter_i32(
+                target,
+                glow::TEXTURE_MIN_FILTER,
+                interpolation_from(min_filter),
+            ),
+            Some(Interpolation::Nearest) => {
+                if min_filter == Interpolation::Nearest {
+                    context.tex_parameter_i32(
+                        target,
+                        glow::TEXTURE_MIN_FILTER,
+                        glow::NEAREST_MIPMAP_NEAREST as i32,
+                    );
+                } else {
+                    context.tex_parameter_i32(
+                        target,
+                        glow::TEXTURE_MIN_FILTER,
+                        glow::LINEAR_MIPMAP_NEAREST as i32,
+                    )
+                }
+            }
+            Some(Interpolation::Linear) => {
+                if min_filter == Interpolation::Nearest {
+                    context.tex_parameter_i32(
+                        target,
+                        glow::TEXTURE_MIN_FILTER,
+                        glow::NEAREST_MIPMAP_LINEAR as i32,
+                    );
+                } else {
+                    context.tex_parameter_i32(
+                        target,
+                        glow::TEXTURE_MIN_FILTER,
+                        glow::LINEAR_MIPMAP_LINEAR as i32,
+                    )
+                }
+            }
+        }
+        context.tex_parameter_i32(
             target,
-            glow::TEXTURE_MIN_FILTER,
-            interpolation_from(min_filter),
-        ),
-        Some(Interpolation::Nearest) => {
-            if min_filter == Interpolation::Nearest {
-                context.tex_parameter_i32(
-                    target,
-                    glow::TEXTURE_MIN_FILTER,
-                    glow::NEAREST_MIPMAP_NEAREST as i32,
-                );
-            } else {
-                context.tex_parameter_i32(
-                    target,
-                    glow::TEXTURE_MIN_FILTER,
-                    glow::LINEAR_MIPMAP_NEAREST as i32,
-                )
-            }
+            glow::TEXTURE_MAG_FILTER,
+            interpolation_from(mag_filter),
+        );
+        context.tex_parameter_i32(target, glow::TEXTURE_WRAP_S, wrapping_from(wrap_s));
+        context.tex_parameter_i32(target, glow::TEXTURE_WRAP_T, wrapping_from(wrap_t));
+        if let Some(r) = wrap_r {
+            context.tex_parameter_i32(target, glow::TEXTURE_WRAP_R, wrapping_from(r));
         }
-        Some(Interpolation::Linear) => {
-            if min_filter == Interpolation::Nearest {
-                context.tex_parameter_i32(
-                    target,
-                    glow::TEXTURE_MIN_FILTER,
-                    glow::NEAREST_MIPMAP_LINEAR as i32,
-                );
-            } else {
-                context.tex_parameter_i32(
-                    target,
-                    glow::TEXTURE_MIN_FILTER,
-                    glow::LINEAR_MIPMAP_LINEAR as i32,
-                )
-            }
-        }
-    }
-    context.tex_parameter_i32(
-        target,
-        glow::TEXTURE_MAG_FILTER,
-        interpolation_from(mag_filter),
-    );
-    context.tex_parameter_i32(target, glow::TEXTURE_WRAP_S, wrapping_from(wrap_s));
-    context.tex_parameter_i32(target, glow::TEXTURE_WRAP_T, wrapping_from(wrap_t));
-    if let Some(r) = wrap_r {
-        context.tex_parameter_i32(target, glow::TEXTURE_WRAP_R, wrapping_from(r));
     }
 }
 

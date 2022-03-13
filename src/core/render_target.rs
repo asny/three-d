@@ -115,9 +115,11 @@ pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureDataType> {
 }
 
 pub(in crate::core) fn new_framebuffer(context: &Context) -> ThreeDResult<glow::Framebuffer> {
-    Ok(context
-        .create_framebuffer()
-        .map_err(|e| CoreError::RenderTargetCreation(e))?)
+    unsafe {
+        Ok(context
+            .create_framebuffer()
+            .map_err(|e| CoreError::RenderTargetCreation(e))?)
+    }
 }
 
 #[cfg(feature = "debug")]
@@ -169,26 +171,28 @@ fn clear(context: &Context, clear_state: &ClearState) {
         || clear_state.green.is_some()
         || clear_state.blue.is_some()
         || clear_state.alpha.is_some();
-    if clear_color {
-        context.clear_color(
-            clear_state.red.unwrap_or(0.0),
-            clear_state.green.unwrap_or(0.0),
-            clear_state.blue.unwrap_or(0.0),
-            clear_state.alpha.unwrap_or(1.0),
-        );
-    }
-    if let Some(depth) = clear_state.depth {
-        context.clear_depth_f32(depth);
-    }
-    context.clear(if clear_color && clear_state.depth.is_some() {
-        glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT
-    } else {
+    unsafe {
         if clear_color {
-            glow::COLOR_BUFFER_BIT
-        } else {
-            glow::DEPTH_BUFFER_BIT
+            context.clear_color(
+                clear_state.red.unwrap_or(0.0),
+                clear_state.green.unwrap_or(0.0),
+                clear_state.blue.unwrap_or(0.0),
+                clear_state.alpha.unwrap_or(1.0),
+            );
         }
-    });
+        if let Some(depth) = clear_state.depth {
+            context.clear_depth_f32(depth);
+        }
+        context.clear(if clear_color && clear_state.depth.is_some() {
+            glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT
+        } else {
+            if clear_color {
+                glow::COLOR_BUFFER_BIT
+            } else {
+                glow::DEPTH_BUFFER_BIT
+            }
+        });
+    }
 }
 
 fn copy_from(
