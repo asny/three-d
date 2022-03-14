@@ -23,7 +23,6 @@ egui-gui = ["egui"] # Additional GUI features
 image-io = ["image"] # Additional image functionality, for example loading an image to a texture
 obj-io = ["wavefront_obj", "image-io"]
 gltf-io = ["gltf", "image-io"]
-debug = [] # Prints OpenGL debug information (only available when NOT building for the wasm32 architecture)
 
 [dependencies]
 glow = "0.11"
