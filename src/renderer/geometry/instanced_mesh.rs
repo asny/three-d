@@ -278,16 +278,15 @@ impl InstancedMesh {
                     buffer,
                     self.instance_count,
                 ),
-            };
+            }
         } else {
             program.draw_arrays_instanced(
                 render_states,
                 viewport,
                 self.position_buffer.vertex_count() as u32,
                 self.instance_count,
-            );
+            )
         }
-        Ok(())
     }
 
     fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
