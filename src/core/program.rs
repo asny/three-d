@@ -35,13 +35,26 @@ impl Program {
                 .create_shader(glow::FRAGMENT_SHADER)
                 .map_err(|e| CoreError::ShaderCreation(e))?;
 
-            context.shader_source(
-                vert_shader,
-                &format!("#version 330 core\n{}", vertex_shader_source),
-            );
+            #[cfg(target_arch = "wasm32")]
+            const HEADER: &str = "#version 300 es
+                    #ifdef GL_FRAGMENT_PRECISION_HIGH
+                        precision highp float;
+                        precision highp int;
+                        precision highp sampler2DArray;
+                        precision highp sampler3D;
+                    #else
+                        precision mediump float;
+                        precision mediump int;
+                        precision mediump sampler2DArray;
+                        precision mediump sampler3D;
+                    #endif\n";
+            #[cfg(not(target_arch = "wasm32"))]
+            const HEADER: &str = "#version 330 core\n";
+
+            context.shader_source(vert_shader, &format!("{}{}", HEADER, vertex_shader_source));
             context.shader_source(
                 frag_shader,
-                &format!("#version 330 core\n{}", fragment_shader_source),
+                &format!("{}{}", HEADER, fragment_shader_source),
             );
             context.compile_shader(vert_shader);
             context.compile_shader(frag_shader);
