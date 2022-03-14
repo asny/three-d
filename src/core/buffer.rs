@@ -55,12 +55,12 @@ impl<T: BufferDataType> Buffer<T> {
     pub fn new_with_data(context: &Context, data: &[T]) -> ThreeDResult<Self> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
-            buffer.fill(data);
+            buffer.fill(data)?;
         }
         Ok(buffer)
     }
 
-    pub fn fill(&mut self, data: &[T]) {
+    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
         self.bind();
         unsafe {
             self.context.buffer_data_u8_slice(
@@ -75,6 +75,7 @@ impl<T: BufferDataType> Buffer<T> {
             self.context.bind_buffer(glow::ARRAY_BUFFER, None);
         }
         self.attribute_count = data.len() as u32;
+        self.context.error_check()
     }
 
     pub fn attribute_count(&self) -> u32 {

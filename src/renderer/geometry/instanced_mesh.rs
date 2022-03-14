@@ -88,7 +88,7 @@ impl InstancedMesh {
             instance_count: 0,
             texture_transform: Mat3::identity(),
         };
-        model.set_instances(instances);
+        model.set_instances(instances)?;
         Ok(model)
     }
 
@@ -145,13 +145,13 @@ impl InstancedMesh {
     ///
     /// Create an instance for each element with the given mesh and texture transforms.
     ///
-    pub fn set_instances(&mut self, instances: &[Instance]) {
+    pub fn set_instances(&mut self, instances: &[Instance]) -> ThreeDResult<()> {
         self.instance_count = instances.len() as u32;
         self.instances = instances.to_vec();
-        self.update_buffers();
+        self.update_buffers()
     }
 
-    fn update_buffers(&mut self) {
+    fn update_buffers(&mut self) -> ThreeDResult<()> {
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
@@ -191,12 +191,15 @@ impl InstancedMesh {
                 instance.texture_transform.z.y,
             ));
         }
-        self.instance_buffer1.fill(&row1);
-        self.instance_buffer2.fill(&row2);
-        self.instance_buffer3.fill(&row3);
-        self.instance_tex_transform1.fill(&instance_tex_transform1);
-        self.instance_tex_transform2.fill(&instance_tex_transform2);
+        self.instance_buffer1.fill(&row1)?;
+        self.instance_buffer2.fill(&row2)?;
+        self.instance_buffer3.fill(&row3)?;
+        self.instance_tex_transform1
+            .fill(&instance_tex_transform1)?;
+        self.instance_tex_transform2
+            .fill(&instance_tex_transform2)?;
         self.update_aabb();
+        Ok(())
     }
 
     fn update_aabb(&mut self) {

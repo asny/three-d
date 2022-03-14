@@ -33,8 +33,8 @@ impl<T: BufferDataType> VertexBuffer<T> {
     /// Fills the vertex buffer with the given data. The data should be in the same format as specified in the shader.
     /// As an example, if specified as `vec3` in the shader it needs to be specified as an array of `Vector3<T>` where `T` is a primitive type that implements [BufferDataType], for example can be f16 or f32.
     ///
-    pub fn fill(&mut self, data: &[T]) {
-        self.buffer.fill(data);
+    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
+        self.buffer.fill(data)
     }
 
     ///
@@ -82,7 +82,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
     ///
     #[deprecated = "use fill() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
     pub fn fill_with_static(&mut self, data: &[T]) {
-        self.fill(data)
+        self.fill(data).unwrap();
     }
 
     ///
@@ -92,6 +92,6 @@ impl<T: BufferDataType> VertexBuffer<T> {
     ///
     #[deprecated = "use fill() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
     pub fn fill_with_dynamic(&mut self, data: &[T]) {
-        self.fill(data)
+        self.fill(data).unwrap();
     }
 }
