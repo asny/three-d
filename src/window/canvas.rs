@@ -130,9 +130,9 @@ impl Window {
             .get_extension("OES_texture_float_linear")
             .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
 
-        Ok(crate::core::Context::from_gl_context(
-            crate::context::GLContext::new(context),
-        ))
+        Ok(crate::core::Context::from_gl_context(Rc::new(
+            glow::Context::from_webgl2_context(context),
+        )))
     }
 
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(
