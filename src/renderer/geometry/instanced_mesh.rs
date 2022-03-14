@@ -212,86 +212,6 @@ impl InstancedMesh {
         self.aabb = aabb;
     }
 
-    fn draw(
-        &self,
-        program: &Program,
-        render_states: RenderStates,
-        camera_buffer: &UniformBuffer,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        program.use_uniform_block("Camera", camera_buffer)?;
-        program.use_uniform("modelMatrix", &self.transformation)?;
-
-        program.use_instance_attribute("row1", &self.instance_buffer1)?;
-        program.use_instance_attribute("row2", &self.instance_buffer2)?;
-        program.use_instance_attribute("row3", &self.instance_buffer3)?;
-
-        if program.requires_attribute("position") {
-            program.use_vertex_attribute("position", &self.position_buffer)?;
-        }
-        if program.requires_attribute("uv_coordinates") {
-            program.use_uniform("textureTransform", &self.texture_transform)?;
-            program.use_instance_attribute("tex_transform_row1", &self.instance_tex_transform1)?;
-            program.use_instance_attribute("tex_transform_row2", &self.instance_tex_transform2)?;
-            let uv_buffer = self
-                .uv_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
-            program.use_vertex_attribute("uv_coordinates", uv_buffer)?;
-        }
-        if program.requires_attribute("normal") {
-            let normal_buffer = self
-                .normal_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-            program.use_vertex_attribute("normal", normal_buffer)?;
-            if program.requires_attribute("tangent") {
-                let tangent_buffer = self
-                    .tangent_buffer
-                    .as_ref()
-                    .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
-                program.use_vertex_attribute("tangent", tangent_buffer)?;
-            }
-        }
-        if program.requires_attribute("color") {
-            let color_buffer = self
-                .color_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
-            program.use_vertex_attribute("color", color_buffer)?;
-        }
-
-        if let Some(ref index_buffer) = self.index_buffer {
-            match index_buffer {
-                IndexBuffer::U8(ref buffer) => program.draw_elements_instanced(
-                    render_states,
-                    viewport,
-                    buffer,
-                    self.instance_count,
-                ),
-                IndexBuffer::U16(ref buffer) => program.draw_elements_instanced(
-                    render_states,
-                    viewport,
-                    buffer,
-                    self.instance_count,
-                ),
-                IndexBuffer::U32(ref buffer) => program.draw_elements_instanced(
-                    render_states,
-                    viewport,
-                    buffer,
-                    self.instance_count,
-                ),
-            }
-        } else {
-            program.draw_arrays_instanced(
-                render_states,
-                viewport,
-                self.position_buffer.vertex_count() as u32,
-                self.instance_count,
-            )
-        }
-    }
-
     fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
@@ -348,12 +268,84 @@ impl Geometry for InstancedMesh {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera.uniform_buffer(),
-                    camera.viewport(),
-                )
+
+                program.use_uniform("viewProjection", camera.projection() * camera.view())?;
+                program.use_uniform("modelMatrix", &self.transformation)?;
+
+                program.use_instance_attribute("row1", &self.instance_buffer1)?;
+                program.use_instance_attribute("row2", &self.instance_buffer2)?;
+                program.use_instance_attribute("row3", &self.instance_buffer3)?;
+
+                if program.requires_attribute("position") {
+                    program.use_vertex_attribute("position", &self.position_buffer)?;
+                }
+                if program.requires_attribute("uv_coordinates") {
+                    program.use_uniform("textureTransform", &self.texture_transform)?;
+                    program.use_instance_attribute(
+                        "tex_transform_row1",
+                        &self.instance_tex_transform1,
+                    )?;
+                    program.use_instance_attribute(
+                        "tex_transform_row2",
+                        &self.instance_tex_transform2,
+                    )?;
+                    let uv_buffer = self
+                        .uv_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
+                    program.use_vertex_attribute("uv_coordinates", uv_buffer)?;
+                }
+                if program.requires_attribute("normal") {
+                    let normal_buffer = self
+                        .normal_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
+                    program.use_vertex_attribute("normal", normal_buffer)?;
+                    if program.requires_attribute("tangent") {
+                        let tangent_buffer = self
+                            .tangent_buffer
+                            .as_ref()
+                            .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
+                        program.use_vertex_attribute("tangent", tangent_buffer)?;
+                    }
+                }
+                if program.requires_attribute("color") {
+                    let color_buffer = self
+                        .color_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
+                    program.use_vertex_attribute("color", color_buffer)?;
+                }
+
+                if let Some(ref index_buffer) = self.index_buffer {
+                    match index_buffer {
+                        IndexBuffer::U8(ref buffer) => program.draw_elements_instanced(
+                            material.render_states(),
+                            camera.viewport(),
+                            buffer,
+                            self.instance_count,
+                        ),
+                        IndexBuffer::U16(ref buffer) => program.draw_elements_instanced(
+                            material.render_states(),
+                            camera.viewport(),
+                            buffer,
+                            self.instance_count,
+                        ),
+                        IndexBuffer::U32(ref buffer) => program.draw_elements_instanced(
+                            material.render_states(),
+                            camera.viewport(),
+                            buffer,
+                            self.instance_count,
+                        ),
+                    }
+                } else {
+                    program.draw_arrays_instanced(
+                        material.render_states(),
+                        camera.viewport(),
+                        self.position_buffer.vertex_count() as u32,
+                        self.instance_count,
+                    )
+                }
             },
         )
     }
