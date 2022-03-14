@@ -21,6 +21,7 @@ pub struct Context {
 
 impl Context {
     pub fn from_gl_context(context: Rc<glow::Context>) -> ThreeDResult<Self> {
+        #[cfg(not(target_arch = "wasm32"))]
         unsafe {
             // Create one Vertex Array Object which is then reused all the time.
             let vao = context
