@@ -54,7 +54,7 @@ impl ImageEffect {
             .use_vertex_attribute("position", &self.positions)?;
         self.program
             .use_vertex_attribute("uv_coordinate", &self.uvs)?;
-        self.program.draw_arrays(render_states, viewport, 3);
+        self.program.draw_arrays(render_states, viewport, 3)?;
         Ok(())
     }
 

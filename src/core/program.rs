@@ -652,7 +652,12 @@ impl Program {
     /// Assumes that the data for the three vertices in a triangle is defined contiguous in each vertex buffer.
     /// If you want to use an [ElementBuffer], see [Program::draw_elements].
     ///
-    pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32) {
+    pub fn draw_arrays(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        count: u32,
+    ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.use_program();
@@ -663,6 +668,7 @@ impl Program {
             }
         }
         self.unuse_program();
+        self.error_check()
     }
 
     ///
@@ -675,7 +681,7 @@ impl Program {
         viewport: Viewport,
         count: u32,
         instance_count: u32,
-    ) {
+    ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.use_program();
@@ -692,6 +698,7 @@ impl Program {
             }
         }
         self.unuse_program();
+        self.error_check()
     }
 
     ///
@@ -704,14 +711,14 @@ impl Program {
         render_states: RenderStates,
         viewport: Viewport,
         element_buffer: &ElementBuffer<T>,
-    ) {
+    ) -> ThreeDResult<()> {
         self.draw_subset_of_elements(
             render_states,
             viewport,
             element_buffer,
             0,
             element_buffer.count() as u32,
-        );
+        )
     }
 
     ///
@@ -726,7 +733,7 @@ impl Program {
         element_buffer: &ElementBuffer<T>,
         first: u32,
         count: u32,
-    ) {
+    ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.use_program();
@@ -741,6 +748,7 @@ impl Program {
             }
         }
         self.unuse_program();
+        self.error_check()
     }
 
     ///
@@ -753,7 +761,7 @@ impl Program {
         viewport: Viewport,
         element_buffer: &ElementBuffer<T>,
         instance_count: u32,
-    ) {
+    ) -> ThreeDResult<()> {
         self.draw_subset_of_elements_instanced(
             render_states,
             viewport,
@@ -776,7 +784,7 @@ impl Program {
         first: u32,
         count: u32,
         instance_count: u32,
-    ) {
+    ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.use_program();
@@ -795,6 +803,7 @@ impl Program {
             }
         }
         self.unuse_program();
+        self.error_check()
     }
 
     ///
@@ -809,6 +818,29 @@ impl Program {
     ///
     pub fn requires_attribute(&self, name: &str) -> bool {
         self.attributes.contains_key(name)
+    }
+
+    fn error_check(&self) -> ThreeDResult<()> {
+        #[cfg(debug_assertions)]
+        unsafe {
+            let e = self.context.get_error();
+            if e != glow::NO_ERROR {
+                Err(CoreError::GlError(
+                    match e {
+                        glow::INVALID_ENUM => "Invalid enum",
+                        glow::INVALID_VALUE => "Invalid value",
+                        glow::INVALID_OPERATION => "Invalid operation",
+                        glow::INVALID_FRAMEBUFFER_OPERATION => "Invalid framebuffer operation",
+                        glow::OUT_OF_MEMORY => "Out of memory",
+                        glow::STACK_OVERFLOW => "Stack overflow",
+                        glow::STACK_UNDERFLOW => "Stack underflow",
+                        _ => "Unknown",
+                    }
+                    .to_string(),
+                ))?;
+            }
+        }
+        Ok(())
     }
 
     fn location(&self, name: &str) -> ThreeDResult<u32> {

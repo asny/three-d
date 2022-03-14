@@ -184,6 +184,8 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 #[allow(missing_docs)]
 pub enum CoreError {
+    #[error("failed with error code: {0}")]
+    GlError(String),
     #[error("failed creating shader: {0}")]
     ShaderCreation(String),
     #[error("failed creating program: {0}")]
