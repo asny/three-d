@@ -58,18 +58,17 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
     )
     .unwrap();
 
-    let indices = vec![0u8, 1, 2, 2, 3, 0];
-    let positions = vec![
-        vec3(-2.0, -2.0, 0.0),
-        vec3(2.0, -2.0, 0.0),
-        vec3(2.0, 2.0, 0.0),
-        vec3(-2.0, 2.0, 0.0),
-    ];
     let mut mesh = Model::new_with_material(
         &context,
         &CpuMesh {
-            indices: Some(Indices::U8(indices)),
-            positions: Positions::F32(positions),
+            positions: Positions::F32(vec![
+                vec3(-2.0, -2.0, 0.0),
+                vec3(2.0, -2.0, 0.0),
+                vec3(2.0, 2.0, 0.0),
+                vec3(2.0, 2.0, 0.0),
+                vec3(-2.0, 2.0, 0.0),
+                vec3(-2.0, -2.0, 0.0),
+            ]),
             ..Default::default()
         },
         MandelbrotMaterial {},
