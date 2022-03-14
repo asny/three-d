@@ -41,7 +41,7 @@ impl DepthTargetTextureCubeMap {
             wrap_s,
             wrap_t,
             Some(wrap_r),
-        );
+        )?;
         unsafe {
             context.tex_storage_2d(
                 glow::TEXTURE_CUBE_MAP,
@@ -51,6 +51,7 @@ impl DepthTargetTextureCubeMap {
                 height as i32,
             );
         }
+        context.error_check()?;
         Ok(texture)
     }
 

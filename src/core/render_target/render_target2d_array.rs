@@ -120,7 +120,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         }
         #[cfg(feature = "debug")]
         check(&self.context)?;
-        Ok(())
+        self.context.error_check()
     }
 }
 

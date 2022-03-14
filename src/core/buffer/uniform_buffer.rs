@@ -39,6 +39,7 @@ impl UniformBuffer {
             data: vec![0.0; length as usize],
         };
         buffer.send();
+        context.error_check()?;
         Ok(buffer)
     }
 
@@ -69,7 +70,7 @@ impl UniformBuffer {
             .splice(offset..offset + length, data.iter().cloned());
         self.send();
         //TODO: Send to GPU (contextBufferSubData)
-        Ok(())
+        self.context.error_check()
     }
 
     ///

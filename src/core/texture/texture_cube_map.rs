@@ -193,7 +193,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
             wrap_s,
             wrap_t,
             Some(wrap_r),
-        );
+        )?;
         unsafe {
             context.tex_storage_2d(
                 glow::TEXTURE_CUBE_MAP,
@@ -204,6 +204,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
             );
         }
         texture.generate_mip_maps();
+        context.error_check()?;
         Ok(texture)
     }
 
@@ -254,7 +255,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
             }
         }
         self.generate_mip_maps();
-        Ok(())
+        self.context.error_check()
     }
 
     ///
