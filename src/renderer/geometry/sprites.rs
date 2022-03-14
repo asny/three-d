@@ -84,8 +84,7 @@ impl Geometry for Sprites {
                     camera.viewport(),
                     6,
                     self.center_buffer.instance_count(),
-                );
-                Ok(())
+                )
             },
         )
     }

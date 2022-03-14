@@ -232,9 +232,8 @@ impl Geometry for Particles {
                         camera.viewport(),
                         self.position_buffer.vertex_count() as u32,
                         self.instance_count,
-                    );
+                    )
                 }
-                Ok(())
             },
         )
     }

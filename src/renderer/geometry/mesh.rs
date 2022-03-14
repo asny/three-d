@@ -241,15 +241,14 @@ impl Geometry for Mesh {
                             camera.viewport(),
                             buffer,
                         ),
-                    };
+                    }
                 } else {
                     program.draw_arrays(
                         material.render_states(),
                         camera.viewport(),
                         self.position_buffer.vertex_count() as u32,
-                    )?;
+                    )
                 }
-                Ok(())
             },
         )
     }
