@@ -136,7 +136,7 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
                             * explosion_direction,
                     });
                 }
-                particles.update(&data);
+                particles.update(&data).unwrap();
             }
 
             Screen::write(&context, ClearState::color(0.0, 0.0, 0.0, 1.0), || {
