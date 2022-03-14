@@ -56,8 +56,8 @@ impl Sprites {
         self.transformation = transformation;
     }
 
-    pub fn set_centers(&mut self, centers: &[Vec3]) {
-        self.center_buffer.fill(centers);
+    pub fn set_centers(&mut self, centers: &[Vec3]) -> ThreeDResult<()> {
+        self.center_buffer.fill(centers)
     }
 }
 

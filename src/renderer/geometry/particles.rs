@@ -96,16 +96,17 @@ impl Particles {
     /// Updates the particles with the given initial data.
     /// The list contain one entry for each particle.
     ///
-    pub fn update(&mut self, data: &[ParticleData]) {
+    pub fn update(&mut self, data: &[ParticleData]) -> ThreeDResult<()> {
         let mut start_position = Vec::new();
         let mut start_velocity = Vec::new();
         for particle in data {
             start_position.push(particle.start_position);
             start_velocity.push(particle.start_velocity);
         }
-        self.start_position_buffer.fill(&start_position);
-        self.start_velocity_buffer.fill(&start_velocity);
+        self.start_position_buffer.fill(&start_position)?;
+        self.start_velocity_buffer.fill(&start_velocity)?;
         self.instance_count = data.len() as u32;
+        Ok(())
     }
 
     fn vertex_shader_source(fragment_shader_source: &str) -> String {
