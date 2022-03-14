@@ -2,7 +2,7 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// A material that renders the isosurface defined by the voxel data in the [VolumeMaterial::voxels] and the [VolumeMaterial::threshold].
+/// A material that renders the isosurface defined by the voxel data in the [IsourfaceMaterial::voxels] and the [IsourfaceMaterial::threshold].
 /// The surface is defined by all the points in the volume where the red channel of the voxel data is equal to the threshold.
 /// This material should be applied to a cube with center in origo, for example [CpuMesh::cube].
 ///
