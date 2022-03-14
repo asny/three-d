@@ -119,7 +119,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
             },
         );
         render()?;
-        Ok(())
+        self.context.error_check()
     }
 }
 

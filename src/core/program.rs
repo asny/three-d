@@ -119,6 +119,7 @@ impl Program {
                 }
             }
 
+            context.error_check()?;
             Ok(Program {
                 context: context.clone(),
                 id,
@@ -672,7 +673,7 @@ impl Program {
         count: u32,
     ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
-        Self::set_states(&self.context, render_states);
+        Self::set_states(&self.context, render_states)?;
         self.use_program();
         unsafe {
             self.context.draw_arrays(glow::TRIANGLES, 0, count as i32);
@@ -696,7 +697,7 @@ impl Program {
         instance_count: u32,
     ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
-        Self::set_states(&self.context, render_states);
+        Self::set_states(&self.context, render_states)?;
         self.use_program();
         unsafe {
             self.context.draw_arrays_instanced(
@@ -748,7 +749,7 @@ impl Program {
         count: u32,
     ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
-        Self::set_states(&self.context, render_states);
+        Self::set_states(&self.context, render_states)?;
         self.use_program();
         element_buffer.bind();
         unsafe {
@@ -799,7 +800,7 @@ impl Program {
         instance_count: u32,
     ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
-        Self::set_states(&self.context, render_states);
+        Self::set_states(&self.context, render_states)?;
         self.use_program();
         element_buffer.bind();
         unsafe {
@@ -854,7 +855,7 @@ impl Program {
         }
     }
 
-    fn set_states(context: &Context, render_states: RenderStates) {
+    fn set_states(context: &Context, render_states: RenderStates) -> ThreeDResult<()> {
         Self::set_cull(context, render_states.cull);
         Self::set_write_mask(context, render_states.write_mask);
         Self::set_clip(context, render_states.clip);
@@ -864,6 +865,7 @@ impl Program {
             render_states.write_mask.depth,
         );
         Self::set_blend(context, render_states.blend);
+        context.error_check()
     }
 
     fn set_clip(context: &Context, clip: Clip) {

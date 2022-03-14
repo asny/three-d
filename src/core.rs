@@ -31,12 +31,14 @@ impl Context {
             // Enable seamless cube map textures
             context.enable(glow::TEXTURE_CUBE_MAP_SEAMLESS);
         }
-        Ok(Self {
+        let c = Self {
             context,
             programs: Rc::new(RefCell::new(HashMap::new())),
             effects: Rc::new(RefCell::new(HashMap::new())),
             camera2d: Rc::new(RefCell::new(None)),
-        })
+        };
+        c.error_check()?;
+        Ok(c)
     }
 
     ///

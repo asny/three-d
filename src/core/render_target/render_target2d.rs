@@ -146,7 +146,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         }
         #[cfg(feature = "debug")]
         check(&self.context)?;
-        Ok(())
+        self.context.error_check()
     }
 }
 

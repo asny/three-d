@@ -54,7 +54,7 @@ impl DepthTargetTexture2D {
             wrap_s,
             wrap_t,
             None,
-        );
+        )?;
         unsafe {
             context.tex_storage_2d(
                 glow::TEXTURE_2D,
@@ -64,6 +64,7 @@ impl DepthTargetTexture2D {
                 height as i32,
             );
         }
+        context.error_check()?;
         Ok(texture)
     }
 

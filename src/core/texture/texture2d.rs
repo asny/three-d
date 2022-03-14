@@ -73,7 +73,7 @@ impl<T: TextureDataType> Texture2D<T> {
             wrap_s,
             wrap_t,
             None,
-        );
+        )?;
         unsafe {
             context.tex_storage_2d(
                 glow::TEXTURE_2D,
@@ -84,6 +84,7 @@ impl<T: TextureDataType> Texture2D<T> {
             );
         }
         texture.generate_mip_maps();
+        context.error_check()?;
         Ok(texture)
     }
 
@@ -110,7 +111,7 @@ impl<T: TextureDataType> Texture2D<T> {
             );
         }
         self.generate_mip_maps();
-        Ok(())
+        self.context.error_check()
     }
 
     ///

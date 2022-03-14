@@ -69,7 +69,7 @@ impl<T: TextureDataType> Texture2DArray<T> {
             wrap_s,
             wrap_t,
             None,
-        );
+        )?;
         unsafe {
             context.tex_storage_3d(
                 glow::TEXTURE_2D_ARRAY,
@@ -80,6 +80,7 @@ impl<T: TextureDataType> Texture2DArray<T> {
                 depth as i32,
             );
         }
+        context.error_check()?;
         Ok(texture)
     }
 

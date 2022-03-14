@@ -402,7 +402,7 @@ fn set_parameters(
     wrap_s: Wrapping,
     wrap_t: Wrapping,
     wrap_r: Option<Wrapping>,
-) {
+) -> ThreeDResult<()> {
     unsafe {
         match mip_map_filter {
             None => context.tex_parameter_i32(
@@ -452,6 +452,7 @@ fn set_parameters(
             context.tex_parameter_i32(target, glow::TEXTURE_WRAP_R, wrapping_from(r));
         }
     }
+    context.error_check()
 }
 
 fn calculate_number_of_mip_maps(

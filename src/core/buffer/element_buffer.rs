@@ -87,7 +87,7 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
             self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
         }
         self.count = data.len();
-        Ok(())
+        self.context.error_check()
     }
 
     ///

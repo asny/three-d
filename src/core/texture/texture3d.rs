@@ -80,7 +80,7 @@ impl<T: TextureDataType> Texture3D<T> {
             wrap_s,
             wrap_t,
             Some(wrap_r),
-        );
+        )?;
         unsafe {
             context.tex_storage_3d(
                 glow::TEXTURE_3D,
@@ -91,6 +91,7 @@ impl<T: TextureDataType> Texture3D<T> {
                 depth as i32,
             );
         }
+        context.error_check()?;
         Ok(tex)
     }
 
@@ -119,7 +120,7 @@ impl<T: TextureDataType> Texture3D<T> {
             );
         }
         self.generate_mip_maps();
-        Ok(())
+        self.context.error_check()
     }
 
     /// The width of this texture.

@@ -43,7 +43,7 @@ impl DepthTargetTexture2DArray {
             wrap_s,
             wrap_t,
             None,
-        );
+        )?;
         unsafe {
             context.tex_storage_3d(
                 glow::TEXTURE_2D_ARRAY,
@@ -54,6 +54,7 @@ impl DepthTargetTexture2DArray {
                 depth as i32,
             );
         }
+        context.error_check()?;
         Ok(texture)
     }
 

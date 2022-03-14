@@ -22,7 +22,7 @@ impl Screen {
         }
         clear(context, &clear_state);
         render()?;
-        Ok(())
+        context.error_check()
     }
 
     ///
@@ -42,6 +42,7 @@ impl Screen {
                 glow::PixelPackData::Slice(&mut pixels),
             );
         }
+        context.error_check()?;
         Ok(pixels)
     }
 
@@ -64,6 +65,7 @@ impl Screen {
                 glow::PixelPackData::Slice(&mut pixels),
             );
         }
+        context.error_check()?;
         Ok(super::internal::from_byte_slice(&pixels).to_vec())
     }
 
