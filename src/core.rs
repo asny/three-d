@@ -20,13 +20,22 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn from_gl_context(context: Rc<glow::Context>) -> Self {
-        Self {
+    pub fn from_gl_context(context: Rc<glow::Context>) -> ThreeDResult<Self> {
+        unsafe {
+            // Create one Vertex Array Object which is then reused all the time.
+            let vao = context
+                .create_vertex_array()
+                .map_err(|e| CoreError::ContextCreation(e))?;
+            context.bind_vertex_array(Some(vao));
+            // Enable seamless cube map textures
+            context.enable(glow::TEXTURE_CUBE_MAP_SEAMLESS);
+        }
+        Ok(Self {
             context,
             programs: Rc::new(RefCell::new(HashMap::new())),
             effects: Rc::new(RefCell::new(HashMap::new())),
             camera2d: Rc::new(RefCell::new(None)),
-        }
+        })
     }
 
     ///
@@ -208,6 +217,8 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 #[allow(missing_docs)]
 pub enum CoreError {
+    #[error("failed creating context with error: {0}")]
+    ContextCreation(String),
     #[error("failed rendering with error: {0}")]
     ContextError(String),
     #[error("failed creating shader: {0}")]
