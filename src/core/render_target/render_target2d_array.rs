@@ -118,8 +118,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
                 depth_texture.bind_as_depth_target(depth_layer);
             }
         }
-        #[cfg(feature = "debug")]
-        check(&self.context)?;
+        self.context.framebuffer_check()?;
         self.context.error_check()
     }
 }
