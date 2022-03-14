@@ -386,10 +386,10 @@ mod internal {
 
         fn internal_format(format: Format) -> u32 {
             match format {
-                Format::R => crate::context::consts::R16F,
-                Format::RG => crate::context::consts::RG16F,
-                Format::RGB => crate::context::consts::RGB16F,
-                Format::RGBA => crate::context::consts::RGBA16F,
+                Format::R => glow::R16F,
+                Format::RG => glow::RG16F,
+                Format::RGB => glow::RGB16F,
+                Format::RGBA => glow::RGBA16F,
             }
         }
 
@@ -413,10 +413,10 @@ mod internal {
 
         fn internal_format(format: Format) -> u32 {
             match format {
-                Format::R => crate::context::consts::R32F,
-                Format::RG => crate::context::consts::RG32F,
-                Format::RGB => crate::context::consts::RGB32F,
-                Format::RGBA => crate::context::consts::RGBA32F,
+                Format::R => glow::R32F,
+                Format::RG => glow::RG32F,
+                Format::RGB => glow::RGB32F,
+                Format::RGBA => glow::RGBA32F,
             }
         }
 
