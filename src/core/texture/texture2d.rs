@@ -153,8 +153,7 @@ impl<T: TextureDataType> Texture2D<T> {
             self.context.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
             self.bind_as_color_target(0);
 
-            #[cfg(feature = "debug")]
-            check(&self.context)?;
+            self.context.framebuffer_check()?;
 
             let mut pixels = vec![
                 0u8;

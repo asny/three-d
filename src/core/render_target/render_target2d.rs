@@ -144,8 +144,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
                 tex.bind_as_depth_target();
             }
         }
-        #[cfg(feature = "debug")]
-        check(&self.context)?;
+        self.context.framebuffer_check()?;
         self.context.error_check()
     }
 }

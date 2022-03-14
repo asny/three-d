@@ -105,8 +105,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         if let Some(ref depth_texture) = self.depth_texture {
             depth_texture.bind_as_depth_target(side);
         }
-        #[cfg(feature = "debug")]
-        check(&self.context)?;
+        self.context.framebuffer_check()?;
 
         clear(
             &self.context,

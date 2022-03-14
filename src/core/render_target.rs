@@ -122,40 +122,6 @@ pub(in crate::core) fn new_framebuffer(context: &Context) -> ThreeDResult<glow::
     }
 }
 
-#[cfg(feature = "debug")]
-fn check(context: &Context) -> ThreeDResult<()> {
-    match context.check_framebuffer_status() {
-        consts::FRAMEBUFFER_COMPLETE => Ok(()),
-        consts::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => Err(CoreError::RenderTargetCreation(
-            "FRAMEBUFFER_INCOMPLETE_ATTACHMENT".to_string(),
-        )),
-        consts::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => Err(CoreError::RenderTargetCreation(
-            "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER".to_string(),
-        )),
-        consts::FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT => Err(CoreError::RenderTargetCreation(
-            "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT".to_string(),
-        )),
-        consts::FRAMEBUFFER_UNSUPPORTED => Err(CoreError::RenderTargetCreation(
-            "FRAMEBUFFER_UNSUPPORTED".to_string(),
-        )),
-        consts::FRAMEBUFFER_UNDEFINED => Err(CoreError::RenderTargetCreation(
-            "FRAMEBUFFER_UNDEFINED".to_string(),
-        )),
-        consts::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => Err(CoreError::RenderTargetCreation(
-            "FRAMEBUFFER_INCOMPLETE_READ_BUFFER".to_string(),
-        )),
-        consts::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => Err(CoreError::RenderTargetCreation(
-            "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE".to_string(),
-        )),
-        consts::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => Err(CoreError::RenderTargetCreation(
-            "FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS".to_string(),
-        )),
-        _ => Err(CoreError::RenderTargetCreation(
-            "Unknown framebuffer error".to_string(),
-        )),
-    }
-}
-
 fn clear(context: &Context, clear_state: &ClearState) {
     Program::set_write_mask(
         context,
