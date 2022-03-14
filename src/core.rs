@@ -3,6 +3,7 @@
 //! Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.
 //!
 
+use glow::HasContext;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -108,6 +109,29 @@ impl Context {
         )?;
         callback(camera2d.as_ref().unwrap())
     }
+
+    fn error_check(&self) -> ThreeDResult<()> {
+        #[cfg(debug_assertions)]
+        unsafe {
+            let e = self.get_error();
+            if e != glow::NO_ERROR {
+                Err(CoreError::ContextError(
+                    match e {
+                        glow::INVALID_ENUM => "Invalid enum",
+                        glow::INVALID_VALUE => "Invalid value",
+                        glow::INVALID_OPERATION => "Invalid operation",
+                        glow::INVALID_FRAMEBUFFER_OPERATION => "Invalid framebuffer operation",
+                        glow::OUT_OF_MEMORY => "Out of memory",
+                        glow::STACK_OVERFLOW => "Stack overflow",
+                        glow::STACK_UNDERFLOW => "Stack underflow",
+                        _ => "Unknown",
+                    }
+                    .to_string(),
+                ))?;
+            }
+        }
+        Ok(())
+    }
 }
 
 impl std::ops::Deref for Context {
@@ -184,8 +208,8 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 #[allow(missing_docs)]
 pub enum CoreError {
-    #[error("failed with error code: {0}")]
-    GlError(String),
+    #[error("failed rendering with error: {0}")]
+    ContextError(String),
     #[error("failed creating shader: {0}")]
     ShaderCreation(String),
     #[error("failed creating program: {0}")]

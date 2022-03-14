@@ -130,7 +130,7 @@ impl Program {
         let location = self.get_uniform_location(name)?;
         data.send(&self.context, location);
         self.unuse_program();
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -150,7 +150,7 @@ impl Program {
         let location = self.get_uniform_location(name)?;
         T::send_array(data, &self.context, location);
         self.unuse_program();
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -289,7 +289,7 @@ impl Program {
         }
         texture.bind();
         self.use_uniform(name, index as i32)?;
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -345,7 +345,7 @@ impl Program {
             buffer.bind(index);
             self.context.bind_buffer(glow::UNIFORM_BUFFER, None);
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -380,7 +380,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -415,7 +415,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -444,7 +444,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -473,7 +473,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -502,7 +502,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -531,7 +531,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -560,7 +560,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -589,7 +589,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -618,7 +618,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -643,7 +643,7 @@ impl Program {
             }
             self.unuse_program();
         }
-        Ok(())
+        self.context.error_check()
     }
 
     ///
@@ -668,7 +668,7 @@ impl Program {
             }
         }
         self.unuse_program();
-        self.error_check()
+        self.context.error_check()
     }
 
     ///
@@ -698,7 +698,7 @@ impl Program {
             }
         }
         self.unuse_program();
-        self.error_check()
+        self.context.error_check()
     }
 
     ///
@@ -748,7 +748,7 @@ impl Program {
             }
         }
         self.unuse_program();
-        self.error_check()
+        self.context.error_check()
     }
 
     ///
@@ -803,7 +803,7 @@ impl Program {
             }
         }
         self.unuse_program();
-        self.error_check()
+        self.context.error_check()
     }
 
     ///
@@ -818,29 +818,6 @@ impl Program {
     ///
     pub fn requires_attribute(&self, name: &str) -> bool {
         self.attributes.contains_key(name)
-    }
-
-    fn error_check(&self) -> ThreeDResult<()> {
-        #[cfg(debug_assertions)]
-        unsafe {
-            let e = self.context.get_error();
-            if e != glow::NO_ERROR {
-                Err(CoreError::GlError(
-                    match e {
-                        glow::INVALID_ENUM => "Invalid enum",
-                        glow::INVALID_VALUE => "Invalid value",
-                        glow::INVALID_OPERATION => "Invalid operation",
-                        glow::INVALID_FRAMEBUFFER_OPERATION => "Invalid framebuffer operation",
-                        glow::OUT_OF_MEMORY => "Out of memory",
-                        glow::STACK_OVERFLOW => "Stack overflow",
-                        glow::STACK_UNDERFLOW => "Stack underflow",
-                        _ => "Unknown",
-                    }
-                    .to_string(),
-                ))?;
-            }
-        }
-        Ok(())
     }
 
     fn location(&self, name: &str) -> ThreeDResult<u32> {
