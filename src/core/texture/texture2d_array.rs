@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::texture::*;
-use glow::HasContext;
 
 ///
 /// A array of 2D color textures that can be rendered into.

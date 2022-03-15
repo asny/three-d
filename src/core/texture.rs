@@ -370,8 +370,8 @@ mod internal {
     }
 }
 
+use crate::context::*;
 use crate::core::*;
-use glow::HasContext;
 
 ///
 /// A texture that can be sampled in a fragment shader (see [Program::use_texture].

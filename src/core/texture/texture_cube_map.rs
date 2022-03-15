@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::texture::*;
-use glow::HasContext;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 ///

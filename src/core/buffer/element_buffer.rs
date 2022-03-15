@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::*;
-use glow::HasContext;
 
 /// The basic data type used for each index in an element buffer.
 pub trait ElementBufferDataType: internal::DataType {

@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::render_target::*;
-use glow::HasContext;
 
 ///
 /// Adds additional functionality to write to and copy from both a [ColorTargetTexture2D] and

@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::render_target::*;
-use glow::HasContext;
 
 ///
 /// The screen render target which is essential to get something on the screen (see the [write function](Screen::write)).
