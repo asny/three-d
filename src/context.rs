@@ -7,4 +7,5 @@
 //!
 
 pub use glow;
+pub use glow::Context as GlContext;
 pub use glow::HasContext;
