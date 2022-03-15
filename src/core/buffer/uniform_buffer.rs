@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::*;
-use glow::HasContext;
 
 ///
 /// A buffer for transferring a set of uniform variables to the shader program

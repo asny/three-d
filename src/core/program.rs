@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::*;
-use glow::{HasContext, UniformLocation};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
@@ -14,7 +14,7 @@ pub struct Program {
     id: glow::Program,
     attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
-    uniforms: HashMap<String, UniformLocation>,
+    uniforms: HashMap<String, glow::UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
 }
 
@@ -275,7 +275,7 @@ impl Program {
         self.use_uniform(name, data)
     }
 
-    fn get_uniform_location(&self, name: &str) -> ThreeDResult<&UniformLocation> {
+    fn get_uniform_location(&self, name: &str) -> ThreeDResult<&glow::UniformLocation> {
         self.use_program();
         let loc = self
             .uniforms

@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::texture::*;
-use glow::HasContext;
 
 ///
 /// Type of formats for depth render targets ([DepthTargetTexture2D] and

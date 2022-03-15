@@ -1,6 +1,5 @@
+use crate::context::*;
 use crate::core::render_target::*;
-use crate::core::*;
-use glow::HasContext;
 
 ///
 /// Adds additional functionality to write to a [TextureCubeMap] and

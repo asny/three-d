@@ -17,8 +17,8 @@ mod uniform_buffer;
 #[doc(inline)]
 pub use uniform_buffer::*;
 
+use crate::context::*;
 use crate::core::*;
-use glow::HasContext;
 
 /// The basic data type used for each element in a [VertexBuffer] or [InstanceBuffer].
 pub trait BufferDataType: std::fmt::Debug + Clone + Copy + internal::DataType {}

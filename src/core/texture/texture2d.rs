@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::texture::*;
-use glow::HasContext;
 
 ///
 /// A 2D texture, basically an image that is transferred to the GPU.

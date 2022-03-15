@@ -1,6 +1,5 @@
+use crate::context::*;
 use crate::core::texture::*;
-use glow::HasContext;
-
 ///
 /// A 3D color texture.
 ///

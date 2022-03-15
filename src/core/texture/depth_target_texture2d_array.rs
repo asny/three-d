@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::texture::*;
-use glow::HasContext;
 
 ///
 /// An array of 2D depth textures that can be rendered into and read from. See also [RenderTargetArray].

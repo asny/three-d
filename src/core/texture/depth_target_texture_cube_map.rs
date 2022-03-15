@@ -1,5 +1,5 @@
+use crate::context::*;
 use crate::core::texture::*;
-use glow::HasContext;
 
 ///
 /// A depth texture cube map that can be rendered into and read from. See also [RenderTargetCubeMap].

@@ -7,6 +7,8 @@
 //! the [examples](https://github.com/asny/three-d/tree/master/examples) for how to use it.
 //!
 
+pub mod context;
+
 pub mod core;
 
 pub mod renderer;
