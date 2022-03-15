@@ -9,14 +9,14 @@ use std::rc::Rc;
 ///
 #[derive(Clone)]
 pub struct Context {
-    context: Rc<glow::Context>,
+    context: Rc<GlContext>,
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
 }
 
 impl Context {
-    pub fn from_gl_context(context: Rc<glow::Context>) -> ThreeDResult<Self> {
+    pub fn from_gl_context(context: Rc<GlContext>) -> ThreeDResult<Self> {
         #[cfg(not(target_arch = "wasm32"))]
         unsafe {
             // Create one Vertex Array Object which is then reused all the time.
