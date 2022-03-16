@@ -4,6 +4,7 @@
 //!
 
 mod context;
+#[doc(inline)]
 pub use context::*;
 
 pub mod buffer;
