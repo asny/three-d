@@ -1,5 +1,4 @@
 use super::*;
-use crate::context::Context as GlContext;
 use crate::context::HasContext;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -10,14 +9,14 @@ use std::rc::Rc;
 ///
 #[derive(Clone)]
 pub struct Context {
-    context: Rc<GlContext>,
+    context: Rc<crate::context::Context>,
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
 }
 
 impl Context {
-    pub fn from_gl_context(context: Rc<GlContext>) -> ThreeDResult<Self> {
+    pub fn from_gl_context(context: Rc<crate::context::Context>) -> ThreeDResult<Self> {
         #[cfg(not(target_arch = "wasm32"))]
         unsafe {
             // Create one Vertex Array Object which is then reused all the time.
@@ -183,7 +182,7 @@ impl Context {
 }
 
 impl std::ops::Deref for Context {
-    type Target = GlContext;
+    type Target = crate::context::Context;
     fn deref(&self) -> &Self::Target {
         &self.context
     }
