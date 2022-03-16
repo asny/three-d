@@ -15,7 +15,7 @@ impl Context {
         let (headless_context, _el) = build_context(cb).unwrap();
         let current_context = unsafe { headless_context.make_current().unwrap() };
         Self::from_gl_context(std::rc::Rc::new(unsafe {
-            crate::context::GlContext::from_loader_function(|s| {
+            crate::context::Context::from_loader_function(|s| {
                 current_context.get_proc_address(s) as *const _
             })
         }))

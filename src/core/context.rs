@@ -1,5 +1,6 @@
 use super::*;
-use crate::context::*;
+use crate::context::Context as GlContext;
+use crate::context::HasContext;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -182,7 +183,7 @@ impl Context {
 }
 
 impl std::ops::Deref for Context {
-    type Target = glow::Context;
+    type Target = GlContext;
     fn deref(&self) -> &Self::Target {
         &self.context
     }

@@ -1,4 +1,3 @@
-use crate::context::*;
 use crate::core::texture::*;
 ///
 /// A 3D color texture.

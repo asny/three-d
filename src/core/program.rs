@@ -1,4 +1,4 @@
-use crate::context::*;
+use crate::context::HasContext;
 use crate::core::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -29,7 +29,7 @@ impl Program {
     ) -> ThreeDResult<Program> {
         unsafe {
             let vert_shader = context
-                .create_shader(glow::VERTEX_SHADER)
+                .create_shader(crate::context::VERTEX_SHADER)
                 .map_err(|e| CoreError::ShaderCreation(e))?;
             let frag_shader = context
                 .create_shader(glow::FRAGMENT_SHADER)

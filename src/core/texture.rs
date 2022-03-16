@@ -370,7 +370,7 @@ mod internal {
     }
 }
 
-use crate::context::*;
+use crate::context::HasContext;
 use crate::core::*;
 
 ///

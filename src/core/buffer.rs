@@ -17,7 +17,7 @@ mod uniform_buffer;
 #[doc(inline)]
 pub use uniform_buffer::*;
 
-use crate::context::*;
+use crate::context::HasContext;
 use crate::core::*;
 
 /// The basic data type used for each element in a [VertexBuffer] or [InstanceBuffer].

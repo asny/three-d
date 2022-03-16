@@ -45,7 +45,7 @@ impl Window {
         let windowed_context = unsafe { wc?.make_current().unwrap() };
 
         let context = unsafe {
-            crate::context::GlContext::from_loader_function(|s| {
+            crate::context::Context::from_loader_function(|s| {
                 windowed_context.get_proc_address(s) as *const _
             })
         };

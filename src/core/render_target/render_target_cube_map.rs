@@ -1,4 +1,4 @@
-use crate::context::*;
+use crate::context::HasContext;
 use crate::core::render_target::*;
 
 ///

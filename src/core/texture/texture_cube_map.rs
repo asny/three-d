@@ -1,4 +1,3 @@
-use crate::context::*;
 use crate::core::texture::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
