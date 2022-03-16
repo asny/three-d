@@ -4,7 +4,7 @@ use crate::core::texture::*;
 ///
 pub struct Texture3D<T: TextureDataType> {
     context: Context,
-    id: glow::Texture,
+    id: crate::context::Texture,
     width: u32,
     height: u32,
     depth: u32,
@@ -67,7 +67,7 @@ impl<T: TextureDataType> Texture3D<T> {
         tex.bind();
         set_parameters(
             context,
-            glow::TEXTURE_3D,
+            crate::context::TEXTURE_3D,
             min_filter,
             mag_filter,
             if number_of_mip_maps == 1 {
@@ -81,7 +81,7 @@ impl<T: TextureDataType> Texture3D<T> {
         )?;
         unsafe {
             context.tex_storage_3d(
-                glow::TEXTURE_3D,
+                crate::context::TEXTURE_3D,
                 number_of_mip_maps as i32,
                 T::internal_format(format),
                 width as i32,
@@ -104,7 +104,7 @@ impl<T: TextureDataType> Texture3D<T> {
         self.bind();
         unsafe {
             self.context.tex_sub_image_3d(
-                glow::TEXTURE_3D,
+                crate::context::TEXTURE_3D,
                 0,
                 0,
                 0,
@@ -114,7 +114,7 @@ impl<T: TextureDataType> Texture3D<T> {
                 self.depth as i32,
                 self.format.as_const(),
                 T::data_type(),
-                glow::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(data)),
+                crate::context::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(data)),
             );
         }
         self.generate_mip_maps();
@@ -145,13 +145,14 @@ impl<T: TextureDataType> Texture3D<T> {
         if self.number_of_mip_maps > 1 {
             self.bind();
             unsafe {
-                self.context.generate_mipmap(glow::TEXTURE_3D);
+                self.context.generate_mipmap(crate::context::TEXTURE_3D);
             }
         }
     }
     fn bind(&self) {
         unsafe {
-            self.context.bind_texture(glow::TEXTURE_3D, Some(self.id));
+            self.context
+                .bind_texture(crate::context::TEXTURE_3D, Some(self.id));
         }
     }
 }

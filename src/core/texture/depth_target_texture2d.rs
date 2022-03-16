@@ -19,7 +19,7 @@ pub enum DepthFormat {
 ///
 pub struct DepthTargetTexture2D {
     context: Context,
-    id: glow::Texture,
+    id: crate::context::Texture,
     width: u32,
     height: u32,
 }
@@ -46,7 +46,7 @@ impl DepthTargetTexture2D {
         texture.bind();
         set_parameters(
             context,
-            glow::TEXTURE_2D,
+            crate::context::TEXTURE_2D,
             Interpolation::Nearest,
             Interpolation::Nearest,
             None,
@@ -56,7 +56,7 @@ impl DepthTargetTexture2D {
         )?;
         unsafe {
             context.tex_storage_2d(
-                glow::TEXTURE_2D,
+                crate::context::TEXTURE_2D,
                 1,
                 internal_format_from_depth(format),
                 width as i32,
@@ -98,9 +98,9 @@ impl DepthTargetTexture2D {
     pub(in crate::core) fn bind_as_depth_target(&self) {
         unsafe {
             self.context.framebuffer_texture_2d(
-                glow::FRAMEBUFFER,
-                glow::DEPTH_ATTACHMENT,
-                glow::TEXTURE_2D,
+                crate::context::FRAMEBUFFER,
+                crate::context::DEPTH_ATTACHMENT,
+                crate::context::TEXTURE_2D,
                 Some(self.id),
                 0,
             );
@@ -109,7 +109,8 @@ impl DepthTargetTexture2D {
 
     fn bind(&self) {
         unsafe {
-            self.context.bind_texture(glow::TEXTURE_2D, Some(self.id));
+            self.context
+                .bind_texture(crate::context::TEXTURE_2D, Some(self.id));
         }
     }
 }

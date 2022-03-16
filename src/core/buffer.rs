@@ -33,7 +33,7 @@ impl BufferDataType for Color {}
 
 struct Buffer<T: BufferDataType> {
     context: Context,
-    id: glow::Buffer,
+    id: crate::context::Buffer,
     attribute_count: u32,
     _dummy: T,
 }
@@ -64,15 +64,15 @@ impl<T: BufferDataType> Buffer<T> {
         self.bind();
         unsafe {
             self.context.buffer_data_u8_slice(
-                glow::ARRAY_BUFFER,
+                crate::context::ARRAY_BUFFER,
                 super::internal::to_byte_slice(data),
                 if self.attribute_count > 0 {
-                    glow::DYNAMIC_DRAW
+                    crate::context::DYNAMIC_DRAW
                 } else {
-                    glow::STATIC_DRAW
+                    crate::context::STATIC_DRAW
                 },
             );
-            self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+            self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
         }
         self.attribute_count = data.len() as u32;
         self.context.error_check()
@@ -84,7 +84,8 @@ impl<T: BufferDataType> Buffer<T> {
 
     pub fn bind(&self) {
         unsafe {
-            self.context.bind_buffer(glow::ARRAY_BUFFER, Some(self.id));
+            self.context
+                .bind_buffer(crate::context::ARRAY_BUFFER, Some(self.id));
         }
     }
 }

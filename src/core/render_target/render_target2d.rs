@@ -7,7 +7,7 @@ use crate::core::render_target::*;
 ///
 pub struct RenderTarget<'a, 'b, T: TextureDataType> {
     context: Context,
-    id: glow::Framebuffer,
+    id: crate::context::Framebuffer,
     color_texture: Option<&'a mut Texture2D<T>>,
     depth_texture: Option<&'b mut DepthTargetTexture2D>,
 }
@@ -70,7 +70,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.bind(glow::DRAW_FRAMEBUFFER)?;
+        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         clear(
             &self.context,
             &ClearState {
@@ -136,7 +136,8 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         unsafe {
             self.context.bind_framebuffer(target, Some(self.id));
             if let Some(ref tex) = self.color_texture {
-                self.context.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
+                self.context
+                    .draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
                 tex.bind_as_color_target(0);
             }
             if let Some(ref tex) = self.depth_texture {

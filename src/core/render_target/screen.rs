@@ -17,7 +17,7 @@ impl Screen {
         render: F,
     ) -> ThreeDResult<()> {
         unsafe {
-            context.bind_framebuffer(glow::DRAW_FRAMEBUFFER, None);
+            context.bind_framebuffer(crate::context::DRAW_FRAMEBUFFER, None);
         }
         clear(context, &clear_state);
         render()?;
@@ -30,15 +30,15 @@ impl Screen {
     pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<u8>> {
         let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         unsafe {
-            context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
+            context.bind_framebuffer(crate::context::READ_FRAMEBUFFER, None);
             context.read_pixels(
                 viewport.x as i32,
                 viewport.y as i32,
                 viewport.width as i32,
                 viewport.height as i32,
-                glow::RGBA,
-                glow::UNSIGNED_BYTE,
-                glow::PixelPackData::Slice(&mut pixels),
+                crate::context::RGBA,
+                crate::context::UNSIGNED_BYTE,
+                crate::context::PixelPackData::Slice(&mut pixels),
             );
         }
         context.error_check()?;
@@ -53,15 +53,15 @@ impl Screen {
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
         let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         unsafe {
-            context.bind_framebuffer(glow::READ_FRAMEBUFFER, None);
+            context.bind_framebuffer(crate::context::READ_FRAMEBUFFER, None);
             context.read_pixels(
                 viewport.x as i32,
                 viewport.y as i32,
                 viewport.width as i32,
                 viewport.height as i32,
-                glow::DEPTH_COMPONENT,
-                glow::FLOAT,
-                glow::PixelPackData::Slice(&mut pixels),
+                crate::context::DEPTH_COMPONENT,
+                crate::context::FLOAT,
+                crate::context::PixelPackData::Slice(&mut pixels),
             );
         }
         context.error_check()?;

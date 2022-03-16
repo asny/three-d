@@ -8,7 +8,7 @@ use crate::core::render_target::*;
 ///
 pub struct RenderTargetCubeMap<'a, 'b, T: TextureDataType> {
     context: Context,
-    id: glow::Framebuffer,
+    id: crate::context::Framebuffer,
     color_texture: Option<&'a mut TextureCubeMap<T>>,
     depth_texture: Option<&'b mut DepthTargetTextureCubeMap>,
 }
@@ -95,9 +95,10 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
     ) -> ThreeDResult<()> {
         unsafe {
             self.context
-                .bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(self.id));
+                .bind_framebuffer(crate::context::DRAW_FRAMEBUFFER, Some(self.id));
             if let Some(ref color_texture) = self.color_texture {
-                self.context.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
+                self.context
+                    .draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
                 color_texture.bind_as_color_target(side, 0, mip_level);
             }
         }

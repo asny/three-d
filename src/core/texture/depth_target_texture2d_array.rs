@@ -5,7 +5,7 @@ use crate::core::texture::*;
 ///
 pub struct DepthTargetTexture2DArray {
     context: Context,
-    id: glow::Texture,
+    id: crate::context::Texture,
     width: u32,
     height: u32,
     depth: u32,
@@ -35,7 +35,7 @@ impl DepthTargetTexture2DArray {
         texture.bind();
         set_parameters(
             context,
-            glow::TEXTURE_2D_ARRAY,
+            crate::context::TEXTURE_2D_ARRAY,
             Interpolation::Nearest,
             Interpolation::Nearest,
             None,
@@ -45,7 +45,7 @@ impl DepthTargetTexture2DArray {
         )?;
         unsafe {
             context.tex_storage_3d(
-                glow::TEXTURE_2D_ARRAY,
+                crate::context::TEXTURE_2D_ARRAY,
                 1,
                 internal_format_from_depth(format),
                 width as i32,
@@ -96,8 +96,8 @@ impl DepthTargetTexture2DArray {
     pub(in crate::core) fn bind_as_depth_target(&self, layer: u32) {
         unsafe {
             self.context.framebuffer_texture_layer(
-                glow::DRAW_FRAMEBUFFER,
-                glow::DEPTH_ATTACHMENT,
+                crate::context::DRAW_FRAMEBUFFER,
+                crate::context::DEPTH_ATTACHMENT,
                 Some(self.id),
                 0,
                 layer as i32,
@@ -108,7 +108,7 @@ impl DepthTargetTexture2DArray {
     fn bind(&self) {
         unsafe {
             self.context
-                .bind_texture(glow::TEXTURE_2D_ARRAY, Some(self.id));
+                .bind_texture(crate::context::TEXTURE_2D_ARRAY, Some(self.id));
         }
     }
 }

@@ -27,7 +27,7 @@ impl Context {
                 .map_err(|e| CoreError::ContextCreation(e))?;
             context.bind_vertex_array(Some(vao));
             // Enable seamless cube map textures
-            context.enable(glow::TEXTURE_CUBE_MAP_SEAMLESS);
+            context.enable(crate::context::TEXTURE_CUBE_MAP_SEAMLESS);
         }
         let c = Self {
             context,
@@ -124,16 +124,18 @@ impl Context {
         #[cfg(debug_assertions)]
         unsafe {
             let e = self.get_error();
-            if e != glow::NO_ERROR {
+            if e != crate::context::NO_ERROR {
                 Err(CoreError::ContextError(
                     match e {
-                        glow::INVALID_ENUM => "Invalid enum",
-                        glow::INVALID_VALUE => "Invalid value",
-                        glow::INVALID_OPERATION => "Invalid operation",
-                        glow::INVALID_FRAMEBUFFER_OPERATION => "Invalid framebuffer operation",
-                        glow::OUT_OF_MEMORY => "Out of memory",
-                        glow::STACK_OVERFLOW => "Stack overflow",
-                        glow::STACK_UNDERFLOW => "Stack underflow",
+                        crate::context::INVALID_ENUM => "Invalid enum",
+                        crate::context::INVALID_VALUE => "Invalid value",
+                        crate::context::INVALID_OPERATION => "Invalid operation",
+                        crate::context::INVALID_FRAMEBUFFER_OPERATION => {
+                            "Invalid framebuffer operation"
+                        }
+                        crate::context::OUT_OF_MEMORY => "Out of memory",
+                        crate::context::STACK_OVERFLOW => "Stack overflow",
+                        crate::context::STACK_UNDERFLOW => "Stack underflow",
                         _ => "Unknown",
                     }
                     .to_string(),
@@ -146,34 +148,44 @@ impl Context {
     pub(super) fn framebuffer_check(&self) -> ThreeDResult<()> {
         #[cfg(debug_assertions)]
         unsafe {
-            match self.check_framebuffer_status(glow::FRAMEBUFFER) {
-                glow::FRAMEBUFFER_COMPLETE => Ok(()),
-                glow::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => Err(CoreError::RenderTargetCreation(
-                    "FRAMEBUFFER_INCOMPLETE_ATTACHMENT".to_string(),
-                )),
-                glow::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => Err(CoreError::RenderTargetCreation(
-                    "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER".to_string(),
-                )),
-                glow::FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT => {
+            match self.check_framebuffer_status(crate::context::FRAMEBUFFER) {
+                crate::context::FRAMEBUFFER_COMPLETE => Ok(()),
+                crate::context::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => {
+                    Err(CoreError::RenderTargetCreation(
+                        "FRAMEBUFFER_INCOMPLETE_ATTACHMENT".to_string(),
+                    ))
+                }
+                crate::context::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => {
+                    Err(CoreError::RenderTargetCreation(
+                        "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER".to_string(),
+                    ))
+                }
+                crate::context::FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT => {
                     Err(CoreError::RenderTargetCreation(
                         "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT".to_string(),
                     ))
                 }
-                glow::FRAMEBUFFER_UNSUPPORTED => Err(CoreError::RenderTargetCreation(
+                crate::context::FRAMEBUFFER_UNSUPPORTED => Err(CoreError::RenderTargetCreation(
                     "FRAMEBUFFER_UNSUPPORTED".to_string(),
                 )),
-                glow::FRAMEBUFFER_UNDEFINED => Err(CoreError::RenderTargetCreation(
+                crate::context::FRAMEBUFFER_UNDEFINED => Err(CoreError::RenderTargetCreation(
                     "FRAMEBUFFER_UNDEFINED".to_string(),
                 )),
-                glow::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => Err(CoreError::RenderTargetCreation(
-                    "FRAMEBUFFER_INCOMPLETE_READ_BUFFER".to_string(),
-                )),
-                glow::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => Err(CoreError::RenderTargetCreation(
-                    "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE".to_string(),
-                )),
-                glow::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => Err(CoreError::RenderTargetCreation(
-                    "FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS".to_string(),
-                )),
+                crate::context::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => {
+                    Err(CoreError::RenderTargetCreation(
+                        "FRAMEBUFFER_INCOMPLETE_READ_BUFFER".to_string(),
+                    ))
+                }
+                crate::context::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => {
+                    Err(CoreError::RenderTargetCreation(
+                        "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE".to_string(),
+                    ))
+                }
+                crate::context::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => {
+                    Err(CoreError::RenderTargetCreation(
+                        "FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS".to_string(),
+                    ))
+                }
                 _ => Err(CoreError::RenderTargetCreation(
                     "Unknown framebuffer error".to_string(),
                 )),

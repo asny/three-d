@@ -17,7 +17,7 @@ pub type ColorTargetTexture2DArray<T> = Texture2DArray<T>;
 ///
 pub struct Texture2DArray<T: TextureDataType> {
     context: Context,
-    id: glow::Texture,
+    id: crate::context::Texture,
     width: u32,
     height: u32,
     depth: u32,
@@ -57,7 +57,7 @@ impl<T: TextureDataType> Texture2DArray<T> {
         texture.bind();
         set_parameters(
             context,
-            glow::TEXTURE_2D_ARRAY,
+            crate::context::TEXTURE_2D_ARRAY,
             min_filter,
             mag_filter,
             if number_of_mip_maps == 1 {
@@ -71,7 +71,7 @@ impl<T: TextureDataType> Texture2DArray<T> {
         )?;
         unsafe {
             context.tex_storage_3d(
-                glow::TEXTURE_2D_ARRAY,
+                crate::context::TEXTURE_2D_ARRAY,
                 number_of_mip_maps as i32,
                 T::internal_format(format),
                 width as i32,
@@ -129,7 +129,8 @@ impl<T: TextureDataType> Texture2DArray<T> {
         if self.number_of_mip_maps > 1 {
             self.bind();
             unsafe {
-                self.context.generate_mipmap(glow::TEXTURE_2D_ARRAY);
+                self.context
+                    .generate_mipmap(crate::context::TEXTURE_2D_ARRAY);
             }
         }
     }
@@ -137,8 +138,8 @@ impl<T: TextureDataType> Texture2DArray<T> {
     pub(in crate::core) fn bind_as_color_target(&self, layer: u32, channel: u32) {
         unsafe {
             self.context.framebuffer_texture_layer(
-                glow::DRAW_FRAMEBUFFER,
-                glow::COLOR_ATTACHMENT0 + channel,
+                crate::context::DRAW_FRAMEBUFFER,
+                crate::context::COLOR_ATTACHMENT0 + channel,
                 Some(self.id),
                 0,
                 layer as i32,
@@ -149,7 +150,7 @@ impl<T: TextureDataType> Texture2DArray<T> {
     fn bind(&self) {
         unsafe {
             self.context
-                .bind_texture(glow::TEXTURE_2D_ARRAY, Some(self.id));
+                .bind_texture(crate::context::TEXTURE_2D_ARRAY, Some(self.id));
         }
     }
 }
