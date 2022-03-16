@@ -114,7 +114,9 @@ pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureDataType> {
     RenderTarget(&'c RenderTarget<'a, 'b, T>),
 }
 
-pub(in crate::core) fn new_framebuffer(context: &Context) -> ThreeDResult<glow::Framebuffer> {
+pub(in crate::core) fn new_framebuffer(
+    context: &Context,
+) -> ThreeDResult<crate::context::Framebuffer> {
     unsafe {
         Ok(context
             .create_framebuffer()
@@ -150,12 +152,12 @@ fn clear(context: &Context, clear_state: &ClearState) {
             context.clear_depth_f32(depth);
         }
         context.clear(if clear_color && clear_state.depth.is_some() {
-            glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT
+            crate::context::COLOR_BUFFER_BIT | crate::context::DEPTH_BUFFER_BIT
         } else {
             if clear_color {
-                glow::COLOR_BUFFER_BIT
+                crate::context::COLOR_BUFFER_BIT
             } else {
-                glow::DEPTH_BUFFER_BIT
+                crate::context::DEPTH_BUFFER_BIT
             }
         });
     }

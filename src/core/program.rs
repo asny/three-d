@@ -11,10 +11,10 @@ use std::collections::HashMap;
 ///
 pub struct Program {
     context: Context,
-    id: glow::Program,
+    id: crate::context::Program,
     attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
-    uniforms: HashMap<String, glow::UniformLocation>,
+    uniforms: HashMap<String, crate::context::UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
 }
 
@@ -32,7 +32,7 @@ impl Program {
                 .create_shader(crate::context::VERTEX_SHADER)
                 .map_err(|e| CoreError::ShaderCreation(e))?;
             let frag_shader = context
-                .create_shader(glow::FRAGMENT_SHADER)
+                .create_shader(crate::context::FRAGMENT_SHADER)
                 .map_err(|e| CoreError::ShaderCreation(e))?;
 
             #[cfg(target_arch = "wasm32")]
@@ -91,7 +91,7 @@ impl Program {
             let num_attribs = context.get_active_attributes(id);
             let mut attributes = HashMap::new();
             for i in 0..num_attribs {
-                if let Some(glow::ActiveAttribute { name, .. }) =
+                if let Some(crate::context::ActiveAttribute { name, .. }) =
                     context.get_active_attribute(id, i)
                 {
                     let location = context.get_attrib_location(id, &name).unwrap();
@@ -107,7 +107,7 @@ impl Program {
             let num_uniforms = context.get_active_uniforms(id);
             let mut uniforms = HashMap::new();
             for i in 0..num_uniforms {
-                if let Some(glow::ActiveUniform { name, .. }) = context.get_active_uniform(id, i) {
+                if let Some(crate::context::ActiveUniform { name, .. }) = context.get_active_uniform(id, i) {
                     if let Some(location) = context.get_uniform_location(id, &name) {
                         let name = name.split('[').collect::<Vec<_>>()[0].to_string();
                         /*println!(
@@ -275,7 +275,7 @@ impl Program {
         self.use_uniform(name, data)
     }
 
-    fn get_uniform_location(&self, name: &str) -> ThreeDResult<&glow::UniformLocation> {
+    fn get_uniform_location(&self, name: &str) -> ThreeDResult<&crate::context::UniformLocation> {
         self.use_program();
         let loc = self
             .uniforms
@@ -299,7 +299,7 @@ impl Program {
     pub fn use_texture(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         unsafe {
-            self.context.active_texture(glow::TEXTURE0 + index);
+            self.context.active_texture(crate::context::TEXTURE0 + index);
         }
         texture.bind();
         self.use_uniform(name, index as i32)?;
@@ -357,7 +357,7 @@ impl Program {
         unsafe {
             self.context.uniform_block_binding(self.id, location, index);
             buffer.bind(index);
-            self.context.bind_buffer(glow::UNIFORM_BUFFER, None);
+            self.context.bind_buffer(crate::context::UNIFORM_BUFFER, None);
         }
         self.context.error_check()
     }
@@ -390,7 +390,7 @@ impl Program {
                     0,
                 );
                 self.context.vertex_attrib_divisor(loc, 0);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -425,7 +425,7 @@ impl Program {
                     0,
                 );
                 self.context.vertex_attrib_divisor(loc, 1);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -454,7 +454,7 @@ impl Program {
                 self.context
                     .vertex_attrib_pointer_f32(loc, 1, T::data_type(), false, 0, 0);
                 self.context.vertex_attrib_divisor(loc, 0);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -483,7 +483,7 @@ impl Program {
                 self.context
                     .vertex_attrib_pointer_f32(loc, 1, T::data_type(), false, 0, 0);
                 self.context.vertex_attrib_divisor(loc, 1);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -512,7 +512,7 @@ impl Program {
                 self.context
                     .vertex_attrib_pointer_f32(loc, 2, T::data_type(), false, 0, 0);
                 self.context.vertex_attrib_divisor(loc, 0);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -541,7 +541,7 @@ impl Program {
                 self.context
                     .vertex_attrib_pointer_f32(loc, 2, T::data_type(), false, 0, 0);
                 self.context.vertex_attrib_divisor(loc, 1);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -570,7 +570,7 @@ impl Program {
                 self.context
                     .vertex_attrib_pointer_f32(loc, 3, T::data_type(), false, 0, 0);
                 self.context.vertex_attrib_divisor(loc, 0);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -599,7 +599,7 @@ impl Program {
                 self.context
                     .vertex_attrib_pointer_f32(loc, 3, T::data_type(), false, 0, 0);
                 self.context.vertex_attrib_divisor(loc, 1);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -628,7 +628,7 @@ impl Program {
                 self.context
                     .vertex_attrib_pointer_f32(loc, 4, T::data_type(), false, 0, 0);
                 self.context.vertex_attrib_divisor(loc, 0);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -653,7 +653,7 @@ impl Program {
                 self.context
                     .vertex_attrib_pointer_f32(loc, 4, T::data_type(), false, 0, 0);
                 self.context.vertex_attrib_divisor(loc, 1);
-                self.context.bind_buffer(glow::ARRAY_BUFFER, None);
+                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
         }
@@ -676,7 +676,7 @@ impl Program {
         Self::set_states(&self.context, render_states)?;
         self.use_program();
         unsafe {
-            self.context.draw_arrays(glow::TRIANGLES, 0, count as i32);
+            self.context.draw_arrays(crate::context::TRIANGLES, 0, count as i32);
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
@@ -701,12 +701,12 @@ impl Program {
         self.use_program();
         unsafe {
             self.context.draw_arrays_instanced(
-                glow::TRIANGLES,
+                crate::context::TRIANGLES,
                 0,
                 count as i32,
                 instance_count as i32,
             );
-            self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+            self.context.bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
@@ -754,8 +754,8 @@ impl Program {
         element_buffer.bind();
         unsafe {
             self.context
-                .draw_elements(glow::TRIANGLES, count as i32, T::data_type(), first as i32);
-            self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+                .draw_elements(crate::context::TRIANGLES, count as i32, T::data_type(), first as i32);
+            self.context.bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
 
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
@@ -805,13 +805,13 @@ impl Program {
         element_buffer.bind();
         unsafe {
             self.context.draw_elements_instanced(
-                glow::TRIANGLES,
+                crate::context::TRIANGLES,
                 count as i32,
                 T::data_type(),
                 first as i32,
                 instance_count as i32,
             );
-            self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+            self.context.bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
@@ -879,10 +879,10 @@ impl Program {
                     height,
                 } = clip
                 {
-                    context.enable(glow::SCISSOR_TEST);
+                    context.enable(crate::context::SCISSOR_TEST);
                     context.scissor(x as i32, y as i32, width as i32, height as i32);
                 } else {
-                    context.disable(glow::SCISSOR_TEST);
+                    context.disable(crate::context::SCISSOR_TEST);
                 }
                 CURRENT = clip;
             }
@@ -915,19 +915,19 @@ impl Program {
             if cull != CURRENT_CULL {
                 match cull {
                     Cull::None => {
-                        context.disable(glow::CULL_FACE);
+                        context.disable(crate::context::CULL_FACE);
                     }
                     Cull::Back => {
-                        context.enable(glow::CULL_FACE);
-                        context.cull_face(glow::BACK);
+                        context.enable(crate::context::CULL_FACE);
+                        context.cull_face(crate::context::BACK);
                     }
                     Cull::Front => {
-                        context.enable(glow::CULL_FACE);
-                        context.cull_face(glow::FRONT);
+                        context.enable(crate::context::CULL_FACE);
+                        context.cull_face(crate::context::FRONT);
                     }
                     Cull::FrontAndBack => {
-                        context.enable(glow::CULL_FACE);
-                        context.cull_face(glow::FRONT_AND_BACK);
+                        context.enable(crate::context::CULL_FACE);
+                        context.cull_face(crate::context::FRONT_AND_BACK);
                     }
                 }
                 CURRENT_CULL = cull;
@@ -948,7 +948,7 @@ impl Program {
                     alpha_equation,
                 } = blend
                 {
-                    context.enable(glow::BLEND);
+                    context.enable(crate::context::BLEND);
                     context.blend_func_separate(
                         Self::blend_const_from_multiplier(source_rgb_multiplier),
                         Self::blend_const_from_multiplier(destination_rgb_multiplier),
@@ -960,7 +960,7 @@ impl Program {
                         Self::blend_const_from_equation(alpha_equation),
                     );
                 } else {
-                    context.disable(glow::BLEND);
+                    context.disable(crate::context::BLEND);
                 }
                 CURRENT = blend;
             }
@@ -969,27 +969,27 @@ impl Program {
 
     fn blend_const_from_multiplier(multiplier: BlendMultiplierType) -> u32 {
         match multiplier {
-            BlendMultiplierType::Zero => glow::ZERO,
-            BlendMultiplierType::One => glow::ONE,
-            BlendMultiplierType::SrcColor => glow::SRC_COLOR,
-            BlendMultiplierType::OneMinusSrcColor => glow::ONE_MINUS_SRC_COLOR,
-            BlendMultiplierType::DstColor => glow::DST_COLOR,
-            BlendMultiplierType::OneMinusDstColor => glow::ONE_MINUS_DST_COLOR,
-            BlendMultiplierType::SrcAlpha => glow::SRC_ALPHA,
-            BlendMultiplierType::OneMinusSrcAlpha => glow::ONE_MINUS_SRC_ALPHA,
-            BlendMultiplierType::DstAlpha => glow::DST_ALPHA,
-            BlendMultiplierType::OneMinusDstAlpha => glow::ONE_MINUS_DST_ALPHA,
-            BlendMultiplierType::SrcAlphaSaturate => glow::SRC_ALPHA_SATURATE,
+            BlendMultiplierType::Zero => crate::context::ZERO,
+            BlendMultiplierType::One => crate::context::ONE,
+            BlendMultiplierType::SrcColor => crate::context::SRC_COLOR,
+            BlendMultiplierType::OneMinusSrcColor => crate::context::ONE_MINUS_SRC_COLOR,
+            BlendMultiplierType::DstColor => crate::context::DST_COLOR,
+            BlendMultiplierType::OneMinusDstColor => crate::context::ONE_MINUS_DST_COLOR,
+            BlendMultiplierType::SrcAlpha => crate::context::SRC_ALPHA,
+            BlendMultiplierType::OneMinusSrcAlpha => crate::context::ONE_MINUS_SRC_ALPHA,
+            BlendMultiplierType::DstAlpha => crate::context::DST_ALPHA,
+            BlendMultiplierType::OneMinusDstAlpha => crate::context::ONE_MINUS_DST_ALPHA,
+            BlendMultiplierType::SrcAlphaSaturate => crate::context::SRC_ALPHA_SATURATE,
         }
     }
 
     fn blend_const_from_equation(equation: BlendEquationType) -> u32 {
         match equation {
-            BlendEquationType::Add => glow::FUNC_ADD,
-            BlendEquationType::Subtract => glow::FUNC_SUBTRACT,
-            BlendEquationType::ReverseSubtract => glow::FUNC_REVERSE_SUBTRACT,
-            BlendEquationType::Min => glow::MIN,
-            BlendEquationType::Max => glow::MAX,
+            BlendEquationType::Add => crate::context::FUNC_ADD,
+            BlendEquationType::Subtract => crate::context::FUNC_SUBTRACT,
+            BlendEquationType::ReverseSubtract => crate::context::FUNC_REVERSE_SUBTRACT,
+            BlendEquationType::Min => crate::context::MIN,
+            BlendEquationType::Max => crate::context::MAX,
         }
     }
 
@@ -1017,13 +1017,13 @@ impl Program {
 
             if depth_mask == false && depth_test == Some(DepthTest::Always) {
                 if CURRENT_DEPTH_ENABLE {
-                    context.disable(glow::DEPTH_TEST);
+                    context.disable(crate::context::DEPTH_TEST);
                     CURRENT_DEPTH_ENABLE = false;
                     return;
                 }
             } else {
                 if !CURRENT_DEPTH_ENABLE {
-                    context.enable(glow::DEPTH_TEST);
+                    context.enable(crate::context::DEPTH_TEST);
                     CURRENT_DEPTH_ENABLE = true;
                 }
             }
@@ -1036,28 +1036,28 @@ impl Program {
             if depth_test.is_some() && depth_test.unwrap() != CURRENT_DEPTH_TEST {
                 match depth_test.unwrap() {
                     DepthTest::Never => {
-                        context.depth_func(glow::NEVER);
+                        context.depth_func(crate::context::NEVER);
                     }
                     DepthTest::Less => {
-                        context.depth_func(glow::LESS);
+                        context.depth_func(crate::context::LESS);
                     }
                     DepthTest::Equal => {
-                        context.depth_func(glow::EQUAL);
+                        context.depth_func(crate::context::EQUAL);
                     }
                     DepthTest::LessOrEqual => {
-                        context.depth_func(glow::LEQUAL);
+                        context.depth_func(crate::context::LEQUAL);
                     }
                     DepthTest::Greater => {
-                        context.depth_func(glow::GREATER);
+                        context.depth_func(crate::context::GREATER);
                     }
                     DepthTest::NotEqual => {
-                        context.depth_func(glow::NOTEQUAL);
+                        context.depth_func(crate::context::NOTEQUAL);
                     }
                     DepthTest::GreaterOrEqual => {
-                        context.depth_func(glow::GEQUAL);
+                        context.depth_func(crate::context::GEQUAL);
                     }
                     DepthTest::Always => {
-                        context.depth_func(glow::ALWAYS);
+                        context.depth_func(crate::context::ALWAYS);
                     }
                 }
                 CURRENT_DEPTH_TEST = depth_test.unwrap();

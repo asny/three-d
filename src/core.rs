@@ -153,7 +153,7 @@ mod internal {
 
     impl DataType for u8 {
         fn data_type() -> u32 {
-            glow::UNSIGNED_BYTE
+            crate::context::UNSIGNED_BYTE
         }
 
         fn size() -> u32 {
@@ -162,10 +162,10 @@ mod internal {
 
         fn internal_format(format: Format) -> u32 {
             match format {
-                Format::R => glow::R8,
-                Format::RG => glow::RG8,
-                Format::RGB => glow::RGB8,
-                Format::RGBA => glow::RGBA8,
+                Format::R => crate::context::R8,
+                Format::RG => crate::context::RG8,
+                Format::RGB => crate::context::RGB8,
+                Format::RGBA => crate::context::RGBA8,
             }
         }
 
@@ -180,7 +180,7 @@ mod internal {
 
     impl DataType for u16 {
         fn data_type() -> u32 {
-            glow::UNSIGNED_SHORT
+            crate::context::UNSIGNED_SHORT
         }
 
         fn size() -> u32 {
@@ -189,10 +189,10 @@ mod internal {
 
         fn internal_format(format: Format) -> u32 {
             match format {
-                Format::R => glow::R16UI,
-                Format::RG => glow::RG16UI,
-                Format::RGB => glow::RGB16UI,
-                Format::RGBA => glow::RGBA16UI,
+                Format::R => crate::context::R16UI,
+                Format::RG => crate::context::RG16UI,
+                Format::RGB => crate::context::RGB16UI,
+                Format::RGBA => crate::context::RGBA16UI,
             }
         }
 
@@ -207,7 +207,7 @@ mod internal {
 
     impl DataType for u32 {
         fn data_type() -> u32 {
-            glow::UNSIGNED_INT
+            crate::context::UNSIGNED_INT
         }
 
         fn size() -> u32 {
@@ -216,10 +216,10 @@ mod internal {
 
         fn internal_format(format: Format) -> u32 {
             match format {
-                Format::R => glow::R32UI,
-                Format::RG => glow::RG32UI,
-                Format::RGB => glow::RGB32UI,
-                Format::RGBA => glow::RGBA32UI,
+                Format::R => crate::context::R32UI,
+                Format::RG => crate::context::RG32UI,
+                Format::RGB => crate::context::RGB32UI,
+                Format::RGBA => crate::context::RGBA32UI,
             }
         }
 
@@ -234,7 +234,7 @@ mod internal {
 
     impl DataType for f16 {
         fn data_type() -> u32 {
-            glow::HALF_FLOAT
+            crate::context::HALF_FLOAT
         }
 
         fn size() -> u32 {
@@ -243,10 +243,10 @@ mod internal {
 
         fn internal_format(format: Format) -> u32 {
             match format {
-                Format::R => glow::R16F,
-                Format::RG => glow::RG16F,
-                Format::RGB => glow::RGB16F,
-                Format::RGBA => glow::RGBA16F,
+                Format::R => crate::context::R16F,
+                Format::RG => crate::context::RG16F,
+                Format::RGB => crate::context::RGB16F,
+                Format::RGBA => crate::context::RGBA16F,
             }
         }
 
@@ -261,7 +261,7 @@ mod internal {
 
     impl DataType for f32 {
         fn data_type() -> u32 {
-            glow::FLOAT
+            crate::context::FLOAT
         }
 
         fn size() -> u32 {
@@ -270,10 +270,10 @@ mod internal {
 
         fn internal_format(format: Format) -> u32 {
             match format {
-                Format::R => glow::R32F,
-                Format::RG => glow::RG32F,
-                Format::RGB => glow::RGB32F,
-                Format::RGBA => glow::RGBA32F,
+                Format::R => crate::context::R32F,
+                Format::RG => crate::context::RG32F,
+                Format::RGB => crate::context::RGB32F,
+                Format::RGBA => crate::context::RGBA32F,
             }
         }
 

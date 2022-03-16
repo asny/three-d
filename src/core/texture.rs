@@ -82,10 +82,10 @@ impl Format {
 
     pub(super) fn as_const(&self) -> u32 {
         match self {
-            Format::R => glow::RED,
-            Format::RG => glow::RG,
-            Format::RGB => glow::RGB,
-            Format::RGBA => glow::RGBA,
+            Format::R => crate::context::RED,
+            Format::RG => crate::context::RG,
+            Format::RGB => crate::context::RGB,
+            Format::RGBA => crate::context::RGBA,
         }
     }
 }
@@ -385,7 +385,7 @@ impl<T: Texture> Texture for std::rc::Rc<T> {}
 impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {}
 
 // COMMON TEXTURE FUNCTIONS
-fn generate(context: &Context) -> ThreeDResult<glow::Texture> {
+fn generate(context: &Context) -> ThreeDResult<crate::context::Texture> {
     unsafe {
         Ok(context
             .create_texture()
@@ -407,21 +407,21 @@ fn set_parameters(
         match mip_map_filter {
             None => context.tex_parameter_i32(
                 target,
-                glow::TEXTURE_MIN_FILTER,
+                crate::context::TEXTURE_MIN_FILTER,
                 interpolation_from(min_filter),
             ),
             Some(Interpolation::Nearest) => {
                 if min_filter == Interpolation::Nearest {
                     context.tex_parameter_i32(
                         target,
-                        glow::TEXTURE_MIN_FILTER,
-                        glow::NEAREST_MIPMAP_NEAREST as i32,
+                        crate::context::TEXTURE_MIN_FILTER,
+                        crate::context::NEAREST_MIPMAP_NEAREST as i32,
                     );
                 } else {
                     context.tex_parameter_i32(
                         target,
-                        glow::TEXTURE_MIN_FILTER,
-                        glow::LINEAR_MIPMAP_NEAREST as i32,
+                        crate::context::TEXTURE_MIN_FILTER,
+                        crate::context::LINEAR_MIPMAP_NEAREST as i32,
                     )
                 }
             }
@@ -429,27 +429,35 @@ fn set_parameters(
                 if min_filter == Interpolation::Nearest {
                     context.tex_parameter_i32(
                         target,
-                        glow::TEXTURE_MIN_FILTER,
-                        glow::NEAREST_MIPMAP_LINEAR as i32,
+                        crate::context::TEXTURE_MIN_FILTER,
+                        crate::context::NEAREST_MIPMAP_LINEAR as i32,
                     );
                 } else {
                     context.tex_parameter_i32(
                         target,
-                        glow::TEXTURE_MIN_FILTER,
-                        glow::LINEAR_MIPMAP_LINEAR as i32,
+                        crate::context::TEXTURE_MIN_FILTER,
+                        crate::context::LINEAR_MIPMAP_LINEAR as i32,
                     )
                 }
             }
         }
         context.tex_parameter_i32(
             target,
-            glow::TEXTURE_MAG_FILTER,
+            crate::context::TEXTURE_MAG_FILTER,
             interpolation_from(mag_filter),
         );
-        context.tex_parameter_i32(target, glow::TEXTURE_WRAP_S, wrapping_from(wrap_s));
-        context.tex_parameter_i32(target, glow::TEXTURE_WRAP_T, wrapping_from(wrap_t));
+        context.tex_parameter_i32(
+            target,
+            crate::context::TEXTURE_WRAP_S,
+            wrapping_from(wrap_s),
+        );
+        context.tex_parameter_i32(
+            target,
+            crate::context::TEXTURE_WRAP_T,
+            wrapping_from(wrap_t),
+        );
         if let Some(r) = wrap_r {
-            context.tex_parameter_i32(target, glow::TEXTURE_WRAP_R, wrapping_from(r));
+            context.tex_parameter_i32(target, crate::context::TEXTURE_WRAP_R, wrapping_from(r));
         }
     }
     context.error_check()
@@ -474,24 +482,24 @@ fn calculate_number_of_mip_maps(
 
 fn internal_format_from_depth(format: DepthFormat) -> u32 {
     match format {
-        DepthFormat::Depth16 => glow::DEPTH_COMPONENT16,
-        DepthFormat::Depth24 => glow::DEPTH_COMPONENT24,
-        DepthFormat::Depth32F => glow::DEPTH_COMPONENT32F,
+        DepthFormat::Depth16 => crate::context::DEPTH_COMPONENT16,
+        DepthFormat::Depth24 => crate::context::DEPTH_COMPONENT24,
+        DepthFormat::Depth32F => crate::context::DEPTH_COMPONENT32F,
     }
 }
 
 fn wrapping_from(wrapping: Wrapping) -> i32 {
     (match wrapping {
-        Wrapping::Repeat => glow::REPEAT,
-        Wrapping::MirroredRepeat => glow::MIRRORED_REPEAT,
-        Wrapping::ClampToEdge => glow::CLAMP_TO_EDGE,
+        Wrapping::Repeat => crate::context::REPEAT,
+        Wrapping::MirroredRepeat => crate::context::MIRRORED_REPEAT,
+        Wrapping::ClampToEdge => crate::context::CLAMP_TO_EDGE,
     }) as i32
 }
 
 fn interpolation_from(interpolation: Interpolation) -> i32 {
     (match interpolation {
-        Interpolation::Nearest => glow::NEAREST,
-        Interpolation::Linear => glow::LINEAR,
+        Interpolation::Nearest => crate::context::NEAREST,
+        Interpolation::Linear => crate::context::LINEAR,
     }) as i32
 }
 

@@ -31,7 +31,7 @@ impl ElementBufferDataType for u32 {
 ///
 pub struct ElementBuffer<T: ElementBufferDataType> {
     context: Context,
-    id: glow::Buffer,
+    id: crate::context::Buffer,
     count: usize,
     _dummy: T,
 }
@@ -80,11 +80,12 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
         self.bind();
         unsafe {
             self.context.buffer_data_u8_slice(
-                glow::ELEMENT_ARRAY_BUFFER,
+                crate::context::ELEMENT_ARRAY_BUFFER,
                 super::internal::to_byte_slice(data),
-                glow::STATIC_DRAW,
+                crate::context::STATIC_DRAW,
             );
-            self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
+            self.context
+                .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
         }
         self.count = data.len();
         self.context.error_check()
@@ -115,7 +116,7 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
     pub(crate) fn bind(&self) {
         unsafe {
             self.context
-                .bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(self.id));
+                .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, Some(self.id));
         }
     }
 }

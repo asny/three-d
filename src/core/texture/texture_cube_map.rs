@@ -61,12 +61,12 @@ impl CubeMapSide {
 
     pub(in crate::core) fn to_const(&self) -> u32 {
         match self {
-            CubeMapSide::Right => glow::TEXTURE_CUBE_MAP_POSITIVE_X,
-            CubeMapSide::Left => glow::TEXTURE_CUBE_MAP_NEGATIVE_X,
-            CubeMapSide::Top => glow::TEXTURE_CUBE_MAP_POSITIVE_Y,
-            CubeMapSide::Bottom => glow::TEXTURE_CUBE_MAP_NEGATIVE_Y,
-            CubeMapSide::Front => glow::TEXTURE_CUBE_MAP_POSITIVE_Z,
-            CubeMapSide::Back => glow::TEXTURE_CUBE_MAP_NEGATIVE_Z,
+            CubeMapSide::Right => crate::context::TEXTURE_CUBE_MAP_POSITIVE_X,
+            CubeMapSide::Left => crate::context::TEXTURE_CUBE_MAP_NEGATIVE_X,
+            CubeMapSide::Top => crate::context::TEXTURE_CUBE_MAP_POSITIVE_Y,
+            CubeMapSide::Bottom => crate::context::TEXTURE_CUBE_MAP_NEGATIVE_Y,
+            CubeMapSide::Front => crate::context::TEXTURE_CUBE_MAP_POSITIVE_Z,
+            CubeMapSide::Back => crate::context::TEXTURE_CUBE_MAP_NEGATIVE_Z,
         }
     }
 
@@ -111,7 +111,7 @@ impl CubeMapSide {
 ///
 pub struct TextureCubeMap<T: TextureDataType> {
     context: Context,
-    id: glow::Texture,
+    id: crate::context::Texture,
     width: u32,
     height: u32,
     format: Format,
@@ -181,7 +181,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         texture.bind();
         set_parameters(
             context,
-            glow::TEXTURE_CUBE_MAP,
+            crate::context::TEXTURE_CUBE_MAP,
             min_filter,
             mag_filter,
             if number_of_mip_maps == 1 {
@@ -195,7 +195,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         )?;
         unsafe {
             context.tex_storage_2d(
-                glow::TEXTURE_CUBE_MAP,
+                crate::context::TEXTURE_CUBE_MAP,
                 number_of_mip_maps as i32,
                 T::internal_format(format),
                 width as i32,
@@ -241,7 +241,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
             };
             unsafe {
                 self.context.tex_sub_image_2d(
-                    glow::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
+                    crate::context::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
                     0,
                     0,
                     0,
@@ -249,7 +249,9 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                     self.height as i32,
                     self.format.as_const(),
                     T::data_type(),
-                    glow::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(data)),
+                    crate::context::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(
+                        data,
+                    )),
                 );
             }
         }
@@ -368,7 +370,8 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         if self.number_of_mip_maps > 1 {
             self.bind();
             unsafe {
-                self.context.generate_mipmap(glow::TEXTURE_CUBE_MAP);
+                self.context
+                    .generate_mipmap(crate::context::TEXTURE_CUBE_MAP);
             }
         }
     }
@@ -381,8 +384,8 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     ) {
         unsafe {
             self.context.framebuffer_texture_2d(
-                glow::DRAW_FRAMEBUFFER,
-                glow::COLOR_ATTACHMENT0 + channel,
+                crate::context::DRAW_FRAMEBUFFER,
+                crate::context::COLOR_ATTACHMENT0 + channel,
                 side.to_const(),
                 Some(self.id),
                 mip_level as i32,
@@ -393,7 +396,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     fn bind(&self) {
         unsafe {
             self.context
-                .bind_texture(glow::TEXTURE_CUBE_MAP, Some(self.id));
+                .bind_texture(crate::context::TEXTURE_CUBE_MAP, Some(self.id));
         }
     }
 }

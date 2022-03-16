@@ -7,7 +7,7 @@ use crate::core::render_target::*;
 ///
 pub struct RenderTargetArray<'a, 'b, T: TextureDataType> {
     context: Context,
-    id: glow::Framebuffer,
+    id: crate::context::Framebuffer,
     color_texture: Option<&'a mut Texture2DArray<T>>,
     depth_texture: Option<&'b mut DepthTargetTexture2DArray>,
 }
@@ -98,12 +98,12 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> ThreeDResult<()> {
         unsafe {
             self.context
-                .bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(self.id));
+                .bind_framebuffer(crate::context::DRAW_FRAMEBUFFER, Some(self.id));
             if let Some(ref color_texture) = self.color_texture {
                 if let Some(color_layers) = color_layers {
                     self.context.draw_buffers(
                         &(0..color_layers.len())
-                            .map(|i| glow::COLOR_ATTACHMENT0 + i as u32)
+                            .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
                             .collect::<Vec<u32>>(),
                     );
                     for channel in 0..color_layers.len() {
