@@ -5,7 +5,9 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 ///
-/// Contains information about the graphics context to use for rendering and other "global" variables.
+/// Contains the low-level [graphics context](crate::context::Context) as well as other "global" variables.
+/// Implements Deref with the low-level [graphics context](crate::context::Context) as target, so you can call low-level functionality
+/// directly on this struct as long as you import the [HasContext](crate::context::HasContext) trait from the [context](crate::context) module.
 ///
 #[derive(Clone)]
 pub struct Context {
