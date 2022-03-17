@@ -99,20 +99,6 @@ impl Default for ClearState {
     }
 }
 
-///
-/// The destination of applying a copy.
-///
-pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureDataType> {
-    /// Copies to the [Screen].
-    Screen,
-    /// Copies to a [Texture2D].
-    ColorTexture(&'d mut Texture2D<T>),
-    /// Copies to a [DepthTargetTexture2D].
-    DepthTexture(&'d mut DepthTargetTexture2D),
-    /// Copies to a [RenderTarget].
-    RenderTarget(&'c RenderTarget<'a, 'b, T>),
-}
-
 pub(in crate::core) fn new_framebuffer(
     context: &Context,
 ) -> ThreeDResult<crate::context::Framebuffer> {
