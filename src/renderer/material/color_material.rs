@@ -25,14 +25,7 @@ impl ColorMaterial {
     /// Since this is not always correct, it is preferred to use [ColorMaterial::new_opaque] or [ColorMaterial::new_transparent].
     ///
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
-        let is_transparent = cpu_material.albedo.a == 255
-            || cpu_material
-                .albedo_texture
-                .as_ref()
-                .map(|t| t.is_transparent())
-                .unwrap_or(false);
-
-        if is_transparent {
+        if super::is_transparent(cpu_material) {
             Self::new_transparent(context, cpu_material)
         } else {
             Self::new_opaque(context, cpu_material)

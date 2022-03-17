@@ -124,19 +124,43 @@ impl TextureCubeMap {
     /// The images are used in the following order; right, left, top, bottom, front, back.
     ///
     pub fn new(context: &Context, cpu_texture: &CpuTextureCube) -> ThreeDResult<Self> {
-        match cpu_texture.data {
-            TextureData::RU8(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RgU8(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RgbU8(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RgbaU8(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RF16(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RgF16(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RgbF16(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RgbaF16(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RF32(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RgF32(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RgbF32(ref data) => Self::new_with_data(context, cpu_texture, data),
-            TextureData::RgbaF32(ref data) => Self::new_with_data(context, cpu_texture, data),
+        match &cpu_texture.data {
+            TextureCubeData::RU8(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RgU8(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RgbU8(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RgbaU8(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RF16(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RgF16(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RgbF16(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RgbaF16(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RF32(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RgF32(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RgbF32(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
+            TextureCubeData::RgbaF32(right, left, top, bottom, front, back) => {
+                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
+            }
         }
     }
 
@@ -375,11 +399,6 @@ impl TextureCubeMap {
     /// The height of this texture.
     pub fn height(&self) -> u32 {
         self.height
-    }
-
-    /// The format of this texture.
-    pub fn format(&self) -> Format {
-        self.format
     }
 
     pub(in crate::core) fn generate_mip_maps(&self) {
