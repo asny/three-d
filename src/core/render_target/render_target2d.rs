@@ -5,14 +5,14 @@ use crate::core::render_target::*;
 /// a [DepthTargetTexture2D] at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
-pub struct RenderTarget<'a, 'b, T: TextureDataType> {
+pub struct RenderTarget<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a mut Texture2D<T>>,
+    color_texture: Option<&'a mut Texture2D>,
     depth_texture: Option<&'b mut DepthTargetTexture2D>,
 }
 
-impl<'a, 'b> RenderTarget<'a, 'b, u8> {
+impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     /// Constructs a new render target that enables rendering into the given
     /// [DepthTargetTexture2D].
@@ -28,16 +28,13 @@ impl<'a, 'b> RenderTarget<'a, 'b, u8> {
             depth_texture: Some(depth_texture),
         })
     }
-}
-
-impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     ///
     /// Constructs a new render target that enables rendering into the given
     /// [ColorTargetTexture2D] and [DepthTargetTexture2D] textures.
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a mut Texture2D<T>,
+        color_texture: &'a mut Texture2D,
         depth_texture: &'b mut DepthTargetTexture2D,
     ) -> ThreeDResult<Self> {
         Ok(Self {
@@ -52,7 +49,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     /// Constructs a new render target that enables rendering into the given
     /// [ColorTargetTexture2D].
     ///
-    pub fn new_color(context: &Context, color_texture: &'a mut Texture2D<T>) -> ThreeDResult<Self> {
+    pub fn new_color(context: &Context, color_texture: &'a mut Texture2D) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -92,9 +89,9 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     /// Copies the content of the color and depth texture to the specified viewport of this render target.
     /// Only copies the channels given by the write mask.
     ///
-    pub fn copy_from<U: TextureDataType>(
+    pub fn copy_from(
         &self,
-        color_texture: Option<&Texture2D<U>>,
+        color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
         viewport: Viewport,
         write_mask: WriteMask,
@@ -114,9 +111,9 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     /// Copies the content of the given layers of the color and depth array textures to the specified viewport of this render target.
     /// Only copies the channels given by the write mask.
     ///
-    pub fn copy_from_array<U: TextureDataType>(
+    pub fn copy_from_array(
         &self,
-        color_texture: Option<(&Texture2DArray<U>, u32)>,
+        color_texture: Option<(&Texture2DArray, u32)>,
         depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
         viewport: Viewport,
         write_mask: WriteMask,
@@ -149,7 +146,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     }
 }
 
-impl<T: TextureDataType> Drop for RenderTarget<'_, '_, T> {
+impl Drop for RenderTarget<'_, '_> {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_framebuffer(self.id);

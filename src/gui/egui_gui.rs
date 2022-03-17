@@ -14,7 +14,7 @@ pub struct GUI {
     height: u32,
     program: Program,
     texture_version: u64,
-    texture: Option<Texture2D<u8>>,
+    texture: Option<Texture2D>,
 }
 
 impl GUI {
@@ -123,16 +123,12 @@ impl GUI {
         if self.texture.is_none() || self.texture_version != egui_texture.version {
             let mut pixels = Vec::new();
             for pixel in egui_texture.srgba_pixels() {
-                pixels.push(pixel.r());
-                pixels.push(pixel.g());
-                pixels.push(pixel.b());
-                pixels.push(pixel.a());
+                pixels.push(vec4(pixel.r(), pixel.g(), pixel.b(), pixel.a()));
             }
             self.texture = Some(Texture2D::new(
                 &self.context,
                 &CpuTexture {
-                    data: pixels,
-                    format: Format::RGBA,
+                    data: TextureData::RgbaU8(pixels),
                     width: egui_texture.width as u32,
                     height: egui_texture.height as u32,
                     mip_map_filter: None,
@@ -178,7 +174,7 @@ impl GUI {
         width: u32,
         height: u32,
         mesh: &egui::paint::Mesh,
-        texture: &Texture2D<u8>,
+        texture: &Texture2D,
     ) -> ThreeDResult<()> {
         debug_assert!(mesh.is_valid());
 

@@ -3,22 +3,41 @@ use crate::core::texture::*;
 ///
 /// A 2D texture, basically an image that is transferred to the GPU.
 ///
-pub struct Texture2D<T: TextureDataType> {
+pub struct Texture2D {
     context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
-    format: Format,
     number_of_mip_maps: u32,
-    _dummy: T,
 }
 
-impl<T: TextureDataType> Texture2D<T> {
+impl Texture2D {
     ///
     /// Construcs a new texture with the given data.
     ///
-    pub fn new(context: &Context, cpu_texture: &CpuTexture<T>) -> ThreeDResult<Texture2D<T>> {
-        let mut texture = Self::new_empty(
+    pub fn new(context: &Context, cpu_texture: &CpuTexture) -> ThreeDResult<Self> {
+        match cpu_texture.data {
+            TextureData::RU8(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RgU8(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RgbU8(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RgbaU8(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RF16(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RgF16(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RgbF16(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RgbaF16(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RF32(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RgF32(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RgbF32(ref data) => Self::new_with_data(context, cpu_texture, data),
+            TextureData::RgbaF32(ref data) => Self::new_with_data(context, cpu_texture, data),
+        }
+    }
+
+    fn new_with_data<T: TextureDataType>(
+        context: &Context,
+        cpu_texture: &CpuTexture,
+        data: &[T],
+    ) -> ThreeDResult<Self> {
+        let mut texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
             cpu_texture.height,
@@ -27,16 +46,15 @@ impl<T: TextureDataType> Texture2D<T> {
             cpu_texture.mip_map_filter,
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
-            cpu_texture.format,
         )?;
-        texture.fill(&cpu_texture.data)?;
+        texture.fill(data)?;
         Ok(texture)
     }
 
     ///
     /// Constructs a new empty 2D texture.
     ///
-    pub fn new_empty(
+    pub fn new_empty<T: TextureDataType>(
         context: &Context,
         width: u32,
         height: u32,
@@ -45,7 +63,6 @@ impl<T: TextureDataType> Texture2D<T> {
         mip_map_filter: Option<Interpolation>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
-        format: Format,
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
@@ -55,8 +72,6 @@ impl<T: TextureDataType> Texture2D<T> {
             width,
             height,
             number_of_mip_maps,
-            format,
-            _dummy: T::default(),
         };
         texture.bind();
         set_parameters(
@@ -93,8 +108,8 @@ impl<T: TextureDataType> Texture2D<T> {
     /// # Errors
     /// Return an error if the length of the data array is smaller or bigger than the necessary number of bytes to fill the entire texture.
     ///
-    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
-        check_data_length(self.width, self.height, 1, self.format, data.len())?;
+    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
+        check_data_length(self.width, self.height, 1, data.len())?;
         self.bind();
         unsafe {
             self.context.tex_sub_image_2d(
@@ -125,21 +140,18 @@ impl<T: TextureDataType> Texture2D<T> {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::<T>::new_color(&self.context.clone(), self)?.write(clear_state, render)
+        RenderTarget::new_color(&self.context.clone(), self)?.write(clear_state, render)
     }
 
     ///
     /// Returns the color values of the pixels in this color texture inside the given viewport.
     ///
-    /// **Note:** Only works for the RGBA format.
+    /// **Note:** Currently only works for the RGBA byte format.
     ///
-    /// # Errors
-    /// Will return an error if the color texture is not RGBA format.
-    ///
-    pub fn read(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        if self.format != Format::RGBA {
-            Err(CoreError::ReadWrongFormat)?;
-        }
+    pub fn read<T: TextureDataType + crate::core::internal::PrimitiveDataType>(
+        &self,
+        viewport: Viewport,
+    ) -> ThreeDResult<Vec<Vector4<T>>> {
         let id = crate::core::render_target::new_framebuffer(&self.context)?;
         unsafe {
             self.context
@@ -160,7 +172,7 @@ impl<T: TextureDataType> Texture2D<T> {
                 0u8;
                 viewport.width as usize
                     * viewport.height as usize
-                    * self.format.color_channel_count() as usize
+                    * 4
                     * std::mem::size_of::<T>()
             ];
             self.context.read_pixels(
@@ -168,7 +180,7 @@ impl<T: TextureDataType> Texture2D<T> {
                 viewport.y as i32,
                 viewport.width as i32,
                 viewport.height as i32,
-                format::<T>(),
+                format::<Vector4<T>>(),
                 T::data_type(),
                 crate::context::PixelPackData::Slice(&mut pixels),
             );
@@ -184,11 +196,6 @@ impl<T: TextureDataType> Texture2D<T> {
     /// The height of this texture.
     pub fn height(&self) -> u32 {
         self.height
-    }
-
-    /// The format of this texture.
-    pub fn format(&self) -> Format {
-        self.format
     }
 
     pub(crate) fn generate_mip_maps(&self) {
@@ -219,15 +226,15 @@ impl<T: TextureDataType> Texture2D<T> {
     }
 }
 
-impl<T: TextureDataType> internal::TextureExtensions for Texture2D<T> {
+impl internal::TextureExtensions for Texture2D {
     fn bind(&self) {
         self.bind();
     }
 }
 
-impl<T: TextureDataType> Texture for Texture2D<T> {}
+impl Texture for Texture2D {}
 
-impl<T: TextureDataType> Drop for Texture2D<T> {
+impl Drop for Texture2D {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_texture(self.id);
@@ -242,16 +249,16 @@ impl<T: TextureDataType> Drop for Texture2D<T> {
 /// Use a [RenderTarget] to write to both color and depth.
 ///
 #[deprecated = "Use Texture2D instead"]
-pub struct ColorTargetTexture2D<T: TextureDataType> {
-    tex: Texture2D<T>,
+pub struct ColorTargetTexture2D {
+    tex: Texture2D,
 }
 
 #[allow(deprecated)]
-impl<T: TextureDataType> ColorTargetTexture2D<T> {
+impl ColorTargetTexture2D {
     ///
     /// Constructs a new 2D color target texture.
     ///
-    pub fn new(
+    pub fn new<T: TextureDataType>(
         context: &Context,
         width: u32,
         height: u32,
@@ -260,10 +267,10 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
         mip_map_filter: Option<Interpolation>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
-        format: Format,
+        _format: Format,
     ) -> ThreeDResult<Self> {
         Ok(Self {
-            tex: Texture2D::new_empty(
+            tex: Texture2D::new_empty::<T>(
                 context,
                 width,
                 height,
@@ -272,22 +279,21 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
                 mip_map_filter,
                 wrap_s,
                 wrap_t,
-                format,
             )?,
         })
     }
 }
 
 #[allow(deprecated)]
-impl<T: TextureDataType> std::ops::Deref for ColorTargetTexture2D<T> {
-    type Target = Texture2D<T>;
+impl std::ops::Deref for ColorTargetTexture2D {
+    type Target = Texture2D;
     fn deref(&self) -> &Self::Target {
         &self.tex
     }
 }
 
 #[allow(deprecated)]
-impl<T: TextureDataType> std::ops::DerefMut for ColorTargetTexture2D<T> {
+impl std::ops::DerefMut for ColorTargetTexture2D {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.tex
     }

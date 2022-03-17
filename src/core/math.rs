@@ -24,15 +24,15 @@ pub type Degrees = Deg<f32>;
 pub type Radians = Rad<f32>;
 pub type Quat = Quaternion<f32>;
 
-pub const fn vec2(x: f32, y: f32) -> Vec2 {
+pub const fn vec2<T>(x: T, y: T) -> Vector2<T> {
     Vector2::new(x, y)
 }
 
-pub const fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
+pub const fn vec3<T>(x: T, y: T, z: T) -> Vector3<T> {
     Vector3::new(x, y, z)
 }
 
-pub const fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
+pub const fn vec4<T>(x: T, y: T, z: T, w: T) -> Vector4<T> {
     Vector4::new(x, y, z, w)
 }
 

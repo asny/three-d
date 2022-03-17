@@ -9,16 +9,42 @@ use std::path::Path;
 /// Supported formats: PNG, JPEG, GIF, WebP, pnm (pbm, pgm, ppm and pam), TIFF, DDS, BMP, ICO, HDR, farbfeld.
 /// **Note:** If the image contains and you want to load high dynamic range (hdr) information, use [hdr_image_from_bytes] instead.
 ///
-pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CpuTexture<u8>> {
+pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CpuTexture> {
     use crate::core::*;
     use image::DynamicImage;
     use image::GenericImageView;
     let img = image::load_from_memory(bytes)?;
-    let format = match img {
-        DynamicImage::ImageLuma8(_) => Format::R,
-        DynamicImage::ImageLumaA8(_) => Format::RG,
-        DynamicImage::ImageRgb8(_) => Format::RGB,
-        DynamicImage::ImageRgba8(_) => Format::RGBA,
+    let bytes = img.to_bytes();
+    let width = img.width();
+    let height = img.height();
+    let data = match img {
+        DynamicImage::ImageLuma8(_) => TextureData::RU8(bytes),
+        DynamicImage::ImageLumaA8(_) => {
+            let mut data = Vec::new();
+            for i in 0..bytes.len() / 2 {
+                data.push(vec2(bytes[i * 2], bytes[i * 2 + 1]));
+            }
+            TextureData::RgU8(data)
+        }
+        DynamicImage::ImageRgb8(_) => {
+            let mut data = Vec::new();
+            for i in 0..bytes.len() / 3 {
+                data.push(vec3(bytes[i * 3], bytes[i * 3 + 1], bytes[i * 3 + 2]));
+            }
+            TextureData::RgbU8(data)
+        }
+        DynamicImage::ImageRgba8(_) => {
+            let mut data = Vec::new();
+            for i in 0..bytes.len() / 4 {
+                data.push(vec4(
+                    bytes[i * 4],
+                    bytes[i * 4 + 1],
+                    bytes[i * 4 + 2],
+                    bytes[i * 4 + 3],
+                ));
+            }
+            TextureData::RgbaU8(data)
+        }
         DynamicImage::ImageBgr8(_) => unimplemented!(),
         DynamicImage::ImageBgra8(_) => unimplemented!(),
         DynamicImage::ImageLuma16(_) => unimplemented!(),
@@ -26,12 +52,10 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CpuTexture<u8
         DynamicImage::ImageRgb16(_) => unimplemented!(),
         DynamicImage::ImageRgba16(_) => unimplemented!(),
     };
-
     Ok(CpuTexture {
-        data: img.to_bytes(),
-        width: img.width(),
-        height: img.height(),
-        format,
+        data,
+        width,
+        height,
         ..Default::default()
     })
 }
@@ -42,24 +66,23 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CpuTexture<u8
 /// The CpuTexture can then be used to create a [Texture2D] or a [TextureCubeMap] using the `new_from_equirectangular` method.
 /// Supported formats: HDR.
 ///
-pub fn hdr_image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture<f32>> {
+pub fn hdr_image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
     use image::codecs::hdr::*;
     use image::*;
     let decoder = HdrDecoder::new(bytes)?;
     let metadata = decoder.metadata();
     let img = decoder.read_image_native()?;
     Ok(CpuTexture {
-        data: img
-            .iter()
-            .map(|rgbe| {
-                let Rgb(values) = rgbe.to_hdr();
-                values
-            })
-            .flatten()
-            .collect::<Vec<_>>(),
+        data: TextureData::RgbF32(
+            img.iter()
+                .map(|rgbe| {
+                    let Rgb(values) = rgbe.to_hdr();
+                    vec3(values[0], values[1], values[2])
+                })
+                .collect::<Vec<_>>(),
+        ),
         width: metadata.width,
         height: metadata.height,
-        format: Format::RGB,
         ..Default::default()
     })
 }
@@ -76,7 +99,7 @@ pub fn cube_image_from_bytes(
     bottom_bytes: &[u8],
     front_bytes: &[u8],
     back_bytes: &[u8],
-) -> ThreeDResult<CpuTextureCube<u8>> {
+) -> ThreeDResult<CpuTextureCube> {
     let right = image_from_bytes(right_bytes)?;
     let left = image_from_bytes(left_bytes)?;
     let top = image_from_bytes(top_bytes)?;
@@ -111,7 +134,7 @@ impl Loaded {
     /// Supported formats: PNG, JPEG, GIF, WebP, pnm (pbm, pgm, ppm and pam), TIFF, DDS, BMP, ICO, HDR, farbfeld.
     /// **Note:** If the image contains high dynamic range (hdr) information, use [hdr_image](Loaded::hdr_image) instead.
     ///
-    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> ThreeDResult<CpuTexture<u8>> {
+    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> ThreeDResult<CpuTexture> {
         image_from_bytes(&self.get_bytes(path)?)
     }
 
@@ -121,7 +144,7 @@ impl Loaded {
     /// The CpuTexture can then be used to create a [Texture2D] or a [TextureCubeMap] using the `new_from_equirectangular` method.
     /// Supported formats: HDR.
     ///
-    pub fn hdr_image(&mut self, path: impl AsRef<Path>) -> ThreeDResult<CpuTexture<f32>> {
+    pub fn hdr_image(&mut self, path: impl AsRef<Path>) -> ThreeDResult<CpuTexture> {
         hdr_image_from_bytes(&self.get_bytes(path)?)
     }
 
@@ -138,7 +161,7 @@ impl Loaded {
         bottom_path: P,
         front_path: P,
         back_path: P,
-    ) -> ThreeDResult<CpuTextureCube<u8>> {
+    ) -> ThreeDResult<CpuTextureCube> {
         let right = self.image(right_path)?;
         let left = self.image(left_path)?;
         let top = self.image(top_path)?;

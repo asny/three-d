@@ -11,7 +11,7 @@ pub struct ColorMaterial {
     /// Base surface color. Assumed to be in linear color space.
     pub color: Color,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
-    pub texture: Option<Rc<Texture2D<u8>>>,
+    pub texture: Option<Rc<Texture2D>>,
     /// Render states.
     pub render_states: RenderStates,
     /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).

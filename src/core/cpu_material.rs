@@ -65,7 +65,7 @@ pub struct CpuMaterial {
     /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
     pub albedo: Color,
     /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
-    pub albedo_texture: Option<CpuTexture<u8>>,
+    pub albedo_texture: Option<CpuTexture>,
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the material surface is.
@@ -73,25 +73,25 @@ pub struct CpuMaterial {
     /// Texture containing the occlusion, metallic and roughness parameters.
     /// The occlusion values are sampled from the red channel, metallic from the blue channel and the roughness from the green channel.
     /// Is sometimes in two textures, see [Self::occlusion_texture] and [Self::metallic_roughness_texture].
-    pub occlusion_metallic_roughness_texture: Option<CpuTexture<u8>>,
+    pub occlusion_metallic_roughness_texture: Option<CpuTexture>,
     /// Texture containing the metallic and roughness parameters which are multiplied with the [Self::metallic] and [Self::roughness] values in the shader.
     /// The metallic values are sampled from the blue channel and the roughness from the green channel.
     /// Can be combined with occlusion into one texture, see [Self::occlusion_metallic_roughness_texture].
-    pub metallic_roughness_texture: Option<CpuTexture<u8>>,
+    pub metallic_roughness_texture: Option<CpuTexture>,
     /// A scalar multiplier controlling the amount of occlusion applied from the [Self::occlusion_texture]. A value of 0.0 means no occlusion. A value of 1.0 means full occlusion.
     pub occlusion_strength: f32,
     /// An occlusion map. Higher values indicate areas that should receive full indirect lighting and lower values indicate no indirect lighting.
     /// The occlusion values are sampled from the red channel.
     /// Can be combined with metallic and roughness into one texture, see [Self::occlusion_metallic_roughness_texture].
-    pub occlusion_texture: Option<CpuTexture<u8>>,
+    pub occlusion_texture: Option<CpuTexture>,
     /// A scalar multiplier applied to each normal vector of the [Self::normal_texture].
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
-    pub normal_texture: Option<CpuTexture<u8>>,
+    pub normal_texture: Option<CpuTexture>,
     /// Color of light shining from an object.
     pub emissive: Color,
     /// Texture with color of light shining from an object.
-    pub emissive_texture: Option<CpuTexture<u8>>,
+    pub emissive_texture: Option<CpuTexture>,
     /// Alpha cutout value for transparency in deferred rendering pipeline.
     pub alpha_cutout: Option<f32>,
     /// The lighting model used when rendering this material

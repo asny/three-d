@@ -5,14 +5,14 @@ use crate::core::render_target::*;
 /// a [DepthTargetTextureCubeMap] at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
-pub struct RenderTargetCubeMap<'a, 'b, T: TextureDataType> {
+pub struct RenderTargetCubeMap<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a mut TextureCubeMap<T>>,
+    color_texture: Option<&'a mut TextureCubeMap>,
     depth_texture: Option<&'b mut DepthTargetTextureCubeMap>,
 }
 
-impl<'a, 'b> RenderTargetCubeMap<'a, 'b, u8> {
+impl<'a, 'b> RenderTargetCubeMap<'a, 'b> {
     ///
     /// Constructs a new render target cube map that enables rendering into the given
     /// [DepthTargetTextureCubeMap].
@@ -28,16 +28,14 @@ impl<'a, 'b> RenderTargetCubeMap<'a, 'b, u8> {
             depth_texture: Some(depth_texture),
         })
     }
-}
 
-impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
     ///
     /// Constructs a new render target cube map that enables rendering into the given
     /// [TextureCubeMap] and [DepthTargetTextureCubeMap] textures.
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a mut TextureCubeMap<T>,
+        color_texture: &'a mut TextureCubeMap,
         depth_texture: &'b mut DepthTargetTextureCubeMap,
     ) -> ThreeDResult<Self> {
         Ok(Self {
@@ -54,7 +52,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
     ///
     pub fn new_color(
         context: &Context,
-        color_texture: &'a mut TextureCubeMap<T>,
+        color_texture: &'a mut TextureCubeMap,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -121,7 +119,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
     }
 }
 
-impl<T: TextureDataType> Drop for RenderTargetCubeMap<'_, '_, T> {
+impl Drop for RenderTargetCubeMap<'_, '_> {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_framebuffer(self.id);

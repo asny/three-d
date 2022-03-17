@@ -7,9 +7,9 @@ use crate::renderer::*;
 /// This material should be applied to a cube with center in origo, for example [CpuMesh::cube].
 ///
 #[derive(Clone)]
-pub struct IsourfaceMaterial<T: TextureDataType> {
+pub struct IsourfaceMaterial {
     /// The voxel data that defines the isosurface.
-    pub voxels: std::rc::Rc<Texture3D<T>>,
+    pub voxels: std::rc::Rc<Texture3D>,
     /// Threshold (in the range [0..1]) that defines the surface in the voxel data.
     pub threshold: f32,
     /// Base surface color. Assumed to be in linear color space.
@@ -24,7 +24,7 @@ pub struct IsourfaceMaterial<T: TextureDataType> {
     pub lighting_model: LightingModel,
 }
 
-impl<T: TextureDataType> Material for IsourfaceMaterial<T> {
+impl Material for IsourfaceMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         let mut output = lights_fragment_shader_source(lights, self.lighting_model);
         output.push_str(include_str!("shaders/isosurface_material.frag"));
