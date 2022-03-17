@@ -143,8 +143,67 @@ mod internal {
         }
     }
 
+    pub trait PrimitiveDataType: DataType {
+        fn internal_format_with_size(size: u32) -> u32;
+    }
+    impl PrimitiveDataType for u8 {
+        fn internal_format_with_size(size: u32) -> u32 {
+            match size {
+                0 => crate::context::R8,
+                1 => crate::context::RG8,
+                2 => crate::context::RGB8,
+                3 => crate::context::RGBA8,
+                _ => unreachable!(),
+            }
+        }
+    }
+    impl PrimitiveDataType for u16 {
+        fn internal_format_with_size(size: u32) -> u32 {
+            match size {
+                0 => crate::context::R16UI,
+                1 => crate::context::RG16UI,
+                2 => crate::context::RGB16UI,
+                3 => crate::context::RGBA16UI,
+                _ => unreachable!(),
+            }
+        }
+    }
+    impl PrimitiveDataType for u32 {
+        fn internal_format_with_size(size: u32) -> u32 {
+            match size {
+                0 => crate::context::R32UI,
+                1 => crate::context::RG32UI,
+                2 => crate::context::RGB32UI,
+                3 => crate::context::RGBA32UI,
+                _ => unreachable!(),
+            }
+        }
+    }
+    impl PrimitiveDataType for f16 {
+        fn internal_format_with_size(size: u32) -> u32 {
+            match size {
+                0 => crate::context::R16F,
+                1 => crate::context::RG16F,
+                2 => crate::context::RGB16F,
+                3 => crate::context::RGBA16F,
+                _ => unreachable!(),
+            }
+        }
+    }
+    impl PrimitiveDataType for f32 {
+        fn internal_format_with_size(size: u32) -> u32 {
+            match size {
+                0 => crate::context::R32F,
+                1 => crate::context::RG32F,
+                2 => crate::context::RGB32F,
+                3 => crate::context::RGBA32F,
+                _ => unreachable!(),
+            }
+        }
+    }
+
     pub trait DataType: std::fmt::Debug + Clone {
-        fn internal_format(format: Format) -> u32;
+        fn internal_format() -> u32;
         fn data_type() -> u32;
         fn is_max(&self) -> bool;
         fn size() -> u32;
@@ -152,21 +211,16 @@ mod internal {
     }
 
     impl DataType for u8 {
+        fn internal_format() -> u32 {
+            Self::internal_format_with_size(1)
+        }
+
         fn data_type() -> u32 {
             crate::context::UNSIGNED_BYTE
         }
 
         fn size() -> u32 {
             1
-        }
-
-        fn internal_format(format: Format) -> u32 {
-            match format {
-                Format::R => crate::context::R8,
-                Format::RG => crate::context::RG8,
-                Format::RGB => crate::context::RGB8,
-                Format::RGBA => crate::context::RGBA8,
-            }
         }
 
         fn is_max(&self) -> bool {
@@ -179,21 +233,15 @@ mod internal {
     }
 
     impl DataType for u16 {
+        fn internal_format() -> u32 {
+            Self::internal_format_with_size(1)
+        }
         fn data_type() -> u32 {
             crate::context::UNSIGNED_SHORT
         }
 
         fn size() -> u32 {
             1
-        }
-
-        fn internal_format(format: Format) -> u32 {
-            match format {
-                Format::R => crate::context::R16UI,
-                Format::RG => crate::context::RG16UI,
-                Format::RGB => crate::context::RGB16UI,
-                Format::RGBA => crate::context::RGBA16UI,
-            }
         }
 
         fn is_max(&self) -> bool {
@@ -206,21 +254,16 @@ mod internal {
     }
 
     impl DataType for u32 {
+        fn internal_format() -> u32 {
+            Self::internal_format_with_size(1)
+        }
+
         fn data_type() -> u32 {
             crate::context::UNSIGNED_INT
         }
 
         fn size() -> u32 {
             1
-        }
-
-        fn internal_format(format: Format) -> u32 {
-            match format {
-                Format::R => crate::context::R32UI,
-                Format::RG => crate::context::RG32UI,
-                Format::RGB => crate::context::RGB32UI,
-                Format::RGBA => crate::context::RGBA32UI,
-            }
         }
 
         fn is_max(&self) -> bool {
@@ -233,21 +276,15 @@ mod internal {
     }
 
     impl DataType for f16 {
+        fn internal_format() -> u32 {
+            Self::internal_format_with_size(1)
+        }
         fn data_type() -> u32 {
             crate::context::HALF_FLOAT
         }
 
         fn size() -> u32 {
             1
-        }
-
-        fn internal_format(format: Format) -> u32 {
-            match format {
-                Format::R => crate::context::R16F,
-                Format::RG => crate::context::RG16F,
-                Format::RGB => crate::context::RGB16F,
-                Format::RGBA => crate::context::RGBA16F,
-            }
         }
 
         fn is_max(&self) -> bool {
@@ -260,21 +297,16 @@ mod internal {
     }
 
     impl DataType for f32 {
+        fn internal_format() -> u32 {
+            Self::internal_format_with_size(1)
+        }
+
         fn data_type() -> u32 {
             crate::context::FLOAT
         }
 
         fn size() -> u32 {
             1
-        }
-
-        fn internal_format(format: Format) -> u32 {
-            match format {
-                Format::R => crate::context::R32F,
-                Format::RG => crate::context::RG32F,
-                Format::RGB => crate::context::RGB32F,
-                Format::RGBA => crate::context::RGBA32F,
-            }
         }
 
         fn is_max(&self) -> bool {
@@ -286,17 +318,17 @@ mod internal {
         }
     }
 
-    impl<T: DataType> DataType for Vector2<T> {
+    impl<T: PrimitiveDataType> DataType for Vector2<T> {
+        fn internal_format() -> u32 {
+            T::internal_format_with_size(Self::size())
+        }
+
         fn data_type() -> u32 {
             T::data_type()
         }
 
         fn size() -> u32 {
             2
-        }
-
-        fn internal_format(format: Format) -> u32 {
-            T::internal_format(format)
         }
 
         fn is_max(&self) -> bool {
@@ -308,17 +340,16 @@ mod internal {
         }
     }
 
-    impl<T: DataType> DataType for Vector3<T> {
+    impl<T: PrimitiveDataType> DataType for Vector3<T> {
+        fn internal_format() -> u32 {
+            T::internal_format_with_size(Self::size())
+        }
         fn data_type() -> u32 {
             T::data_type()
         }
 
         fn size() -> u32 {
             3
-        }
-
-        fn internal_format(format: Format) -> u32 {
-            T::internal_format(format)
         }
 
         fn is_max(&self) -> bool {
@@ -330,17 +361,17 @@ mod internal {
         }
     }
 
-    impl<T: DataType> DataType for Vector4<T> {
+    impl<T: PrimitiveDataType> DataType for Vector4<T> {
+        fn internal_format() -> u32 {
+            T::internal_format_with_size(Self::size())
+        }
+
         fn data_type() -> u32 {
             T::data_type()
         }
 
         fn size() -> u32 {
             4
-        }
-
-        fn internal_format(format: Format) -> u32 {
-            T::internal_format(format)
         }
 
         fn is_max(&self) -> bool {
@@ -353,16 +384,16 @@ mod internal {
     }
 
     impl DataType for Color {
+        fn internal_format() -> u32 {
+            u8::internal_format_with_size(Self::size())
+        }
+
         fn data_type() -> u32 {
             u8::data_type()
         }
 
         fn size() -> u32 {
             4
-        }
-
-        fn internal_format(format: Format) -> u32 {
-            u8::internal_format(format)
         }
 
         fn is_max(&self) -> bool {

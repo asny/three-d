@@ -77,7 +77,7 @@ impl<T: TextureDataType> Texture2D<T> {
             context.tex_storage_2d(
                 crate::context::TEXTURE_2D,
                 number_of_mip_maps as i32,
-                T::internal_format(format),
+                T::internal_format(),
                 width as i32,
                 height as i32,
             );
