@@ -9,8 +9,7 @@ use std::path::Path;
 /// Supported formats: PNG, JPEG, GIF, WebP, pnm (pbm, pgm, ppm and pam), TIFF, DDS, BMP, ICO, HDR, farbfeld.
 /// **Note:** If the image contains and you want to load high dynamic range (hdr) information, use [hdr_image_from_bytes] instead.
 ///
-pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CpuTexture> {
-    use crate::core::*;
+pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
     use image::DynamicImage;
     use image::GenericImageView;
     let img = image::load_from_memory(bytes)?;
@@ -106,14 +105,124 @@ pub fn cube_image_from_bytes(
     let bottom = image_from_bytes(bottom_bytes)?;
     let front = image_from_bytes(front_bytes)?;
     let back = image_from_bytes(back_bytes)?;
+    let data = match right.data {
+        TextureData::RU8(right) => {
+            let left = if let TextureData::RU8(data) = left.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let top = if let TextureData::RU8(data) = top.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let bottom = if let TextureData::RU8(data) = bottom.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let front = if let TextureData::RU8(data) = front.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let back = if let TextureData::RU8(data) = back.data {
+                data
+            } else {
+                unreachable!()
+            };
+            TextureCubeData::RU8(right, left, top, bottom, front, back)
+        }
+        TextureData::RgU8(right) => {
+            let left = if let TextureData::RgU8(data) = left.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let top = if let TextureData::RgU8(data) = top.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let bottom = if let TextureData::RgU8(data) = bottom.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let front = if let TextureData::RgU8(data) = front.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let back = if let TextureData::RgU8(data) = back.data {
+                data
+            } else {
+                unreachable!()
+            };
+            TextureCubeData::RgU8(right, left, top, bottom, front, back)
+        }
+        TextureData::RgbU8(right) => {
+            let left = if let TextureData::RgbU8(data) = left.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let top = if let TextureData::RgbU8(data) = top.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let bottom = if let TextureData::RgbU8(data) = bottom.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let front = if let TextureData::RgbU8(data) = front.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let back = if let TextureData::RgbU8(data) = back.data {
+                data
+            } else {
+                unreachable!()
+            };
+            TextureCubeData::RgbU8(right, left, top, bottom, front, back)
+        }
+        TextureData::RgbaU8(right) => {
+            let left = if let TextureData::RgbaU8(data) = left.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let top = if let TextureData::RgbaU8(data) = top.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let bottom = if let TextureData::RgbaU8(data) = bottom.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let front = if let TextureData::RgbaU8(data) = front.data {
+                data
+            } else {
+                unreachable!()
+            };
+            let back = if let TextureData::RgbaU8(data) = back.data {
+                data
+            } else {
+                unreachable!()
+            };
+            TextureCubeData::RgbaU8(right, left, top, bottom, front, back)
+        }
+        _ => unimplemented!(),
+    };
 
     Ok(CpuTextureCube {
-        right_data: right.data,
-        left_data: left.data,
-        top_data: top.data,
-        bottom_data: bottom.data,
-        front_data: front.data,
-        back_data: back.data,
+        data,
         width: right.width,
         height: right.height,
         format: right.format,
@@ -162,30 +271,14 @@ impl Loaded {
         front_path: P,
         back_path: P,
     ) -> ThreeDResult<CpuTextureCube> {
-        let right = self.image(right_path)?;
-        let left = self.image(left_path)?;
-        let top = self.image(top_path)?;
-        let bottom = self.image(bottom_path)?;
-        let front = self.image(front_path)?;
-        let back = self.image(back_path)?;
-
-        Ok(CpuTextureCube {
-            right_data: right.data,
-            left_data: left.data,
-            top_data: top.data,
-            bottom_data: bottom.data,
-            front_data: front.data,
-            back_data: back.data,
-            width: right.width,
-            height: right.height,
-            format: right.format,
-            min_filter: right.min_filter,
-            mag_filter: right.mag_filter,
-            mip_map_filter: right.mip_map_filter,
-            wrap_s: right.wrap_s,
-            wrap_t: right.wrap_t,
-            wrap_r: right.wrap_s,
-        })
+        cube_image_from_bytes(
+            self.get_bytes(right_path)?,
+            self.get_bytes(left_path)?,
+            self.get_bytes(top_path)?,
+            self.get_bytes(bottom_path)?,
+            self.get_bytes(front_path)?,
+            self.get_bytes(back_path)?,
+        )
     }
 }
 

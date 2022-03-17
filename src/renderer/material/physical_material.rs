@@ -51,13 +51,7 @@ impl PhysicalMaterial {
     /// Since this is not always correct, it is preferred to use [PhysicalMaterial::new_opaque] or [PhysicalMaterial::new_transparent].
     ///
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
-        let is_transparent = cpu_material.albedo.a != 255
-            || cpu_material
-                .albedo_texture
-                .as_ref()
-                .map(|t| t.is_transparent())
-                .unwrap_or(false);
-        Self::new_internal(context, cpu_material, is_transparent)
+        Self::new_internal(context, cpu_material, super::is_transparent(cpu_material))
     }
 
     /// Constructs a new opaque physical material from a [CpuMaterial].
