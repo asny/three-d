@@ -1,11 +1,11 @@
 use crate::core::*;
 use crate::renderer::*;
 
-pub struct SkyboxMaterial<T: TextureDataType> {
-    pub texture: TextureCubeMap<T>,
+pub struct SkyboxMaterial {
+    pub texture: TextureCubeMap,
 }
 
-impl<T: TextureDataType> Material for SkyboxMaterial<T> {
+impl Material for SkyboxMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         format!(
             "{}{}",

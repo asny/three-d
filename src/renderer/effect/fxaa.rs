@@ -23,11 +23,7 @@ impl FXAAEffect {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///
-    pub fn apply(
-        &self,
-        viewport: Viewport,
-        texture: Texture2D<impl TextureDataType>,
-    ) -> ThreeDResult<()> {
+    pub fn apply(&self, viewport: Viewport, texture: Texture2D) -> ThreeDResult<()> {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
             depth_test: DepthTest::Always,

@@ -29,7 +29,7 @@ pub struct DeferredPipeline {
     ///
     pub debug_type: DebugType,
     camera: Camera,
-    geometry_pass_texture: Option<Texture2DArray<u8>>,
+    geometry_pass_texture: Option<Texture2DArray>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
 
@@ -51,7 +51,7 @@ impl DeferredPipeline {
                 10.0,
             )?,
             debug_type: DebugType::NONE,
-            geometry_pass_texture: Some(Texture2DArray::new_empty(
+            geometry_pass_texture: Some(Texture2DArray::new_empty::<Vector4<u8>>(
                 context,
                 1,
                 1,
@@ -61,7 +61,6 @@ impl DeferredPipeline {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                Format::RGBA,
             )?),
             geometry_pass_depth_texture: Some(DepthTargetTexture2DArray::new(
                 context,
@@ -106,7 +105,7 @@ impl DeferredPipeline {
         self.camera.set_viewport(viewport)?;
         self.camera
             .set_view(*camera.position(), *camera.target(), *camera.up())?;
-        self.geometry_pass_texture = Some(Texture2DArray::<u8>::new_empty(
+        self.geometry_pass_texture = Some(Texture2DArray::new_empty::<Vector4<u8>>(
             &self.context,
             viewport.width,
             viewport.height,
@@ -116,7 +115,6 @@ impl DeferredPipeline {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA,
         )?);
         self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(
             &self.context,
@@ -209,7 +207,7 @@ impl DeferredPipeline {
     }
 
     /// Returns the geometry pass texture
-    pub fn geometry_pass_texture(&self) -> &Texture2DArray<u8> {
+    pub fn geometry_pass_texture(&self) -> &Texture2DArray {
         self.geometry_pass_texture.as_ref().unwrap()
     }
 
@@ -234,7 +232,7 @@ impl DeferredPipeline {
 
         RenderTarget::new_depth(&self.context, &mut depth_texture)
             .unwrap()
-            .copy_from_array::<u8>(
+            .copy_from_array(
                 None,
                 Some((&depth_array, 0)),
                 Viewport::new_at_origo(depth_array.width(), depth_array.height()),

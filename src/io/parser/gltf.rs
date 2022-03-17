@@ -224,7 +224,7 @@ fn parse_texture<'a>(
     path: &Path,
     buffers: &[::gltf::buffer::Data],
     gltf_texture: ::gltf::texture::Texture,
-) -> ThreeDResult<CpuTexture<u8>> {
+) -> ThreeDResult<CpuTexture> {
     let gltf_image = gltf_texture.source();
     let gltf_source = gltf_image.source();
     let tex = match gltf_source {

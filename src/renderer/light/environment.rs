@@ -6,12 +6,12 @@ use crate::core::*;
 ///
 pub struct Environment {
     /// A cube map used to calculate the diffuse contribution from the environment.
-    pub irradiance_map: TextureCubeMap<f16>,
+    pub irradiance_map: TextureCubeMap,
     /// A cube map used to calculate the specular contribution from the environment.
     /// Each mip-map level contain the prefiltered color for a certain surface roughness.
-    pub prefilter_map: TextureCubeMap<f16>,
+    pub prefilter_map: TextureCubeMap,
     /// A 2D texture that contain the BRDF lookup tables (LUT).
-    pub brdf_map: Texture2D<f16>,
+    pub brdf_map: Texture2D,
 }
 
 impl Environment {
@@ -19,10 +19,7 @@ impl Environment {
     /// Computes the maps needed for physically based rendering with lighting from an environment from the given environment map.
     /// A default Cook-Torrance lighting model is used.
     ///
-    pub fn new(
-        context: &Context,
-        environment_map: &TextureCubeMap<impl TextureDataType>,
-    ) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, environment_map: &TextureCubeMap) -> ThreeDResult<Self> {
         Self::new_with_lighting_model(
             context,
             environment_map,
@@ -38,12 +35,12 @@ impl Environment {
     ///
     pub fn new_with_lighting_model(
         context: &Context,
-        environment_map: &TextureCubeMap<impl TextureDataType>,
+        environment_map: &TextureCubeMap,
         lighting_model: LightingModel,
     ) -> ThreeDResult<Self> {
         // Diffuse
         let irradiance_size = 32;
-        let mut irradiance_map = TextureCubeMap::new_empty(
+        let mut irradiance_map = TextureCubeMap::new_empty::<Vector4<f16>>(
             context,
             irradiance_size,
             irradiance_size,
@@ -53,7 +50,6 @@ impl Environment {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA,
         )?;
         {
             let fragment_shader_source = format!(
@@ -74,7 +70,7 @@ impl Environment {
 
         // Prefilter
         let prefilter_size = 128;
-        let mut prefilter_map = TextureCubeMap::new_empty(
+        let mut prefilter_map = TextureCubeMap::new_empty::<Vector4<f16>>(
             context,
             prefilter_size,
             prefilter_size,
@@ -84,7 +80,6 @@ impl Environment {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA,
         )?;
         {
             let fragment_shader_source = format!(
@@ -116,7 +111,7 @@ impl Environment {
         }
 
         // BRDF
-        let mut brdf_map = Texture2D::new_empty(
+        let mut brdf_map = Texture2D::new_empty::<Vector2<f32>>(
             context,
             512,
             512,
@@ -125,7 +120,6 @@ impl Environment {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RG,
         )?;
         let effect = ImageEffect::new(
             context,

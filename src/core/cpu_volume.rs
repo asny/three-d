@@ -4,18 +4,18 @@ use crate::core::*;
 /// Volume data consisting of voxel data inside a cube.
 ///
 #[derive(Debug)]
-pub struct CpuVolume<T: TextureDataType> {
+pub struct CpuVolume {
     /// Name.
     pub name: String,
 
     /// Voxel data, ie. small cubes in 3D (analogue to pixels in 2D) that contain 1-4 values.
-    pub voxels: CpuTexture3D<T>,
+    pub voxels: CpuTexture3D,
 
     /// The size of the cube that is spanned by the voxel data.
     pub size: Vec3,
 }
 
-impl<T: TextureDataType> std::default::Default for CpuVolume<T> {
+impl std::default::Default for CpuVolume {
     fn default() -> Self {
         Self {
             name: String::default(),

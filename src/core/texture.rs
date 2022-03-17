@@ -85,18 +85,50 @@ impl Format {
     }
 }
 
+#[derive(Clone)]
+pub enum TextureData {
+    RU8(Vec<u8>),
+    RgU8(Vec<Vector2<u8>>),
+    RgbU8(Vec<Vector3<u8>>),
+    RgbaU8(Vec<Vector4<u8>>),
+
+    RF16(Vec<f16>),
+    RgF16(Vec<Vector2<f16>>),
+    RgbF16(Vec<Vector3<f16>>),
+    RgbaF16(Vec<Vector4<f16>>),
+
+    RF32(Vec<f32>),
+    RgF32(Vec<Vector2<f32>>),
+    RgbF32(Vec<Vector3<f32>>),
+    RgbaF32(Vec<Vector4<f32>>),
+}
+
+impl TextureData {
+    ///
+    /// Returns the number of pixels.
+    ///
+    pub fn len(&self) -> usize {
+        match self {
+            Self::RU8(values) => values.len(),
+            Self::RgU8(values) => values.len(),
+            Self::RgbU8(values) => values.len(),
+            Self::RgbaU8(values) => values.len(),
+        }
+    }
+}
+
 /// See [CpuTexture]
 #[deprecated = "Renamed to CpuTexture"]
-pub type CPUTexture<T> = CpuTexture<T>;
+pub type CPUTexture = CpuTexture;
 
 ///
 /// A CPU-side version of a [Texture2D].
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
 #[derive(Clone)]
-pub struct CpuTexture<T: TextureDataType> {
+pub struct CpuTexture {
     /// The pixel data for the image
-    pub data: Vec<T>,
+    pub data: TextureData,
     /// The width of the image
     pub width: u32,
     /// The height of the image
@@ -116,7 +148,7 @@ pub struct CpuTexture<T: TextureDataType> {
     pub wrap_t: Wrapping,
 }
 
-impl<T: TextureDataType> CpuTexture<T> {
+/*impl CpuTexture {
     ///
     /// Adds a padding of default values to the texture.
     /// 'left' number of pixels are added to the left of the original texture, 'right' number of pixels to the right and so on.
@@ -154,12 +186,12 @@ impl<T: TextureDataType> CpuTexture<T> {
         }
         false
     }
-}
+}*/
 
-impl<T: TextureDataType> Default for CpuTexture<T> {
+impl Default for CpuTexture {
     fn default() -> Self {
         Self {
-            data: [T::default(), T::default(), T::default(), T::default()].into(),
+            data: TextureData::RgbaU8(vec![vec4(0, 0, 0, 0)]),
             width: 1,
             height: 1,
             format: Format::RGBA,
@@ -172,7 +204,7 @@ impl<T: TextureDataType> Default for CpuTexture<T> {
     }
 }
 
-impl<T: TextureDataType> std::fmt::Debug for CpuTexture<T> {
+impl std::fmt::Debug for CpuTexture {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CpuTexture")
             .field("format", &self.format)
@@ -192,9 +224,9 @@ impl<T: TextureDataType> std::fmt::Debug for CpuTexture<T> {
 /// A CPU-side version of a [Texture3D].
 ///
 #[derive(Clone)]
-pub struct CpuTexture3D<T: TextureDataType> {
+pub struct CpuTexture3D {
     /// The pixel data for the image
-    pub data: Vec<T>,
+    pub data: TextureData,
     /// The width of the image
     pub width: u32,
     /// The height of the image
@@ -218,10 +250,10 @@ pub struct CpuTexture3D<T: TextureDataType> {
     pub wrap_r: Wrapping,
 }
 
-impl<T: TextureDataType> Default for CpuTexture3D<T> {
+impl Default for CpuTexture3D {
     fn default() -> Self {
         Self {
-            data: [T::default(), T::default(), T::default(), T::default()].into(),
+            data: TextureData::RgbaU8(vec![vec4(0, 0, 0, 0)]),
             width: 1,
             height: 1,
             depth: 1,
@@ -236,7 +268,7 @@ impl<T: TextureDataType> Default for CpuTexture3D<T> {
     }
 }
 
-impl<T: TextureDataType> std::fmt::Debug for CpuTexture3D<T> {
+impl std::fmt::Debug for CpuTexture3D {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CpuTexture3D")
             .field("format", &self.format)
@@ -256,25 +288,25 @@ impl<T: TextureDataType> std::fmt::Debug for CpuTexture3D<T> {
 
 /// See [CpuTextureCube]
 #[deprecated = "Renamed to CpuTextureCube"]
-pub type CPUTextureCube<T> = CpuTextureCube<T>;
+pub type CPUTextureCube = CpuTextureCube;
 
 ///
 /// A CPU-side version of a [TextureCubeMap]. All 6 images must have the same dimensions.
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
-pub struct CpuTextureCube<T: TextureDataType> {
+pub struct CpuTextureCube {
     /// The pixel data for the right image
-    pub right_data: Vec<T>,
+    pub right_data: TextureData,
     /// The pixel data for the left image
-    pub left_data: Vec<T>,
+    pub left_data: TextureData,
     /// The pixel data for the top image
-    pub top_data: Vec<T>,
+    pub top_data: TextureData,
     /// The pixel data for the bottom image
-    pub bottom_data: Vec<T>,
+    pub bottom_data: TextureData,
     /// The pixel data for the front image
-    pub front_data: Vec<T>,
+    pub front_data: TextureData,
     /// The pixel data for the back image
-    pub back_data: Vec<T>,
+    pub back_data: TextureData,
     /// The width of each of the 6 images
     pub width: u32,
     /// The height of each of the 6 images
@@ -296,7 +328,7 @@ pub struct CpuTextureCube<T: TextureDataType> {
     pub wrap_r: Wrapping,
 }
 
-impl<T: TextureDataType> Default for CpuTextureCube<T> {
+impl Default for CpuTextureCube {
     fn default() -> Self {
         Self {
             right_data: vec![],
@@ -318,7 +350,7 @@ impl<T: TextureDataType> Default for CpuTextureCube<T> {
     }
 }
 
-impl<T: TextureDataType> std::fmt::Debug for CpuTextureCube<T> {
+impl std::fmt::Debug for CpuTextureCube {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CpuTexture")
             .field("format", &self.format)
@@ -512,12 +544,9 @@ fn check_data_length(
     width: u32,
     height: u32,
     depth: u32,
-    format: Format,
-    length: usize,
+    actual_pixels: usize,
 ) -> ThreeDResult<()> {
     let expected_pixels = width as usize * height as usize * depth as usize;
-    let actual_pixels = length / format.color_channel_count() as usize;
-
     if expected_pixels != actual_pixels {
         Err(CoreError::InvalidTextureLength(
             actual_pixels,

@@ -5,13 +5,13 @@ use crate::core::render_target::*;
 /// a [DepthTargetTexture2DArray] at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
-pub struct RenderTargetArray<'a, 'b, T: TextureDataType> {
+pub struct RenderTargetArray<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a mut Texture2DArray<T>>,
+    color_texture: Option<&'a mut Texture2DArray>,
     depth_texture: Option<&'b mut DepthTargetTexture2DArray>,
 }
-impl<'a, 'b> RenderTargetArray<'a, 'b, u8> {
+impl<'a, 'b> RenderTargetArray<'a, 'b> {
     ///
     /// Constructs a new render target that enables rendering into the given
     /// [DepthTargetTexture2DArray].
@@ -27,16 +27,14 @@ impl<'a, 'b> RenderTargetArray<'a, 'b, u8> {
             depth_texture: Some(depth_texture),
         })
     }
-}
 
-impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
     /// Constructs a new render target array that enables rendering into the given
     /// [Texture2DArray] and [DepthTargetTexture2DArray] array textures.
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a mut Texture2DArray<T>,
+        color_texture: &'a mut Texture2DArray,
         depth_texture: &'b mut DepthTargetTexture2DArray,
     ) -> ThreeDResult<Self> {
         Ok(Self {
@@ -53,7 +51,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
     pub fn new_color(
         context: &Context,
-        color_texture: &'a mut Texture2DArray<T>,
+        color_texture: &'a mut Texture2DArray,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -122,7 +120,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     }
 }
 
-impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
+impl Drop for RenderTargetArray<'_, '_> {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_framebuffer(self.id);

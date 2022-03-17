@@ -139,7 +139,7 @@ pub fn ray_intersect(
         0.0,
         max_depth,
     )?;
-    let mut texture = Texture2D::<f32>::new_empty(
+    let mut texture = Texture2D::new_empty::<Vector4<f32>>(
         context,
         viewport.width,
         viewport.height,
@@ -148,7 +148,6 @@ pub fn ray_intersect(
         None,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
-        Format::RGBA,
     )?;
     let mut depth_texture = DepthTargetTexture2D::new(
         context,
@@ -184,7 +183,7 @@ pub fn ray_intersect(
             },
         )?;
     }
-    let depth = texture.read(viewport)?[0];
+    let depth = texture.read::<f32>(viewport)?[0].x;
     Ok(if depth < 1.0 {
         Some(position + direction * depth * max_depth)
     } else {

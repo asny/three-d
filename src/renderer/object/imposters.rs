@@ -106,7 +106,7 @@ impl Object for Imposters {
 
 struct ImpostersMaterial {
     context: Context,
-    texture: Texture2DArray<u8>,
+    texture: Texture2DArray,
 }
 
 impl ImpostersMaterial {
@@ -119,7 +119,7 @@ impl ImpostersMaterial {
     ) -> ThreeDResult<Self> {
         let mut m = Self {
             context: context.clone(),
-            texture: Texture2DArray::<u8>::new_empty(
+            texture: Texture2DArray::new_empty::<Vector4<u8>>(
                 context,
                 1,
                 1,
@@ -129,7 +129,6 @@ impl ImpostersMaterial {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                Format::RGBA,
             )?,
         };
         m.update(aabb, objects, lights, max_texture_size)?;
@@ -160,7 +159,7 @@ impl ImpostersMaterial {
                 0.0,
                 4.0 * (width + height),
             )?;
-            self.texture = Texture2DArray::<u8>::new_empty(
+            self.texture = Texture2DArray::new_empty::<Vector4<f16>>(
                 &self.context,
                 texture_width,
                 texture_height,
@@ -170,7 +169,6 @@ impl ImpostersMaterial {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                Format::RGBA,
             )?;
             let mut depth_texture = DepthTargetTexture2DArray::new(
                 &self.context,

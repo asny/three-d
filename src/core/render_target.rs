@@ -150,7 +150,7 @@ fn clear(context: &Context, clear_state: &ClearState) {
 
 fn copy_from(
     context: &Context,
-    color_texture: Option<&Texture2D<impl TextureDataType>>,
+    color_texture: Option<&Texture2D>,
     depth_texture: Option<&DepthTargetTexture2D>,
     viewport: Viewport,
     write_mask: WriteMask,
@@ -215,7 +215,7 @@ fn copy_from(
 
 fn copy_from_array(
     context: &Context,
-    color_texture: Option<(&Texture2DArray<impl TextureDataType>, u32)>,
+    color_texture: Option<(&Texture2DArray, u32)>,
     depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
     viewport: Viewport,
     write_mask: WriteMask,

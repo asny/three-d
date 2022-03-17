@@ -72,9 +72,9 @@ impl Screen {
     /// Copies the content of the color and depth texture to the specified viewport of this render target.
     /// Only copies the channels given by the write mask.
     ///
-    pub fn copy_from<T: TextureDataType>(
+    pub fn copy_from(
         context: &Context,
-        color_texture: Option<&Texture2D<T>>,
+        color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
         viewport: Viewport,
         write_mask: WriteMask,
@@ -88,9 +88,9 @@ impl Screen {
     /// Copies the content of the given layers of the color and depth array textures to the specified viewport of this render target.
     /// Only copies the channels given by the write mask.
     ///
-    pub fn copy_from_array<T: TextureDataType>(
+    pub fn copy_from_array(
         context: &Context,
-        color_texture: Option<(&Texture2DArray<T>, u32)>,
+        color_texture: Option<(&Texture2DArray, u32)>,
         depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
         viewport: Viewport,
         write_mask: WriteMask,

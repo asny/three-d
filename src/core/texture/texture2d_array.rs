@@ -7,7 +7,7 @@ use crate::core::texture::*;
 /// Use a [RenderTargetArray] to write to both color and depth.
 ///
 #[deprecated = "Use Texture2DArray instead"]
-pub type ColorTargetTexture2DArray<T> = Texture2DArray<T>;
+pub type ColorTargetTexture2DArray = Texture2DArray;
 
 ///
 /// A array of 2D color textures that can be rendered into.
@@ -15,22 +15,20 @@ pub type ColorTargetTexture2DArray<T> = Texture2DArray<T>;
 /// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
 /// Use a [RenderTargetArray] to write to both color and depth.
 ///
-pub struct Texture2DArray<T: TextureDataType> {
+pub struct Texture2DArray {
     context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
     depth: u32,
     number_of_mip_maps: u32,
-    format: Format,
-    _dummy: T,
 }
 
-impl<T: TextureDataType> Texture2DArray<T> {
+impl Texture2DArray {
     ///
     /// Creates a new array of 2D textures.
     ///
-    pub fn new_empty(
+    pub fn new_empty<T: TextureDataType>(
         context: &Context,
         width: u32,
         height: u32,
@@ -40,7 +38,6 @@ impl<T: TextureDataType> Texture2DArray<T> {
         mip_map_filter: Option<Interpolation>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
-        format: Format,
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
@@ -51,8 +48,6 @@ impl<T: TextureDataType> Texture2DArray<T> {
             height,
             depth,
             number_of_mip_maps,
-            format,
-            _dummy: T::default(),
         };
         texture.bind();
         set_parameters(
@@ -120,11 +115,6 @@ impl<T: TextureDataType> Texture2DArray<T> {
         self.depth
     }
 
-    /// The format of this texture.
-    pub fn format(&self) -> Format {
-        self.format
-    }
-
     pub(in crate::core) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.bind();
@@ -155,15 +145,15 @@ impl<T: TextureDataType> Texture2DArray<T> {
     }
 }
 
-impl<T: TextureDataType> super::internal::TextureExtensions for Texture2DArray<T> {
+impl super::internal::TextureExtensions for Texture2DArray {
     fn bind(&self) {
         self.bind();
     }
 }
 
-impl<T: TextureDataType> Texture for Texture2DArray<T> {}
+impl Texture for Texture2DArray {}
 
-impl<T: TextureDataType> Drop for Texture2DArray<T> {
+impl Drop for Texture2DArray {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_texture(self.id);
