@@ -83,15 +83,6 @@ impl Format {
             Format::RGBA => 4,
         }
     }
-
-    pub(super) fn as_const(&self) -> u32 {
-        match self {
-            Format::R => crate::context::RED,
-            Format::RG => crate::context::RG,
-            Format::RGB => crate::context::RGB,
-            Format::RGBA => crate::context::RGBA,
-        }
-    }
 }
 
 /// See [CpuTexture]
@@ -388,6 +379,17 @@ impl<T: Texture> Texture for std::rc::Rc<T> {}
 impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {}
 
 // COMMON TEXTURE FUNCTIONS
+
+fn format<T: crate::core::internal::DataType>() -> u32 {
+    match T::size() {
+        1 => crate::context::RED,
+        2 => crate::context::RG,
+        3 => crate::context::RGB,
+        4 => crate::context::RGBA,
+        _ => unreachable!(),
+    }
+}
+
 fn generate(context: &Context) -> ThreeDResult<crate::context::Texture> {
     unsafe {
         Ok(context

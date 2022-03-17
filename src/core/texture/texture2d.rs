@@ -104,7 +104,7 @@ impl<T: TextureDataType> Texture2D<T> {
                 0,
                 self.width as i32,
                 self.height as i32,
-                self.format.as_const(),
+                format::<T>(),
                 T::data_type(),
                 crate::context::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(data)),
             );
@@ -168,7 +168,7 @@ impl<T: TextureDataType> Texture2D<T> {
                 viewport.y as i32,
                 viewport.width as i32,
                 viewport.height as i32,
-                self.format.as_const(),
+                format::<T>(),
                 T::data_type(),
                 crate::context::PixelPackData::Slice(&mut pixels),
             );
