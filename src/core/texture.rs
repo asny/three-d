@@ -56,6 +56,10 @@ pub trait TextureDataType: std::fmt::Debug + crate::core::internal::DataType {}
 impl TextureDataType for u8 {}
 impl TextureDataType for f16 {}
 impl TextureDataType for f32 {}
+impl<T: TextureDataType + crate::core::internal::PrimitiveDataType> TextureDataType for Vector2<T> {}
+impl<T: TextureDataType + crate::core::internal::PrimitiveDataType> TextureDataType for Vector3<T> {}
+impl<T: TextureDataType + crate::core::internal::PrimitiveDataType> TextureDataType for Vector4<T> {}
+impl TextureDataType for Color {}
 
 ///
 /// Possible formats for pixels in a texture.

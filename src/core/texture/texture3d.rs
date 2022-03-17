@@ -83,7 +83,7 @@ impl<T: TextureDataType> Texture3D<T> {
             context.tex_storage_3d(
                 crate::context::TEXTURE_3D,
                 number_of_mip_maps as i32,
-                T::internal_format(format),
+                T::internal_format(),
                 width as i32,
                 height as i32,
                 depth as i32,

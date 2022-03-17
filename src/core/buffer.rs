@@ -25,9 +25,9 @@ impl BufferDataType for u8 {}
 impl BufferDataType for u16 {}
 impl BufferDataType for f16 {}
 impl BufferDataType for f32 {}
-impl<T: BufferDataType> BufferDataType for Vector2<T> {}
-impl<T: BufferDataType> BufferDataType for Vector3<T> {}
-impl<T: BufferDataType> BufferDataType for Vector4<T> {}
+impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for Vector2<T> {}
+impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for Vector3<T> {}
+impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for Vector4<T> {}
 impl BufferDataType for Color {}
 
 struct Buffer<T: BufferDataType> {
