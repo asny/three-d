@@ -144,12 +144,14 @@ impl<T: TextureDataType> Texture2D<T> {
         unsafe {
             self.context
                 .bind_framebuffer(crate::context::DRAW_FRAMEBUFFER, Some(id));
-            self.context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
+            self.context
+                .draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
             self.bind_as_color_target(0);
 
             self.context
                 .bind_framebuffer(crate::context::READ_FRAMEBUFFER, Some(id));
-            self.context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
+            self.context
+                .draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
             self.bind_as_color_target(0);
 
             self.context.framebuffer_check()?;
@@ -211,7 +213,8 @@ impl<T: TextureDataType> Texture2D<T> {
     }
     fn bind(&self) {
         unsafe {
-            self.context.bind_texture(crate::context::TEXTURE_2D, Some(self.id));
+            self.context
+                .bind_texture(crate::context::TEXTURE_2D, Some(self.id));
         }
     }
 }

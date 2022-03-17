@@ -1,13 +1,15 @@
 use super::*;
-use crate::context::HasContext;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+#[doc(hidden)]
+pub use crate::context::HasContext;
+
 ///
 /// Contains the low-level [graphics context](crate::context::Context) as well as other "global" variables.
 /// Implements Deref with the low-level [graphics context](crate::context::Context) as target, so you can call low-level functionality
-/// directly on this struct as long as you import the [HasContext](crate::context::HasContext) trait from the [context](crate::context) module.
+/// directly on this struct. Use the [context](crate::context) module to get access to low-level constants and structs.
 ///
 #[derive(Clone)]
 pub struct Context {

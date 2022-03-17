@@ -1,4 +1,3 @@
-use crate::context::HasContext;
 use crate::core::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -107,7 +106,9 @@ impl Program {
             let num_uniforms = context.get_active_uniforms(id);
             let mut uniforms = HashMap::new();
             for i in 0..num_uniforms {
-                if let Some(crate::context::ActiveUniform { name, .. }) = context.get_active_uniform(id, i) {
+                if let Some(crate::context::ActiveUniform { name, .. }) =
+                    context.get_active_uniform(id, i)
+                {
                     if let Some(location) = context.get_uniform_location(id, &name) {
                         let name = name.split('[').collect::<Vec<_>>()[0].to_string();
                         /*println!(
@@ -299,7 +300,8 @@ impl Program {
     pub fn use_texture(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         unsafe {
-            self.context.active_texture(crate::context::TEXTURE0 + index);
+            self.context
+                .active_texture(crate::context::TEXTURE0 + index);
         }
         texture.bind();
         self.use_uniform(name, index as i32)?;
@@ -357,7 +359,8 @@ impl Program {
         unsafe {
             self.context.uniform_block_binding(self.id, location, index);
             buffer.bind(index);
-            self.context.bind_buffer(crate::context::UNIFORM_BUFFER, None);
+            self.context
+                .bind_buffer(crate::context::UNIFORM_BUFFER, None);
         }
         self.context.error_check()
     }
@@ -676,7 +679,8 @@ impl Program {
         Self::set_states(&self.context, render_states)?;
         self.use_program();
         unsafe {
-            self.context.draw_arrays(crate::context::TRIANGLES, 0, count as i32);
+            self.context
+                .draw_arrays(crate::context::TRIANGLES, 0, count as i32);
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
@@ -706,7 +710,8 @@ impl Program {
                 count as i32,
                 instance_count as i32,
             );
-            self.context.bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
+            self.context
+                .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
@@ -753,9 +758,14 @@ impl Program {
         self.use_program();
         element_buffer.bind();
         unsafe {
+            self.context.draw_elements(
+                crate::context::TRIANGLES,
+                count as i32,
+                T::data_type(),
+                first as i32,
+            );
             self.context
-                .draw_elements(crate::context::TRIANGLES, count as i32, T::data_type(), first as i32);
-            self.context.bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
+                .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
 
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
@@ -811,7 +821,8 @@ impl Program {
                 first as i32,
                 instance_count as i32,
             );
-            self.context.bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
+            self.context
+                .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
