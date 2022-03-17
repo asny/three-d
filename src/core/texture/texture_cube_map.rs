@@ -247,7 +247,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                     0,
                     self.width as i32,
                     self.height as i32,
-                    self.format.as_const(),
+                    format::<T>(),
                     T::data_type(),
                     crate::context::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(
                         data,
