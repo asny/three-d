@@ -25,7 +25,6 @@ impl UniformDataType for Mat4 {}
 impl<T: UniformDataType + ?Sized> UniformDataType for &T {}
 
 mod internal {
-    use crate::context::HasContext;
     use crate::context::UniformLocation;
     use crate::core::*;
 

@@ -1,4 +1,3 @@
-use crate::context::HasContext;
 use crate::core::*;
 
 /// The basic data type used for each index in an element buffer.

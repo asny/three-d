@@ -18,7 +18,6 @@ mod render_target_cube_map;
 #[doc(inline)]
 pub use render_target_cube_map::*;
 
-use crate::context::HasContext;
 use crate::core::*;
 
 ///
