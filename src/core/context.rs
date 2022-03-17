@@ -7,8 +7,8 @@ use std::rc::Rc;
 pub use crate::context::HasContext;
 
 ///
-/// Contains the low-level [graphics context](crate::context::Context) as well as other "global" variables.
-/// Implements Deref with the low-level [graphics context](crate::context::Context) as target, so you can call low-level functionality
+/// Contains the low-level OpenGL/WebGL graphics context as well as other "global" variables.
+/// Implements Deref with the low-level graphics context as target, so you can call low-level functionality
 /// directly on this struct. Use the [context](crate::context) module to get access to low-level constants and structs.
 ///
 #[derive(Clone)]
@@ -20,6 +20,12 @@ pub struct Context {
 }
 
 impl Context {
+    ///
+    /// Creates a new mid-level context, used in this [core](crate::core) module, from a low-level OpenGL/WebGL context from the [context](crate::context) module.
+    /// This should only be called directly if you are creating a low-level context yourself (ie. not using the features in the [window](crate::window) module).
+    /// Since the content in the [context](crate::context) module is just a re-export of [glow](https://crates.io/crates/glow),
+    /// you can also call this method with a reference counter to a glow context created using glow and not the re-export in [context](crate::context).
+    ///
     pub fn from_gl_context(context: Rc<crate::context::Context>) -> ThreeDResult<Self> {
         #[cfg(not(target_arch = "wasm32"))]
         unsafe {
