@@ -101,7 +101,7 @@ impl Loaded {
     /// Returns a reference to the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
-    pub fn get_bytes(&mut self, path: impl AsRef<Path>) -> ThreeDResult<&[u8]> {
+    pub fn get_bytes(&self, path: impl AsRef<Path>) -> ThreeDResult<&[u8]> {
         if let Some(bytes) = self.loaded.get(path.as_ref()) {
             Ok(bytes.as_ref())
         } else {

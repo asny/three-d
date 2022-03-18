@@ -115,6 +115,7 @@ pub struct TextureCubeMap {
     width: u32,
     height: u32,
     number_of_mip_maps: u32,
+    is_hdr: bool,
 }
 
 impl TextureCubeMap {
@@ -218,6 +219,7 @@ impl TextureCubeMap {
             width,
             height,
             number_of_mip_maps,
+            is_hdr: std::mem::size_of::<T>() > 1,
         };
         texture.bind();
         set_parameters(
@@ -399,6 +401,10 @@ impl TextureCubeMap {
     /// The height of this texture.
     pub fn height(&self) -> u32 {
         self.height
+    }
+
+    pub fn is_hdr(&self) -> bool {
+        self.is_hdr
     }
 
     pub(in crate::core) fn generate_mip_maps(&self) {
