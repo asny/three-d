@@ -219,7 +219,7 @@ impl TextureCubeMap {
             width,
             height,
             number_of_mip_maps,
-            is_hdr: std::mem::size_of::<T>() > 1,
+            is_hdr: std::mem::size_of::<T>() as u32 / T::size() > 1,
         };
         texture.bind();
         set_parameters(
