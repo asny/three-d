@@ -131,6 +131,15 @@ pub enum CoreError {
 mod internal {
     use crate::core::*;
 
+    pub fn to_mut_byte_slice<'a, T: DataType>(data: &'a mut [T]) -> &'a mut [u8] {
+        unsafe {
+            std::slice::from_raw_parts_mut(
+                data.as_ptr() as *mut _,
+                data.len() * std::mem::size_of::<T>(),
+            )
+        }
+    }
+
     pub fn to_byte_slice<'a, T: DataType>(data: &'a [T]) -> &'a [u8] {
         unsafe {
             std::slice::from_raw_parts(
