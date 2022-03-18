@@ -146,7 +146,7 @@ impl Texture2D {
     ///
     /// Returns the color values of the pixels in this color texture inside the given viewport.
     ///
-    /// **Note:** Currently only works for the RGBA byte format.
+    /// **Note:** Currently only works for the RGBA format.
     ///
     pub fn read<T: TextureDataType + crate::core::internal::PrimitiveDataType>(
         &self,
@@ -169,11 +169,8 @@ impl Texture2D {
             self.context.framebuffer_check()?;
 
             let mut pixels = vec![
-                0u8;
-                viewport.width as usize
-                    * viewport.height as usize
-                    * 4
-                    * std::mem::size_of::<T>()
+                vec4(T::default(), T::default(), T::default(), T::default());
+                viewport.width as usize * viewport.height as usize
             ];
             self.context.read_pixels(
                 viewport.x as i32,
@@ -182,9 +179,11 @@ impl Texture2D {
                 viewport.height as i32,
                 format::<Vector4<T>>(),
                 T::data_type(),
-                crate::context::PixelPackData::Slice(&mut pixels),
+                crate::context::PixelPackData::Slice(crate::core::internal::to_mut_byte_slice(
+                    &mut pixels,
+                )),
             );
-            Ok(crate::core::internal::from_byte_slice(&pixels).to_vec())
+            Ok(pixels)
         }
     }
 
