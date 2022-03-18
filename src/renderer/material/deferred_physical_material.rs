@@ -163,9 +163,9 @@ impl Material for DeferredPhysicalMaterial {
         _camera: &Camera,
         _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        program.use_uniform("metallic", &self.metallic)?;
-        program.use_uniform("roughness", &self.roughness)?;
-        program.use_uniform("albedo", &self.albedo.to_vec4())?;
+        program.use_uniform("metallic", self.metallic)?;
+        program.use_uniform("roughness", self.roughness)?;
+        program.use_uniform("albedo", self.albedo)?;
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture)?;
         }
@@ -173,11 +173,11 @@ impl Material for DeferredPhysicalMaterial {
             program.use_texture("metallicRoughnessTexture", texture)?;
         }
         if let Some(ref texture) = self.occlusion_texture {
-            program.use_uniform("occlusionStrength", &self.occlusion_strength)?;
+            program.use_uniform("occlusionStrength", self.occlusion_strength)?;
             program.use_texture("occlusionTexture", texture)?;
         }
         if let Some(ref texture) = self.normal_texture {
-            program.use_uniform("normalScale", &self.normal_scale)?;
+            program.use_uniform("normalScale", self.normal_scale)?;
             program.use_texture("normalTexture", texture)?;
         }
         Ok(())

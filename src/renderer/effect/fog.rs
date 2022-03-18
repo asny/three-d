@@ -54,8 +54,7 @@ impl FogEffect {
             "viewProjectionInverse",
             (camera.projection() * camera.view()).invert().unwrap(),
         )?;
-        self.image_effect
-            .use_uniform("fogColor", self.color.to_vec3())?;
+        self.image_effect.use_uniform("fogColor", self.color)?;
         self.image_effect.use_uniform("fogDensity", self.density)?;
         self.image_effect.use_uniform("animation", self.animation)?;
         self.image_effect.use_uniform("time", 0.001 * time)?;

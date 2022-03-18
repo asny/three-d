@@ -177,11 +177,11 @@ impl Material for PhysicalMaterial {
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32)?;
         }
-        program.use_uniform("metallic", &self.metallic)?;
-        program.use_uniform("roughness", &self.roughness)?;
-        program.use_uniform("albedo", self.albedo.to_vec4())?;
+        program.use_uniform("metallic", self.metallic)?;
+        program.use_uniform("roughness", self.roughness)?;
+        program.use_uniform("albedo", self.albedo)?;
         if program.requires_uniform("emissive") {
-            program.use_uniform("emissive", &self.emissive.to_vec3())?;
+            program.use_uniform("emissive", self.emissive)?;
         }
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture)?;
@@ -190,11 +190,11 @@ impl Material for PhysicalMaterial {
             program.use_texture("metallicRoughnessTexture", texture)?;
         }
         if let Some(ref texture) = self.occlusion_texture {
-            program.use_uniform("occlusionStrength", &self.occlusion_strength)?;
+            program.use_uniform("occlusionStrength", self.occlusion_strength)?;
             program.use_texture("occlusionTexture", texture)?;
         }
         if let Some(ref texture) = self.normal_texture {
-            program.use_uniform("normalScale", &self.normal_scale)?;
+            program.use_uniform("normalScale", self.normal_scale)?;
             program.use_texture("normalTexture", texture)?;
         }
         if program.requires_uniform("emissiveTexture") {
