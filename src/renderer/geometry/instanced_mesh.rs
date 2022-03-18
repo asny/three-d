@@ -1,4 +1,3 @@
-use super::IndexBuffer;
 use crate::core::*;
 use crate::renderer::*;
 
@@ -12,7 +11,7 @@ pub struct InstancedMesh {
     tangent_buffer: Option<VertexBuffer>,
     uv_buffer: Option<VertexBuffer>,
     color_buffer: Option<VertexBuffer>,
-    index_buffer: Option<IndexBuffer>,
+    index_buffer: Option<ElementBuffer>,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
     instance_buffer3: InstanceBuffer,
@@ -53,7 +52,11 @@ impl InstancedMesh {
             None
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(IndexBuffer::new(context, indices)?)
+            Some(match indices {
+                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
+            })
         } else {
             None
         };
@@ -318,26 +321,12 @@ impl Geometry for InstancedMesh {
                 }
 
                 if let Some(ref index_buffer) = self.index_buffer {
-                    match index_buffer {
-                        IndexBuffer::U8(ref buffer) => program.draw_elements_instanced(
-                            material.render_states(),
-                            camera.viewport(),
-                            buffer,
-                            self.instance_count,
-                        ),
-                        IndexBuffer::U16(ref buffer) => program.draw_elements_instanced(
-                            material.render_states(),
-                            camera.viewport(),
-                            buffer,
-                            self.instance_count,
-                        ),
-                        IndexBuffer::U32(ref buffer) => program.draw_elements_instanced(
-                            material.render_states(),
-                            camera.viewport(),
-                            buffer,
-                            self.instance_count,
-                        ),
-                    }
+                    program.draw_elements_instanced(
+                        material.render_states(),
+                        camera.viewport(),
+                        index_buffer,
+                        self.instance_count,
+                    )
                 } else {
                     program.draw_arrays_instanced(
                         material.render_states(),

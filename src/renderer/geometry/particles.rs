@@ -1,4 +1,3 @@
-use super::IndexBuffer;
 use crate::core::*;
 use crate::renderer::*;
 
@@ -26,7 +25,7 @@ pub struct Particles {
     position_buffer: VertexBuffer,
     normal_buffer: Option<VertexBuffer>,
     uv_buffer: Option<VertexBuffer>,
-    index_buffer: Option<IndexBuffer>,
+    index_buffer: Option<ElementBuffer>,
     /// The acceleration applied to all particles. Default is gravity.
     pub acceleration: Vec3,
     instance_count: u32,
@@ -51,7 +50,11 @@ impl Particles {
             None
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(IndexBuffer::new(context, indices)?)
+            Some(match indices {
+                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
+            })
         } else {
             None
         };
@@ -207,26 +210,12 @@ impl Geometry for Particles {
                 }
 
                 if let Some(ref index_buffer) = self.index_buffer {
-                    match index_buffer {
-                        IndexBuffer::U8(ref buffer) => program.draw_elements_instanced(
-                            material.render_states(),
-                            camera.viewport(),
-                            buffer,
-                            self.instance_count,
-                        ),
-                        IndexBuffer::U16(ref buffer) => program.draw_elements_instanced(
-                            material.render_states(),
-                            camera.viewport(),
-                            buffer,
-                            self.instance_count,
-                        ),
-                        IndexBuffer::U32(ref buffer) => program.draw_elements_instanced(
-                            material.render_states(),
-                            camera.viewport(),
-                            buffer,
-                            self.instance_count,
-                        ),
-                    }
+                    program.draw_elements_instanced(
+                        material.render_states(),
+                        camera.viewport(),
+                        index_buffer,
+                        self.instance_count,
+                    )
                 } else {
                     program.draw_arrays_instanced(
                         material.render_states(),

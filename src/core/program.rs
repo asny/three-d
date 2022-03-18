@@ -697,11 +697,11 @@ impl Program {
     /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
     /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays]. If you only want to draw a subset of the triangles in the given [ElementBuffer], see [Program::draw_subset_of_elements].
     ///
-    pub fn draw_elements<T: ElementBufferDataType>(
+    pub fn draw_elements(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer<T>,
+        element_buffer: &ElementBuffer,
     ) -> ThreeDResult<()> {
         self.draw_subset_of_elements(
             render_states,
@@ -717,11 +717,11 @@ impl Program {
     /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
     /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays].
     ///
-    pub fn draw_subset_of_elements<T: ElementBufferDataType>(
+    pub fn draw_subset_of_elements(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer<T>,
+        element_buffer: &ElementBuffer,
         first: u32,
         count: u32,
     ) -> ThreeDResult<()> {
@@ -733,7 +733,7 @@ impl Program {
             self.context.draw_elements(
                 crate::context::TRIANGLES,
                 count as i32,
-                T::data_type(),
+                element_buffer.data_type(),
                 first as i32,
             );
             self.context
@@ -751,11 +751,11 @@ impl Program {
     /// Same as [Program::draw_elements] except it renders 'instance_count' instances of the same set of triangles.
     /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
     ///
-    pub fn draw_elements_instanced<T: ElementBufferDataType>(
+    pub fn draw_elements_instanced(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer<T>,
+        element_buffer: &ElementBuffer,
         instance_count: u32,
     ) -> ThreeDResult<()> {
         self.draw_subset_of_elements_instanced(
@@ -772,11 +772,11 @@ impl Program {
     /// Same as [Program::draw_subset_of_elements] except it renders 'instance_count' instances of the same set of triangles.
     /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
     ///
-    pub fn draw_subset_of_elements_instanced<T: ElementBufferDataType>(
+    pub fn draw_subset_of_elements_instanced(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer<T>,
+        element_buffer: &ElementBuffer,
         first: u32,
         count: u32,
         instance_count: u32,
@@ -789,7 +789,7 @@ impl Program {
             self.context.draw_elements_instanced(
                 crate::context::TRIANGLES,
                 count as i32,
-                T::data_type(),
+                element_buffer.data_type(),
                 first as i32,
                 instance_count as i32,
             );
