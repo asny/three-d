@@ -5,11 +5,11 @@ use crate::core::*;
 /// A buffer containing per instance data.
 /// To send this data to a shader, use the [Program::use_instance_attribute] method.
 ///
-pub struct InstanceBuffer<T: BufferDataType> {
-    buffer: Buffer<T>,
+pub struct InstanceBuffer {
+    buffer: Buffer,
 }
 
-impl<T: BufferDataType> InstanceBuffer<T> {
+impl InstanceBuffer {
     ///
     /// Creates a new empty instance buffer.
     ///
@@ -23,7 +23,7 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     /// Creates a new instance buffer and fills it with the given data. The data should be in the same format as specified in the shader.
     /// As an example, if specified as `vec3` in the shader it needs to be specified as an array of `Vector3<T>` where `T` is a primitive type that implements [BufferDataType], for example can be f16 or f32.
     ///
-    pub fn new_with_data(context: &Context, data: &[T]) -> ThreeDResult<Self> {
+    pub fn new_with_data<T: BufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
         Ok(Self {
             buffer: Buffer::new_with_data(context, data)?,
         })
@@ -33,7 +33,7 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     /// Fills the instance buffer with the given data. The data should be in the same format as specified in the shader.
     /// As an example, if specified as `vec3` in the shader it needs to be specified as an array of `Vector3<T>` where `T` is a primitive type that implements [BufferDataType], for example can be f16 or f32.
     ///
-    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
+    pub fn fill<T: BufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         self.buffer.fill(data)
     }
 
@@ -41,7 +41,7 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     /// The number of values in the buffer.
     ///
     pub fn count(&self) -> u32 {
-        self.buffer.attribute_count() * T::size()
+        self.buffer.attribute_count() * self.buffer.data_size
     }
 
     ///
@@ -55,13 +55,21 @@ impl<T: BufferDataType> InstanceBuffer<T> {
         self.buffer.bind();
     }
 
+    pub(crate) fn data_type(&self) -> u32 {
+        self.buffer.data_type
+    }
+
+    pub(crate) fn data_size(&self) -> u32 {
+        self.buffer.data_size
+    }
+
     ///
     /// Creates a new instance buffer and fills it with the given data which must contain between 1 and 4 contiguous values for each vertex.
     /// Use this method instead of [new_with_dynamic](InstanceBuffer::new_with_dynamic)
     /// when you do not expect the data to change often.
     ///
     #[deprecated = "use new_with_data() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn new_with_static(context: &Context, data: &[T]) -> ThreeDResult<Self> {
+    pub fn new_with_static<T: BufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
         Self::new_with_data(context, data)
     }
 
@@ -71,7 +79,10 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     /// when you expect the data to change often.
     ///
     #[deprecated = "use new_with_data() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn new_with_dynamic(context: &Context, data: &[T]) -> ThreeDResult<Self> {
+    pub fn new_with_dynamic<T: BufferDataType>(
+        context: &Context,
+        data: &[T],
+    ) -> ThreeDResult<Self> {
         Self::new_with_data(context, data)
     }
 
@@ -81,7 +92,7 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     /// when you do not expect the data to change often.
     ///
     #[deprecated = "use fill() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn fill_with_static(&mut self, data: &[T]) {
+    pub fn fill_with_static<T: BufferDataType>(&mut self, data: &[T]) {
         self.fill(data).unwrap();
     }
 
@@ -91,7 +102,7 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     /// when you expect the data to change often.
     ///
     #[deprecated = "use fill() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn fill_with_dynamic(&mut self, data: &[T]) {
+    pub fn fill_with_dynamic<T: BufferDataType>(&mut self, data: &[T]) {
         self.fill(data).unwrap();
     }
 }

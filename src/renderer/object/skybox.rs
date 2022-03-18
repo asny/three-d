@@ -6,7 +6,7 @@ use crate::renderer::*;
 ///
 pub struct Skybox {
     context: Context,
-    vertex_buffer: VertexBuffer<Vec3>,
+    vertex_buffer: VertexBuffer,
     material: SkyboxMaterial,
 }
 

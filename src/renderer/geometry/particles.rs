@@ -21,11 +21,11 @@ pub struct ParticleData {
 ///
 pub struct Particles {
     context: Context,
-    start_position_buffer: InstanceBuffer<Vector3<f32>>,
-    start_velocity_buffer: InstanceBuffer<Vector3<f32>>,
-    position_buffer: VertexBuffer<Vec3>,
-    normal_buffer: Option<VertexBuffer<Vec3>>,
-    uv_buffer: Option<VertexBuffer<Vec2>>,
+    start_position_buffer: InstanceBuffer,
+    start_velocity_buffer: InstanceBuffer,
+    position_buffer: VertexBuffer,
+    normal_buffer: Option<VertexBuffer>,
+    uv_buffer: Option<VertexBuffer>,
     index_buffer: Option<IndexBuffer>,
     /// The acceleration applied to all particles. Default is gravity.
     pub acceleration: Vec3,

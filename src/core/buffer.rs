@@ -30,14 +30,15 @@ impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for Vector3
 impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for Vector4<T> {}
 impl BufferDataType for Color {}
 
-struct Buffer<T: BufferDataType> {
+struct Buffer {
     context: Context,
     id: crate::context::Buffer,
     attribute_count: u32,
-    _dummy: T,
+    data_type: u32,
+    data_size: u32,
 }
 
-impl<T: BufferDataType> Buffer<T> {
+impl Buffer {
     pub fn new(context: &Context) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -47,11 +48,12 @@ impl<T: BufferDataType> Buffer<T> {
                     .map_err(|e| CoreError::BufferCreation(e))?
             },
             attribute_count: 0,
-            _dummy: T::default(),
+            data_type: 0,
+            data_size: 0,
         })
     }
 
-    pub fn new_with_data(context: &Context, data: &[T]) -> ThreeDResult<Self> {
+    pub fn new_with_data<T: BufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
             buffer.fill(data)?;
@@ -59,7 +61,7 @@ impl<T: BufferDataType> Buffer<T> {
         Ok(buffer)
     }
 
-    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
+    pub fn fill<T: BufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         self.bind();
         unsafe {
             self.context.buffer_data_u8_slice(
@@ -74,6 +76,8 @@ impl<T: BufferDataType> Buffer<T> {
             self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
         }
         self.attribute_count = data.len() as u32;
+        self.data_type = T::data_type();
+        self.data_size = T::size();
         self.context.error_check()
     }
 
@@ -89,7 +93,7 @@ impl<T: BufferDataType> Buffer<T> {
     }
 }
 
-impl<T: BufferDataType> Drop for Buffer<T> {
+impl Drop for Buffer {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_buffer(self.id);

@@ -8,15 +8,15 @@ use crate::renderer::*;
 ///
 pub struct Mesh {
     /// Buffer with the position data, ie. `(x, y, z)` for each vertex
-    position_buffer: VertexBuffer<Vec3>,
+    position_buffer: VertexBuffer,
     /// Buffer with the normal data, ie. `(x, y, z)` for each vertex.
-    normal_buffer: Option<VertexBuffer<Vec3>>,
+    normal_buffer: Option<VertexBuffer>,
     /// Buffer with the tangent data, ie. `(x, y, z)` for each vertex.
-    tangent_buffer: Option<VertexBuffer<Vec4>>,
+    tangent_buffer: Option<VertexBuffer>,
     /// Buffer with the uv coordinate data, ie. `(u, v)` for each vertex.
-    uv_buffer: Option<VertexBuffer<Vec2>>,
+    uv_buffer: Option<VertexBuffer>,
     /// Buffer with the color data, ie. `(r, g, b)` for each vertex.
-    color_buffer: Option<VertexBuffer<Color>>,
+    color_buffer: Option<VertexBuffer>,
     /// Buffer with the index data, ie. three contiguous integers define the triangle where each integer is and index into the other vertex buffers.
     index_buffer: Option<IndexBuffer>,
     context: Context,
