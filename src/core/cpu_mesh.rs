@@ -1,72 +1,6 @@
 use crate::core::*;
 
 ///
-/// An array of indices. Supports different data types.
-///
-#[derive(Clone)]
-pub enum Indices {
-    /// Uses unsigned 8 bit integer for each index.
-    U8(Vec<u8>),
-    /// Uses unsigned 16 bit integer for each index.
-    U16(Vec<u16>),
-    /// Uses unsigned 32 bit integer for each index.
-    U32(Vec<u32>),
-}
-
-impl Indices {
-    ///
-    /// Converts all the indices as `u32` data type.
-    ///
-    pub fn into_u32(self) -> Vec<u32> {
-        match self {
-            Self::U8(mut values) => values.drain(..).map(|i| i as u32).collect::<Vec<u32>>(),
-            Self::U16(mut values) => values.drain(..).map(|i| i as u32).collect::<Vec<u32>>(),
-            Self::U32(values) => values,
-        }
-    }
-
-    ///
-    /// Clones and converts all the indices as `u32` data type.
-    ///
-    pub fn to_u32(&self) -> Vec<u32> {
-        match self {
-            Self::U8(values) => values.iter().map(|i| *i as u32).collect::<Vec<u32>>(),
-            Self::U16(values) => values.iter().map(|i| *i as u32).collect::<Vec<u32>>(),
-            Self::U32(values) => values.clone(),
-        }
-    }
-
-    ///
-    /// Returns the number of indices.
-    ///
-    pub fn len(&self) -> usize {
-        match self {
-            Self::U8(values) => values.len(),
-            Self::U16(values) => values.len(),
-            Self::U32(values) => values.len(),
-        }
-    }
-}
-
-impl std::default::Default for Indices {
-    fn default() -> Self {
-        Self::U32(Vec::new())
-    }
-}
-
-impl std::fmt::Debug for Indices {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut d = f.debug_struct("Indices");
-        match self {
-            Self::U8(ind) => d.field("u8", &ind.len()),
-            Self::U16(ind) => d.field("u16", &ind.len()),
-            Self::U32(ind) => d.field("u32", &ind.len()),
-        };
-        d.finish()
-    }
-}
-
-///
 /// An array of positions. Supports f32 and f64 data types.
 ///
 #[derive(Clone)]
@@ -151,7 +85,7 @@ pub struct CpuMesh {
     /// If there is no indices associated with this mesh, three contiguous positions defines a triangle, in that case, the length must be divisable by 3.
     pub positions: Positions,
     /// The indices into the positions, normals, uvs and colors arrays which defines the three vertices of a triangle. Three contiguous indices defines a triangle, therefore the length must be divisable by 3.
-    pub indices: Option<Indices>,
+    pub indices: Option<CpuElementBuffer>,
     /// The normals of the vertices.
     pub normals: Option<Vec<Vec3>>,
     /// The tangents of the vertices, orthogonal direction to the normal.
@@ -275,7 +209,7 @@ impl CpuMesh {
         ];
         CpuMesh {
             name: "square".to_string(),
-            indices: Some(Indices::U8(indices)),
+            indices: Some(CpuElementBuffer::U8(indices)),
             positions: Positions::F32(positions),
             normals: Some(normals),
             tangents: Some(tangents),
@@ -305,7 +239,7 @@ impl CpuMesh {
         }
         CpuMesh {
             name: "circle".to_string(),
-            indices: Some(Indices::U16(indices)),
+            indices: Some(CpuElementBuffer::U16(indices)),
             positions: Positions::F32(positions),
             normals: Some(normals),
             ..Default::default()
@@ -369,7 +303,7 @@ impl CpuMesh {
 
         CpuMesh {
             name: "sphere".to_string(),
-            indices: Some(Indices::U16(indices)),
+            indices: Some(CpuElementBuffer::U16(indices)),
             positions: Positions::F32(positions),
             normals: Some(normals),
             ..Default::default()
@@ -495,7 +429,7 @@ impl CpuMesh {
         let mut mesh = Self {
             name: "cylinder".to_string(),
             positions: Positions::F32(positions),
-            indices: Some(Indices::U16(indices)),
+            indices: Some(CpuElementBuffer::U16(indices)),
             ..Default::default()
         };
         mesh.compute_normals();
@@ -531,7 +465,7 @@ impl CpuMesh {
         let mut mesh = Self {
             name: "cone".to_string(),
             positions: Positions::F32(positions),
-            indices: Some(Indices::U16(indices)),
+            indices: Some(CpuElementBuffer::U16(indices)),
             ..Default::default()
         };
         mesh.compute_normals();
@@ -559,7 +493,9 @@ impl CpuMesh {
         let cone_indices = cone.indices.unwrap().into_u32();
         let offset = indices.iter().max().unwrap() + 1;
         indices.extend(cone_indices.iter().map(|i| i + offset));
-        arrow.indices = Some(Indices::U16(indices.iter().map(|i| *i as u16).collect()));
+        arrow.indices = Some(CpuElementBuffer::U16(
+            indices.iter().map(|i| *i as u16).collect(),
+        ));
 
         if let Positions::F32(ref mut p) = arrow.positions {
             if let Positions::F32(ref p2) = cone.positions {
@@ -685,7 +621,7 @@ impl CpuMesh {
     ///
     pub fn for_each_triangle(&self, mut callback: impl FnMut(usize, usize, usize)) {
         match self.indices {
-            Some(Indices::U8(ref indices)) => {
+            Some(CpuElementBuffer::U8(ref indices)) => {
                 for face in 0..indices.len() / 3 {
                     let index0 = indices[face * 3] as usize;
                     let index1 = indices[face * 3 + 1] as usize;
@@ -693,7 +629,7 @@ impl CpuMesh {
                     callback(index0, index1, index2);
                 }
             }
-            Some(Indices::U16(ref indices)) => {
+            Some(CpuElementBuffer::U16(ref indices)) => {
                 for face in 0..indices.len() / 3 {
                     let index0 = indices[face * 3] as usize;
                     let index1 = indices[face * 3 + 1] as usize;
@@ -701,7 +637,7 @@ impl CpuMesh {
                     callback(index0, index1, index2);
                 }
             }
-            Some(Indices::U32(ref indices)) => {
+            Some(CpuElementBuffer::U32(ref indices)) => {
                 for face in 0..indices.len() / 3 {
                     let index0 = indices[face * 3] as usize;
                     let index1 = indices[face * 3 + 1] as usize;
@@ -738,17 +674,17 @@ impl CpuMesh {
     pub fn validate(&self) -> ThreeDResult<()> {
         let vertex_count = if let Some(ref indices) = self.indices {
             let index_count = match indices {
-                Indices::U8(ind) => ind.len(),
-                Indices::U16(ind) => ind.len(),
-                Indices::U32(ind) => ind.len(),
+                CpuElementBuffer::U8(ind) => ind.len(),
+                CpuElementBuffer::U16(ind) => ind.len(),
+                CpuElementBuffer::U32(ind) => ind.len(),
             };
             if index_count % 3 != 0 {
                 Err(CoreError::InvalidNumberOfVertices(index_count))?;
             }
             match indices {
-                Indices::U8(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
-                Indices::U16(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
-                Indices::U32(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
+                CpuElementBuffer::U8(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
+                CpuElementBuffer::U16(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
+                CpuElementBuffer::U32(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
             }
         } else {
             let vertex_count = self.positions.len();
