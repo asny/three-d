@@ -38,7 +38,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     .unwrap();
     let skybox = Skybox::new_with_texture(
         &context,
-        TextureCubeMap::<f16>::new_from_equirectangular(
+        TextureCubeMap::new_from_equirectangular::<Vector3<f16>>(
             &context,
             &loaded.hdr_image("chinese_garden_4k").unwrap(),
         )
