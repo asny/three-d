@@ -28,14 +28,14 @@ impl ElementBufferDataType for u32 {
 /// The three indices refer to three places in a set of [VertexBuffer] where the data (position, normal etc.) is found for the three vertices of the triangle.
 /// See for example [Program::draw_elements] to use this for drawing.
 ///
-pub struct ElementBuffer<T: ElementBufferDataType> {
+pub struct ElementBuffer {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
-    _dummy: T,
+    data_type: u32,
 }
 
-impl<T: ElementBufferDataType> ElementBuffer<T> {
+impl ElementBuffer {
     ///
     /// Creates a new empty element buffer.
     ///
@@ -49,14 +49,17 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
             context: context.clone(),
             id,
             count: 0,
-            _dummy: T::default(),
+            data_type: 0,
         })
     }
 
     ///
     /// Creates a new element buffer and fills it with the given indices which must be divisable by 3.
     ///
-    pub fn new_with_data(context: &Context, data: &[T]) -> ThreeDResult<Self> {
+    pub fn new_with_data<T: ElementBufferDataType>(
+        context: &Context,
+        data: &[T],
+    ) -> ThreeDResult<Self> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
             buffer.fill(data)?;
@@ -68,14 +71,14 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
     /// Creates a new element buffer and fills it with the given indices which must be divisable by 3.
     ///
     #[deprecated = "use new_with_data()"]
-    pub fn new_with(context: &Context, data: &[T]) -> ThreeDResult<Self> {
+    pub fn new_with<T: ElementBufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
         Self::new_with_data(context, data)
     }
 
     ///
     /// Fills the buffer with the given indices which must be divisable by 3.
     ///
-    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
+    pub fn fill<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         self.bind();
         unsafe {
             self.context.buffer_data_u8_slice(
@@ -87,6 +90,7 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
                 .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
         }
         self.count = data.len();
+        self.data_type = T::data_type();
         self.context.error_check()
     }
 
@@ -94,7 +98,7 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
     /// Fills the buffer with the given indices which must be divisable by 3.
     ///
     #[deprecated = "use fill()"]
-    pub fn fill_with(&mut self, data: &[T]) -> ThreeDResult<()> {
+    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         self.fill(data)
     }
 
@@ -118,9 +122,13 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
                 .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, Some(self.id));
         }
     }
+
+    pub(crate) fn data_type(&self) -> u32 {
+        self.data_type
+    }
 }
 
-impl<T: ElementBufferDataType> Drop for ElementBuffer<T> {
+impl Drop for ElementBuffer {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_buffer(self.id);

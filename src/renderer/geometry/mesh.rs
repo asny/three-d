@@ -1,4 +1,3 @@
-use super::IndexBuffer;
 use crate::core::*;
 use crate::renderer::*;
 
@@ -18,7 +17,7 @@ pub struct Mesh {
     /// Buffer with the color data, ie. `(r, g, b)` for each vertex.
     color_buffer: Option<VertexBuffer>,
     /// Buffer with the index data, ie. three contiguous integers define the triangle where each integer is and index into the other vertex buffers.
-    index_buffer: Option<IndexBuffer>,
+    index_buffer: Option<ElementBuffer>,
     context: Context,
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
@@ -47,7 +46,11 @@ impl Mesh {
             None
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(IndexBuffer::new(context, indices)?)
+            Some(match indices {
+                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
+            })
         } else {
             None
         };
@@ -225,23 +228,7 @@ impl Geometry for Mesh {
                     program.use_vertex_attribute("color", color_buffer)?;
                 }
                 if let Some(ref index_buffer) = self.index_buffer {
-                    match index_buffer {
-                        IndexBuffer::U8(ref buffer) => program.draw_elements(
-                            material.render_states(),
-                            camera.viewport(),
-                            buffer,
-                        ),
-                        IndexBuffer::U16(ref buffer) => program.draw_elements(
-                            material.render_states(),
-                            camera.viewport(),
-                            buffer,
-                        ),
-                        IndexBuffer::U32(ref buffer) => program.draw_elements(
-                            material.render_states(),
-                            camera.viewport(),
-                            buffer,
-                        ),
-                    }
+                    program.draw_elements(material.render_states(), camera.viewport(), index_buffer)
                 } else {
                     program.draw_arrays(
                         material.render_states(),
