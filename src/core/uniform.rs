@@ -1,3 +1,4 @@
+use super::color::*;
 use super::math::*;
 
 ///
@@ -17,6 +18,7 @@ impl UniformDataType for [f32; 3] {}
 impl UniformDataType for [f32; 4] {}
 
 impl UniformDataType for Quat {}
+impl UniformDataType for Color {}
 
 impl UniformDataType for Mat2 {}
 impl UniformDataType for Mat3 {}
@@ -178,6 +180,38 @@ mod internal {
                 context.uniform_4_f32_slice(
                     Some(location),
                     &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
+                );
+            }
+        }
+    }
+
+    impl UniformDataTypeExtension for Color {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            unsafe {
+                context.uniform_4_f32(
+                    Some(location),
+                    self.r as f32 / 255.0,
+                    self.g as f32 / 255.0,
+                    self.b as f32 / 255.0,
+                    self.a as f32 / 255.0,
+                );
+            }
+        }
+        fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
+            unsafe {
+                context.uniform_4_f32_slice(
+                    Some(location),
+                    &data
+                        .iter()
+                        .flat_map(|c| {
+                            [
+                                c.r as f32 / 255.0,
+                                c.g as f32 / 255.0,
+                                c.b as f32 / 255.0,
+                                c.a as f32 / 255.0,
+                            ]
+                        })
+                        .collect::<Vec<_>>(),
                 );
             }
         }

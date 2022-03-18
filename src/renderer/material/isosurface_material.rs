@@ -40,7 +40,7 @@ impl Material for IsourfaceMaterial {
             light.use_uniforms(program, i as u32)?;
         }
         program.use_uniform("camera_position", camera.position())?;
-        program.use_uniform("surface_color", self.color.to_vec4())?;
+        program.use_uniform("surface_color", self.color)?;
         program.use_uniform("metallic", self.metallic)?;
         program.use_uniform("roughness", self.roughness)?;
         program.use_uniform("size", self.size)?;
