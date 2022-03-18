@@ -129,7 +129,7 @@ impl Texture3D {
                 self.depth as i32,
                 format::<T>(),
                 T::data_type(),
-                crate::context::PixelUnpackData::Slice(crate::core::internal::to_byte_slice(data)),
+                crate::context::PixelUnpackData::Slice(to_byte_slice(data)),
             );
         }
         self.generate_mip_maps();

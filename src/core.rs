@@ -131,31 +131,6 @@ pub enum CoreError {
 mod internal {
     use crate::core::*;
 
-    pub fn to_mut_byte_slice<'a, T: DataType>(data: &'a mut [T]) -> &'a mut [u8] {
-        unsafe {
-            std::slice::from_raw_parts_mut(
-                data.as_ptr() as *mut _,
-                data.len() * std::mem::size_of::<T>(),
-            )
-        }
-    }
-
-    pub fn to_byte_slice<'a, T: DataType>(data: &'a [T]) -> &'a [u8] {
-        unsafe {
-            std::slice::from_raw_parts(
-                data.as_ptr() as *const _,
-                data.len() * std::mem::size_of::<T>(),
-            )
-        }
-    }
-
-    pub fn from_byte_slice<'a, T: DataType>(data: &'a [u8]) -> &'a [T] {
-        unsafe {
-            let (_prefix, values, _suffix) = data.align_to::<T>();
-            values
-        }
-    }
-
     pub trait PrimitiveDataType: DataType {
         fn internal_format_with_size(size: u32) -> u32;
     }
@@ -379,5 +354,31 @@ mod internal {
         fn default() -> Self {
             Color::WHITE
         }
+    }
+}
+
+use internal::DataType;
+fn to_mut_byte_slice<'a, T: DataType>(data: &'a mut [T]) -> &'a mut [u8] {
+    unsafe {
+        std::slice::from_raw_parts_mut(
+            data.as_ptr() as *mut _,
+            data.len() * std::mem::size_of::<T>(),
+        )
+    }
+}
+
+fn to_byte_slice<'a, T: DataType>(data: &'a [T]) -> &'a [u8] {
+    unsafe {
+        std::slice::from_raw_parts(
+            data.as_ptr() as *const _,
+            data.len() * std::mem::size_of::<T>(),
+        )
+    }
+}
+
+fn from_byte_slice<'a, T: DataType>(data: &'a [u8]) -> &'a [T] {
+    unsafe {
+        let (_prefix, values, _suffix) = data.align_to::<T>();
+        values
     }
 }

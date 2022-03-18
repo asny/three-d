@@ -66,7 +66,7 @@ impl Buffer {
         unsafe {
             self.context.buffer_data_u8_slice(
                 crate::context::ARRAY_BUFFER,
-                super::internal::to_byte_slice(data),
+                to_byte_slice(data),
                 if self.attribute_count > 0 {
                     crate::context::DYNAMIC_DRAW
                 } else {

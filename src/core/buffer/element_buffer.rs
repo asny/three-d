@@ -83,7 +83,7 @@ impl ElementBuffer {
         unsafe {
             self.context.buffer_data_u8_slice(
                 crate::context::ELEMENT_ARRAY_BUFFER,
-                super::internal::to_byte_slice(data),
+                to_byte_slice(data),
                 crate::context::STATIC_DRAW,
             );
             self.context
