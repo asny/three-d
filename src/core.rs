@@ -205,7 +205,6 @@ mod internal {
     pub trait DataType: std::fmt::Debug + Clone {
         fn internal_format() -> u32;
         fn data_type() -> u32;
-        fn is_max(&self) -> bool;
         fn size() -> u32;
         fn default() -> Self;
     }
@@ -223,10 +222,6 @@ mod internal {
             1
         }
 
-        fn is_max(&self) -> bool {
-            *self == 255u8
-        }
-
         fn default() -> Self {
             0
         }
@@ -242,10 +237,6 @@ mod internal {
 
         fn size() -> u32 {
             1
-        }
-
-        fn is_max(&self) -> bool {
-            *self == u16::MAX
         }
 
         fn default() -> Self {
@@ -266,10 +257,6 @@ mod internal {
             1
         }
 
-        fn is_max(&self) -> bool {
-            *self == u32::MAX
-        }
-
         fn default() -> Self {
             0
         }
@@ -285,10 +272,6 @@ mod internal {
 
         fn size() -> u32 {
             1
-        }
-
-        fn is_max(&self) -> bool {
-            *self > f16::from_f32(0.99)
         }
 
         fn default() -> Self {
@@ -309,10 +292,6 @@ mod internal {
             1
         }
 
-        fn is_max(&self) -> bool {
-            *self > 0.99
-        }
-
         fn default() -> Self {
             0.0
         }
@@ -331,10 +310,6 @@ mod internal {
             2
         }
 
-        fn is_max(&self) -> bool {
-            self.x.is_max() && self.y.is_max()
-        }
-
         fn default() -> Self {
             Self::new(T::default(), T::default())
         }
@@ -350,10 +325,6 @@ mod internal {
 
         fn size() -> u32 {
             3
-        }
-
-        fn is_max(&self) -> bool {
-            self.x.is_max() && self.y.is_max() && self.z.is_max()
         }
 
         fn default() -> Self {
@@ -374,10 +345,6 @@ mod internal {
             4
         }
 
-        fn is_max(&self) -> bool {
-            self.x.is_max() && self.y.is_max() && self.z.is_max() && self.w.is_max()
-        }
-
         fn default() -> Self {
             Self::new(T::default(), T::default(), T::default(), T::default())
         }
@@ -394,10 +361,6 @@ mod internal {
 
         fn size() -> u32 {
             4
-        }
-
-        fn is_max(&self) -> bool {
-            self.r.is_max() && self.g.is_max() && self.b.is_max() && self.a.is_max()
         }
 
         fn default() -> Self {
