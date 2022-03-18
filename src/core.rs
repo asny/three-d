@@ -149,10 +149,10 @@ mod internal {
     impl PrimitiveDataType for u8 {
         fn internal_format_with_size(size: u32) -> u32 {
             match size {
-                0 => crate::context::R8,
-                1 => crate::context::RG8,
-                2 => crate::context::RGB8,
-                3 => crate::context::RGBA8,
+                1 => crate::context::R8,
+                2 => crate::context::RG8,
+                3 => crate::context::RGB8,
+                4 => crate::context::RGBA8,
                 _ => unreachable!(),
             }
         }
@@ -160,10 +160,10 @@ mod internal {
     impl PrimitiveDataType for u16 {
         fn internal_format_with_size(size: u32) -> u32 {
             match size {
-                0 => crate::context::R16UI,
-                1 => crate::context::RG16UI,
-                2 => crate::context::RGB16UI,
-                3 => crate::context::RGBA16UI,
+                1 => crate::context::R16UI,
+                2 => crate::context::RG16UI,
+                3 => crate::context::RGB16UI,
+                4 => crate::context::RGBA16UI,
                 _ => unreachable!(),
             }
         }
@@ -171,10 +171,10 @@ mod internal {
     impl PrimitiveDataType for u32 {
         fn internal_format_with_size(size: u32) -> u32 {
             match size {
-                0 => crate::context::R32UI,
-                1 => crate::context::RG32UI,
-                2 => crate::context::RGB32UI,
-                3 => crate::context::RGBA32UI,
+                1 => crate::context::R32UI,
+                2 => crate::context::RG32UI,
+                3 => crate::context::RGB32UI,
+                4 => crate::context::RGBA32UI,
                 _ => unreachable!(),
             }
         }
@@ -182,10 +182,10 @@ mod internal {
     impl PrimitiveDataType for f16 {
         fn internal_format_with_size(size: u32) -> u32 {
             match size {
-                0 => crate::context::R16F,
-                1 => crate::context::RG16F,
-                2 => crate::context::RGB16F,
-                3 => crate::context::RGBA16F,
+                1 => crate::context::R16F,
+                2 => crate::context::RG16F,
+                3 => crate::context::RGB16F,
+                4 => crate::context::RGBA16F,
                 _ => unreachable!(),
             }
         }
@@ -193,10 +193,10 @@ mod internal {
     impl PrimitiveDataType for f32 {
         fn internal_format_with_size(size: u32) -> u32 {
             match size {
-                0 => crate::context::R32F,
-                1 => crate::context::RG32F,
-                2 => crate::context::RGB32F,
-                3 => crate::context::RGBA32F,
+                1 => crate::context::R32F,
+                2 => crate::context::RG32F,
+                3 => crate::context::RGB32F,
+                4 => crate::context::RGBA32F,
                 _ => unreachable!(),
             }
         }

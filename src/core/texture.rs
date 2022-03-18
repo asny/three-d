@@ -110,6 +110,14 @@ impl std::fmt::Debug for TextureData {
             Self::RgU8(values) => write!(f, "RG u8 ({:?})", values.len()),
             Self::RgbU8(values) => write!(f, "RGB u8 ({:?})", values.len()),
             Self::RgbaU8(values) => write!(f, "RGBA u8 ({:?})", values.len()),
+            Self::RF16(values) => write!(f, "R f16 ({:?})", values.len()),
+            Self::RgF16(values) => write!(f, "RG f16 ({:?})", values.len()),
+            Self::RgbF16(values) => write!(f, "RGB f16 ({:?})", values.len()),
+            Self::RgbaF16(values) => write!(f, "RGBA f16 ({:?})", values.len()),
+            Self::RF32(values) => write!(f, "R f32 ({:?})", values.len()),
+            Self::RgF32(values) => write!(f, "RG f32 ({:?})", values.len()),
+            Self::RgbF32(values) => write!(f, "RGB f32 ({:?})", values.len()),
+            Self::RgbaF32(values) => write!(f, "RGBA f32 ({:?})", values.len()),
         }
     }
 }
@@ -160,7 +168,7 @@ pub struct CpuTexture {
 }
 
 impl CpuTexture {
-    ///
+    /*///
     /// Adds a padding of default values to the texture.
     /// 'left' number of pixels are added to the left of the original texture, 'right' number of pixels to the right and so on.
     ///
@@ -184,7 +192,7 @@ impl CpuTexture {
         self.data = new_data;
         self.width = width;
         self.height = height;
-    }
+    }*/
 }
 
 impl Default for CpuTexture {
