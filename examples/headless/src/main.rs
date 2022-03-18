@@ -39,7 +39,7 @@ fn main() {
     .unwrap();
 
     // Create a color texture to render into
-    let mut texture = Texture2D::<u8>::new_empty(
+    let mut texture = Texture2D::new_empty::<Vector4<u8>>(
         &context,
         viewport.width,
         viewport.height,
@@ -48,7 +48,6 @@ fn main() {
         None,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
-        Format::RGBA,
     )
     .unwrap();
 
@@ -83,7 +82,10 @@ fn main() {
         let pixels = texture.read(viewport).unwrap();
         Saver::save_pixels(
             format!("headless-{}.png", frame_index),
-            &pixels,
+            &pixels
+                .iter()
+                .flat_map(|p| [p.x, p.y, p.z, p.w])
+                .collect::<Vec<_>>(),
             viewport.width,
             viewport.height,
         )
