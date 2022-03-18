@@ -3,9 +3,9 @@ use crate::renderer::*;
 
 pub struct Sprites {
     context: Context,
-    position_buffer: VertexBuffer<Vec3>,
-    uv_buffer: VertexBuffer<Vec2>,
-    center_buffer: InstanceBuffer<Vector3<f32>>,
+    position_buffer: VertexBuffer,
+    uv_buffer: VertexBuffer,
+    center_buffer: InstanceBuffer,
     transformation: Mat4,
 }
 

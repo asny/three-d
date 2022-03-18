@@ -6,8 +6,8 @@ use crate::core::*;
 ///
 pub struct ImageEffect {
     program: Program,
-    positions: VertexBuffer<Vec3>,
-    uvs: VertexBuffer<Vec2>,
+    positions: VertexBuffer,
+    uvs: VertexBuffer,
 }
 
 impl ImageEffect {
