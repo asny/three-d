@@ -102,7 +102,7 @@ impl UniformBuffer {
                 .bind_buffer(crate::context::UNIFORM_BUFFER, Some(self.id));
             self.context.buffer_data_u8_slice(
                 crate::context::UNIFORM_BUFFER,
-                super::internal::to_byte_slice(&self.data),
+                to_byte_slice(&self.data),
                 crate::context::STATIC_DRAW,
             );
             self.context

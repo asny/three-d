@@ -65,7 +65,7 @@ impl Screen {
             );
         }
         context.error_check()?;
-        Ok(super::internal::from_byte_slice(&pixels).to_vec())
+        Ok(from_byte_slice(&pixels).to_vec())
     }
 
     ///
