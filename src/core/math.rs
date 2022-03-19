@@ -10,8 +10,8 @@ pub use half::vec::HalfFloatVecExt;
 pub(crate) use cgmath::ortho;
 pub(crate) use cgmath::perspective;
 pub use cgmath::prelude::*;
-use cgmath::{Basis3, Deg, Point3, Quaternion, Rad};
-pub use cgmath::{Matrix2, Matrix3, Matrix4, Vector2, Vector3, Vector4};
+use cgmath::{Basis3, Deg, Point3, Rad};
+pub use cgmath::{Matrix2, Matrix3, Matrix4, Quaternion, Vector2, Vector3, Vector4};
 
 pub type Vec2 = Vector2<f32>;
 pub type Vec3 = Vector3<f32>;
