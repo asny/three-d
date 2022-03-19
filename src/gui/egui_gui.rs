@@ -123,7 +123,7 @@ impl GUI {
         if self.texture.is_none() || self.texture_version != egui_texture.version {
             let mut pixels = Vec::new();
             for pixel in egui_texture.srgba_pixels() {
-                pixels.push(vec4(pixel.r(), pixel.g(), pixel.b(), pixel.a()));
+                pixels.push([pixel.r(), pixel.g(), pixel.b(), pixel.a()]);
             }
             self.texture = Some(Texture2D::new(
                 &self.context,

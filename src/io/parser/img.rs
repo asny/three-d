@@ -21,26 +21,26 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
         DynamicImage::ImageLumaA8(_) => {
             let mut data = Vec::new();
             for i in 0..bytes.len() / 2 {
-                data.push(vec2(bytes[i * 2], bytes[i * 2 + 1]));
+                data.push([bytes[i * 2], bytes[i * 2 + 1]]);
             }
             TextureData::RgU8(data)
         }
         DynamicImage::ImageRgb8(_) => {
             let mut data = Vec::new();
             for i in 0..bytes.len() / 3 {
-                data.push(vec3(bytes[i * 3], bytes[i * 3 + 1], bytes[i * 3 + 2]));
+                data.push([bytes[i * 3], bytes[i * 3 + 1], bytes[i * 3 + 2]]);
             }
             TextureData::RgbU8(data)
         }
         DynamicImage::ImageRgba8(_) => {
             let mut data = Vec::new();
             for i in 0..bytes.len() / 4 {
-                data.push(vec4(
+                data.push([
                     bytes[i * 4],
                     bytes[i * 4 + 1],
                     bytes[i * 4 + 2],
                     bytes[i * 4 + 3],
-                ));
+                ]);
             }
             TextureData::RgbaU8(data)
         }
@@ -76,7 +76,7 @@ pub fn hdr_image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
             img.iter()
                 .map(|rgbe| {
                     let Rgb(values) = rgbe.to_hdr();
-                    vec3(values[0], values[1], values[2])
+                    [values[0], values[1], values[2]]
                 })
                 .collect::<Vec<_>>(),
         ),
