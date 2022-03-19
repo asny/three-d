@@ -143,7 +143,7 @@ impl Program {
     ///
     pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) -> ThreeDResult<()> {
         let location = self.get_uniform_location(name)?;
-        data.send(&self.context, location);
+        T::send_uniform(&self.context, location, &[data]);
         self.unuse_program();
         self.context.error_check()
     }
@@ -163,7 +163,7 @@ impl Program {
         data: &[T],
     ) -> ThreeDResult<()> {
         let location = self.get_uniform_location(name)?;
-        T::send_array(data, &self.context, location);
+        T::send_uniform(&self.context, location, data);
         self.unuse_program();
         self.context.error_check()
     }
