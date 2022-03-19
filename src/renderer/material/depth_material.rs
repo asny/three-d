@@ -27,6 +27,7 @@ impl Material for DepthMaterial {
     ) -> ThreeDResult<()> {
         program.use_uniform("minDistance", &self.min_distance.unwrap_or(camera.z_near()))?;
         program.use_uniform("maxDistance", &self.max_distance.unwrap_or(camera.z_far()))?;
+        program.use_uniform_block("Camera", camera.uniform_buffer())?;
         Ok(())
     }
     fn render_states(&self) -> RenderStates {
