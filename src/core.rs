@@ -222,6 +222,48 @@ mod internal {
             }
         }
     }
+    impl PrimitiveDataType for i8 {
+        fn internal_format_with_size(size: u32) -> u32 {
+            match size {
+                1 => crate::context::R8I,
+                2 => crate::context::RG8I,
+                3 => crate::context::RGB8I,
+                4 => crate::context::RGBA8I,
+                _ => unreachable!(),
+            }
+        }
+
+        fn send_uniform_with_type(
+            context: &Context,
+            location: &UniformLocation,
+            data: &[Self],
+            type_: UniformType,
+        ) {
+            let data = data.iter().map(|v| *v as i32).collect::<Vec<_>>();
+            i32::send_uniform_with_type(context, location, &data, type_)
+        }
+    }
+    impl PrimitiveDataType for i16 {
+        fn internal_format_with_size(size: u32) -> u32 {
+            match size {
+                1 => crate::context::R16I,
+                2 => crate::context::RG16I,
+                3 => crate::context::RGB16I,
+                4 => crate::context::RGBA16I,
+                _ => unreachable!(),
+            }
+        }
+
+        fn send_uniform_with_type(
+            context: &Context,
+            location: &UniformLocation,
+            data: &[Self],
+            type_: UniformType,
+        ) {
+            let data = data.iter().map(|v| *v as i32).collect::<Vec<_>>();
+            i32::send_uniform_with_type(context, location, &data, type_)
+        }
+    }
     impl PrimitiveDataType for i32 {
         fn internal_format_with_size(size: u32) -> u32 {
             match size {
@@ -377,6 +419,42 @@ mod internal {
 
         fn data_type() -> u32 {
             crate::context::UNSIGNED_INT
+        }
+
+        fn size() -> u32 {
+            1
+        }
+
+        fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
+            Self::send_uniform_with_type(context, location, data, UniformType::Value)
+        }
+    }
+
+    impl DataType for i8 {
+        fn internal_format() -> u32 {
+            Self::internal_format_with_size(1)
+        }
+
+        fn data_type() -> u32 {
+            crate::context::BYTE
+        }
+
+        fn size() -> u32 {
+            1
+        }
+
+        fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
+            Self::send_uniform_with_type(context, location, data, UniformType::Value)
+        }
+    }
+
+    impl DataType for i16 {
+        fn internal_format() -> u32 {
+            Self::internal_format_with_size(1)
+        }
+
+        fn data_type() -> u32 {
+            crate::context::SHORT
         }
 
         fn size() -> u32 {
