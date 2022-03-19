@@ -24,26 +24,26 @@ impl Loaded {
             2 => {
                 let mut data = Vec::new();
                 for i in 0..bytes.len() / 2 {
-                    data.push(vec2(bytes[i * 2], bytes[i * 2 + 1]));
+                    data.push([bytes[i * 2], bytes[i * 2 + 1]]);
                 }
                 TextureData::RgU8(data)
             }
             3 => {
                 let mut data = Vec::new();
                 for i in 0..bytes.len() / 3 {
-                    data.push(vec3(bytes[i * 3], bytes[i * 3 + 1], bytes[i * 3 + 2]));
+                    data.push([bytes[i * 3], bytes[i * 3 + 1], bytes[i * 3 + 2]]);
                 }
                 TextureData::RgbU8(data)
             }
             4 => {
                 let mut data = Vec::new();
                 for i in 0..bytes.len() / 4 {
-                    data.push(vec4(
+                    data.push([
                         bytes[i * 4],
                         bytes[i * 4 + 1],
                         bytes[i * 4 + 2],
                         bytes[i * 4 + 3],
-                    ));
+                    ]);
                 }
                 TextureData::RgbaU8(data)
             }

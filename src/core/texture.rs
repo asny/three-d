@@ -56,10 +56,18 @@ pub trait TextureDataType: std::fmt::Debug + crate::core::internal::DataType {}
 impl TextureDataType for u8 {}
 impl TextureDataType for f16 {}
 impl TextureDataType for f32 {}
+
 impl<T: TextureDataType + crate::core::internal::PrimitiveDataType> TextureDataType for Vector2<T> {}
 impl<T: TextureDataType + crate::core::internal::PrimitiveDataType> TextureDataType for Vector3<T> {}
 impl<T: TextureDataType + crate::core::internal::PrimitiveDataType> TextureDataType for Vector4<T> {}
+
+impl<T: TextureDataType + crate::core::internal::PrimitiveDataType> TextureDataType for [T; 2] {}
+impl<T: TextureDataType + crate::core::internal::PrimitiveDataType> TextureDataType for [T; 3] {}
+impl<T: TextureDataType + crate::core::internal::PrimitiveDataType> TextureDataType for [T; 4] {}
+
 impl TextureDataType for Color {}
+
+impl<T: TextureDataType + ?Sized> TextureDataType for &T {}
 
 ///
 /// Possible formats for pixels in a texture.
@@ -88,19 +96,19 @@ impl Format {
 #[derive(Clone)]
 pub enum TextureData {
     RU8(Vec<u8>),
-    RgU8(Vec<Vector2<u8>>),
-    RgbU8(Vec<Vector3<u8>>),
-    RgbaU8(Vec<Vector4<u8>>),
+    RgU8(Vec<[u8; 2]>),
+    RgbU8(Vec<[u8; 3]>),
+    RgbaU8(Vec<[u8; 4]>),
 
     RF16(Vec<f16>),
-    RgF16(Vec<Vector2<f16>>),
-    RgbF16(Vec<Vector3<f16>>),
-    RgbaF16(Vec<Vector4<f16>>),
+    RgF16(Vec<[f16; 2]>),
+    RgbF16(Vec<[f16; 3]>),
+    RgbaF16(Vec<[f16; 4]>),
 
     RF32(Vec<f32>),
-    RgF32(Vec<Vector2<f32>>),
-    RgbF32(Vec<Vector3<f32>>),
-    RgbaF32(Vec<Vector4<f32>>),
+    RgF32(Vec<[f32; 2]>),
+    RgbF32(Vec<[f32; 3]>),
+    RgbaF32(Vec<[f32; 4]>),
 }
 
 impl std::fmt::Debug for TextureData {
@@ -198,7 +206,7 @@ impl CpuTexture {
 impl Default for CpuTexture {
     fn default() -> Self {
         Self {
-            data: TextureData::RgbaU8(vec![vec4(0, 0, 0, 0)]),
+            data: TextureData::RgbaU8(vec![[0, 0, 0, 0]]),
             width: 1,
             height: 1,
             format: Format::RGBA,
@@ -244,7 +252,7 @@ pub struct CpuTexture3D {
 impl Default for CpuTexture3D {
     fn default() -> Self {
         Self {
-            data: TextureData::RgbaU8(vec![vec4(0, 0, 0, 0)]),
+            data: TextureData::RgbaU8(vec![[0, 0, 0, 0]]),
             width: 1,
             height: 1,
             depth: 1,
@@ -263,80 +271,80 @@ impl Default for CpuTexture3D {
 pub enum TextureCubeData {
     RU8(Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>),
     RgU8(
-        Vec<Vector2<u8>>,
-        Vec<Vector2<u8>>,
-        Vec<Vector2<u8>>,
-        Vec<Vector2<u8>>,
-        Vec<Vector2<u8>>,
-        Vec<Vector2<u8>>,
+        Vec<[u8; 2]>,
+        Vec<[u8; 2]>,
+        Vec<[u8; 2]>,
+        Vec<[u8; 2]>,
+        Vec<[u8; 2]>,
+        Vec<[u8; 2]>,
     ),
     RgbU8(
-        Vec<Vector3<u8>>,
-        Vec<Vector3<u8>>,
-        Vec<Vector3<u8>>,
-        Vec<Vector3<u8>>,
-        Vec<Vector3<u8>>,
-        Vec<Vector3<u8>>,
+        Vec<[u8; 3]>,
+        Vec<[u8; 3]>,
+        Vec<[u8; 3]>,
+        Vec<[u8; 3]>,
+        Vec<[u8; 3]>,
+        Vec<[u8; 3]>,
     ),
     RgbaU8(
-        Vec<Vector4<u8>>,
-        Vec<Vector4<u8>>,
-        Vec<Vector4<u8>>,
-        Vec<Vector4<u8>>,
-        Vec<Vector4<u8>>,
-        Vec<Vector4<u8>>,
+        Vec<[u8; 4]>,
+        Vec<[u8; 4]>,
+        Vec<[u8; 4]>,
+        Vec<[u8; 4]>,
+        Vec<[u8; 4]>,
+        Vec<[u8; 4]>,
     ),
 
     RF16(Vec<f16>, Vec<f16>, Vec<f16>, Vec<f16>, Vec<f16>, Vec<f16>),
     RgF16(
-        Vec<Vector2<f16>>,
-        Vec<Vector2<f16>>,
-        Vec<Vector2<f16>>,
-        Vec<Vector2<f16>>,
-        Vec<Vector2<f16>>,
-        Vec<Vector2<f16>>,
+        Vec<[f16; 2]>,
+        Vec<[f16; 2]>,
+        Vec<[f16; 2]>,
+        Vec<[f16; 2]>,
+        Vec<[f16; 2]>,
+        Vec<[f16; 2]>,
     ),
     RgbF16(
-        Vec<Vector3<f16>>,
-        Vec<Vector3<f16>>,
-        Vec<Vector3<f16>>,
-        Vec<Vector3<f16>>,
-        Vec<Vector3<f16>>,
-        Vec<Vector3<f16>>,
+        Vec<[f16; 3]>,
+        Vec<[f16; 3]>,
+        Vec<[f16; 3]>,
+        Vec<[f16; 3]>,
+        Vec<[f16; 3]>,
+        Vec<[f16; 3]>,
     ),
     RgbaF16(
-        Vec<Vector4<f16>>,
-        Vec<Vector4<f16>>,
-        Vec<Vector4<f16>>,
-        Vec<Vector4<f16>>,
-        Vec<Vector4<f16>>,
-        Vec<Vector4<f16>>,
+        Vec<[f16; 4]>,
+        Vec<[f16; 4]>,
+        Vec<[f16; 4]>,
+        Vec<[f16; 4]>,
+        Vec<[f16; 4]>,
+        Vec<[f16; 4]>,
     ),
 
     RF32(Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>),
     RgF32(
-        Vec<Vector2<f32>>,
-        Vec<Vector2<f32>>,
-        Vec<Vector2<f32>>,
-        Vec<Vector2<f32>>,
-        Vec<Vector2<f32>>,
-        Vec<Vector2<f32>>,
+        Vec<[f32; 2]>,
+        Vec<[f32; 2]>,
+        Vec<[f32; 2]>,
+        Vec<[f32; 2]>,
+        Vec<[f32; 2]>,
+        Vec<[f32; 2]>,
     ),
     RgbF32(
-        Vec<Vector3<f32>>,
-        Vec<Vector3<f32>>,
-        Vec<Vector3<f32>>,
-        Vec<Vector3<f32>>,
-        Vec<Vector3<f32>>,
-        Vec<Vector3<f32>>,
+        Vec<[f32; 3]>,
+        Vec<[f32; 3]>,
+        Vec<[f32; 3]>,
+        Vec<[f32; 3]>,
+        Vec<[f32; 3]>,
+        Vec<[f32; 3]>,
     ),
     RgbaF32(
-        Vec<Vector4<f32>>,
-        Vec<Vector4<f32>>,
-        Vec<Vector4<f32>>,
-        Vec<Vector4<f32>>,
-        Vec<Vector4<f32>>,
-        Vec<Vector4<f32>>,
+        Vec<[f32; 4]>,
+        Vec<[f32; 4]>,
+        Vec<[f32; 4]>,
+        Vec<[f32; 4]>,
+        Vec<[f32; 4]>,
+        Vec<[f32; 4]>,
     ),
 }
 
@@ -375,12 +383,12 @@ impl Default for CpuTextureCube {
     fn default() -> Self {
         Self {
             data: TextureCubeData::RgbaU8(
-                vec![vec4(255, 0, 0, 255)],
-                vec![vec4(255, 0, 0, 255)],
-                vec![vec4(255, 0, 0, 255)],
-                vec![vec4(255, 0, 0, 255)],
-                vec![vec4(255, 0, 0, 255)],
-                vec![vec4(255, 0, 0, 255)],
+                vec![[255, 0, 0, 255]],
+                vec![[255, 0, 0, 255]],
+                vec![[255, 0, 0, 255]],
+                vec![[255, 0, 0, 255]],
+                vec![[255, 0, 0, 255]],
+                vec![[255, 0, 0, 255]],
             ),
             width: 1,
             height: 1,
