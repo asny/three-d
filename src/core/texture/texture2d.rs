@@ -169,8 +169,11 @@ impl Texture2D {
             self.context.framebuffer_check()?;
 
             let mut pixels = vec![
-                vec4(T::default(), T::default(), T::default(), T::default());
-                viewport.width as usize * viewport.height as usize
+                0u8;
+                viewport.width as usize
+                    * viewport.height as usize
+                    * 4
+                    * std::mem::size_of::<T>()
             ];
             self.context.read_pixels(
                 viewport.x as i32,
@@ -179,9 +182,9 @@ impl Texture2D {
                 viewport.height as i32,
                 format::<Vector4<T>>(),
                 T::data_type(),
-                crate::context::PixelPackData::Slice(to_mut_byte_slice(&mut pixels)),
+                crate::context::PixelPackData::Slice(&mut pixels),
             );
-            Ok(pixels)
+            Ok(from_byte_slice(&pixels).to_vec())
         }
     }
 
