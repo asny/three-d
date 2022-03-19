@@ -313,7 +313,6 @@ mod internal {
         fn data_type() -> u32;
         fn size() -> u32;
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]);
-        fn default() -> Self;
     }
 
     impl<T: DataType + ?Sized> DataType for &T {
@@ -334,9 +333,6 @@ mod internal {
                 &data.iter().map(|v| (*v).clone()).collect::<Vec<_>>(),
             )
         }
-        fn default() -> Self {
-            unimplemented!()
-        }
     }
 
     impl DataType for u8 {
@@ -355,10 +351,6 @@ mod internal {
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             Self::send_uniform_with_type(context, location, data, UniformType::Value)
         }
-
-        fn default() -> Self {
-            0
-        }
     }
 
     impl DataType for u16 {
@@ -375,10 +367,6 @@ mod internal {
 
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             Self::send_uniform_with_type(context, location, data, UniformType::Value)
-        }
-
-        fn default() -> Self {
-            0
         }
     }
 
@@ -398,10 +386,6 @@ mod internal {
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             Self::send_uniform_with_type(context, location, data, UniformType::Value)
         }
-
-        fn default() -> Self {
-            0
-        }
     }
 
     impl DataType for i32 {
@@ -420,10 +404,6 @@ mod internal {
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             Self::send_uniform_with_type(context, location, data, UniformType::Value)
         }
-
-        fn default() -> Self {
-            0
-        }
     }
 
     impl DataType for f16 {
@@ -440,10 +420,6 @@ mod internal {
 
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             Self::send_uniform_with_type(context, location, data, UniformType::Value)
-        }
-
-        fn default() -> Self {
-            f16::from_f32(0.0)
         }
     }
 
@@ -462,10 +438,6 @@ mod internal {
 
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             Self::send_uniform_with_type(context, location, data, UniformType::Value)
-        }
-
-        fn default() -> Self {
-            0.0
         }
     }
 
@@ -486,10 +458,6 @@ mod internal {
             let data = data.iter().flat_map(|v| [v.x, v.y]).collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Vec2)
         }
-
-        fn default() -> Self {
-            Self::new(T::default(), T::default())
-        }
     }
 
     impl<T: PrimitiveDataType> DataType for [T; 2] {
@@ -508,10 +476,6 @@ mod internal {
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             let data = data.iter().flatten().map(|v| *v).collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Vec2)
-        }
-
-        fn default() -> Self {
-            [T::default(), T::default()]
         }
     }
 
@@ -534,10 +498,6 @@ mod internal {
                 .collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Vec3)
         }
-
-        fn default() -> Self {
-            Self::new(T::default(), T::default(), T::default())
-        }
     }
 
     impl<T: PrimitiveDataType> DataType for [T; 3] {
@@ -555,10 +515,6 @@ mod internal {
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             let data = data.iter().flatten().map(|v| *v).collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Vec3)
-        }
-
-        fn default() -> Self {
-            [T::default(), T::default(), T::default()]
         }
     }
 
@@ -582,10 +538,6 @@ mod internal {
                 .collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Vec4)
         }
-
-        fn default() -> Self {
-            Self::new(T::default(), T::default(), T::default(), T::default())
-        }
     }
 
     impl<T: PrimitiveDataType> DataType for [T; 4] {
@@ -604,10 +556,6 @@ mod internal {
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             let data = data.iter().flatten().map(|v| *v).collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Vec4)
-        }
-
-        fn default() -> Self {
-            [T::default(), T::default(), T::default(), T::default()]
         }
     }
 
@@ -630,10 +578,6 @@ mod internal {
                 .flat_map(|v| [v.v.x, v.v.y, v.v.z, v.s])
                 .collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Vec4)
-        }
-
-        fn default() -> Self {
-            Quaternion::new(T::default(), T::default(), T::default(), T::default())
         }
     }
 
@@ -664,10 +608,6 @@ mod internal {
                 .collect::<Vec<_>>();
             f32::send_uniform_with_type(context, location, &data, UniformType::Vec4)
         }
-
-        fn default() -> Self {
-            Color::WHITE
-        }
     }
 
     impl<T: PrimitiveDataType> DataType for Matrix2<T> {
@@ -689,10 +629,6 @@ mod internal {
                 .flat_map(|v| [v.x.x, v.x.y, v.y.x, v.y.y])
                 .collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Mat2)
-        }
-
-        fn default() -> Self {
-            Matrix2::new(T::default(), T::default(), T::default(), T::default())
         }
     }
 
@@ -719,20 +655,6 @@ mod internal {
                 })
                 .collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Mat3)
-        }
-
-        fn default() -> Self {
-            Matrix3::new(
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-            )
         }
     }
 
@@ -761,40 +683,10 @@ mod internal {
                 .collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Mat4)
         }
-
-        fn default() -> Self {
-            Matrix4::new(
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-                T::default(),
-            )
-        }
     }
 }
 
 use internal::DataType;
-fn to_mut_byte_slice<'a, T: DataType>(data: &'a mut [T]) -> &'a mut [u8] {
-    unsafe {
-        std::slice::from_raw_parts_mut(
-            data.as_ptr() as *mut _,
-            data.len() * std::mem::size_of::<T>(),
-        )
-    }
-}
-
 fn to_byte_slice<'a, T: DataType>(data: &'a [T]) -> &'a [u8] {
     unsafe {
         std::slice::from_raw_parts(
