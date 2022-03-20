@@ -5,7 +5,7 @@ uniform mat4 viewProjectionInverse;
 
 uniform float time;
 uniform float fogDensity;
-uniform vec3 fogColor;
+uniform vec4 fogColor;
 uniform float animation;
 uniform vec3 eyePosition;
 
@@ -150,5 +150,5 @@ void main()
     factor = clamp(factor, 0., 1.);
 
     // Output
-    color = vec4(fogColor, factor);
+    color = vec4(fogColor.rgb, factor);
 }
