@@ -7,11 +7,6 @@ uniform vec4 albedo;
 uniform sampler2D albedoTexture;
 #endif
 
-uniform vec3 emissive;
-#ifdef USE_EMISSIVE_TEXTURE
-uniform sampler2D emissiveTexture;
-#endif
-
 #ifdef USE_METALLIC_ROUGHNESS_TEXTURE
 uniform sampler2D metallicRoughnessTexture;
 #endif

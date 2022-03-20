@@ -7,7 +7,7 @@ uniform vec4 albedo;
 uniform sampler2D albedoTexture;
 #endif
 
-uniform vec3 emissive;
+uniform vec4 emissive;
 #ifdef USE_EMISSIVE_TEXTURE
 uniform sampler2D emissiveTexture;
 #endif
@@ -66,7 +66,7 @@ void main()
     normal = tbn * ((2.0 * texture(normalTexture, uvs).xyz - 1.0) * vec3(normalScale, normalScale, 1.0));
 #endif
 
-    vec3 total_emissive = emissive;
+    vec3 total_emissive = emissive.rgb;
 #ifdef USE_EMISSIVE_TEXTURE
     vec4 e = texture(emissiveTexture, uvs);
     total_emissive *= rgb_from_srgb(e.rgb);
