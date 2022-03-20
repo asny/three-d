@@ -19,7 +19,7 @@ impl Loaded {
             f32::from_be_bytes([bytes[24], bytes[25], bytes[26], bytes[27]]),
         );
         let bytes = &bytes[28..];
-        let data = match (bytes.len() as u32 - 28) / (width * height * depth) {
+        let data = match bytes.len() as u32 / (width * height * depth) {
             1 => TextureData::RU8(bytes.to_vec()),
             2 => {
                 let mut data = Vec::new();
