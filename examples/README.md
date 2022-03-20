@@ -101,6 +101,10 @@ This is the recomended starting point for a gentle introduction to `three-d`.
 
 ![Forest example](https://asny.github.io/three-d/0.11/forest.png)
 
+## Volume [[code](https://github.com/asny/three-d/tree/master/examples/volume/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/volume.html)]
+
+![Volume example](https://asny.github.io/three-d/0.11/volume.png)
+
 ## Normals [[code](https://github.com/asny/three-d/tree/master/examples/normals/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/normals.html)]
 
 ![Normals example](https://asny.github.io/three-d/0.11/normals.png)
