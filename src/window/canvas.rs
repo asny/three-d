@@ -131,7 +131,7 @@ impl Window {
             .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
 
         crate::core::Context::from_gl_context(Rc::new(
-            crate::context::GlContext::from_webgl2_context(context),
+            crate::context::Context::from_webgl2_context(context),
         ))
     }
 
