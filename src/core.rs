@@ -572,7 +572,7 @@ mod internal {
         fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
             let data = data
                 .iter()
-                .flat_map(|v| [v.x, v.y, v.y])
+                .flat_map(|v| [v.x, v.y, v.z])
                 .collect::<Vec<_>>();
             T::send_uniform_with_type(context, location, &data, UniformType::Vec3)
         }
