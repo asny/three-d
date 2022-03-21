@@ -1,72 +1,6 @@
 use crate::core::*;
 
 ///
-/// An array of positions. Supports f32 and f64 data types.
-///
-#[derive(Clone)]
-pub enum Positions {
-    /// Uses 32 bit float for the vertex positions.
-    F32(Vec<Vector3<f32>>),
-    /// Uses 64 bit float for the vertex positions.
-    F64(Vec<Vector3<f64>>),
-}
-
-impl Positions {
-    ///
-    /// Converts and returns all the indices as `f32` data type.
-    ///
-    pub fn into_f32(self) -> Vec<Vec3> {
-        match self {
-            Self::F32(values) => values,
-            Self::F64(mut values) => values
-                .drain(..)
-                .map(|v| vec3(v.x as f32, v.y as f32, v.z as f32))
-                .collect::<Vec<_>>(),
-        }
-    }
-
-    ///
-    /// Clones and converts all the positions as `f32` data type.
-    ///
-    pub fn to_f32(&self) -> Vec<Vec3> {
-        match self {
-            Self::F32(values) => values.clone(),
-            Self::F64(values) => values
-                .iter()
-                .map(|v| vec3(v.x as f32, v.y as f32, v.z as f32))
-                .collect::<Vec<_>>(),
-        }
-    }
-
-    ///
-    /// Returns the number of positions.
-    ///
-    pub fn len(&self) -> usize {
-        match self {
-            Self::F32(values) => values.len(),
-            Self::F64(values) => values.len(),
-        }
-    }
-}
-
-impl std::default::Default for Positions {
-    fn default() -> Self {
-        Self::F32(Vec::new())
-    }
-}
-
-impl std::fmt::Debug for Positions {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut d = f.debug_struct("Positions");
-        match self {
-            Self::F32(ind) => d.field("f32", &ind.len()),
-            Self::F64(ind) => d.field("f64", &ind.len()),
-        };
-        d.finish()
-    }
-}
-
-///
 /// An array of indices. Supports different data types.
 ///
 #[derive(Clone)]
@@ -127,6 +61,72 @@ impl std::fmt::Debug for Indices {
             Self::U8(ind) => d.field("u8", &ind.len()),
             Self::U16(ind) => d.field("u16", &ind.len()),
             Self::U32(ind) => d.field("u32", &ind.len()),
+        };
+        d.finish()
+    }
+}
+
+///
+/// An array of positions. Supports f32 and f64 data types.
+///
+#[derive(Clone)]
+pub enum Positions {
+    /// Uses 32 bit float for the vertex positions.
+    F32(Vec<Vector3<f32>>),
+    /// Uses 64 bit float for the vertex positions.
+    F64(Vec<Vector3<f64>>),
+}
+
+impl Positions {
+    ///
+    /// Converts and returns all the indices as `f32` data type.
+    ///
+    pub fn into_f32(self) -> Vec<Vec3> {
+        match self {
+            Self::F32(values) => values,
+            Self::F64(mut values) => values
+                .drain(..)
+                .map(|v| vec3(v.x as f32, v.y as f32, v.z as f32))
+                .collect::<Vec<_>>(),
+        }
+    }
+
+    ///
+    /// Clones and converts all the positions as `f32` data type.
+    ///
+    pub fn to_f32(&self) -> Vec<Vec3> {
+        match self {
+            Self::F32(values) => values.clone(),
+            Self::F64(values) => values
+                .iter()
+                .map(|v| vec3(v.x as f32, v.y as f32, v.z as f32))
+                .collect::<Vec<_>>(),
+        }
+    }
+
+    ///
+    /// Returns the number of positions.
+    ///
+    pub fn len(&self) -> usize {
+        match self {
+            Self::F32(values) => values.len(),
+            Self::F64(values) => values.len(),
+        }
+    }
+}
+
+impl std::default::Default for Positions {
+    fn default() -> Self {
+        Self::F32(Vec::new())
+    }
+}
+
+impl std::fmt::Debug for Positions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut d = f.debug_struct("Positions");
+        match self {
+            Self::F32(ind) => d.field("f32", &ind.len()),
+            Self::F64(ind) => d.field("f64", &ind.len()),
         };
         d.finish()
     }
