@@ -8,8 +8,8 @@ use crate::core::render_target::*;
 pub struct RenderTarget<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a mut Texture2D>,
-    depth_texture: Option<&'b mut DepthTargetTexture2D>,
+    color_texture: Option<&'a Texture2D>,
+    depth_texture: Option<&'b DepthTargetTexture2D>,
 }
 
 impl<'a, 'b> RenderTarget<'a, 'b> {
@@ -50,6 +50,13 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// [ColorTargetTexture2D].
     ///
     pub fn new_color(context: &Context, color_texture: &'a mut Texture2D) -> ThreeDResult<Self> {
+        Self::new_color_internal(context, color_texture)
+    }
+
+    pub(in crate::core) fn new_color_internal(
+        context: &Context,
+        color_texture: &'a Texture2D,
+    ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -83,6 +90,36 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             color_texture.generate_mip_maps();
         }
         Ok(())
+    }
+
+    ///
+    /// Returns the values of the pixels in this texture inside the given viewport.
+    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
+    ///
+    pub fn read_color<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
+        if self.color_texture.is_none() {
+            Err(CoreError::RenderTargetRead("color".to_string()))?;
+        }
+        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
+        self.bind(crate::context::READ_FRAMEBUFFER)?;
+        let mut data_size = std::mem::size_of::<T>();
+        // On web, the format needs to be RGBA if the data type is byte.
+        if data_size / T::size() as usize == 1 {
+            data_size *= 4 / T::size() as usize
+        }
+        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * data_size];
+        unsafe {
+            self.context.read_pixels(
+                viewport.x as i32,
+                viewport.y as i32,
+                viewport.width as i32,
+                viewport.height as i32,
+                format_from_data_type::<T>(),
+                T::data_type(),
+                crate::context::PixelPackData::Slice(&mut pixels),
+            );
+            Ok(from_byte_slice(&pixels).to_vec())
+        }
     }
 
     ///

@@ -148,40 +148,7 @@ impl Texture2D {
     /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
     ///
     pub fn read<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        let id = crate::core::render_target::new_framebuffer(&self.context)?;
-        unsafe {
-            self.context
-                .bind_framebuffer(crate::context::DRAW_FRAMEBUFFER, Some(id));
-            self.context
-                .draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-            self.bind_as_color_target(0);
-
-            self.context
-                .bind_framebuffer(crate::context::READ_FRAMEBUFFER, Some(id));
-            self.context
-                .draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-            self.bind_as_color_target(0);
-
-            self.context.framebuffer_check()?;
-
-            let mut data_size = std::mem::size_of::<T>();
-            // On web, the format needs to be RGBA if the data type is byte.
-            if data_size / T::size() as usize == 1 {
-                data_size *= 4 / T::size() as usize
-            }
-            let mut pixels =
-                vec![0u8; viewport.width as usize * viewport.height as usize * data_size];
-            self.context.read_pixels(
-                viewport.x as i32,
-                viewport.y as i32,
-                viewport.width as i32,
-                viewport.height as i32,
-                format_from_data_type::<T>(),
-                T::data_type(),
-                crate::context::PixelPackData::Slice(&mut pixels),
-            );
-            Ok(from_byte_slice(&pixels).to_vec())
-        }
+        RenderTarget::new_color_internal(&self.context.clone(), self)?.read_color(viewport)
     }
 
     /// The width of this texture.
