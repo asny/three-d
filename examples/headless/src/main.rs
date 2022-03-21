@@ -39,7 +39,7 @@ fn main() {
     .unwrap();
 
     // Create a color texture to render into
-    let mut texture = Texture2D::new_empty::<Vector4<u8>>(
+    let mut texture = Texture2D::new_empty::<[u8; 4]>(
         &context,
         viewport.width,
         viewport.height,
