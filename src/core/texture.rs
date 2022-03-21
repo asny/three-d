@@ -145,6 +145,7 @@ pub type CPUTexture = CpuTexture;
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
 #[derive(Clone, Debug)]
+#[allow(deprecated)]
 pub struct CpuTexture {
     /// The pixel data for the image
     pub data: TextureData,
@@ -195,6 +196,7 @@ impl CpuTexture {
     }*/
 }
 
+#[allow(deprecated)]
 impl Default for CpuTexture {
     fn default() -> Self {
         Self {
@@ -420,7 +422,6 @@ impl Default for CpuTextureCube {
 impl std::fmt::Debug for CpuTextureCube {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CpuTexture")
-            .field("format", &self.format)
             .field("width", &self.width)
             .field("height", &self.height)
             .field("min_filter", &self.min_filter)

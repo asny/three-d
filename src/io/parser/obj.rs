@@ -145,7 +145,7 @@ impl Loaded {
                     name: object.name.to_string(),
                     material_name: mesh.material_name.clone(),
                     positions: Positions::F64(positions),
-                    indices: Some(CpuElementBuffer::U32(indices)),
+                    indices: Some(Indices::U32(indices)),
                     normals: if normals.len() == vertex_count {
                         Some(normals)
                     } else {
