@@ -53,7 +53,9 @@ impl Texture2D {
     }
 
     ///
-    /// Constructs a new empty 2D texture.
+    /// Constructs a new empty 2D texture with the given parameters.
+    /// The format is determined by the generic [TextureDataType] parameter
+    /// (for example, if [u8; 4] is specified, the format is RGBA and the data type is byte).
     ///
     pub fn new_empty<T: TextureDataType>(
         context: &Context,
@@ -216,7 +218,7 @@ impl Drop for Texture2D {
 /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
 /// Use a [RenderTarget] to write to both color and depth.
 ///
-#[deprecated = "Use Texture2D instead"]
+#[deprecated = "Use Texture2D::new_empty instead"]
 pub struct ColorTargetTexture2D {
     tex: Texture2D,
 }
