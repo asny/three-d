@@ -237,8 +237,11 @@ impl ColorTargetTexture2D {
         mip_map_filter: Option<Interpolation>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
-        _format: Format,
+        format: Format,
     ) -> ThreeDResult<Self> {
+        if T::size() == 1 && format.color_channel_count() > 1 {
+            panic!("use the generic data type to specify the format when creating a color target texture")
+        }
         Ok(Self {
             tex: Texture2D::new_empty::<T>(
                 context,

@@ -84,6 +84,19 @@ pub enum Format {
     RGBA,
 }
 
+#[allow(deprecated)]
+impl Format {
+    /// Returns the number of channels for the given format.
+    pub fn color_channel_count(&self) -> u32 {
+        match self {
+            Format::R => 1,
+            Format::RG => 2,
+            Format::RGB => 3,
+            Format::RGBA => 4,
+        }
+    }
+}
+
 ///
 /// The pixel data for a [CpuTexture].
 ///
