@@ -54,7 +54,7 @@ pub enum Wrapping {
 use data_type::*;
 
 /// The basic data type used for each channel of each pixel in a texture.
-pub trait TextureDataType: std::fmt::Debug + DataType {}
+pub trait TextureDataType: DataType {}
 impl TextureDataType for u8 {}
 impl TextureDataType for f16 {}
 impl TextureDataType for f32 {}
