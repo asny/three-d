@@ -95,7 +95,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     /// Returns the values of the pixels in this texture inside the given viewport.
     /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
-    /// 
+    ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
     pub fn read_color<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
@@ -120,6 +120,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
                 T::data_type(),
                 crate::context::PixelPackData::Slice(&mut pixels),
             );
+            self.context.error_check()?;
             Ok(from_byte_slice(&pixels).to_vec())
         }
     }
