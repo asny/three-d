@@ -1,7 +1,7 @@
 use crate::core::*;
 
 /// The basic data type used for each index in an element buffer.
-pub trait ElementBufferDataType: internal::DataType {
+pub trait ElementBufferDataType: data_type::DataType {
     ///
     /// Converts the index to `u32`.
     ///
