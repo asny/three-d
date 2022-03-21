@@ -21,7 +21,7 @@ use crate::core::*;
 use data_type::*;
 
 /// The basic data type used for each element in a [VertexBuffer] or [InstanceBuffer].
-pub trait BufferDataType: std::fmt::Debug + Clone + Copy + DataType {}
+pub trait BufferDataType: DataType {}
 impl BufferDataType for u8 {}
 impl BufferDataType for u16 {}
 impl BufferDataType for u32 {}
