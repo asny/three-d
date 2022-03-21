@@ -16,12 +16,7 @@ impl Screen {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        unsafe {
-            context.bind_framebuffer(crate::context::DRAW_FRAMEBUFFER, None);
-        }
-        clear(context, &clear_state);
-        render()?;
-        context.error_check()
+        RenderTarget::screen(context)?.write(clear_state, render)
     }
 
     ///
