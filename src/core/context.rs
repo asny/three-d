@@ -36,6 +36,8 @@ impl Context {
             context.bind_vertex_array(Some(vao));
             // Enable seamless cube map textures
             context.enable(crate::context::TEXTURE_CUBE_MAP_SEAMLESS);
+            context.pixel_store_i32(crate::context::UNPACK_ALIGNMENT, 1);
+            context.pixel_store_i32(crate::context::PACK_ALIGNMENT, 1);
         }
         let c = Self {
             context,
