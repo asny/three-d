@@ -73,6 +73,7 @@ impl<T: TextureDataType + ?Sized> TextureDataType for &T {}
 ///
 /// Possible formats for pixels in a texture.
 ///
+#[deprecated = "the texture format is instead specified by the generic parameter, so if you fill the texture with [u8; 4] data, the format is RGBA and the data type is byte"]
 #[allow(missing_docs)]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Format {
@@ -80,18 +81,6 @@ pub enum Format {
     RG,
     RGB,
     RGBA,
-}
-
-impl Format {
-    /// Returns the number of channels for the given format.
-    pub fn color_channel_count(&self) -> u32 {
-        match self {
-            Format::R => 1,
-            Format::RG => 2,
-            Format::RGB => 3,
-            Format::RGBA => 4,
-        }
-    }
 }
 
 #[derive(Clone)]
@@ -234,6 +223,8 @@ pub struct CpuTexture3D {
     /// The depth of the image
     pub depth: u32,
     /// The format of the image
+    #[deprecated = "the texture format is determined by the TextureData"]
+    #[allow(deprecated)]
     pub format: Format,
     /// The way the pixel data is interpolated when the texture is far away
     pub min_filter: Interpolation,
@@ -250,6 +241,7 @@ pub struct CpuTexture3D {
     pub wrap_r: Wrapping,
 }
 
+#[allow(deprecated)]
 impl Default for CpuTexture3D {
     fn default() -> Self {
         Self {
@@ -364,6 +356,8 @@ pub struct CpuTextureCube {
     /// The height of each of the 6 images
     pub height: u32,
     /// The format of the image
+    #[deprecated = "the texture format is determined by the TextureCubeData"]
+    #[allow(deprecated)]
     pub format: Format,
     /// The way the pixel data is interpolated when the texture is far away
     pub min_filter: Interpolation,
@@ -380,6 +374,7 @@ pub struct CpuTextureCube {
     pub wrap_r: Wrapping,
 }
 
+#[allow(deprecated)]
 impl Default for CpuTextureCube {
     fn default() -> Self {
         Self {
