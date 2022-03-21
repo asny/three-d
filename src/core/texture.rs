@@ -51,8 +51,9 @@ pub enum Wrapping {
     ClampToEdge,
 }
 
-/// The basic data type used for each channel of each pixel in a texture.
 use data_type::*;
+
+/// The basic data type used for each channel of each pixel in a texture.
 pub trait TextureDataType: std::fmt::Debug + DataType {}
 impl TextureDataType for u8 {}
 impl TextureDataType for f16 {}
@@ -366,6 +367,7 @@ pub type CPUTextureCube = CpuTextureCube;
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
 pub struct CpuTextureCube {
+    /// The pixel data for the cube image
     pub data: TextureCubeData,
     /// The width of each of the 6 images
     pub width: u32,

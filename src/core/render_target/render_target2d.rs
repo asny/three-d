@@ -13,6 +13,10 @@ pub struct RenderTarget<'a, 'b> {
 }
 
 impl<'a, 'b> RenderTarget<'a, 'b> {
+    ///
+    /// Returns the screen render target for this context.
+    /// Write to this render target to draw something on the screen.
+    ///
     pub fn screen(context: &Context) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
