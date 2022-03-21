@@ -147,6 +147,8 @@ impl Texture2D {
     /// Returns the values of the pixels in this texture inside the given viewport.
     /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
     ///
+    /// **Note:** On web, the data format needs to match the data format of this texture.
+    ///
     pub fn read<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         RenderTarget::new_color_internal(&self.context.clone(), self)?.read_color(viewport)
     }
