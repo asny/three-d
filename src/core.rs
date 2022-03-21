@@ -104,7 +104,7 @@ pub enum CoreError {
     ReadWrongFormat,
     #[error("failed creating a new texture: {0}")]
     TextureCreation(String),
-    #[error("invalid size of texture data (got {0} pixels but expected {1} pixels)")]
+    #[error("invalid size of texture data (got {0} bytes but expected {1} bytes)")]
     InvalidTextureLength(usize, usize),
     #[error("the render call requires the {0} vertex buffer which is missing on the given mesh")]
     MissingMeshBuffer(String),

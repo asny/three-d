@@ -9,6 +9,7 @@ pub struct Texture2D {
     width: u32,
     height: u32,
     number_of_mip_maps: u32,
+    data_byte_size: usize,
 }
 
 impl Texture2D {
@@ -72,6 +73,7 @@ impl Texture2D {
             width,
             height,
             number_of_mip_maps,
+            data_byte_size: std::mem::size_of::<T>(),
         };
         texture.bind();
         set_parameters(
@@ -106,10 +108,11 @@ impl Texture2D {
     /// Fills this texture with the given data.
     ///
     /// # Errors
-    /// Return an error if the length of the data array is smaller or bigger than the necessary number of bytes to fill the entire texture.
+    /// Returns an error if the length of the data does not correspond to the width, height and format specified at construction.
+    /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
-        check_data_length(self.width, self.height, 1, data.len())?;
+        check_data_length(self.width, self.height, 1, self.data_byte_size, data)?;
         self.bind();
         unsafe {
             self.context.tex_sub_image_2d(

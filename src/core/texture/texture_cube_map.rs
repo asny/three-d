@@ -116,6 +116,7 @@ pub struct TextureCubeMap {
     height: u32,
     number_of_mip_maps: u32,
     is_hdr: bool,
+    data_byte_size: usize,
 }
 
 impl TextureCubeMap {
@@ -220,6 +221,7 @@ impl TextureCubeMap {
             height,
             number_of_mip_maps,
             is_hdr: std::mem::size_of::<T>() as u32 / T::size() > 1,
+            data_byte_size: std::mem::size_of::<T>(),
         };
         texture.bind();
         set_parameters(
@@ -255,6 +257,7 @@ impl TextureCubeMap {
     ///
     /// # Errors
     /// Returns an error if the length of the data for all 6 images does not correspond to the width, height and format specified at construction.
+    /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(
         &mut self,
@@ -265,12 +268,12 @@ impl TextureCubeMap {
         front_data: &[T],
         back_data: &[T],
     ) -> ThreeDResult<()> {
-        check_data_length(self.width, self.height, 1, right_data.len())?;
-        check_data_length(self.width, self.height, 1, left_data.len())?;
-        check_data_length(self.width, self.height, 1, top_data.len())?;
-        check_data_length(self.width, self.height, 1, bottom_data.len())?;
-        check_data_length(self.width, self.height, 1, front_data.len())?;
-        check_data_length(self.width, self.height, 1, back_data.len())?;
+        check_data_length(self.width, self.height, 1, self.data_byte_size, right_data)?;
+        check_data_length(self.width, self.height, 1, self.data_byte_size, left_data)?;
+        check_data_length(self.width, self.height, 1, self.data_byte_size, top_data)?;
+        check_data_length(self.width, self.height, 1, self.data_byte_size, bottom_data)?;
+        check_data_length(self.width, self.height, 1, self.data_byte_size, front_data)?;
+        check_data_length(self.width, self.height, 1, self.data_byte_size, back_data)?;
         self.bind();
         for i in 0..6 {
             let data = match i {
