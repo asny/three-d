@@ -144,14 +144,12 @@ impl Texture2D {
     }
 
     ///
-    /// Returns the color values of the pixels in this color texture inside the given viewport.
+    /// Returns the values of the pixels in this texture inside the given viewport.
+    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
     ///
-    /// **Note:** Currently only works for the RGBA format.
+    /// **Note:** Only works for the RGBA format on web, so the generic parameter should be of type `[T; 4]` where T is a primitive data type like `u8`.
     ///
-    pub fn read<T: TextureDataType + crate::core::internal::PrimitiveDataType>(
-        &self,
-        viewport: Viewport,
-    ) -> ThreeDResult<Vec<Vector4<T>>> {
+    pub fn read<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         let id = crate::core::render_target::new_framebuffer(&self.context)?;
         unsafe {
             self.context
@@ -168,19 +166,17 @@ impl Texture2D {
 
             self.context.framebuffer_check()?;
 
-            let mut pixels = vec![
-                0u8;
-                viewport.width as usize
-                    * viewport.height as usize
-                    * 4
-                    * std::mem::size_of::<T>()
-            ];
+            let mut pixels =
+                vec![
+                    0u8;
+                    viewport.width as usize * viewport.height as usize * std::mem::size_of::<T>()
+                ];
             self.context.read_pixels(
                 viewport.x as i32,
                 viewport.y as i32,
                 viewport.width as i32,
                 viewport.height as i32,
-                format::<Vector4<T>>(),
+                format::<T>(),
                 T::data_type(),
                 crate::context::PixelPackData::Slice(&mut pixels),
             );

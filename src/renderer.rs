@@ -183,7 +183,7 @@ pub fn ray_intersect(
             },
         )?;
     }
-    let depth = texture.read::<f32>(viewport)?[0].x;
+    let depth = texture.read::<[f32; 4]>(viewport)?[0][0];
     Ok(if depth < 1.0 {
         Some(position + direction * depth * max_depth)
     } else {
