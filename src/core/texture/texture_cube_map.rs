@@ -404,6 +404,7 @@ impl TextureCubeMap {
         self.height
     }
 
+    /// Whether this cube map contain HDR (high dynamic range) data.
     pub fn is_hdr(&self) -> bool {
         self.is_hdr
     }

@@ -83,21 +83,36 @@ pub enum Format {
     RGBA,
 }
 
+///
+/// The pixel data for a [CpuTexture].
+///
 #[derive(Clone)]
 pub enum TextureData {
+    /// One byte in the red channel.
     RU8(Vec<u8>),
+    /// One byte in the red and green channel.
     RgU8(Vec<[u8; 2]>),
+    /// One byte in the red, green and blue channel.
     RgbU8(Vec<[u8; 3]>),
+    /// One byte in the red, green, blue and alpha channel.
     RgbaU8(Vec<[u8; 4]>),
 
+    /// 16-bit float in the red channel.
     RF16(Vec<f16>),
+    /// 16-bit float in the red and green channel.
     RgF16(Vec<[f16; 2]>),
+    /// 16-bit float in the red, green and blue channel.
     RgbF16(Vec<[f16; 3]>),
+    /// 16-bit float in the red, green, blue and alpha channel.
     RgbaF16(Vec<[f16; 4]>),
 
+    /// 32-bit float in the red channel.
     RF32(Vec<f32>),
+    /// 32-bit float in the red and green channel.
     RgF32(Vec<[f32; 2]>),
+    /// 32-bit float in the red, green and blue channel.
     RgbF32(Vec<[f32; 3]>),
+    /// 32-bit float in the red, green, blue and alpha channel.
     RgbaF32(Vec<[f32; 4]>),
 }
 
@@ -119,20 +134,6 @@ impl std::fmt::Debug for TextureData {
         }
     }
 }
-
-/*impl TextureData {
-    ///
-    /// Returns the number of pixels.
-    ///
-    pub fn len(&self) -> usize {
-        match self {
-            Self::RU8(values) => values.len(),
-            Self::RgU8(values) => values.len(),
-            Self::RgbU8(values) => values.len(),
-            Self::RgbaU8(values) => values.len(),
-        }
-    }
-}*/
 
 /// See [CpuTexture]
 #[deprecated = "Renamed to CpuTexture"]
@@ -260,9 +261,14 @@ impl Default for CpuTexture3D {
     }
 }
 
+///
+/// The pixel data for a [CpuTextureCube].
+///
 #[derive(Clone)]
 pub enum TextureCubeData {
+    /// byte in the red channel.
     RU8(Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>),
+    /// byte in the red and green channel.
     RgU8(
         Vec<[u8; 2]>,
         Vec<[u8; 2]>,
@@ -271,6 +277,7 @@ pub enum TextureCubeData {
         Vec<[u8; 2]>,
         Vec<[u8; 2]>,
     ),
+    /// byte in the red, green and blue channel.
     RgbU8(
         Vec<[u8; 3]>,
         Vec<[u8; 3]>,
@@ -279,6 +286,7 @@ pub enum TextureCubeData {
         Vec<[u8; 3]>,
         Vec<[u8; 3]>,
     ),
+    /// byte in the red, green, blue and alpha channel.
     RgbaU8(
         Vec<[u8; 4]>,
         Vec<[u8; 4]>,
@@ -288,7 +296,9 @@ pub enum TextureCubeData {
         Vec<[u8; 4]>,
     ),
 
+    /// 16-bit float in the red channel.
     RF16(Vec<f16>, Vec<f16>, Vec<f16>, Vec<f16>, Vec<f16>, Vec<f16>),
+    /// 16-bit float in the red and green channel.
     RgF16(
         Vec<[f16; 2]>,
         Vec<[f16; 2]>,
@@ -297,6 +307,7 @@ pub enum TextureCubeData {
         Vec<[f16; 2]>,
         Vec<[f16; 2]>,
     ),
+    /// 16-bit float in the red, green and blue channel.
     RgbF16(
         Vec<[f16; 3]>,
         Vec<[f16; 3]>,
@@ -305,6 +316,7 @@ pub enum TextureCubeData {
         Vec<[f16; 3]>,
         Vec<[f16; 3]>,
     ),
+    /// 16-bit float in the red, green, blue and alpha channel.
     RgbaF16(
         Vec<[f16; 4]>,
         Vec<[f16; 4]>,
@@ -314,7 +326,9 @@ pub enum TextureCubeData {
         Vec<[f16; 4]>,
     ),
 
+    /// 32-bit float in the red channel.
     RF32(Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>),
+    /// 32-bit float in the red and green channel.
     RgF32(
         Vec<[f32; 2]>,
         Vec<[f32; 2]>,
@@ -323,6 +337,7 @@ pub enum TextureCubeData {
         Vec<[f32; 2]>,
         Vec<[f32; 2]>,
     ),
+    /// 32-bit float in the red, green and blue channel.
     RgbF32(
         Vec<[f32; 3]>,
         Vec<[f32; 3]>,
@@ -331,6 +346,7 @@ pub enum TextureCubeData {
         Vec<[f32; 3]>,
         Vec<[f32; 3]>,
     ),
+    /// 32-bit float in the red, green, blue and alpha channel.
     RgbaF32(
         Vec<[f32; 4]>,
         Vec<[f32; 4]>,
