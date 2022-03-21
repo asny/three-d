@@ -27,7 +27,7 @@ impl Screen {
     ///
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
-    pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<u8>> {
+    pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<[u8; 4]>> {
         let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         unsafe {
             context.bind_framebuffer(crate::context::READ_FRAMEBUFFER, None);
@@ -42,7 +42,7 @@ impl Screen {
             );
         }
         context.error_check()?;
-        Ok(pixels)
+        Ok(from_byte_slice(&pixels).to_vec())
     }
 
     ///
