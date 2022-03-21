@@ -780,3 +780,13 @@ fn from_byte_slice<'a, T: DataType>(data: &'a [u8]) -> &'a [T] {
         values
     }
 }
+
+fn format_from_data_type<T: crate::core::internal::DataType>() -> u32 {
+    match T::size() {
+        1 => crate::context::RED,
+        2 => crate::context::RG,
+        3 => crate::context::RGB,
+        4 => crate::context::RGBA,
+        _ => unreachable!(),
+    }
+}
