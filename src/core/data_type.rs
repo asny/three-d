@@ -11,7 +11,7 @@ pub enum UniformType {
     Mat4,
 }
 
-pub trait PrimitiveDataType: DataType + Copy {
+pub trait PrimitiveDataType: DataType + Copy + Default {
     fn send_uniform_with_type(
         context: &Context,
         location: &UniformLocation,
@@ -629,4 +629,5 @@ impl<T: PrimitiveDataType> DataType for Matrix4<T> {
             })
             .collect::<Vec<_>>();
         T::send_uniform_with_type(context, location, &data, UniformType::Mat4)
-    }}
+    }
+}
