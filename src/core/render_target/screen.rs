@@ -23,21 +23,7 @@ impl Screen {
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<[u8; 4]>> {
-        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
-        unsafe {
-            context.bind_framebuffer(crate::context::READ_FRAMEBUFFER, None);
-            context.read_pixels(
-                viewport.x as i32,
-                viewport.y as i32,
-                viewport.width as i32,
-                viewport.height as i32,
-                crate::context::RGBA,
-                crate::context::UNSIGNED_BYTE,
-                crate::context::PixelPackData::Slice(&mut pixels),
-            );
-        }
-        context.error_check()?;
-        Ok(from_byte_slice(&pixels).to_vec())
+        RenderTarget::screen(context)?.read_color(viewport)
     }
 
     ///
@@ -46,21 +32,7 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
-        unsafe {
-            context.bind_framebuffer(crate::context::READ_FRAMEBUFFER, None);
-            context.read_pixels(
-                viewport.x as i32,
-                viewport.y as i32,
-                viewport.width as i32,
-                viewport.height as i32,
-                crate::context::DEPTH_COMPONENT,
-                crate::context::FLOAT,
-                crate::context::PixelPackData::Slice(&mut pixels),
-            );
-        }
-        context.error_check()?;
-        Ok(from_byte_slice(&pixels).to_vec())
+        RenderTarget::screen(context)?.read_depth(viewport)
     }
 
     ///
@@ -74,9 +46,7 @@ impl Screen {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
-        Self::write(context, ClearState::none(), || {
-            copy_from(context, color_texture, depth_texture, viewport, write_mask)
-        })
+        RenderTarget::screen(context)?.copy_from(color_texture, depth_texture, viewport, write_mask)
     }
 
     ///
@@ -90,8 +60,11 @@ impl Screen {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
-        Self::write(context, ClearState::none(), || {
-            copy_from_array(context, color_texture, depth_texture, viewport, write_mask)
-        })
+        RenderTarget::screen(context)?.copy_from_array(
+            color_texture,
+            depth_texture,
+            viewport,
+            write_mask,
+        )
     }
 }

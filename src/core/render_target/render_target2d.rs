@@ -112,7 +112,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
     pub fn read_color<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        if self.color_texture.is_none() {
+        if self.id.is_some() && self.color_texture.is_none() {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
         }
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
@@ -136,6 +136,33 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             self.context.error_check()?;
             Ok(from_byte_slice(&pixels).to_vec())
         }
+    }
+
+    ///
+    /// Returns the depth values from the screen as a list of 32-bit floats.
+    /// Only available on desktop.
+    ///
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn read_depth(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
+        if self.id.is_some() && self.depth_texture.is_none() {
+            Err(CoreError::RenderTargetRead("depth".to_string()))?;
+        }
+        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
+        self.bind(crate::context::READ_FRAMEBUFFER)?;
+        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
+        unsafe {
+            self.context.read_pixels(
+                viewport.x as i32,
+                viewport.y as i32,
+                viewport.width as i32,
+                viewport.height as i32,
+                crate::context::DEPTH_COMPONENT,
+                crate::context::FLOAT,
+                crate::context::PixelPackData::Slice(&mut pixels),
+            );
+        }
+        self.context.error_check()?;
+        Ok(from_byte_slice(&pixels).to_vec())
     }
 
     ///
