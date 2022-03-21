@@ -18,9 +18,10 @@ mod uniform_buffer;
 pub use uniform_buffer::*;
 
 use crate::core::*;
+use data_type::*;
 
 /// The basic data type used for each element in a [VertexBuffer] or [InstanceBuffer].
-pub trait BufferDataType: std::fmt::Debug + Clone + Copy + internal::DataType {}
+pub trait BufferDataType: std::fmt::Debug + Clone + Copy + DataType {}
 impl BufferDataType for u8 {}
 impl BufferDataType for u16 {}
 impl BufferDataType for u32 {}
@@ -30,12 +31,12 @@ impl BufferDataType for i32 {}
 impl BufferDataType for f16 {}
 impl BufferDataType for f32 {}
 
-impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for Vector2<T> {}
-impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for Vector3<T> {}
-impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for Vector4<T> {}
-impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for [T; 2] {}
-impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for [T; 3] {}
-impl<T: BufferDataType + internal::PrimitiveDataType> BufferDataType for [T; 4] {}
+impl<T: BufferDataType + PrimitiveDataType> BufferDataType for Vector2<T> {}
+impl<T: BufferDataType + PrimitiveDataType> BufferDataType for Vector3<T> {}
+impl<T: BufferDataType + PrimitiveDataType> BufferDataType for Vector4<T> {}
+impl<T: BufferDataType + PrimitiveDataType> BufferDataType for [T; 2] {}
+impl<T: BufferDataType + PrimitiveDataType> BufferDataType for [T; 3] {}
+impl<T: BufferDataType + PrimitiveDataType> BufferDataType for [T; 4] {}
 
 impl BufferDataType for Color {}
 impl BufferDataType for Quat {}
