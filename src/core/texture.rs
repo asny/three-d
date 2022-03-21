@@ -584,17 +584,19 @@ fn interpolation_from(interpolation: Interpolation) -> i32 {
     }) as i32
 }
 
-fn check_data_length(
+fn check_data_length<T: TextureDataType>(
     width: u32,
     height: u32,
     depth: u32,
-    actual_pixels: usize,
+    data_byte_size: usize,
+    data: &[T],
 ) -> ThreeDResult<()> {
-    let expected_pixels = width as usize * height as usize * depth as usize;
-    if expected_pixels != actual_pixels {
+    let expected_bytes = width as usize * height as usize * depth as usize * data_byte_size;
+    let actual_bytes = data.len() * std::mem::size_of::<T>();
+    if expected_bytes != actual_bytes {
         Err(CoreError::InvalidTextureLength(
-            actual_pixels,
-            expected_pixels,
+            actual_bytes,
+            expected_bytes,
         ))?;
     }
     Ok(())
