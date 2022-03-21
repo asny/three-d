@@ -82,10 +82,7 @@ fn main() {
         let pixels = texture.read(viewport).unwrap();
         Saver::save_pixels(
             format!("headless-{}.png", frame_index),
-            &pixels
-                .iter()
-                .flat_map(|p| [p.x, p.y, p.z, p.w])
-                .collect::<Vec<_>>(),
+            &pixels,
             viewport.width,
             viewport.height,
         )

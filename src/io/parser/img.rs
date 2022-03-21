@@ -285,27 +285,25 @@ impl Loaded {
 #[cfg(not(target_arch = "wasm32"))]
 impl Saver {
     ///
-    /// Saves the given RGB pixels as an image.
+    /// Saves the given RGBA pixels as an image.
     ///
     pub fn save_pixels<P: AsRef<Path>>(
         path: P,
-        pixels: &[u8],
+        pixels: &[[u8; 4]],
         width: u32,
         height: u32,
     ) -> ThreeDResult<()> {
-        let mut pixels_out = vec![0u8; width as usize * height as usize * 4];
+        let mut pixels_out = vec![[0u8; 4]; width as usize * height as usize];
         for row in 0..height as usize {
             for col in 0..width as usize {
-                for i in 0..4 {
-                    pixels_out[4 * width as usize * (height as usize - row - 1) + 4 * col + i] =
-                        pixels[4 * width as usize * row + 4 * col + i];
-                }
+                pixels_out[width as usize * (height as usize - row - 1) + col] =
+                    pixels[width as usize * row + col];
             }
         }
 
         image::save_buffer(
             path,
-            &pixels_out,
+            &pixels_out.iter().flatten().map(|v| *v).collect::<Vec<_>>(),
             width as u32,
             height as u32,
             image::ColorType::Rgba8,
