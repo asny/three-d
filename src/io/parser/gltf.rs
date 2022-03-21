@@ -91,21 +91,21 @@ fn parse_tree<'a>(
                         for value in iter {
                             inds.push(value);
                         }
-                        CpuElementBuffer::U8(inds)
+                        Indices::U8(inds)
                     }
                     ::gltf::mesh::util::ReadIndices::U16(iter) => {
                         let mut inds = Vec::new();
                         for value in iter {
                             inds.push(value);
                         }
-                        CpuElementBuffer::U16(inds)
+                        Indices::U16(inds)
                     }
                     ::gltf::mesh::util::ReadIndices::U32(iter) => {
                         let mut inds = Vec::new();
                         for value in iter {
                             inds.push(value);
                         }
-                        CpuElementBuffer::U32(inds)
+                        Indices::U32(inds)
                     }
                 });
 

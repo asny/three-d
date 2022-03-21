@@ -221,6 +221,7 @@ pub fn cube_image_from_bytes(
         _ => unimplemented!(),
     };
 
+    #[allow(deprecated)]
     Ok(CpuTextureCube {
         data,
         width: right.width,

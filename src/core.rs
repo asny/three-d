@@ -20,10 +20,6 @@ mod cpu_mesh;
 #[doc(inline)]
 pub use cpu_mesh::*;
 
-mod cpu_element_buffer;
-#[doc(inline)]
-pub use cpu_element_buffer::*;
-
 pub mod render_states;
 pub use render_states::*;
 
