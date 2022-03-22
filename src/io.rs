@@ -47,8 +47,12 @@ pub enum IOError {
     #[cfg(not(target_arch = "wasm32"))]
     #[error("error while loading the file {0}: {1}")]
     FailedLoading(String, std::io::Error),
-    #[error("error while loading the file {0}: {1}")]
+    #[cfg(feature = "reqwest")]
+    #[error("error while loading the url {0}: {1}")]
     FailedLoadingUrl(String, reqwest::Error),
+    #[cfg(not(feature = "reqwest"))]
+    #[error("error while loading the url {0}: feature 'reqwest' not enabled")]
+    FailedLoadingUrl(String),
     #[error("tried to use {0} which was not loaded")]
     NotLoaded(String),
 }
