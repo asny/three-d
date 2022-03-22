@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::io::*;
-use reqwest::Url;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -255,12 +254,13 @@ fn load_from_disk(mut paths: Vec<PathBuf>, loaded: &mut Loaded) -> ThreeDResult<
     Ok(())
 }
 
+#[cfg(feature = "reqwest")]
 async fn load_urls(mut paths: Vec<PathBuf>, loaded: &mut Loaded) -> ThreeDResult<()> {
     if paths.len() > 0 {
         let mut handles = Vec::new();
         let client = reqwest::Client::new();
         for path in paths.drain(..) {
-            let url = Url::parse(path.to_str().unwrap())?;
+            let url = reqwest::Url::parse(path.to_str().unwrap())?;
             handles.push((path, client.get(url).send().await));
         }
         for (path, handle) in handles.drain(..) {
@@ -274,6 +274,16 @@ async fn load_urls(mut paths: Vec<PathBuf>, loaded: &mut Loaded) -> ThreeDResult
         }
     }
     Ok(())
+}
+
+#[cfg(not(feature = "reqwest"))]
+async fn load_urls(paths: Vec<PathBuf>, _loaded: &mut Loaded) -> ThreeDResult<()> {
+    if paths.is_empty() {
+        Ok(())
+    } else {
+        let url = paths[0].to_str().unwrap().to_owned();
+        Err(Box::new(IOError::FailedLoadingUrl(url)))
+    }
 }
 
 fn is_absolute_url(path: &str) -> bool {
