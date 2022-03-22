@@ -379,6 +379,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context.vertex_attrib_pointer_f32(
                     loc,
@@ -410,6 +411,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context.vertex_attrib_pointer_f32(
                     loc,
@@ -441,6 +443,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context
                     .vertex_attrib_pointer_f32(loc, 1, buffer.data_type(), false, 0, 0);
@@ -466,6 +469,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context
                     .vertex_attrib_pointer_f32(loc, 1, buffer.data_type(), false, 0, 0);
@@ -491,6 +495,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context
                     .vertex_attrib_pointer_f32(loc, 2, buffer.data_type(), false, 0, 0);
@@ -520,6 +525,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context
                     .vertex_attrib_pointer_f32(loc, 2, buffer.data_type(), false, 0, 0);
@@ -545,6 +551,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(&name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context
                     .vertex_attrib_pointer_f32(loc, 3, buffer.data_type(), false, 0, 0);
@@ -574,6 +581,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(&name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context
                     .vertex_attrib_pointer_f32(loc, 3, buffer.data_type(), false, 0, 0);
@@ -599,6 +607,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context
                     .vertex_attrib_pointer_f32(loc, 4, buffer.data_type(), false, 0, 0);
@@ -624,6 +633,7 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             unsafe {
+                self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
                 self.context
                     .vertex_attrib_pointer_f32(loc, 4, buffer.data_type(), false, 0, 0);
@@ -656,6 +666,7 @@ impl Program {
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
+            self.context.bind_vertex_array(None);
         }
         self.unuse_program();
         self.context.error_check()
@@ -687,6 +698,7 @@ impl Program {
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
+            self.context.bind_vertex_array(None);
         }
         self.unuse_program();
         self.context.error_check()
@@ -742,6 +754,7 @@ impl Program {
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
+            self.context.bind_vertex_array(None);
         }
         self.unuse_program();
         self.context.error_check()
@@ -798,6 +811,7 @@ impl Program {
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
+            self.context.bind_vertex_array(None);
         }
         self.unuse_program();
         self.context.error_check()

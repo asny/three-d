@@ -14,6 +14,7 @@ pub use crate::context::HasContext;
 #[derive(Clone)]
 pub struct Context {
     context: Rc<crate::context::Context>,
+    pub(super) vao: crate::context::VertexArray,
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
@@ -29,21 +30,23 @@ impl Context {
     pub fn from_gl_context(context: Rc<crate::context::Context>) -> ThreeDResult<Self> {
         #[cfg(not(target_arch = "wasm32"))]
         unsafe {
-            // Create one Vertex Array Object which is then reused all the time.
-            let vao = context
-                .create_vertex_array()
-                .map_err(|e| CoreError::ContextCreation(e))?;
-            context.bind_vertex_array(Some(vao));
             // Enable seamless cube map textures
             context.enable(crate::context::TEXTURE_CUBE_MAP_SEAMLESS);
             context.pixel_store_i32(crate::context::UNPACK_ALIGNMENT, 1);
             context.pixel_store_i32(crate::context::PACK_ALIGNMENT, 1);
-        }
-        let c = Self {
-            context,
-            programs: Rc::new(RefCell::new(HashMap::new())),
-            effects: Rc::new(RefCell::new(HashMap::new())),
-            camera2d: Rc::new(RefCell::new(None)),
+        };
+        let c = unsafe {
+            // Create one Vertex Array Object which is then reused all the time.
+            let vao = context
+                .create_vertex_array()
+                .map_err(|e| CoreError::ContextCreation(e))?;
+            Self {
+                context,
+                vao,
+                programs: Rc::new(RefCell::new(HashMap::new())),
+                effects: Rc::new(RefCell::new(HashMap::new())),
+                camera2d: Rc::new(RefCell::new(None)),
+            }
         };
         c.error_check()?;
         Ok(c)
