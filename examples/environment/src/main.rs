@@ -64,25 +64,33 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut color = [1.0; 4];
     window
         .render_loop(move |mut frame_input| {
-            let mut panel_width = 0;
+            use three_d::egui::*;
+            let mut available_rect = Rect::NAN;
+            let mut pixels_per_point = 1.0;
             gui.update(&mut frame_input, |gui_context| {
-                use three_d::egui::*;
+                TopBottomPanel::top("top_panel").show(gui_context, |ui| {
+                    ui.vertical_centered(|ui| {
+                        ui.label("Environment demo");
+                    });
+                });
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
                     ui.add(Slider::new(&mut model.material.metallic, 0.0..=1.0).text("Metallic"));
                     ui.add(Slider::new(&mut model.material.roughness, 0.0..=1.0).text("Roughness"));
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
-                panel_width = gui_context.used_size().x as u32;
+                available_rect = gui_context.available_rect();
+                pixels_per_point = gui_context.pixels_per_point();
             })
             .unwrap();
             model.material.albedo = Color::from_rgba_slice(&color);
 
             let viewport = Viewport {
-                x: panel_width as i32,
-                y: 0,
-                width: frame_input.viewport.width - panel_width,
-                height: frame_input.viewport.height,
+                x: (pixels_per_point * available_rect.left()) as _,
+                y: frame_input.viewport.height as i32
+                    - (pixels_per_point * available_rect.bottom()) as i32,
+                width: (pixels_per_point * available_rect.width()) as _,
+                height: (pixels_per_point * available_rect.height()) as _,
             };
             camera.set_viewport(viewport).unwrap();
             control
