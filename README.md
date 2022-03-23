@@ -55,6 +55,13 @@ The examples that fit with a specific release can be found in the branch for tha
 - in all major browsers (Chrome, Firefox, Edge and Safari) by compiling to WebAssembly and using the WebGL 2.0 graphics API. 
 - on embedded/mobile systems with OpenGL ES 3.0 support. *Note: this is not tested regularly, please report any issues.*
 
-### Other
+### State of the project
 
-Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request against the [master branch](https://github.com/asny/three-d/tree/master).
+Most parts are relatively stable, but do expect regular breaking changes until a 1.0.0 release.
+The master branch is work in progress, so if you want to avoid too many breaking changes and features not working, use a released version.
+If possible and feasible, functionality will be deprecated in one release before it is removed in the next release.
+
+### Contributing
+
+Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request against the [master branch](https://github.com/asny/three-d/tree/master). To avoid waste of time, please reach out before making major changes.
+
