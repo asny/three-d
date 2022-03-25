@@ -74,6 +74,7 @@ impl Texture2DArray {
                 depth as i32,
             );
         }
+        texture.generate_mip_maps();
         context.error_check()?;
         Ok(texture)
     }
