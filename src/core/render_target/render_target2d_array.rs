@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use crate::core::render_target::*;
 
 ///
@@ -5,6 +6,7 @@ use crate::core::render_target::*;
 /// a [DepthTargetTexture2DArray] at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
+#[deprecated = "use RenderTarget instead"]
 pub struct RenderTargetArray<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
