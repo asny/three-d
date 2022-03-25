@@ -129,7 +129,9 @@ impl DeferredPipeline {
                 texture: self.geometry_pass_texture.as_mut().unwrap(),
                 layers: &[0, 1],
             },
-            DepthRenderTarget::Texture2D(self.geometry_pass_depth_texture.as_mut().unwrap()),
+            DepthRenderTarget::Texture2D {
+                texture: self.geometry_pass_depth_texture.as_mut().unwrap(),
+            },
         )?
         .write(ClearState::default(), || {
             for (geometry, material) in objects

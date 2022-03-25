@@ -186,7 +186,9 @@ impl ImpostersMaterial {
                         texture: &mut self.texture,
                         layers: &layers,
                     },
-                    DepthRenderTarget::Texture2D(&mut depth_texture),
+                    DepthRenderTarget::Texture2D {
+                        texture: &mut depth_texture,
+                    },
                 )?;
                 let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
                 camera.set_view(

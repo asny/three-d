@@ -67,7 +67,10 @@ impl DepthTargetTextureCubeMap {
         RenderTarget::new_(
             &self.context.clone(),
             ColorRenderTarget::None,
-            DepthRenderTarget::TextureCubeMap(self, side),
+            DepthRenderTarget::TextureCubeMap {
+                texture: self,
+                side,
+            },
         )?
         .write(
             ClearState {

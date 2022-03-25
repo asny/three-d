@@ -75,22 +75,30 @@ impl<'a> ColorRenderTarget<'a> {
 
 pub enum DepthRenderTarget<'a> {
     None,
-    Texture2D(&'a mut DepthTargetTexture2D),
-    Texture2DArray(&'a mut DepthTargetTexture2DArray, u32),
-    TextureCubeMap(&'a mut DepthTargetTextureCubeMap, CubeMapSide),
+    Texture2D {
+        texture: &'a mut DepthTargetTexture2D,
+    },
+    Texture2DArray {
+        texture: &'a mut DepthTargetTexture2DArray,
+        layer: u32,
+    },
+    TextureCubeMap {
+        texture: &'a mut DepthTargetTextureCubeMap,
+        side: CubeMapSide,
+    },
 }
 
 impl<'a> DepthRenderTarget<'a> {
     fn bind(&self, context: &Context) {
         match self {
-            Self::Texture2D(tex) => unsafe {
-                tex.bind_as_depth_target();
+            Self::Texture2D { texture } => unsafe {
+                texture.bind_as_depth_target();
             },
-            Self::Texture2DArray(tex, layer) => unsafe {
-                tex.bind_as_depth_target(*layer);
+            Self::Texture2DArray { texture, layer } => unsafe {
+                texture.bind_as_depth_target(*layer);
             },
-            Self::TextureCubeMap(tex, side) => unsafe {
-                tex.bind_as_depth_target(*side);
+            Self::TextureCubeMap { texture, side } => unsafe {
+                texture.bind_as_depth_target(*side);
             },
             Self::None => {}
         }
@@ -136,13 +144,13 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     pub fn new_depth(
         context: &Context,
-        depth_texture: &'b mut DepthTargetTexture2D,
+        texture: &'b mut DepthTargetTexture2D,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
             color_target: ColorRenderTarget::None,
-            depth_target: DepthRenderTarget::Texture2D(depth_texture),
+            depth_target: DepthRenderTarget::Texture2D { texture },
         })
     }
 
@@ -174,21 +182,21 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             color_target: ColorRenderTarget::Texture2D {
                 texture: color_texture,
             },
-            depth_target: DepthRenderTarget::Texture2D(depth_texture),
+            depth_target: DepthRenderTarget::Texture2D {
+                texture: depth_texture,
+            },
         })
     }
 
     ///
     /// Constructs a new render target that enables rendering into the given
-    /// [ColorTargetTexture2D].
+    /// [Texture2D].
     ///
-    pub fn new_color(context: &Context, color_texture: &'a mut Texture2D) -> ThreeDResult<Self> {
+    pub fn new_color(context: &Context, texture: &'a mut Texture2D) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_target: ColorRenderTarget::Texture2D {
-                texture: color_texture,
-            },
+            color_target: ColorRenderTarget::Texture2D { texture },
             depth_target: DepthRenderTarget::None,
         })
     }
