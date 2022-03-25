@@ -8,7 +8,7 @@ pub enum ColorRenderTarget<'a> {
 }
 
 impl<'a> ColorRenderTarget<'a> {
-    fn generate_mip_maps(&self, context: &Context) {
+    fn generate_mip_maps(&self) {
         match self {
             Self::Texture2D(tex) => tex.generate_mip_maps(),
             Self::Texture2DArray(tex, _) => tex.generate_mip_maps(),
@@ -186,7 +186,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         }
         clear(&self.context, &clear_state);
         render()?;
-        self.color_target.generate_mip_maps(&self.context);
+        self.color_target.generate_mip_maps();
         self.context.error_check()
     }
 
