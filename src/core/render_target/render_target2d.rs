@@ -113,8 +113,8 @@ impl<'a> DepthTarget<'a> {
 }
 
 ///
-/// Adds additional functionality to write to and copy from both a [ColorTargetTexture2D] and
-/// a [DepthTargetTexture2D] at the same time.
+/// Adds additional functionality to read from, write to and copy from both a [ColorTarget] and
+/// a [DepthTarget] at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
 pub struct RenderTarget<'a, 'b> {
@@ -171,8 +171,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 
     ///
-    /// Constructs a new render target that enables rendering into the given
-    /// [Texture2D].
+    /// Constructs a new render target that enables rendering into the given [Texture2D].
     ///
     #[deprecated = "use new with no depth target or call write/read directly on Texture2D"]
     pub fn new_color(context: &Context, texture: &'a mut Texture2D) -> ThreeDResult<Self> {
@@ -184,8 +183,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 
     ///
-    /// Constructs a new render target that enables rendering into the given
-    /// [DepthTargetTexture2D].
+    /// Constructs a new render target that enables rendering into the given [DepthTargetTexture2D].
     ///
     #[deprecated = "use new with no color target or call write/read directly on DepthTargetTexture2D"]
     pub fn new_depth(
