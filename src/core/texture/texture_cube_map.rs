@@ -369,7 +369,11 @@ impl TextureCubeMap {
     ) -> ThreeDResult<()> {
         RenderTarget::new_(
             &self.context.clone(),
-            ColorRenderTarget::TextureCubeMap(self, side, None),
+            ColorRenderTarget::TextureCubeMap {
+                texture: self,
+                side,
+                mip_level: None,
+            },
             DepthRenderTarget::None,
         )?
         .write(clear_state, render)
@@ -388,7 +392,11 @@ impl TextureCubeMap {
     ) -> ThreeDResult<()> {
         RenderTarget::new_(
             &self.context.clone(),
-            ColorRenderTarget::TextureCubeMap(self, side, Some(mip_level)),
+            ColorRenderTarget::TextureCubeMap {
+                texture: self,
+                side,
+                mip_level: Some(mip_level),
+            },
             DepthRenderTarget::None,
         )?
         .write(clear_state, render)

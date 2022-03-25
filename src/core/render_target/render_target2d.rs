@@ -4,7 +4,11 @@ pub enum ColorRenderTarget<'a> {
     None,
     Texture2D(&'a mut Texture2D),
     Texture2DArray(&'a mut Texture2DArray, &'a [u32]),
-    TextureCubeMap(&'a mut TextureCubeMap, CubeMapSide, Option<u32>),
+    TextureCubeMap {
+        texture: &'a mut TextureCubeMap,
+        side: CubeMapSide,
+        mip_level: Option<u32>,
+    },
 }
 
 impl<'a> ColorRenderTarget<'a> {
@@ -12,9 +16,11 @@ impl<'a> ColorRenderTarget<'a> {
         match self {
             Self::Texture2D(tex) => tex.generate_mip_maps(),
             Self::Texture2DArray(tex, _) => tex.generate_mip_maps(),
-            Self::TextureCubeMap(tex, _, mip_level) => {
+            Self::TextureCubeMap {
+                texture, mip_level, ..
+            } => {
                 if mip_level.is_none() {
-                    tex.generate_mip_maps()
+                    texture.generate_mip_maps()
                 }
             }
             Self::None => {}
@@ -37,9 +43,13 @@ impl<'a> ColorRenderTarget<'a> {
                     tex.bind_as_color_target(layers[channel], channel as u32);
                 }
             },
-            Self::TextureCubeMap(tex, side, mip_level) => unsafe {
+            Self::TextureCubeMap {
+                texture,
+                side,
+                mip_level,
+            } => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-                tex.bind_as_color_target(*side, 0, mip_level.unwrap_or(0));
+                texture.bind_as_color_target(*side, 0, mip_level.unwrap_or(0));
             },
             Self::None => {}
         }
