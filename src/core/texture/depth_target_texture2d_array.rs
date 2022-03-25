@@ -67,7 +67,7 @@ impl DepthTargetTexture2DArray {
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_(
+        RenderTarget::new(
             &self.context.clone(),
             ColorRenderTarget::None,
             DepthRenderTarget::Texture2DArray {

@@ -180,7 +180,7 @@ impl ImpostersMaterial {
             )?;
             for i in 0..NO_VIEW_ANGLES {
                 let layers = [i];
-                let render_target = RenderTarget::new_(
+                let render_target = RenderTarget::new(
                     &self.context,
                     ColorRenderTarget::Texture2DArray {
                         texture: &mut self.texture,

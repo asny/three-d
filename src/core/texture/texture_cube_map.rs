@@ -367,7 +367,7 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_(
+        RenderTarget::new(
             &self.context.clone(),
             ColorRenderTarget::TextureCubeMap {
                 texture: self,
@@ -390,7 +390,7 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_(
+        RenderTarget::new(
             &self.context.clone(),
             ColorRenderTarget::TextureCubeMap {
                 texture: self,

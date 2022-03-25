@@ -93,7 +93,7 @@ impl Texture2DArray {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_(
+        RenderTarget::new(
             &self.context.clone(),
             ColorRenderTarget::Texture2DArray {
                 texture: self,

@@ -76,7 +76,12 @@ impl DepthTargetTexture2D {
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_depth(&self.context.clone(), self)?.write(
+        RenderTarget::new(
+            &self.context.clone(),
+            ColorRenderTarget::None,
+            DepthRenderTarget::Texture2D { texture: self },
+        )?
+        .write(
             ClearState {
                 depth: clear_state,
                 ..ClearState::none()

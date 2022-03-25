@@ -167,22 +167,28 @@ pub fn ray_intersect(
         },
         ..Default::default()
     };
-    {
-        let render_target = RenderTarget::new(context, &mut texture, &mut depth_texture)?;
-        render_target.write(
-            ClearState {
-                red: Some(1.0),
-                depth: Some(1.0),
-                ..ClearState::none()
-            },
-            || {
-                for geometry in geometries {
-                    geometry.render_with_material(&depth_material, &camera, &[])?;
-                }
-                Ok(())
-            },
-        )?;
-    }
+    RenderTarget::new(
+        context,
+        ColorRenderTarget::Texture2D {
+            texture: &mut texture,
+        },
+        DepthRenderTarget::Texture2D {
+            texture: &mut depth_texture,
+        },
+    )?
+    .write(
+        ClearState {
+            red: Some(1.0),
+            depth: Some(1.0),
+            ..ClearState::none()
+        },
+        || {
+            for geometry in geometries {
+                geometry.render_with_material(&depth_material, &camera, &[])?;
+            }
+            Ok(())
+        },
+    )?;
     let depth = texture.read::<f32>(viewport)?[0];
     Ok(if depth < 1.0 {
         Some(position + direction * depth * max_depth)

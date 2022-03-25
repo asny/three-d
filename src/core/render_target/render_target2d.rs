@@ -89,17 +89,17 @@ pub enum DepthRenderTarget<'a> {
 }
 
 impl<'a> DepthRenderTarget<'a> {
-    fn bind(&self, context: &Context) {
+    fn bind(&self) {
         match self {
-            Self::Texture2D { texture } => unsafe {
+            Self::Texture2D { texture } => {
                 texture.bind_as_depth_target();
-            },
-            Self::Texture2DArray { texture, layer } => unsafe {
+            }
+            Self::Texture2DArray { texture, layer } => {
                 texture.bind_as_depth_target(*layer);
-            },
-            Self::TextureCubeMap { texture, side } => unsafe {
+            }
+            Self::TextureCubeMap { texture, side } => {
                 texture.bind_as_depth_target(*side);
-            },
+            }
             Self::None => {}
         }
     }
@@ -139,22 +139,9 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 
     ///
-    /// Constructs a new render target that enables rendering into the given
-    /// [DepthTargetTexture2D].
+    /// Constructs a new render target that enables rendering into the given [ColorTarget] and [DepthTarget].
     ///
-    pub fn new_depth(
-        context: &Context,
-        texture: &'b mut DepthTargetTexture2D,
-    ) -> ThreeDResult<Self> {
-        Ok(Self {
-            context: context.clone(),
-            id: Some(new_framebuffer(context)?),
-            color_target: ColorRenderTarget::None,
-            depth_target: DepthRenderTarget::Texture2D { texture },
-        })
-    }
-
-    pub fn new_(
+    pub fn new(
         context: &Context,
         color_target: ColorRenderTarget<'a>,
         depth_target: DepthRenderTarget<'b>,
@@ -169,36 +156,31 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
 
     ///
     /// Constructs a new render target that enables rendering into the given
-    /// [ColorTargetTexture2D] and [DepthTargetTexture2D] textures.
+    /// [Texture2D].
     ///
-    pub fn new(
-        context: &Context,
-        color_texture: &'a mut Texture2D,
-        depth_texture: &'b mut DepthTargetTexture2D,
-    ) -> ThreeDResult<Self> {
-        Ok(Self {
-            context: context.clone(),
-            id: Some(new_framebuffer(context)?),
-            color_target: ColorRenderTarget::Texture2D {
-                texture: color_texture,
-            },
-            depth_target: DepthRenderTarget::Texture2D {
-                texture: depth_texture,
-            },
-        })
+    #[deprecated = "use new with no depth target or call write/read directly on Texture2D"]
+    pub fn new_color(context: &Context, texture: &'a mut Texture2D) -> ThreeDResult<Self> {
+        Self::new(
+            context,
+            ColorRenderTarget::Texture2D { texture },
+            DepthRenderTarget::None,
+        )
     }
 
     ///
     /// Constructs a new render target that enables rendering into the given
-    /// [Texture2D].
+    /// [DepthTargetTexture2D].
     ///
-    pub fn new_color(context: &Context, texture: &'a mut Texture2D) -> ThreeDResult<Self> {
-        Ok(Self {
-            context: context.clone(),
-            id: Some(new_framebuffer(context)?),
-            color_target: ColorRenderTarget::Texture2D { texture },
-            depth_target: DepthRenderTarget::None,
-        })
+    #[deprecated = "use new with no color target or call write/read directly on DepthTargetTexture2D"]
+    pub fn new_depth(
+        context: &Context,
+        texture: &'b mut DepthTargetTexture2D,
+    ) -> ThreeDResult<Self> {
+        Self::new(
+            context,
+            ColorRenderTarget::None,
+            DepthRenderTarget::Texture2D { texture },
+        )
     }
 
     ///
@@ -334,7 +316,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             self.context.bind_framebuffer(target, self.id);
         }
         self.color_target.bind(&self.context);
-        self.depth_target.bind(&self.context);
+        self.depth_target.bind();
         self.context.framebuffer_check()?;
         self.context.error_check()
     }

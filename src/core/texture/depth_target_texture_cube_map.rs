@@ -64,7 +64,7 @@ impl DepthTargetTextureCubeMap {
         clear_state: Option<f32>,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_(
+        RenderTarget::new(
             &self.context.clone(),
             ColorRenderTarget::None,
             DepthRenderTarget::TextureCubeMap {

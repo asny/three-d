@@ -123,7 +123,7 @@ impl DeferredPipeline {
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
         )?);
-        RenderTarget::new_(
+        RenderTarget::new(
             &self.context,
             ColorRenderTarget::Texture2DArray {
                 texture: self.geometry_pass_texture.as_mut().unwrap(),
