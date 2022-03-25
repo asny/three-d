@@ -159,13 +159,13 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// Returns the screen render target for this context.
     /// Write to this render target to draw something on the screen.
     ///
-    pub fn screen(context: &Context, width: u32, height: u32) -> ThreeDResult<Self> {
-        Ok(Self {
+    pub fn screen(context: &Context, width: u32, height: u32) -> Self {
+        Self {
             context: context.clone(),
             id: None,
             color_target: ColorTarget::Screen { width, height },
             depth_target: DepthTarget::Screen { width, height },
-        })
+        }
     }
 
     ///

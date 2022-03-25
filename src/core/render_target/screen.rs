@@ -16,14 +16,14 @@ impl Screen {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::screen(context, 0, 0)?.write(clear_state, render)
+        RenderTarget::screen(context, 0, 0).write(clear_state, render)
     }
 
     ///
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<[u8; 4]>> {
-        RenderTarget::screen(context, 0, 0)?.read_color(viewport)
+        RenderTarget::screen(context, 0, 0).read_color(viewport)
     }
 
     ///
@@ -32,7 +32,7 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        RenderTarget::screen(context, 0, 0)?.read_depth(viewport)
+        RenderTarget::screen(context, 0, 0).read_depth(viewport)
     }
 
     ///
@@ -46,7 +46,7 @@ impl Screen {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
-        RenderTarget::screen(context, 0, 0)?.copy_from(
+        RenderTarget::screen(context, 0, 0).copy_from(
             color_texture,
             depth_texture,
             viewport,
@@ -65,7 +65,7 @@ impl Screen {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
-        RenderTarget::screen(context, 0, 0)?.copy_from_array(
+        RenderTarget::screen(context, 0, 0).copy_from_array(
             color_texture,
             depth_texture,
             viewport,
