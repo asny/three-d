@@ -2,6 +2,10 @@ use crate::core::render_target::*;
 
 pub enum ColorTarget<'a> {
     None,
+    Screen {
+        width: u32,
+        height: u32,
+    },
     Texture2D {
         texture: &'a mut Texture2D,
         mip_level: Option<u32>,
@@ -40,7 +44,7 @@ impl<'a> ColorTarget<'a> {
                     texture.generate_mip_maps()
                 }
             }
-            Self::None => {}
+            _ => {}
         }
     }
 
@@ -76,7 +80,7 @@ impl<'a> ColorTarget<'a> {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
                 texture.bind_as_color_target(*side, 0, mip_level.unwrap_or(0));
             },
-            Self::None => {}
+            _ => {}
         }
     }
 
@@ -95,6 +99,10 @@ impl<'a> ColorTarget<'a> {
 
 pub enum DepthTarget<'a> {
     None,
+    Screen {
+        width: u32,
+        height: u32,
+    },
     Texture2D {
         texture: &'a mut DepthTargetTexture2D,
     },
@@ -120,7 +128,7 @@ impl<'a> DepthTarget<'a> {
             Self::TextureCubeMap { texture, side } => {
                 texture.bind_as_depth_target(*side);
             }
-            Self::None => {}
+            _ => {}
         }
     }
 
@@ -151,12 +159,12 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// Returns the screen render target for this context.
     /// Write to this render target to draw something on the screen.
     ///
-    pub fn screen(context: &Context) -> ThreeDResult<Self> {
+    pub fn screen(context: &Context, width: u32, height: u32) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: None,
-            color_target: ColorTarget::None,
-            depth_target: DepthTarget::None,
+            color_target: ColorTarget::Screen { width, height },
+            depth_target: DepthTarget::Screen { width, height },
         })
     }
 
@@ -233,10 +241,8 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        if self.id.is_some() {
-            self.color_target.clear_state(&mut clear_state);
-            self.depth_target.clear_state(&mut clear_state);
-        }
+        self.color_target.clear_state(&mut clear_state);
+        self.depth_target.clear_state(&mut clear_state);
         clear(&self.context, &clear_state);
         render()?;
         self.color_target.generate_mip_maps();
@@ -251,9 +257,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     pub fn read_color<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         if let ColorTarget::None = self.color_target {
-            if self.id.is_some() {
-                Err(CoreError::RenderTargetRead("color".to_string()))?;
-            }
+            Err(CoreError::RenderTargetRead("color".to_string()))?;
         }
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         self.bind(crate::context::READ_FRAMEBUFFER)?;
@@ -285,9 +289,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
         if let DepthTarget::None = self.depth_target {
-            if self.id.is_some() {
-                Err(CoreError::RenderTargetRead("depth".to_string()))?;
-            }
+            Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         self.bind(crate::context::READ_FRAMEBUFFER)?;
