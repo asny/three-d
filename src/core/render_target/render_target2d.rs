@@ -133,9 +133,11 @@ impl<'a> DepthTarget<'a> {
 }
 
 ///
-/// Adds additional functionality to read from, write to and copy from both a [ColorTarget] and
-/// a [DepthTarget] at the same time.
-/// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
+/// Adds additional functionality to read from, write to and copy from both a color texture (see [ColorTarget]) and
+/// a depth texture (see [DepthTarget]) at the same time.
+/// If you only want to perform an operation on either a color texture or depth texture,
+/// use the functionality directly on the texture structs (for example [Texture2D]).
+/// It purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
 ///
 pub struct RenderTarget<'a, 'b> {
     context: Context,
