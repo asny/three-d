@@ -1,10 +1,9 @@
 use crate::core::render_target::*;
 
-#[derive(Clone, Copy)]
-enum ColorRenderTarget<'a> {
+pub enum ColorRenderTarget<'a> {
     None,
-    Texture2D(&'a Texture2D),
-    Texture2DArray(&'a Texture2DArray, &'a [u32]),
+    Texture2D(&'a mut Texture2D),
+    Texture2DArray(&'a mut Texture2DArray, &'a [u32]),
 }
 
 impl<'a> ColorRenderTarget<'a> {
@@ -90,6 +89,20 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             depth_texture: Some(depth_texture),
         })
     }
+
+    pub fn new_(
+        context: &Context,
+        color_target: ColorRenderTarget<'a>,
+        depth_texture: &'b mut DepthTargetTexture2D,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: Some(new_framebuffer(context)?),
+            color_texture: color_target,
+            depth_texture: Some(depth_texture),
+        })
+    }
+
     ///
     /// Constructs a new render target that enables rendering into the given
     /// [ColorTargetTexture2D] and [DepthTargetTexture2D] textures.
