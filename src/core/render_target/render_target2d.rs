@@ -12,7 +12,11 @@ impl<'a> ColorRenderTarget<'a> {
         match self {
             Self::Texture2D(tex) => tex.generate_mip_maps(),
             Self::Texture2DArray(tex, _) => tex.generate_mip_maps(),
-            Self::TextureCubeMap(tex, _, _) => tex.generate_mip_maps(),
+            Self::TextureCubeMap(tex, _, mip_level) => {
+                if mip_level.is_none() {
+                    tex.generate_mip_maps()
+                }
+            }
             Self::None => {}
         }
     }
