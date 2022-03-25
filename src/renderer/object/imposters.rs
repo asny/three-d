@@ -180,7 +180,13 @@ impl ImpostersMaterial {
             )?;
             for i in 0..NO_VIEW_ANGLES {
                 let layers = [i];
-                let render_target = RenderTarget::new(
+                let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
+                camera.set_view(
+                    center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
+                    center,
+                    vec3(0.0, 1.0, 0.0),
+                )?;
+                RenderTarget::new(
                     &self.context,
                     ColorRenderTarget::Texture2DArray {
                         texture: &mut self.texture,
@@ -189,14 +195,8 @@ impl ImpostersMaterial {
                     DepthRenderTarget::Texture2D {
                         texture: &mut depth_texture,
                     },
-                )?;
-                let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
-                camera.set_view(
-                    center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
-                    center,
-                    vec3(0.0, 1.0, 0.0),
-                )?;
-                render_target.write(
+                )?
+                .write(
                     ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
                     || {
                         render_pass(&camera, objects, lights)?;

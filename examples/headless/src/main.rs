@@ -65,7 +65,7 @@ fn main() {
     // Render three frames
     for frame_index in 0..3 {
         // Create a render target (a combination of a color and a depth texture) to write into and clear the color and depth
-        RenderTarget::new(&context, &mut texture, &mut depth_texture)
+        RenderTarget::new_with_texture2d(&context, &mut texture, &mut depth_texture)
             .unwrap()
             .write(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
                 // Set the current transformation of the triangle
