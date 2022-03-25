@@ -1,7 +1,7 @@
 use crate::core::texture::*;
 
 ///
-/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTargetArray].
+/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTarget].
 ///
 pub struct DepthTargetTexture2DArray {
     context: Context,
@@ -67,9 +67,12 @@ impl DepthTargetTexture2DArray {
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTargetArray::new_depth(&self.context.clone(), self)?.write(
-            &[],
-            depth_layer,
+        RenderTarget::new_(
+            &self.context.clone(),
+            ColorRenderTarget::None,
+            DepthRenderTarget::Texture2DArray(self, depth_layer),
+        )?
+        .write(
             ClearState {
                 depth: clear_state,
                 ..ClearState::none()

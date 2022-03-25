@@ -3,8 +3,8 @@ use crate::core::texture::*;
 ///
 /// A array of 2D color textures that can be rendered into.
 ///
-/// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
-/// Use a [RenderTargetArray] to write to both color and depth.
+/// **Note:** [DepthTest] is disabled if not also writing to a [DepthTarget].
+/// Use a [RenderTarget] to write to both color and depth.
 ///
 #[deprecated = "Use Texture2DArray instead"]
 pub type ColorTargetTexture2DArray = Texture2DArray;
@@ -12,8 +12,8 @@ pub type ColorTargetTexture2DArray = Texture2DArray;
 ///
 /// A array of 2D color textures that can be rendered into.
 ///
-/// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
-/// Use a [RenderTargetArray] to write to both color and depth.
+/// **Note:** [DepthTest] is disabled if not also writing to a [DepthTarget].
+/// Use a [RenderTarget] to write to both color and depth.
 ///
 pub struct Texture2DArray {
     context: Context,
@@ -83,8 +83,8 @@ impl Texture2DArray {
     /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in `color_layers`.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
-    /// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
-    /// Use a [RenderTargetArray] to write to both color and depth.
+    /// **Note:** [DepthTest] is disabled if not also writing to a [DepthTarget].
+    /// Use a [RenderTarget] to write to both color and depth.
     ///
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
@@ -92,12 +92,12 @@ impl Texture2DArray {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTargetArray::new_color(&self.context.clone(), self)?.write(
-            color_layers,
-            0,
-            clear_state,
-            render,
-        )
+        RenderTarget::new_(
+            &self.context.clone(),
+            ColorRenderTarget::Texture2DArray(self, color_layers),
+            DepthRenderTarget::None,
+        )?
+        .write(clear_state, render)
     }
 
     /// The width of this texture.
