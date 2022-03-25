@@ -78,7 +78,7 @@ impl DepthTargetTexture2D {
     ) -> ThreeDResult<()> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorRenderTarget::None,
+            ColorTarget::None,
             DepthRenderTarget::Texture2D { texture: self },
         )?
         .write(

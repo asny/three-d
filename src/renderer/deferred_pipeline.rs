@@ -125,7 +125,7 @@ impl DeferredPipeline {
         )?);
         RenderTarget::new(
             &self.context,
-            ColorRenderTarget::Texture2DArray {
+            ColorTarget::Texture2DArray {
                 texture: self.geometry_pass_texture.as_mut().unwrap(),
                 layers: &[0, 1],
             },

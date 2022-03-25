@@ -169,7 +169,7 @@ pub fn ray_intersect(
     };
     RenderTarget::new(
         context,
-        ColorRenderTarget::Texture2D {
+        ColorTarget::Texture2D {
             texture: &mut texture,
         },
         DepthRenderTarget::Texture2D {

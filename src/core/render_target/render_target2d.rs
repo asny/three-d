@@ -1,6 +1,6 @@
 use crate::core::render_target::*;
 
-pub enum ColorRenderTarget<'a> {
+pub enum ColorTarget<'a> {
     None,
     Texture2D {
         texture: &'a mut Texture2D,
@@ -16,7 +16,7 @@ pub enum ColorRenderTarget<'a> {
     },
 }
 
-impl<'a> ColorRenderTarget<'a> {
+impl<'a> ColorTarget<'a> {
     fn generate_mip_maps(&self) {
         match self {
             Self::Texture2D { texture } => texture.generate_mip_maps(),
@@ -120,7 +120,7 @@ impl<'a> DepthRenderTarget<'a> {
 pub struct RenderTarget<'a, 'b> {
     context: Context,
     id: Option<crate::context::Framebuffer>,
-    color_target: ColorRenderTarget<'a>,
+    color_target: ColorTarget<'a>,
     depth_target: DepthRenderTarget<'b>,
 }
 
@@ -133,7 +133,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: None,
-            color_target: ColorRenderTarget::None,
+            color_target: ColorTarget::None,
             depth_target: DepthRenderTarget::None,
         })
     }
@@ -143,7 +143,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     pub fn new(
         context: &Context,
-        color_target: ColorRenderTarget<'a>,
+        color_target: ColorTarget<'a>,
         depth_target: DepthRenderTarget<'b>,
     ) -> ThreeDResult<Self> {
         Ok(Self {
@@ -161,7 +161,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ) -> ThreeDResult<Self> {
         Self::new(
             context,
-            ColorRenderTarget::Texture2D {
+            ColorTarget::Texture2D {
                 texture: color_texture,
             },
             DepthRenderTarget::Texture2D {
@@ -178,7 +178,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     pub fn new_color(context: &Context, texture: &'a mut Texture2D) -> ThreeDResult<Self> {
         Self::new(
             context,
-            ColorRenderTarget::Texture2D { texture },
+            ColorTarget::Texture2D { texture },
             DepthRenderTarget::None,
         )
     }
@@ -194,7 +194,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ) -> ThreeDResult<Self> {
         Self::new(
             context,
-            ColorRenderTarget::None,
+            ColorTarget::None,
             DepthRenderTarget::Texture2D { texture },
         )
     }
@@ -226,7 +226,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
     pub fn read_color<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        if let ColorRenderTarget::None = self.color_target {
+        if let ColorTarget::None = self.color_target {
             if self.id.is_some() {
                 Err(CoreError::RenderTargetRead("color".to_string()))?;
             }

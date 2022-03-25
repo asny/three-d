@@ -95,7 +95,7 @@ impl Texture2DArray {
     ) -> ThreeDResult<()> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorRenderTarget::Texture2DArray {
+            ColorTarget::Texture2DArray {
                 texture: self,
                 layers,
             },

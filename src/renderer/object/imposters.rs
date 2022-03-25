@@ -188,7 +188,7 @@ impl ImpostersMaterial {
                 )?;
                 RenderTarget::new(
                     &self.context,
-                    ColorRenderTarget::Texture2DArray {
+                    ColorTarget::Texture2DArray {
                         texture: &mut self.texture,
                         layers: &layers,
                     },

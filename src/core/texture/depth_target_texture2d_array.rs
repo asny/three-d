@@ -69,7 +69,7 @@ impl DepthTargetTexture2DArray {
     ) -> ThreeDResult<()> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorRenderTarget::None,
+            ColorTarget::None,
             DepthRenderTarget::Texture2DArray {
                 texture: self,
                 layer,

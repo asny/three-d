@@ -369,7 +369,7 @@ impl TextureCubeMap {
     ) -> ThreeDResult<()> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorRenderTarget::TextureCubeMap {
+            ColorTarget::TextureCubeMap {
                 texture: self,
                 side,
                 mip_level: None,
@@ -392,7 +392,7 @@ impl TextureCubeMap {
     ) -> ThreeDResult<()> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorRenderTarget::TextureCubeMap {
+            ColorTarget::TextureCubeMap {
                 texture: self,
                 side,
                 mip_level: Some(mip_level),

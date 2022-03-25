@@ -66,7 +66,7 @@ impl DepthTargetTextureCubeMap {
     ) -> ThreeDResult<()> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorRenderTarget::None,
+            ColorTarget::None,
             DepthRenderTarget::TextureCubeMap {
                 texture: self,
                 side,

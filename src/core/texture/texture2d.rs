@@ -147,7 +147,7 @@ impl Texture2D {
     ) -> ThreeDResult<()> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorRenderTarget::Texture2D { texture: self },
+            ColorTarget::Texture2D { texture: self },
             DepthRenderTarget::None,
         )?
         .write(clear_state, render)
@@ -162,7 +162,7 @@ impl Texture2D {
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorRenderTarget::Texture2D { texture: self },
+            ColorTarget::Texture2D { texture: self },
             DepthRenderTarget::None,
         )?
         .read_color(viewport)
