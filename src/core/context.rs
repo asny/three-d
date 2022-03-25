@@ -208,6 +208,15 @@ impl Context {
     }
 }
 
+impl std::fmt::Debug for Context {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut d = f.debug_struct("Context");
+        d.field("programs", &self.programs.borrow().len());
+        d.field("effects", &self.effects.borrow().len());
+        d.finish()
+    }
+}
+
 impl std::ops::Deref for Context {
     type Target = crate::context::Context;
     fn deref(&self) -> &Self::Target {
