@@ -80,8 +80,8 @@ impl Texture2DArray {
     }
 
     ///
-    /// Renders whatever rendered in the `render` closure into the textures defined by the input parameters `color_layers`.
-    /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in `color_layers`.
+    /// Renders whatever rendered in the `render` closure into the textures defined by the input parameters `layers`.
+    /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in `layers`.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
     /// **Note:** [DepthTest] is disabled if not also writing to a [DepthTarget].
@@ -89,13 +89,16 @@ impl Texture2DArray {
     ///
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
-        color_layers: &[u32],
+        layers: &[u32],
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
         RenderTarget::new_(
             &self.context.clone(),
-            ColorRenderTarget::Texture2DArray(self, color_layers),
+            ColorRenderTarget::Texture2DArray {
+                texture: self,
+                layers,
+            },
             DepthRenderTarget::None,
         )?
         .write(clear_state, render)

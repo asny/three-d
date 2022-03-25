@@ -2,8 +2,13 @@ use crate::core::render_target::*;
 
 pub enum ColorRenderTarget<'a> {
     None,
-    Texture2D(&'a mut Texture2D),
-    Texture2DArray(&'a mut Texture2DArray, &'a [u32]),
+    Texture2D {
+        texture: &'a mut Texture2D,
+    },
+    Texture2DArray {
+        texture: &'a mut Texture2DArray,
+        layers: &'a [u32],
+    },
     TextureCubeMap {
         texture: &'a mut TextureCubeMap,
         side: CubeMapSide,
@@ -14,8 +19,8 @@ pub enum ColorRenderTarget<'a> {
 impl<'a> ColorRenderTarget<'a> {
     fn generate_mip_maps(&self) {
         match self {
-            Self::Texture2D(tex) => tex.generate_mip_maps(),
-            Self::Texture2DArray(tex, _) => tex.generate_mip_maps(),
+            Self::Texture2D { texture } => texture.generate_mip_maps(),
+            Self::Texture2DArray { texture, .. } => texture.generate_mip_maps(),
             Self::TextureCubeMap {
                 texture, mip_level, ..
             } => {
@@ -29,18 +34,18 @@ impl<'a> ColorRenderTarget<'a> {
 
     fn bind(&self, context: &Context) {
         match self {
-            Self::Texture2D(tex) => unsafe {
+            Self::Texture2D { texture } => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-                tex.bind_as_color_target(0);
+                texture.bind_as_color_target(0);
             },
-            Self::Texture2DArray(tex, layers) => unsafe {
+            Self::Texture2DArray { texture, layers } => unsafe {
                 context.draw_buffers(
                     &(0..layers.len())
                         .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
                         .collect::<Vec<u32>>(),
                 );
                 for channel in 0..layers.len() {
-                    tex.bind_as_color_target(layers[channel], channel as u32);
+                    texture.bind_as_color_target(layers[channel], channel as u32);
                 }
             },
             Self::TextureCubeMap {
@@ -166,7 +171,9 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_target: ColorRenderTarget::Texture2D(color_texture),
+            color_target: ColorRenderTarget::Texture2D {
+                texture: color_texture,
+            },
             depth_target: DepthRenderTarget::Texture2D(depth_texture),
         })
     }
@@ -179,7 +186,9 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_target: ColorRenderTarget::Texture2D(color_texture),
+            color_target: ColorRenderTarget::Texture2D {
+                texture: color_texture,
+            },
             depth_target: DepthRenderTarget::None,
         })
     }

@@ -182,7 +182,10 @@ impl ImpostersMaterial {
                 let layers = [i];
                 let render_target = RenderTarget::new_(
                     &self.context,
-                    ColorRenderTarget::Texture2DArray(&mut self.texture, &layers),
+                    ColorRenderTarget::Texture2DArray {
+                        texture: &mut self.texture,
+                        layers: &layers,
+                    },
                     DepthRenderTarget::Texture2D(&mut depth_texture),
                 )?;
                 let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;

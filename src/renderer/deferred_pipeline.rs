@@ -125,10 +125,10 @@ impl DeferredPipeline {
         )?);
         RenderTarget::new_(
             &self.context,
-            ColorRenderTarget::Texture2DArray(
-                self.geometry_pass_texture.as_mut().unwrap(),
-                &[0, 1],
-            ),
+            ColorRenderTarget::Texture2DArray {
+                texture: self.geometry_pass_texture.as_mut().unwrap(),
+                layers: &[0, 1],
+            },
             DepthRenderTarget::Texture2D(self.geometry_pass_depth_texture.as_mut().unwrap()),
         )?
         .write(ClearState::default(), || {
