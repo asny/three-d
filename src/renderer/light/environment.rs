@@ -58,11 +58,10 @@ impl Environment {
                 include_str!("shaders/irradiance.frag")
             );
             let effect = ImageCubeEffect::new(context, &fragment_shader_source)?;
-            let render_target = RenderTargetCubeMap::new_color(context, &mut irradiance_map)?;
             for side in CubeMapSide::iter() {
                 effect.use_texture_cube("environmentMap", environment_map)?;
                 let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
-                render_target.write(side, ClearState::default(), || {
+                irradiance_map.write(side, ClearState::default(), || {
                     effect.render(side, RenderStates::default(), viewport)
                 })?;
             }
@@ -90,8 +89,6 @@ impl Environment {
                 include_str!("shaders/prefilter.frag")
             );
             let program = ImageCubeEffect::new(context, &fragment_shader_source)?;
-            let render_target = RenderTargetCubeMap::new_color(context, &mut prefilter_map)?;
-
             let max_mip_levels = 5;
             for mip in 0..max_mip_levels {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
@@ -103,7 +100,7 @@ impl Environment {
                     program.use_texture_cube("environmentMap", environment_map)?;
                     program.use_uniform("roughness", &roughness)?;
                     program.use_uniform("resolution", &(environment_map.width() as f32))?;
-                    render_target.write_to_mip_level(side, mip, ClearState::default(), || {
+                    prefilter_map.write_to_mip_level(side, mip, ClearState::default(), || {
                         program.render(side, RenderStates::default(), viewport)
                     })?;
                 }

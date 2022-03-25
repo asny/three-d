@@ -345,12 +345,11 @@ impl TextureCubeMap {
                 outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
             }";
             let effect = ImageCubeEffect::new(context, fragment_shader_source)?;
-            let render_target = RenderTargetCubeMap::new_color(context, &mut texture)?;
 
             for side in CubeMapSide::iter() {
                 effect.use_texture("equirectangularMap", &map)?;
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
-                render_target.write(side, ClearState::default(), || {
+                texture.write(side, ClearState::default(), || {
                     effect.render(side, RenderStates::default(), viewport)
                 })?;
             }
@@ -368,11 +367,12 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        RenderTargetCubeMap::new_color(&self.context.clone(), self)?.write(
-            side,
-            clear_state,
-            render,
-        )
+        RenderTarget::new_(
+            &self.context.clone(),
+            ColorRenderTarget::TextureCubeMap(self, side, None),
+            DepthRenderTarget::None,
+        )?
+        .write(clear_state, render)
     }
 
     ///
@@ -386,12 +386,12 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        RenderTargetCubeMap::new_color(&self.context.clone(), self)?.write_to_mip_level(
-            side,
-            mip_level,
-            clear_state,
-            render,
-        )
+        RenderTarget::new_(
+            &self.context.clone(),
+            ColorRenderTarget::TextureCubeMap(self, side, Some(mip_level)),
+            DepthRenderTarget::None,
+        )?
+        .write(clear_state, render)
     }
 
     /// The width of this texture.
