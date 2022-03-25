@@ -155,7 +155,7 @@ impl Texture2D {
     /// **Note:** On web, the data format needs to match the data format of this texture.
     ///
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        RenderTarget::new_color_internal(&self.context.clone(), self)?.read_color(viewport)
+        RenderTarget::new_color(&self.context.clone(), self)?.read_color(viewport)
     }
 
     /// The width of this texture.

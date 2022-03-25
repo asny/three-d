@@ -162,13 +162,6 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// [ColorTargetTexture2D].
     ///
     pub fn new_color(context: &Context, color_texture: &'a mut Texture2D) -> ThreeDResult<Self> {
-        Self::new_color_internal(context, color_texture)
-    }
-
-    pub(in crate::core) fn new_color_internal(
-        context: &Context,
-        color_texture: &'a mut Texture2D,
-    ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
