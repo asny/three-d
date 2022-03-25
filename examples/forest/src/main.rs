@@ -97,8 +97,6 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         }
     }
 
-    let mut aabb = tree_cpu_mesh.compute_aabb();
-    aabb.expand_with_aabb(&leaves_cpu_mesh.compute_aabb());
     let imposters = Imposters::new(
         &context,
         &positions,
