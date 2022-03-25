@@ -4,19 +4,20 @@ pub enum ColorRenderTarget<'a> {
     None,
     Texture2D(&'a mut Texture2D),
     Texture2DArray(&'a mut Texture2DArray, &'a [u32]),
+    TextureCubeMap(&'a mut TextureCubeMap, CubeMapSide, Option<u32>),
 }
 
 impl<'a> ColorRenderTarget<'a> {
-    fn generate_mip_maps(&self, context: &Context) -> ThreeDResult<()> {
+    fn generate_mip_maps(&self, context: &Context) {
         match self {
             Self::Texture2D(tex) => tex.generate_mip_maps(),
             Self::Texture2DArray(tex, _) => tex.generate_mip_maps(),
+            Self::TextureCubeMap(tex, _, _) => tex.generate_mip_maps(),
             Self::None => {}
         }
-        context.error_check()
     }
 
-    fn bind(&self, context: &Context) -> ThreeDResult<()> {
+    fn bind(&self, context: &Context) {
         match self {
             Self::Texture2D(tex) => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
@@ -32,18 +33,54 @@ impl<'a> ColorRenderTarget<'a> {
                     tex.bind_as_color_target(layers[channel], channel as u32);
                 }
             },
+            Self::TextureCubeMap(tex, side, mip_level) => unsafe {
+                context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
+                tex.bind_as_color_target(*side, 0, mip_level.unwrap_or(0));
+            },
             Self::None => {}
         }
-        context.error_check()
     }
 
-    fn clear_state(&self, clear_state: ClearState) -> ClearState {
+    fn clear_state(&self, clear_state: &mut ClearState) {
         match self {
-            Self::None => clear_state
-                .depth
-                .map(|d| ClearState::depth(d))
-                .unwrap_or(ClearState::none()),
-            _ => clear_state,
+            Self::None => {
+                clear_state.red = None;
+                clear_state.green = None;
+                clear_state.blue = None;
+                clear_state.alpha = None;
+            }
+            _ => {}
+        }
+    }
+}
+
+pub enum DepthRenderTarget<'a> {
+    None,
+    Texture2D(&'a mut DepthTargetTexture2D),
+    Texture2DArray(&'a mut DepthTargetTexture2DArray, u32),
+    TextureCubeMap(&'a mut DepthTargetTextureCubeMap, CubeMapSide),
+}
+
+impl<'a> DepthRenderTarget<'a> {
+    fn bind(&self, context: &Context) {
+        match self {
+            Self::Texture2D(tex) => unsafe {
+                tex.bind_as_depth_target();
+            },
+            Self::Texture2DArray(tex, layer) => unsafe {
+                tex.bind_as_depth_target(*layer);
+            },
+            Self::TextureCubeMap(tex, side) => unsafe {
+                tex.bind_as_depth_target(*side);
+            },
+            Self::None => {}
+        }
+    }
+
+    fn clear_state(&self, clear_state: &mut ClearState) {
+        match self {
+            Self::None => clear_state.depth = None,
+            _ => {}
         }
     }
 }
@@ -56,8 +93,8 @@ impl<'a> ColorRenderTarget<'a> {
 pub struct RenderTarget<'a, 'b> {
     context: Context,
     id: Option<crate::context::Framebuffer>,
-    color_texture: ColorRenderTarget<'a>,
-    depth_texture: Option<&'b DepthTargetTexture2D>,
+    color_target: ColorRenderTarget<'a>,
+    depth_target: DepthRenderTarget<'b>,
 }
 
 impl<'a, 'b> RenderTarget<'a, 'b> {
@@ -69,8 +106,8 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: None,
-            color_texture: ColorRenderTarget::None,
-            depth_texture: None,
+            color_target: ColorRenderTarget::None,
+            depth_target: DepthRenderTarget::None,
         })
     }
 
@@ -85,21 +122,21 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_texture: ColorRenderTarget::None,
-            depth_texture: Some(depth_texture),
+            color_target: ColorRenderTarget::None,
+            depth_target: DepthRenderTarget::Texture2D(depth_texture),
         })
     }
 
     pub fn new_(
         context: &Context,
         color_target: ColorRenderTarget<'a>,
-        depth_texture: &'b mut DepthTargetTexture2D,
+        depth_target: DepthRenderTarget<'b>,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_texture: color_target,
-            depth_texture: Some(depth_texture),
+            color_target,
+            depth_target,
         })
     }
 
@@ -115,8 +152,8 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_texture: ColorRenderTarget::Texture2D(color_texture),
-            depth_texture: Some(depth_texture),
+            color_target: ColorRenderTarget::Texture2D(color_texture),
+            depth_target: DepthRenderTarget::Texture2D(depth_texture),
         })
     }
 
@@ -130,13 +167,13 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
 
     pub(in crate::core) fn new_color_internal(
         context: &Context,
-        color_texture: &'a Texture2D,
+        color_texture: &'a mut Texture2D,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_texture: ColorRenderTarget::Texture2D(color_texture),
-            depth_texture: None,
+            color_target: ColorRenderTarget::Texture2D(color_texture),
+            depth_target: DepthRenderTarget::None,
         })
     }
 
@@ -151,12 +188,12 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ) -> ThreeDResult<()> {
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         if self.id.is_some() {
-            clear_state = self.color_texture.clear_state(clear_state);
-            //TODO: also depth
+            self.color_target.clear_state(&mut clear_state);
+            self.depth_target.clear_state(&mut clear_state);
         }
         clear(&self.context, &clear_state);
         render()?;
-        self.color_texture.generate_mip_maps(&self.context)?;
+        self.color_target.generate_mip_maps(&self.context);
         self.context.error_check()
     }
 
@@ -167,7 +204,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
     pub fn read_color<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        if let ColorRenderTarget::None = self.color_texture {
+        if let ColorRenderTarget::None = self.color_target {
             if self.id.is_some() {
                 Err(CoreError::RenderTargetRead("color".to_string()))?;
             }
@@ -201,8 +238,10 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        if self.id.is_some() && self.depth_texture.is_none() {
-            Err(CoreError::RenderTargetRead("depth".to_string()))?;
+        if let DepthRenderTarget::None = self.depth_target {
+            if self.id.is_some() {
+                Err(CoreError::RenderTargetRead("depth".to_string()))?;
+            }
         }
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         self.bind(crate::context::READ_FRAMEBUFFER)?;
@@ -269,11 +308,9 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {
         unsafe {
             self.context.bind_framebuffer(target, self.id);
-            self.color_texture.bind(&self.context)?;
-            if let Some(ref tex) = self.depth_texture {
-                tex.bind_as_depth_target();
-            }
         }
+        self.color_target.bind(&self.context);
+        self.depth_target.bind(&self.context);
         self.context.framebuffer_check()?;
         self.context.error_check()
     }
