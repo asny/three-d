@@ -105,7 +105,11 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
                             .collect::<Vec<u32>>(),
                     );
                     for channel in 0..color_layers.len() {
-                        color_texture.bind_as_color_target(color_layers[channel], channel as u32);
+                        color_texture.bind_as_color_target(
+                            color_layers[channel],
+                            channel as u32,
+                            0,
+                        );
                     }
                 }
             }

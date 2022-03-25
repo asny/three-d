@@ -128,6 +128,7 @@ impl DeferredPipeline {
             ColorTarget::Texture2DArray {
                 texture: self.geometry_pass_texture.as_mut().unwrap(),
                 layers: &[0, 1],
+                mip_level: None,
             },
             DepthTarget::Texture2D {
                 texture: self.geometry_pass_depth_texture.as_mut().unwrap(),

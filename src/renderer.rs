@@ -167,16 +167,7 @@ pub fn ray_intersect(
         },
         ..Default::default()
     };
-    RenderTarget::new(
-        context,
-        ColorTarget::Texture2D {
-            texture: &mut texture,
-        },
-        DepthTarget::Texture2D {
-            texture: &mut depth_texture,
-        },
-    )?
-    .write(
+    RenderTarget::new_with_texture2d(context, &mut texture, &mut depth_texture)?.write(
         ClearState {
             red: Some(1.0),
             depth: Some(1.0),

@@ -98,6 +98,7 @@ impl Texture2DArray {
             ColorTarget::Texture2DArray {
                 texture: self,
                 layers,
+                mip_level: None,
             },
             DepthTarget::None,
         )?
@@ -129,13 +130,13 @@ impl Texture2DArray {
         }
     }
 
-    pub(in crate::core) fn bind_as_color_target(&self, layer: u32, channel: u32) {
+    pub(in crate::core) fn bind_as_color_target(&self, layer: u32, channel: u32, mip_level: u32) {
         unsafe {
             self.context.framebuffer_texture_layer(
                 crate::context::DRAW_FRAMEBUFFER,
                 crate::context::COLOR_ATTACHMENT0 + channel,
                 Some(self.id),
-                0,
+                mip_level as i32,
                 layer as i32,
             );
         }

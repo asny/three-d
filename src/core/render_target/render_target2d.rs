@@ -4,10 +4,12 @@ pub enum ColorTarget<'a> {
     None,
     Texture2D {
         texture: &'a mut Texture2D,
+        mip_level: Option<u32>,
     },
     Texture2DArray {
         texture: &'a mut Texture2DArray,
         layers: &'a [u32],
+        mip_level: Option<u32>,
     },
     TextureCubeMap {
         texture: &'a mut TextureCubeMap,
@@ -19,8 +21,18 @@ pub enum ColorTarget<'a> {
 impl<'a> ColorTarget<'a> {
     fn generate_mip_maps(&self) {
         match self {
-            Self::Texture2D { texture } => texture.generate_mip_maps(),
-            Self::Texture2DArray { texture, .. } => texture.generate_mip_maps(),
+            Self::Texture2D { texture, mip_level } => {
+                if mip_level.is_none() {
+                    texture.generate_mip_maps()
+                }
+            }
+            Self::Texture2DArray {
+                texture, mip_level, ..
+            } => {
+                if mip_level.is_none() {
+                    texture.generate_mip_maps()
+                }
+            }
             Self::TextureCubeMap {
                 texture, mip_level, ..
             } => {
@@ -34,18 +46,26 @@ impl<'a> ColorTarget<'a> {
 
     fn bind(&self, context: &Context) {
         match self {
-            Self::Texture2D { texture } => unsafe {
+            Self::Texture2D { texture, mip_level } => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-                texture.bind_as_color_target(0);
+                texture.bind_as_color_target(0, mip_level.unwrap_or(0));
             },
-            Self::Texture2DArray { texture, layers } => unsafe {
+            Self::Texture2DArray {
+                texture,
+                layers,
+                mip_level,
+            } => unsafe {
                 context.draw_buffers(
                     &(0..layers.len())
                         .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
                         .collect::<Vec<u32>>(),
                 );
                 for channel in 0..layers.len() {
-                    texture.bind_as_color_target(layers[channel], channel as u32);
+                    texture.bind_as_color_target(
+                        layers[channel],
+                        channel as u32,
+                        mip_level.unwrap_or(0),
+                    );
                 }
             },
             Self::TextureCubeMap {
@@ -163,6 +183,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             context,
             ColorTarget::Texture2D {
                 texture: color_texture,
+                mip_level: None,
             },
             DepthTarget::Texture2D {
                 texture: depth_texture,
@@ -177,7 +198,10 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     pub fn new_color(context: &Context, texture: &'a mut Texture2D) -> ThreeDResult<Self> {
         Self::new(
             context,
-            ColorTarget::Texture2D { texture },
+            ColorTarget::Texture2D {
+                texture,
+                mip_level: None,
+            },
             DepthTarget::None,
         )
     }

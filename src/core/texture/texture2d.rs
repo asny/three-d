@@ -147,7 +147,10 @@ impl Texture2D {
     ) -> ThreeDResult<()> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorTarget::Texture2D { texture: self },
+            ColorTarget::Texture2D {
+                texture: self,
+                mip_level: None,
+            },
             DepthTarget::None,
         )?
         .write(clear_state, render)
@@ -162,7 +165,10 @@ impl Texture2D {
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorTarget::Texture2D { texture: self },
+            ColorTarget::Texture2D {
+                texture: self,
+                mip_level: None,
+            },
             DepthTarget::None,
         )?
         .read_color(viewport)
@@ -187,14 +193,14 @@ impl Texture2D {
         }
     }
 
-    pub(in crate::core) fn bind_as_color_target(&self, channel: u32) {
+    pub(in crate::core) fn bind_as_color_target(&self, channel: u32, mip_level: u32) {
         unsafe {
             self.context.framebuffer_texture_2d(
                 crate::context::FRAMEBUFFER,
                 crate::context::COLOR_ATTACHMENT0 + channel,
                 crate::context::TEXTURE_2D,
                 Some(self.id),
-                0,
+                mip_level as i32,
             );
         }
     }

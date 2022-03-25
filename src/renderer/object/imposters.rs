@@ -191,6 +191,7 @@ impl ImpostersMaterial {
                     ColorTarget::Texture2DArray {
                         texture: &mut self.texture,
                         layers: &layers,
+                        mip_level: None,
                     },
                     DepthTarget::Texture2D {
                         texture: &mut depth_texture,
