@@ -106,7 +106,6 @@ impl Window {
         let mut modifiers = Modifiers::default();
         let mut first_frame = true;
         let mut mouse_pressed = None;
-        #[cfg(feature = "image-io")]
         let context = self.gl.clone();
         self.event_loop.run(move |event, _, control_flow| {
             match event {
@@ -141,6 +140,7 @@ impl Window {
                         window_height: height,
                         device_pixel_ratio: device_pixel_ratio,
                         first_frame: first_frame,
+                        context: context.clone(),
                     };
                     first_frame = false;
                     events.clear();

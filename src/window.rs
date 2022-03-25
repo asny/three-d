@@ -213,6 +213,8 @@ pub struct Modifiers {
     pub command: bool,
 }
 
+use crate::core::*;
+
 ///
 /// Input from the window to the rendering (and whatever else needs it) each frame.
 ///
@@ -228,7 +230,7 @@ pub struct FrameInput {
     pub accumulated_time: f64,
 
     /// Viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
-    pub viewport: crate::core::Viewport,
+    pub viewport: Viewport,
 
     /// Width of the window in logical pixels.
     pub window_width: u32,
@@ -241,6 +243,14 @@ pub struct FrameInput {
 
     /// Whether or not this is the first frame.
     pub first_frame: bool,
+
+    pub context: Context,
+}
+
+impl FrameInput {
+    pub fn screen(&self) -> RenderTarget {
+        RenderTarget::screen(&self.context, self.window_width, self.window_height)
+    }
 }
 
 ///
