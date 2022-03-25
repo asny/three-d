@@ -79,7 +79,7 @@ impl DepthTargetTexture2D {
         RenderTarget::new(
             &self.context.clone(),
             ColorTarget::None,
-            DepthRenderTarget::Texture2D { texture: self },
+            DepthTarget::Texture2D { texture: self },
         )?
         .write(
             ClearState {

@@ -192,7 +192,7 @@ impl ImpostersMaterial {
                         texture: &mut self.texture,
                         layers: &layers,
                     },
-                    DepthRenderTarget::Texture2D {
+                    DepthTarget::Texture2D {
                         texture: &mut depth_texture,
                     },
                 )?

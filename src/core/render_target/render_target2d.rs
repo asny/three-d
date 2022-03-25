@@ -73,7 +73,7 @@ impl<'a> ColorTarget<'a> {
     }
 }
 
-pub enum DepthRenderTarget<'a> {
+pub enum DepthTarget<'a> {
     None,
     Texture2D {
         texture: &'a mut DepthTargetTexture2D,
@@ -88,7 +88,7 @@ pub enum DepthRenderTarget<'a> {
     },
 }
 
-impl<'a> DepthRenderTarget<'a> {
+impl<'a> DepthTarget<'a> {
     fn bind(&self) {
         match self {
             Self::Texture2D { texture } => {
@@ -121,7 +121,7 @@ pub struct RenderTarget<'a, 'b> {
     context: Context,
     id: Option<crate::context::Framebuffer>,
     color_target: ColorTarget<'a>,
-    depth_target: DepthRenderTarget<'b>,
+    depth_target: DepthTarget<'b>,
 }
 
 impl<'a, 'b> RenderTarget<'a, 'b> {
@@ -134,7 +134,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             context: context.clone(),
             id: None,
             color_target: ColorTarget::None,
-            depth_target: DepthRenderTarget::None,
+            depth_target: DepthTarget::None,
         })
     }
 
@@ -144,7 +144,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     pub fn new(
         context: &Context,
         color_target: ColorTarget<'a>,
-        depth_target: DepthRenderTarget<'b>,
+        depth_target: DepthTarget<'b>,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -164,7 +164,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             ColorTarget::Texture2D {
                 texture: color_texture,
             },
-            DepthRenderTarget::Texture2D {
+            DepthTarget::Texture2D {
                 texture: depth_texture,
             },
         )
@@ -179,7 +179,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Self::new(
             context,
             ColorTarget::Texture2D { texture },
-            DepthRenderTarget::None,
+            DepthTarget::None,
         )
     }
 
@@ -195,7 +195,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Self::new(
             context,
             ColorTarget::None,
-            DepthRenderTarget::Texture2D { texture },
+            DepthTarget::Texture2D { texture },
         )
     }
 
@@ -260,7 +260,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        if let DepthRenderTarget::None = self.depth_target {
+        if let DepthTarget::None = self.depth_target {
             if self.id.is_some() {
                 Err(CoreError::RenderTargetRead("depth".to_string()))?;
             }

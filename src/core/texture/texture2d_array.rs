@@ -99,7 +99,7 @@ impl Texture2DArray {
                 texture: self,
                 layers,
             },
-            DepthRenderTarget::None,
+            DepthTarget::None,
         )?
         .write(clear_state, render)
     }

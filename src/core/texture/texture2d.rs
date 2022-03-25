@@ -148,7 +148,7 @@ impl Texture2D {
         RenderTarget::new(
             &self.context.clone(),
             ColorTarget::Texture2D { texture: self },
-            DepthRenderTarget::None,
+            DepthTarget::None,
         )?
         .write(clear_state, render)
     }
@@ -163,7 +163,7 @@ impl Texture2D {
         RenderTarget::new(
             &self.context.clone(),
             ColorTarget::Texture2D { texture: self },
-            DepthRenderTarget::None,
+            DepthTarget::None,
         )?
         .read_color(viewport)
     }

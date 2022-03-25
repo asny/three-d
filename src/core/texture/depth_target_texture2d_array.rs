@@ -70,7 +70,7 @@ impl DepthTargetTexture2DArray {
         RenderTarget::new(
             &self.context.clone(),
             ColorTarget::None,
-            DepthRenderTarget::Texture2DArray {
+            DepthTarget::Texture2DArray {
                 texture: self,
                 layer,
             },

@@ -172,7 +172,7 @@ pub fn ray_intersect(
         ColorTarget::Texture2D {
             texture: &mut texture,
         },
-        DepthRenderTarget::Texture2D {
+        DepthTarget::Texture2D {
             texture: &mut depth_texture,
         },
     )?

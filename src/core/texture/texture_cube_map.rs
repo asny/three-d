@@ -374,7 +374,7 @@ impl TextureCubeMap {
                 side,
                 mip_level: None,
             },
-            DepthRenderTarget::None,
+            DepthTarget::None,
         )?
         .write(clear_state, render)
     }
@@ -397,7 +397,7 @@ impl TextureCubeMap {
                 side,
                 mip_level: Some(mip_level),
             },
-            DepthRenderTarget::None,
+            DepthTarget::None,
         )?
         .write(clear_state, render)
     }

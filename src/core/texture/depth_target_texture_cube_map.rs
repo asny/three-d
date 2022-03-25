@@ -67,7 +67,7 @@ impl DepthTargetTextureCubeMap {
         RenderTarget::new(
             &self.context.clone(),
             ColorTarget::None,
-            DepthRenderTarget::TextureCubeMap {
+            DepthTarget::TextureCubeMap {
                 texture: self,
                 side,
             },
