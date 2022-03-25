@@ -1,5 +1,54 @@
 use crate::core::render_target::*;
 
+#[derive(Clone, Copy)]
+enum ColorRenderTarget<'a> {
+    None,
+    Texture2D(&'a Texture2D),
+    Texture2DArray(&'a Texture2DArray, &'a [u32]),
+}
+
+impl<'a> ColorRenderTarget<'a> {
+    fn generate_mip_maps(&self, context: &Context) -> ThreeDResult<()> {
+        match self {
+            Self::Texture2D(tex) => tex.generate_mip_maps(),
+            Self::Texture2DArray(tex, _) => tex.generate_mip_maps(),
+            Self::None => {}
+        }
+        context.error_check()
+    }
+
+    fn bind(&self, context: &Context) -> ThreeDResult<()> {
+        match self {
+            Self::Texture2D(tex) => unsafe {
+                context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
+                tex.bind_as_color_target(0);
+            },
+            Self::Texture2DArray(tex, layers) => unsafe {
+                context.draw_buffers(
+                    &(0..layers.len())
+                        .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
+                        .collect::<Vec<u32>>(),
+                );
+                for channel in 0..layers.len() {
+                    tex.bind_as_color_target(layers[channel], channel as u32);
+                }
+            },
+            Self::None => {}
+        }
+        context.error_check()
+    }
+
+    fn clear_state(&self, clear_state: ClearState) -> ClearState {
+        match self {
+            Self::None => clear_state
+                .depth
+                .map(|d| ClearState::depth(d))
+                .unwrap_or(ClearState::none()),
+            _ => clear_state,
+        }
+    }
+}
+
 ///
 /// Adds additional functionality to write to and copy from both a [ColorTargetTexture2D] and
 /// a [DepthTargetTexture2D] at the same time.
@@ -8,7 +57,7 @@ use crate::core::render_target::*;
 pub struct RenderTarget<'a, 'b> {
     context: Context,
     id: Option<crate::context::Framebuffer>,
-    color_texture: Option<&'a Texture2D>,
+    color_texture: ColorRenderTarget<'a>,
     depth_texture: Option<&'b DepthTargetTexture2D>,
 }
 
@@ -21,7 +70,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: None,
-            color_texture: None,
+            color_texture: ColorRenderTarget::None,
             depth_texture: None,
         })
     }
@@ -37,7 +86,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_texture: None,
+            color_texture: ColorRenderTarget::None,
             depth_texture: Some(depth_texture),
         })
     }
@@ -53,7 +102,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_texture: Some(color_texture),
+            color_texture: ColorRenderTarget::Texture2D(color_texture),
             depth_texture: Some(depth_texture),
         })
     }
@@ -73,7 +122,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(Self {
             context: context.clone(),
             id: Some(new_framebuffer(context)?),
-            color_texture: Some(color_texture),
+            color_texture: ColorRenderTarget::Texture2D(color_texture),
             depth_texture: None,
         })
     }
@@ -84,28 +133,17 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     pub fn write(
         &self,
-        clear_state: ClearState,
+        mut clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         if self.id.is_some() {
-            clear(
-                &self.context,
-                &ClearState {
-                    red: self.color_texture.as_ref().and(clear_state.red),
-                    green: self.color_texture.as_ref().and(clear_state.green),
-                    blue: self.color_texture.as_ref().and(clear_state.blue),
-                    alpha: self.color_texture.as_ref().and(clear_state.alpha),
-                    depth: self.depth_texture.as_ref().and(clear_state.depth),
-                },
-            );
-        } else {
-            clear(&self.context, &clear_state);
+            clear_state = self.color_texture.clear_state(clear_state);
+            //TODO: also depth
         }
+        clear(&self.context, &clear_state);
         render()?;
-        if let Some(ref color_texture) = self.color_texture {
-            color_texture.generate_mip_maps();
-        }
+        self.color_texture.generate_mip_maps(&self.context)?;
         self.context.error_check()
     }
 
@@ -116,8 +154,10 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
     pub fn read_color<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        if self.id.is_some() && self.color_texture.is_none() {
-            Err(CoreError::RenderTargetRead("color".to_string()))?;
+        if let ColorRenderTarget::None = self.color_texture {
+            if self.id.is_some() {
+                Err(CoreError::RenderTargetRead("color".to_string()))?;
+            }
         }
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         self.bind(crate::context::READ_FRAMEBUFFER)?;
@@ -216,11 +256,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {
         unsafe {
             self.context.bind_framebuffer(target, self.id);
-            if let Some(ref tex) = self.color_texture {
-                self.context
-                    .draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-                tex.bind_as_color_target(0);
-            }
+            self.color_texture.bind(&self.context)?;
             if let Some(ref tex) = self.depth_texture {
                 tex.bind_as_depth_target();
             }
