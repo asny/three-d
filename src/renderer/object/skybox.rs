@@ -31,19 +31,19 @@ impl Skybox {
             | TextureData::RgbU8(_)
             | TextureData::RgU8(_)
             | TextureData::RU8(_) => {
-                TextureCubeMap::new_from_equirectangular::<Vector3<u8>>(context, cpu_texture)?
+                TextureCubeMap::new_from_equirectangular::<u8>(context, cpu_texture)?
             }
             TextureData::RgbaF16(_)
             | TextureData::RgbF16(_)
             | TextureData::RgF16(_)
             | TextureData::RF16(_) => {
-                TextureCubeMap::new_from_equirectangular::<Vector3<f16>>(context, cpu_texture)?
+                TextureCubeMap::new_from_equirectangular::<f16>(context, cpu_texture)?
             }
             TextureData::RgbaF32(_)
             | TextureData::RgbF32(_)
             | TextureData::RgF32(_)
             | TextureData::RF32(_) => {
-                TextureCubeMap::new_from_equirectangular::<Vector3<f32>>(context, cpu_texture)?
+                TextureCubeMap::new_from_equirectangular::<f32>(context, cpu_texture)?
             }
         };
 

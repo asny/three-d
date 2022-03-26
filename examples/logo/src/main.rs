@@ -69,11 +69,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     )
     .await
     .unwrap();
-    let environment_map = TextureCubeMap::new_from_equirectangular::<Vector3<f16>>(
-        &context,
-        &loaded.hdr_image("").unwrap(),
-    )
-    .unwrap();
+    let environment_map =
+        TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.hdr_image("").unwrap())
+            .unwrap();
     let light = AmbientLight {
         environment: Some(Environment::new(&context, &environment_map).unwrap()),
         ..Default::default()

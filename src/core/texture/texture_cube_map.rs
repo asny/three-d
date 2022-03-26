@@ -306,12 +306,12 @@ impl TextureCubeMap {
     ///
     /// Creates a new cube texture generated from the equirectangular texture given as input.
     ///
-    pub fn new_from_equirectangular<T: TextureDataType>(
+    pub fn new_from_equirectangular<T: PrimitiveDataType + TextureDataType>(
         context: &Context,
         cpu_texture: &CpuTexture,
     ) -> ThreeDResult<Self> {
         let texture_size = cpu_texture.width / 4;
-        let mut texture = Self::new_empty::<T>(
+        let mut texture = Self::new_empty::<[T; 4]>(
             &context,
             texture_size,
             texture_size,
