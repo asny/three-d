@@ -134,7 +134,8 @@ impl DeferredPipeline {
                 texture: self.geometry_pass_depth_texture.as_mut().unwrap(),
             },
         )?
-        .write(ClearState::default(), || {
+        .clear(ClearState::default())?
+        .write(|| {
             for (geometry, material) in objects
                 .iter()
                 .filter(|(g, _)| self.camera.in_frustum(&g.aabb()))

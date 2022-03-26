@@ -133,6 +133,17 @@ impl Texture2D {
         self.context.error_check()
     }
 
+    pub fn render_target(&mut self, mip_level: Option<u32>) -> ThreeDResult<RenderTarget> {
+        RenderTarget::new(
+            &self.context.clone(),
+            ColorTarget::Texture2D {
+                texture: self,
+                mip_level,
+            },
+            DepthTarget::None,
+        )
+    }
+
     ///
     /// Renders whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
@@ -145,15 +156,10 @@ impl Texture2D {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::new(
-            &self.context.clone(),
-            ColorTarget::Texture2D {
-                texture: self,
-                mip_level: None,
-            },
-            DepthTarget::None,
-        )?
-        .write(clear_state, render)
+        self.render_target(None)?
+            .clear(clear_state)?
+            .write(render)?;
+        Ok(())
     }
 
     ///
@@ -163,15 +169,7 @@ impl Texture2D {
     /// **Note:** On web, the data format needs to match the data format of this texture.
     ///
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        RenderTarget::new(
-            &self.context.clone(),
-            ColorTarget::Texture2D {
-                texture: self,
-                mip_level: None,
-            },
-            DepthTarget::None,
-        )?
-        .read_color(viewport)
+        self.render_target(None)?.read_color(viewport)
     }
 
     /// The width of this texture.

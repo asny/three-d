@@ -231,22 +231,25 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         )
     }
 
-    ///
-    /// Renders whatever rendered in the `render` closure into the textures defined at construction.
-    /// Before writing, the textures are cleared based on the given clear state.
-    ///
-    pub fn write(
-        &self,
-        mut clear_state: ClearState,
-        render: impl FnOnce() -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
+    pub fn clear(&self, mut clear_state: ClearState) -> ThreeDResult<&Self> {
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         self.color_target.clear_state(&mut clear_state);
         self.depth_target.clear_state(&mut clear_state);
         clear(&self.context, &clear_state);
+        self.context.error_check()?;
+        Ok(self)
+    }
+
+    ///
+    /// Renders whatever rendered in the `render` closure into the textures defined at construction.
+    /// Before writing, the textures are cleared based on the given clear state.
+    ///
+    pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
+        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         render()?;
         self.color_target.generate_mip_maps();
-        self.context.error_check()
+        self.context.error_check()?;
+        Ok(self)
     }
 
     ///
@@ -319,8 +322,8 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         depth_texture: Option<&DepthTargetTexture2D>,
         viewport: Viewport,
         write_mask: WriteMask,
-    ) -> ThreeDResult<()> {
-        self.write(ClearState::none(), || {
+    ) -> ThreeDResult<&Self> {
+        self.write(|| {
             copy_from(
                 &self.context,
                 color_texture,
@@ -341,8 +344,8 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
         viewport: Viewport,
         write_mask: WriteMask,
-    ) -> ThreeDResult<()> {
-        self.write(ClearState::none(), || {
+    ) -> ThreeDResult<&Self> {
+        self.write(|| {
             copy_from_array(
                 &self.context,
                 color_texture,

@@ -197,13 +197,11 @@ impl ImpostersMaterial {
                         texture: &mut depth_texture,
                     },
                 )?
-                .write(
-                    ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
-                    || {
-                        render_pass(&camera, objects, lights)?;
-                        Ok(())
-                    },
-                )?;
+                .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))?
+                .write(|| {
+                    render_pass(&camera, objects, lights)?;
+                    Ok(())
+                })?;
             }
         }
         Ok(())

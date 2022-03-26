@@ -16,7 +16,10 @@ impl Screen {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::screen(context, 0, 0).write(clear_state, render)
+        RenderTarget::screen(context, 0, 0)
+            .clear(clear_state)?
+            .write(render)?;
+        Ok(())
     }
 
     ///
@@ -51,7 +54,8 @@ impl Screen {
             depth_texture,
             viewport,
             write_mask,
-        )
+        )?;
+        Ok(())
     }
 
     ///
@@ -70,6 +74,7 @@ impl Screen {
             depth_texture,
             viewport,
             write_mask,
-        )
+        )?;
+        Ok(())
     }
 }
