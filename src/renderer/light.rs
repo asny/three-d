@@ -75,9 +75,15 @@ impl Lights {
     }
 
     pub fn use_uniforms(&self, program: &Program, camera: &Camera) -> ThreeDResult<()> {
-        program.use_uniform_vec3("eyePosition", camera.position())?;
-        for (i, light) in LightsIterator::new(self).enumerate() {
-            light.use_uniforms(program, i as u32)?;
+        if self.ambient.is_some()
+            || self.directional.len() > 0
+            || self.spot.len() > 0
+            || self.point.len() > 0
+        {
+            program.use_uniform_vec3("eyePosition", camera.position())?;
+            for (i, light) in LightsIterator::new(self).enumerate() {
+                light.use_uniforms(program, i as u32)?;
+            }
         }
         Ok(())
     }
