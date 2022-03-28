@@ -142,25 +142,39 @@ impl Material for PhysicalMaterial {
         lights: &Lights,
     ) -> ThreeDResult<()> {
         lights.use_uniforms(program, camera)?;
-        program.use_uniform_float("metallic", &self.metallic)?;
-        program.use_uniform_float("roughness", &self.roughness)?;
-        program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
+        if program.requires_uniform("metallic") {
+            program.use_uniform_float("metallic", &self.metallic)?;
+        }
+        if program.requires_uniform("roughness") {
+            program.use_uniform_float("roughness", &self.roughness)?;
+        }
+        if program.requires_uniform("albedo") {
+            program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
+        }
         if program.requires_uniform("emissive") {
             program.use_uniform_vec3("emissive", &self.emissive.to_vec3())?;
         }
-        if let Some(ref texture) = self.albedo_texture {
-            program.use_texture("albedoTexture", texture.as_ref())?;
+        if program.requires_uniform("albedoTexture") {
+            if let Some(ref texture) = self.albedo_texture {
+                program.use_texture("albedoTexture", texture.as_ref())?;
+            }
         }
-        if let Some(ref texture) = self.metallic_roughness_texture {
-            program.use_texture("metallicRoughnessTexture", texture.as_ref())?;
+        if program.requires_uniform("metallicRoughnessTexture") {
+            if let Some(ref texture) = self.metallic_roughness_texture {
+                program.use_texture("metallicRoughnessTexture", texture.as_ref())?;
+            }
         }
-        if let Some(ref texture) = self.occlusion_texture {
-            program.use_uniform_float("occlusionStrength", &self.occlusion_strength)?;
-            program.use_texture("occlusionTexture", texture.as_ref())?;
+        if program.requires_uniform("occlusionTexture") {
+            if let Some(ref texture) = self.occlusion_texture {
+                program.use_uniform_float("occlusionStrength", &self.occlusion_strength)?;
+                program.use_texture("occlusionTexture", texture.as_ref())?;
+            }
         }
-        if let Some(ref texture) = self.normal_texture {
-            program.use_uniform_float("normalScale", &self.normal_scale)?;
-            program.use_texture("normalTexture", texture.as_ref())?;
+        if program.requires_uniform("normalTexture") {
+            if let Some(ref texture) = self.normal_texture {
+                program.use_uniform_float("normalScale", &self.normal_scale)?;
+                program.use_texture("normalTexture", texture.as_ref())?;
+            }
         }
         if program.requires_uniform("emissiveTexture") {
             if let Some(ref texture) = self.emissive_texture {
