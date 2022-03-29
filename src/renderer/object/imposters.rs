@@ -31,7 +31,7 @@ impl Imposters {
         objects
             .iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
-        let mut sprites = Sprites::new(context, positions)?;
+        let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)))?;
         sprites.set_transformation(get_sprite_transform(aabb));
         Ok(Imposters {
             sprites,
