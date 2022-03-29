@@ -53,6 +53,10 @@ This is the recomended starting point for a gentle introduction to `three-d`.
 
 ![Shapes example](https://asny.github.io/three-d/0.11/shapes.png)
 
+## Sprites [[code](https://github.com/asny/three-d/tree/master/examples/sprites/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/sprites.html)]
+
+![Sprites example](https://asny.github.io/three-d/0.11/sprites.png)
+
 ## Texture [[code](https://github.com/asny/three-d/tree/master/examples/texture/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/texture.html)]
 
 ![Texture example](https://asny.github.io/three-d/0.11/texture.png)
