@@ -6,16 +6,16 @@ uniform float roughness;
 uniform sampler3D tex;
 uniform vec3 size;
 uniform float threshold;
+uniform vec3 h;
 
 in vec3 pos;
 
 layout (location = 0) out vec4 outColor;
 
 vec3 estimate_normal(vec3 uvw) {
-    float h = 0.01;
-    float x = texture(tex, uvw + vec3(h, 0.0, 0.0)).r - texture(tex, uvw - vec3(h, 0.0, 0.0)).r;
-    float y = texture(tex, uvw + vec3(0.0, h, 0.0)).r - texture(tex, uvw - vec3(0.0, h, 0.0)).r;
-    float z = texture(tex, uvw + vec3(0.0, 0.0, h)).r - texture(tex, uvw - vec3(0.0, 0.0, h)).r;
+    float x = texture(tex, uvw + vec3(h.x, 0.0, 0.0)).r - texture(tex, uvw - vec3(h.x, 0.0, 0.0)).r;
+    float y = texture(tex, uvw + vec3(0.0, h.y, 0.0)).r - texture(tex, uvw - vec3(0.0, h.y, 0.0)).r;
+    float z = texture(tex, uvw + vec3(0.0, 0.0, h.z)).r - texture(tex, uvw - vec3(0.0, 0.0, h.z)).r;
     return -normalize(vec3(x, y, z) / (2.0 * h));
 }
 
