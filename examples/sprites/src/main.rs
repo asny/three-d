@@ -1,13 +1,14 @@
 // Entry point for non-wasm
 #[cfg(not(target_arch = "wasm32"))]
-fn main() {
+#[tokio::main]
+async fn main() {
     let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a)));
+    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
 }
 
 use three_d::*;
 
-pub fn run(screenshot: Option<std::path::PathBuf>) {
+pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let window = Window::new(WindowSettings {
         title: "Sprites!".to_string(),
         max_size: Some((1280, 720)),
@@ -31,6 +32,18 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
 
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
 
+    let img = Loader::load_async(&["examples/assets/test_texture.jpg"])
+        .await
+        .unwrap()
+        .image("")
+        .unwrap();
+    let sprites = Sprites::new(&context, &[vec3(0.0, 0.0, 0.0)]).unwrap();
+    let material = ColorMaterial {
+        color: Color::WHITE,
+        texture: Some(std::rc::Rc::new(Texture2D::new(&context, &img).unwrap())),
+        ..Default::default()
+    };
+
     let ambient = AmbientLight::new(&context, 1.0, Color::WHITE).unwrap();
 
     window
@@ -44,7 +57,17 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
                 &context,
                 ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                 || {
-                    render_pass(&camera, &[&axes], &[&ambient])?;
+                    render_pass(
+                        &camera,
+                        &[
+                            &axes,
+                            &Gm {
+                                geometry: &sprites,
+                                material: &material,
+                            },
+                        ],
+                        &[&ambient],
+                    )?;
                     Ok(())
                 },
             )
