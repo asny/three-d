@@ -268,10 +268,10 @@ impl CpuMesh {
             vec4(1.0, 0.0, 0.0, 1.0),
         ];
         let uvs = vec![
-            vec2(0.0, 0.0),
-            vec2(1.0, 0.0),
-            vec2(1.0, 1.0),
             vec2(0.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(1.0, 0.0),
+            vec2(0.0, 0.0),
         ];
         CpuMesh {
             name: "square".to_string(),

@@ -22,7 +22,7 @@ vec3 reinhard_tone_mapping(vec3 color) {
 
 void main()
 {
-    outColor = texture(image, vec2(uv.x, 1.0 - uv.y));
+    outColor = texture(image, uv);
     outColor.rgb = reinhard_tone_mapping(outColor.rgb);
     outColor.rgb = srgb_from_rgb(outColor.rgb);
 }
