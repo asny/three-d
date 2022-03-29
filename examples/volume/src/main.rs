@@ -45,8 +45,8 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             size: cpu_volume.size,
             threshold: 0.9,
             color: Color::WHITE,
-            roughness: 0.6,
-            metallic: 0.8,
+            roughness: 1.0,
+            metallic: 0.0,
         },
     )
     .unwrap();
@@ -57,8 +57,10 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     ));
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
-    let directional =
+    let directional1 =
         DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0)).unwrap();
+    let directional2 =
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, 1.0, 1.0)).unwrap();
 
     // main loop
     let mut gui = three_d::GUI::new(&context).unwrap();
@@ -100,7 +102,11 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                 &context,
                 ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
                 || {
-                    render_pass(&camera, &[&volume], &[&ambient, &directional])?;
+                    render_pass(
+                        &camera,
+                        &[&volume],
+                        &[&ambient, &directional1, &directional2],
+                    )?;
                     gui.render()?;
                     Ok(())
                 },
