@@ -20,15 +20,15 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(0.0, 2.0, 5.0),
+        vec3(0.0, 15.0, 15.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
-        degrees(45.0),
+        degrees(60.0),
         0.1,
         1000.0,
     )
     .unwrap();
-    let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
+    let mut control = FlyControl::new(0.1);
 
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
 
@@ -46,20 +46,20 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let billboards = Sprites::new(
         &context,
         &[
-            vec3(-2.0, 0.0, 1.0),
-            vec3(-3.0, 0.0, 0.0),
-            vec3(-4.0, 0.0, -1.0),
+            vec3(-20.0, 0.0, -5.0),
+            vec3(-15.0, 0.0, -10.0),
+            vec3(-10.0, 0.0, -5.0),
         ],
-        Some(vec3(0.0, 1.0, 0.0)),
+        None,
     )
     .unwrap();
 
     let sprites_up = Sprites::new(
         &context,
         &[
-            vec3(1.0, 0.0, 1.0),
-            vec3(0.0, 0.0, 0.0),
-            vec3(-1.0, 0.0, -1.0),
+            vec3(5.0, 0.0, -5.0),
+            vec3(0.0, 0.0, -10.0),
+            vec3(-5.0, 0.0, -5.0),
         ],
         Some(vec3(0.0, 1.0, 0.0)),
     )
@@ -68,9 +68,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let sprites = Sprites::new(
         &context,
         &[
-            vec3(4.0, 0.0, 1.0),
-            vec3(3.0, 0.0, 0.0),
-            vec3(2.0, 0.0, -1.0),
+            vec3(20.0, 0.0, -5.0),
+            vec3(15.0, 0.0, -10.0),
+            vec3(10.0, 0.0, -5.0),
         ],
         Some(vec3(1.0, 1.0, 0.0).normalize()),
     )
