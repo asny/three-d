@@ -10,7 +10,11 @@ pub struct Sprites {
 }
 
 impl Sprites {
-    pub fn new(context: &Context, centers: &[Vec3]) -> ThreeDResult<Self> {
+    pub fn new(
+        context: &Context,
+        centers: &[Vec3],
+        up_direction: Option<Vec3>,
+    ) -> ThreeDResult<Self> {
         let position_buffer = VertexBuffer::new_with_data(
             &context,
             &[

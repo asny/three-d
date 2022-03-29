@@ -20,8 +20,8 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(5.0, 2.0, 2.5),
-        vec3(0.0, 0.0, -0.5),
+        vec3(0.0, 2.0, 5.0),
+        vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
@@ -37,12 +37,44 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         .unwrap()
         .image("")
         .unwrap();
-    let sprites = Sprites::new(&context, &[vec3(0.0, 0.0, 0.0)]).unwrap();
     let material = ColorMaterial {
         color: Color::WHITE,
         texture: Some(std::rc::Rc::new(Texture2D::new(&context, &img).unwrap())),
         ..Default::default()
     };
+
+    let billboards = Sprites::new(
+        &context,
+        &[
+            vec3(-2.0, 0.0, 1.0),
+            vec3(-3.0, 0.0, 0.0),
+            vec3(-4.0, 0.0, -1.0),
+        ],
+        Some(vec3(0.0, 1.0, 0.0)),
+    )
+    .unwrap();
+
+    let sprites_up = Sprites::new(
+        &context,
+        &[
+            vec3(1.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(-1.0, 0.0, -1.0),
+        ],
+        Some(vec3(0.0, 1.0, 0.0)),
+    )
+    .unwrap();
+
+    let sprites = Sprites::new(
+        &context,
+        &[
+            vec3(4.0, 0.0, 1.0),
+            vec3(3.0, 0.0, 0.0),
+            vec3(2.0, 0.0, -1.0),
+        ],
+        Some(vec3(1.0, 1.0, 0.0).normalize()),
+    )
+    .unwrap();
 
     let ambient = AmbientLight::new(&context, 1.0, Color::WHITE).unwrap();
 
@@ -61,6 +93,14 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                         &camera,
                         &[
                             &axes,
+                            &Gm {
+                                geometry: &billboards,
+                                material: &material,
+                            },
+                            &Gm {
+                                geometry: &sprites_up,
+                                material: &material,
+                            },
                             &Gm {
                                 geometry: &sprites,
                                 material: &material,
