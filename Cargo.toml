@@ -72,6 +72,10 @@ name = "shapes"
 path = "examples/shapes/src/main.rs"
 
 [[example]]
+name = "sprites"
+path = "examples/sprites/src/main.rs"
+
+[[example]]
 name = "texture"
 path = "examples/texture/src/main.rs"
 
