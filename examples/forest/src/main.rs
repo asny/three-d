@@ -20,10 +20,10 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(180.0, 40.0, 70.0),
-        vec3(0.0, 6.0, 0.0),
+        vec3(2800.0, 240.0, 1700.0),
+        vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
-        degrees(45.0),
+        degrees(60.0),
         0.1,
         10000.0,
     )
