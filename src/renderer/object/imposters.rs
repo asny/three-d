@@ -185,7 +185,7 @@ impl ImpostersMaterial {
                 for i in 0..NO_VIEW_ANGLES {
                     let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
                     camera.set_view(
-                        center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
+                        center + width * vec3(f32::cos(angle), 0.0, f32::sin(angle)),
                         center,
                         vec3(0.0, 1.0, 0.0),
                     )?;
