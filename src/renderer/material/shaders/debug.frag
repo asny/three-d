@@ -22,6 +22,7 @@ vec3 WorldPosFromDepth(float depth, vec2 uv) {
 
 void main()
 {
+    vec2 uv = vec2(uv.x, 1.0 - uv.y);
     float depth = texture(depthMap, vec3(uv,0)).r;
     if(depth > 0.99999)
     {

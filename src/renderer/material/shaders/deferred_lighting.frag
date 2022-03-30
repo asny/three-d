@@ -9,6 +9,7 @@ layout (location = 0) out vec4 outColor;
 
 void main()
 {
+    vec2 uv = vec2(uv.x, 1.0 - uv.y);
     float depth = texture(depthMap, vec3(uv,0)).r;
     if(depth > 0.99999)
     {
