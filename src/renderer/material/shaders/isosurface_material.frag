@@ -6,10 +6,18 @@ uniform float roughness;
 uniform sampler3D tex;
 uniform vec3 size;
 uniform float threshold;
+uniform vec3 h;
 
 in vec3 pos;
 
 layout (location = 0) out vec4 outColor;
+
+vec3 estimate_normal(vec3 uvw) {
+    float x = texture(tex, uvw + vec3(h.x, 0.0, 0.0)).r - texture(tex, uvw - vec3(h.x, 0.0, 0.0)).r;
+    float y = texture(tex, uvw + vec3(0.0, h.y, 0.0)).r - texture(tex, uvw - vec3(0.0, h.y, 0.0)).r;
+    float z = texture(tex, uvw + vec3(0.0, 0.0, h.z)).r - texture(tex, uvw - vec3(0.0, 0.0, h.z)).r;
+    return -normalize(vec3(x, y, z) / (2.0 * h));
+}
 
 void main() {
     int steps = 200;
@@ -21,9 +29,10 @@ void main() {
             outColor = vec4(0.0, 0.0, 0.0, 0.0);
             break;
         }
-        float color = texture(tex, (p / size) + 0.5).r;
-        if(color >= threshold) {
-            vec3 normal = vec3(0.0, 1.0, 0.0);
+        vec3 uvw = (p / size) + 0.5;
+        float value = texture(tex, uvw).r;
+        if(value >= threshold) {
+            vec3 normal = estimate_normal(uvw);
             outColor.rgb = calculate_lighting(surface_color.rgb, p, normal, metallic, roughness, 1.0);
             outColor.rgb = reinhard_tone_mapping(outColor.rgb);
             outColor.rgb = srgb_from_rgb(outColor.rgb);

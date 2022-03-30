@@ -1,16 +1,27 @@
 use crate::core::*;
 use crate::renderer::*;
 
+///
+/// A set of sprites, ie. a set of quads that orients itself towards the camera.
+/// The sprites will always orient themselves towards the camera, but if a direction is specified, the sprite normals will also always be orthogonal to that direction.
+/// For example, if the up direction is specified, the sprites will rotate around the up direction trying to face the camera.
+/// Sprites are also known as billboards in the case where no direction is specified.
+///
 pub struct Sprites {
     context: Context,
     position_buffer: VertexBuffer,
     uv_buffer: VertexBuffer,
     center_buffer: InstanceBuffer,
     transformation: Mat4,
+    direction: Option<Vec3>,
 }
 
 impl Sprites {
-    pub fn new(context: &Context, centers: &[Vec3]) -> ThreeDResult<Self> {
+    ///
+    /// Create a new set of [Sprites] with the given centers. The centers also determines the number of sprites.
+    /// The sprites will always orient themselves towards the camera, but if a direction is specified, the sprite normals will always be orthogonal to that direction.
+    ///
+    pub fn new(context: &Context, centers: &[Vec3], direction: Option<Vec3>) -> ThreeDResult<Self> {
         let position_buffer = VertexBuffer::new_with_data(
             &context,
             &[
@@ -25,12 +36,12 @@ impl Sprites {
         let uv_buffer = VertexBuffer::new_with_data(
             &context,
             &[
-                vec2(0.0, 0.0),
-                vec2(1.0, 0.0),
-                vec2(1.0, 1.0),
-                vec2(1.0, 1.0),
                 vec2(0.0, 1.0),
+                vec2(1.0, 1.0),
+                vec2(1.0, 0.0),
+                vec2(1.0, 0.0),
                 vec2(0.0, 0.0),
+                vec2(0.0, 1.0),
             ],
         )?;
         Ok(Self {
@@ -39,6 +50,7 @@ impl Sprites {
             uv_buffer,
             center_buffer: InstanceBuffer::new_with_data(context, centers)?,
             transformation: Mat4::identity(),
+            direction,
         })
     }
 
@@ -56,6 +68,16 @@ impl Sprites {
         self.transformation = transformation;
     }
 
+    ///
+    /// Set a direction the sprite normals are always orthogonal to.
+    ///
+    pub fn set_direction(&mut self, direction: Option<Vec3>) {
+        self.direction = direction;
+    }
+
+    ///
+    /// Set the centers of the sprites. The centers also determines the number of sprites.
+    ///
     pub fn set_centers(&mut self, centers: &[Vec3]) -> ThreeDResult<()> {
         self.center_buffer.fill(centers)
     }
@@ -79,6 +101,7 @@ impl Geometry for Sprites {
                 program.use_vertex_attribute("position", &self.position_buffer)?;
                 program.use_vertex_attribute("uv_coordinate", &self.uv_buffer)?;
                 program.use_instance_attribute("center", &self.center_buffer)?;
+                program.use_uniform("direction", self.direction.unwrap_or(vec3(0.0, 0.0, 0.0)))?;
                 program.draw_arrays_instanced(
                     material.render_states(),
                     camera.viewport(),

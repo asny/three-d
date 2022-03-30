@@ -31,7 +31,7 @@ impl Imposters {
         objects
             .iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
-        let mut sprites = Sprites::new(context, positions)?;
+        let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)))?;
         sprites.set_transformation(get_sprite_transform(aabb));
         Ok(Imposters {
             sprites,
@@ -164,8 +164,8 @@ impl ImpostersMaterial {
                 texture_width,
                 texture_height,
                 NO_VIEW_ANGLES,
-                Interpolation::Nearest,
-                Interpolation::Nearest,
+                Interpolation::Linear,
+                Interpolation::Linear,
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
@@ -182,7 +182,7 @@ impl ImpostersMaterial {
                 let layers = [i];
                 let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
                 camera.set_view(
-                    center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
+                    center + width * vec3(f32::cos(angle), 0.0, f32::sin(angle)),
                     center,
                     vec3(0.0, 1.0, 0.0),
                 )?;

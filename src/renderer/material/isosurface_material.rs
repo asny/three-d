@@ -45,6 +45,14 @@ impl Material for IsourfaceMaterial {
         program.use_uniform("roughness", self.roughness)?;
         program.use_uniform("size", self.size)?;
         program.use_uniform("threshold", self.threshold)?;
+        program.use_uniform(
+            "h",
+            vec3(
+                1.0 / self.voxels.width() as f32,
+                1.0 / self.voxels.height() as f32,
+                1.0 / self.voxels.depth() as f32,
+            ),
+        )?;
         program.use_texture("tex", &self.voxels)
     }
     fn render_states(&self) -> RenderStates {
