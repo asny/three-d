@@ -90,8 +90,8 @@ pub fn cmp_render_order(
 
 ///
 /// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
-/// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
-/// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
+/// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
+/// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
 /// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
 ///
 pub fn pick(

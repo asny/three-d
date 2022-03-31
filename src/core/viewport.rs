@@ -5,7 +5,7 @@
 pub struct Viewport {
     /// The distance in pixels from the left edge of the screen/render target.
     pub x: i32,
-    /// The distance in pixels from the top edge of the screen/render target.
+    /// The distance in pixels from the bottom edge of the screen/render target.
     pub y: i32,
     /// The width of the viewport.
     pub width: u32,
