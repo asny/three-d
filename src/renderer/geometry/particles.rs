@@ -59,7 +59,12 @@ impl Particles {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_data(context, uvs)?)
+            Some(VertexBuffer::new_with_data(
+                context,
+                &uvs.iter()
+                    .map(|uv| vec2(uv.x, 1.0 - uv.y))
+                    .collect::<Vec<_>>(),
+            )?)
         } else {
             None
         };

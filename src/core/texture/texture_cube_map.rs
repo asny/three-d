@@ -336,7 +336,7 @@ impl TextureCubeMap {
                 vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
                 uv *= invAtan;
                 uv += 0.5;
-                return vec2(uv.x, 1.0 - uv.y);
+                return uv;
             }
             
             void main()
