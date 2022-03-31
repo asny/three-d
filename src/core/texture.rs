@@ -98,7 +98,8 @@ impl Format {
 }
 
 ///
-/// The pixel data for a [CpuTexture].
+/// The pixel/texel data for a [CpuTexture].
+/// The data array must start with the top left pixel and then one row at a time.
 ///
 #[derive(Clone)]
 pub enum TextureData {
