@@ -116,6 +116,8 @@ impl Texture2D {
     pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         check_data_length(self.width, self.height, 1, self.data_byte_size, data)?;
         self.bind();
+        let mut data = data.to_owned();
+        flip_y(&mut data, self.width as usize, self.height as usize);
         unsafe {
             self.context.tex_sub_image_2d(
                 crate::context::TEXTURE_2D,
@@ -126,7 +128,7 @@ impl Texture2D {
                 self.height as i32,
                 format_from_data_type::<T>(),
                 T::data_type(),
-                crate::context::PixelUnpackData::Slice(to_byte_slice(data)),
+                crate::context::PixelUnpackData::Slice(to_byte_slice(&data)),
             );
         }
         self.generate_mip_maps();

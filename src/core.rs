@@ -151,3 +151,13 @@ fn format_from_data_type<T: DataType>() -> u32 {
         _ => unreachable!(),
     }
 }
+
+fn flip_y<T: TextureDataType>(pixels: &mut [T], width: usize, height: usize) {
+    for row in 0..height / 2 {
+        for col in 0..width {
+            let index0 = width * row + col;
+            let index1 = width * (height - row - 1) + col;
+            pixels.swap(index0, index1);
+        }
+    }
+}

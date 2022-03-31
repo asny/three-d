@@ -126,7 +126,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         if data_size / T::size() as usize == 1 {
             data_size *= 4 / T::size() as usize
         }
-        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * data_size];
+        let mut bytes = vec![0u8; viewport.width as usize * viewport.height as usize * data_size];
         unsafe {
             self.context.read_pixels(
                 viewport.x as i32,
@@ -135,11 +135,17 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
                 viewport.height as i32,
                 format_from_data_type::<T>(),
                 T::data_type(),
-                crate::context::PixelPackData::Slice(&mut pixels),
+                crate::context::PixelPackData::Slice(&mut bytes),
             );
             self.context.error_check()?;
-            Ok(from_byte_slice(&pixels).to_vec())
         }
+        let mut pixels = from_byte_slice(&bytes).to_vec();
+        flip_y(
+            &mut pixels,
+            viewport.width as usize,
+            viewport.height as usize,
+        );
+        Ok(pixels)
     }
 
     ///
