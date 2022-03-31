@@ -28,11 +28,11 @@ use crate::renderer::*;
 /// thereby creating an [Object] which can be used in a render call, for example [render_pass].
 ///
 /// If requested by the material, the geometry has to support the following attributes in the vertex shader source code.
-/// - position (in world space): `out vec3 pos;`
+/// - position: `out vec3 pos;` (must be in world space)
 /// - normal: `out vec3 nor;`
 /// - tangent: `out vec3 tang;`
 /// - bitangent: `out vec3 bitang;`
-/// - uv coordinates: `out vec2 uvs;`
+/// - uv coordinates: `out vec2 uvs;` (must be flipped in v compared to standard uv coordinates, ie. do `uvs = vec2(uvs.x, 1.0 - uvs.y);` in the vertex shader or do the flip before constructing the uv coordinates vertex buffer)
 /// - color: `out vec4 col;`
 ///
 pub trait Geometry {
