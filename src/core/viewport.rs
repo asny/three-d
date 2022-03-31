@@ -1,5 +1,6 @@
 ///
 /// Defines the part of the screen/render target that is rendered to.
+/// All values should be given in physical pixels.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Viewport {
