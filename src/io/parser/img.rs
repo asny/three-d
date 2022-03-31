@@ -294,17 +294,9 @@ impl Saver {
         width: u32,
         height: u32,
     ) -> ThreeDResult<()> {
-        let mut pixels_out = vec![[0u8; 4]; width as usize * height as usize];
-        for row in 0..height as usize {
-            for col in 0..width as usize {
-                pixels_out[width as usize * (height as usize - row - 1) + col] =
-                    pixels[width as usize * row + col];
-            }
-        }
-
         image::save_buffer(
             path,
-            &pixels_out.iter().flatten().map(|v| *v).collect::<Vec<_>>(),
+            &pixels.iter().flatten().map(|v| *v).collect::<Vec<_>>(),
             width as u32,
             height as u32,
             image::ColorType::Rgba8,
