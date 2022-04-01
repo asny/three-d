@@ -1,13 +1,6 @@
-// Entry point for non-wasm
-#[cfg(not(target_arch = "wasm32"))]
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a)));
-}
-
 use three_d::*;
 
-pub fn run(screenshot: Option<std::path::PathBuf>) {
+pub fn main() {
     let window = Window::new(WindowSettings {
         title: "Shapes 2D!".to_string(),
         max_size: Some((1280, 720)),
@@ -95,17 +88,7 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
             )
             .unwrap();
 
-            if let Some(ref screenshot) = screenshot {
-                // To automatically generate screenshots of the examples, can safely be ignored.
-                FrameOutput {
-                    screenshot: Some(screenshot.clone()),
-                    exit: true,
-                    ..Default::default()
-                }
-            } else {
-                // Returns default frame output to end the frame
-                FrameOutput::default()
-            }
+            FrameOutput::default()
         })
         .unwrap();
 }

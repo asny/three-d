@@ -144,7 +144,16 @@ impl Window {
                     };
                     first_frame = false;
                     events.clear();
-                    let frame_output = callback(frame_input);
+                    let mut frame_output = callback(frame_input);
+                    if let Ok(v) = std::env::var("THREE_D_SCREENSHOT") {
+                        frame_output.screenshot = Some(v.into());
+                    }
+                    if let Ok(v) = std::env::var("THREE_D_EXIT") {
+                        if v.parse::<f64>().unwrap() < accumulated_time {
+                            frame_output.exit = true;
+                        }
+                    }
+
                     if frame_output.exit {
                         *control_flow = ControlFlow::Exit;
                     } else {

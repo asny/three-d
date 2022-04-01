@@ -52,11 +52,10 @@ impl Material for FireworksMaterial {
 // Entry point for non-wasm
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a)));
+    run();
 }
 
-pub fn run(screenshot: Option<std::path::PathBuf>) {
+pub fn run() {
     let window = Window::new(WindowSettings {
         title: "Fireworks!".to_string(),
         max_size: Some((1280, 720)),
@@ -148,16 +147,7 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
             })
             .unwrap();
 
-            if screenshot.is_some() && particles.time > explosion_time * 0.5 {
-                // To automatically generate screenshots of the examples, can safely be ignored.
-                FrameOutput {
-                    screenshot: screenshot.clone(),
-                    exit: true,
-                    ..Default::default()
-                }
-            } else {
-                FrameOutput::default()
-            }
+            FrameOutput::default()
         })
         .unwrap();
 }
