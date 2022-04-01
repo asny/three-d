@@ -2,13 +2,12 @@
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+    run().await;
 }
 
 use three_d::*;
 
-pub async fn run(screenshot: Option<std::path::PathBuf>) {
+pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "PBR!".to_string(),
         min_size: (512, 512),
@@ -142,16 +141,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             )
             .unwrap();
 
-            if let Some(ref screenshot) = screenshot {
-                // To automatically generate screenshots of the examples, can safely be ignored.
-                FrameOutput {
-                    screenshot: Some(screenshot.clone()),
-                    exit: true,
-                    ..Default::default()
-                }
-            } else {
-                FrameOutput::default()
-            }
+            FrameOutput::default()
         })
         .unwrap();
 }
