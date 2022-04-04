@@ -420,49 +420,7 @@ impl std::fmt::Debug for CpuTextureCube {
     }
 }
 
-mod internal {
-    pub trait TextureExtensions {
-        fn bind(&self);
-    }
-    impl<T: TextureExtensions + ?Sized> TextureExtensions for &T {
-        fn bind(&self) {
-            (*self).bind()
-        }
-    }
-    impl<T: TextureExtensions + ?Sized> TextureExtensions for &mut T {
-        fn bind(&self) {
-            (**self).bind()
-        }
-    }
-    impl<T: TextureExtensions> TextureExtensions for Box<T> {
-        fn bind(&self) {
-            self.as_ref().bind()
-        }
-    }
-    impl<T: TextureExtensions> TextureExtensions for std::rc::Rc<T> {
-        fn bind(&self) {
-            self.as_ref().bind()
-        }
-    }
-    impl<T: TextureExtensions> TextureExtensions for std::rc::Rc<std::cell::RefCell<T>> {
-        fn bind(&self) {
-            self.borrow().bind()
-        }
-    }
-}
-
 use crate::core::*;
-
-///
-/// A texture that can be sampled in a fragment shader (see [Program::use_texture].
-///
-pub trait Texture: internal::TextureExtensions {}
-
-impl<T: Texture + ?Sized> Texture for &T {}
-impl<T: Texture + ?Sized> Texture for &mut T {}
-impl<T: Texture> Texture for Box<T> {}
-impl<T: Texture> Texture for std::rc::Rc<T> {}
-impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {}
 
 // COMMON TEXTURE FUNCTIONS
 

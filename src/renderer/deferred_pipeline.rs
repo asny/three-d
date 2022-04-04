@@ -167,8 +167,10 @@ impl DeferredPipeline {
                         (camera.projection() * camera.view()).invert().unwrap(),
                     )?;
                     debug_effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
-                    debug_effect
-                        .use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
+                    debug_effect.use_depth_texture_array(
+                        "depthMap",
+                        self.geometry_pass_depth_texture_array(),
+                    )?;
                     if self.debug_type == DebugType::DEPTH {
                         debug_effect.use_uniform("zNear", camera.z_near())?;
                         debug_effect.use_uniform("zFar", camera.z_far())?;
@@ -196,7 +198,7 @@ impl DeferredPipeline {
                 light.use_uniforms(effect, i as u32)?;
             }
             effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
-            effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
+            effect.use_depth_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
             effect.use_uniform_if_required(
                 "viewProjectionInverse",
                 (camera.projection() * camera.view()).invert().unwrap(),

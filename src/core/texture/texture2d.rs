@@ -190,21 +190,13 @@ impl Texture2D {
             );
         }
     }
-    fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
                 .bind_texture(crate::context::TEXTURE_2D, Some(self.id));
         }
     }
 }
-
-impl internal::TextureExtensions for Texture2D {
-    fn bind(&self) {
-        self.bind();
-    }
-}
-
-impl Texture for Texture2D {}
 
 impl Drop for Texture2D {
     fn drop(&mut self) {

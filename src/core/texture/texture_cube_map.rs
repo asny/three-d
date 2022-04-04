@@ -436,21 +436,13 @@ impl TextureCubeMap {
         }
     }
 
-    fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
                 .bind_texture(crate::context::TEXTURE_CUBE_MAP, Some(self.id));
         }
     }
 }
-
-impl internal::TextureExtensions for TextureCubeMap {
-    fn bind(&self) {
-        self.bind();
-    }
-}
-
-impl Texture for TextureCubeMap {}
 
 impl Drop for TextureCubeMap {
     fn drop(&mut self) {

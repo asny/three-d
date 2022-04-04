@@ -96,21 +96,13 @@ impl DepthTargetTextureCubeMap {
         }
     }
 
-    fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
                 .bind_texture(crate::context::TEXTURE_CUBE_MAP, Some(self.id));
         }
     }
 }
-
-impl super::internal::TextureExtensions for DepthTargetTextureCubeMap {
-    fn bind(&self) {
-        self.bind();
-    }
-}
-
-impl Texture for DepthTargetTextureCubeMap {}
 
 impl Drop for DepthTargetTextureCubeMap {
     fn drop(&mut self) {
