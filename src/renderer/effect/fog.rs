@@ -27,7 +27,14 @@ impl FogEffect {
             color,
             density,
             animation,
-            image_effect: ImageEffect::new(context, include_str!("shaders/fog.frag"))?,
+            image_effect: ImageEffect::new(
+                context,
+                &format!(
+                    "{}{}",
+                    include_str!("../../core/shared.frag"),
+                    include_str!("shaders/fog.frag")
+                ),
+            )?,
         })
     }
 
