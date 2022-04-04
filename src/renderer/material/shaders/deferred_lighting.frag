@@ -31,8 +31,9 @@ void main()
     vec3 normal = normalize(vec3(n2.x, n2.y, (int(floor(n.z * 255.0)) & 128) == 128 ? z: -z));
     float roughness_factor = n.w;
     float occlusion = float(int(floor(n.z * 255.0)) & 127) / 127.0;
+    vec3 total_emissive = texture(gbuffer, vec3(uv, 2)).rgb;
 
-    outColor.rgb = calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);
+    outColor.rgb = total_emissive + calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);
     outColor.rgb = reinhard_tone_mapping(outColor.rgb);
     outColor.rgb = srgb_from_rgb(outColor.rgb);
     outColor.a = surface_color.a;

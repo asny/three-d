@@ -33,6 +33,10 @@ pub struct DeferredPhysicalMaterial {
     pub normal_texture: Option<Rc<Texture2D>>,
     /// Render states
     pub render_states: RenderStates,
+    /// Color of light shining from an object.
+    pub emissive: Color,
+    /// Texture with color of light shining from an object.
+    pub emissive_texture: Option<Rc<Texture2D>>,
     /// Alpha cutout value for transparency in deferred rendering pipeline.
     pub alpha_cutout: Option<f32>,
 }
@@ -73,6 +77,11 @@ impl DeferredPhysicalMaterial {
         } else {
             None
         };
+        let emissive_texture = if let Some(ref cpu_texture) = cpu_material.emissive_texture {
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+        } else {
+            None
+        };
         Ok(Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
@@ -86,6 +95,8 @@ impl DeferredPhysicalMaterial {
             occlusion_strength: cpu_material.occlusion_strength,
             render_states: RenderStates::default(),
             alpha_cutout: cpu_material.alpha_cutout,
+            emissive: cpu_material.emissive,
+            emissive_texture,
         })
     }
 
@@ -109,6 +120,8 @@ impl DeferredPhysicalMaterial {
                 blend: Blend::Disabled,
                 ..physical_material.render_states
             },
+            emissive: physical_material.emissive,
+            emissive_texture: physical_material.emissive_texture.clone(),
             alpha_cutout: if physical_material.is_transparent {
                 Some(0.5)
             } else {
@@ -125,6 +138,7 @@ impl Material for DeferredPhysicalMaterial {
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
             || self.occlusion_texture.is_some()
+            || self.emissive_texture.is_some()
             || self.alpha_cutout.is_some()
         {
             output.push_str("in vec2 uvs;\n");
@@ -139,6 +153,9 @@ impl Material for DeferredPhysicalMaterial {
             }
             if self.normal_texture.is_some() {
                 output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
+            }
+            if self.emissive_texture.is_some() {
+                output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
             }
             if self.alpha_cutout.is_some() {
                 output.push_str(
@@ -166,6 +183,7 @@ impl Material for DeferredPhysicalMaterial {
         program.use_uniform("metallic", self.metallic)?;
         program.use_uniform("roughness", self.roughness)?;
         program.use_uniform("albedo", self.albedo)?;
+        program.use_uniform("emissive", self.emissive)?;
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture)?;
         }
@@ -179,6 +197,11 @@ impl Material for DeferredPhysicalMaterial {
         if let Some(ref texture) = self.normal_texture {
             program.use_uniform("normalScale", self.normal_scale)?;
             program.use_texture("normalTexture", texture)?;
+        }
+        if program.requires_uniform("emissiveTexture") {
+            if let Some(ref texture) = self.emissive_texture {
+                program.use_texture("emissiveTexture", texture)?;
+            }
         }
         Ok(())
     }
@@ -207,6 +230,8 @@ impl Default for DeferredPhysicalMaterial {
             occlusion_strength: 1.0,
             render_states: RenderStates::default(),
             alpha_cutout: None,
+            emissive: Color::BLACK,
+            emissive_texture: None,
         }
     }
 }
