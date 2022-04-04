@@ -7,6 +7,11 @@ uniform vec4 albedo;
 uniform sampler2D albedoTexture;
 #endif
 
+uniform vec4 emissive;
+#ifdef USE_EMISSIVE_TEXTURE
+uniform sampler2D emissiveTexture;
+#endif
+
 #ifdef USE_METALLIC_ROUGHNESS_TEXTURE
 uniform sampler2D metallicRoughnessTexture;
 #endif
@@ -26,6 +31,7 @@ in vec3 nor;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 outNormal;
+layout (location = 2) out vec4 outEmissive;
 
 void main()
 {
@@ -62,6 +68,12 @@ void main()
     normal = tbn * ((2.0 * texture(normalTexture, uvs).xyz - 1.0) * vec3(normalScale, normalScale, 1.0));
 #endif
 
+    vec3 total_emissive = emissive.rgb;
+#ifdef USE_EMISSIVE_TEXTURE
+    vec4 e = texture(emissiveTexture, uvs);
+    total_emissive *= rgb_from_srgb(e.rgb);
+#endif
+
     outColor = vec4(surface_color.rgb, metallic_factor);
     int o = int(occlusion * 127.0);
     int nz = 1;
@@ -69,4 +81,5 @@ void main()
         nz = 0;
     }
     outNormal = vec4(0.5 * normal.xy + 0.5, float(o | nz << 7)/255.0, roughness_factor);
+    outEmissive = vec4(total_emissive, 0.0);
 }

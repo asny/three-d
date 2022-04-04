@@ -55,7 +55,7 @@ impl DeferredPipeline {
                 context,
                 1,
                 1,
-                2,
+                3,
                 Interpolation::Nearest,
                 Interpolation::Nearest,
                 None,
@@ -109,7 +109,7 @@ impl DeferredPipeline {
             &self.context,
             viewport.width,
             viewport.height,
-            2,
+            3,
             Interpolation::Nearest,
             Interpolation::Nearest,
             None,
@@ -130,7 +130,7 @@ impl DeferredPipeline {
             self.geometry_pass_texture.as_mut().unwrap(),
             self.geometry_pass_depth_texture.as_mut().unwrap(),
         )?
-        .write(&[0, 1], 0, ClearState::default(), || {
+        .write(&[0, 1, 2], 0, ClearState::default(), || {
             for (geometry, material) in objects
                 .iter()
                 .filter(|(g, _)| self.camera.in_frustum(&g.aabb()))
