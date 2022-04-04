@@ -137,21 +137,13 @@ impl Texture2DArray {
         }
     }
 
-    fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
                 .bind_texture(crate::context::TEXTURE_2D_ARRAY, Some(self.id));
         }
     }
 }
-
-impl super::internal::TextureExtensions for Texture2DArray {
-    fn bind(&self) {
-        self.bind();
-    }
-}
-
-impl Texture for Texture2DArray {}
 
 impl Drop for Texture2DArray {
     fn drop(&mut self) {
