@@ -14,12 +14,6 @@ uniform float zNear;
 uniform float zFar;
 uniform vec3 cameraPosition;
 
-vec3 WorldPosFromDepth(float depth, vec2 uv) {
-    vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-    vec4 position = viewProjectionInverse * clipSpacePosition;
-    return position.xyz / position.w;
-}
-
 void main()
 {
     float depth = texture(depthMap, vec3(uv,0)).r;
@@ -29,7 +23,7 @@ void main()
     }
     if(type == 0) // Position
     {
-        vec3 pos = WorldPosFromDepth(depth, uv);
+        vec3 pos = world_pos_from_depth(viewProjectionInverse, depth, uv);
         color = vec4(pos, 1.);
     }
     else if(type == 1) // Normal
@@ -49,7 +43,7 @@ void main()
     }
     else if(type == 3) // Depth
     {
-        vec3 pos = WorldPosFromDepth(depth, uv);
+        vec3 pos = world_pos_from_depth(viewProjectionInverse, depth, uv);
         float dist = (distance(pos, cameraPosition) - zNear) / (zFar - zNear);
         color = vec4(dist, dist, dist, 1.);
     }
