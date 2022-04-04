@@ -20,20 +20,23 @@ impl Loaded {
         );
         let bytes = &bytes[28..];
         let data = match bytes.len() as u32 / (width * height * depth) {
-            1 => TextureData::RU8(bytes.to_vec()),
+            1 => {
+                let data = bytes.to_vec();
+                TextureData::RU8(flip(data, width as usize, height as usize, depth as usize))
+            }
             2 => {
                 let mut data = Vec::new();
                 for i in 0..bytes.len() / 2 {
                     data.push([bytes[i * 2], bytes[i * 2 + 1]]);
                 }
-                TextureData::RgU8(data)
+                TextureData::RgU8(flip(data, width as usize, height as usize, depth as usize))
             }
             3 => {
                 let mut data = Vec::new();
                 for i in 0..bytes.len() / 3 {
                     data.push([bytes[i * 3], bytes[i * 3 + 1], bytes[i * 3 + 2]]);
                 }
-                TextureData::RgbU8(data)
+                TextureData::RgbU8(flip(data, width as usize, height as usize, depth as usize))
             }
             4 => {
                 let mut data = Vec::new();
@@ -45,7 +48,7 @@ impl Loaded {
                         bytes[i * 4 + 3],
                     ]);
                 }
-                TextureData::RgbaU8(data)
+                TextureData::RgbaU8(flip(data, width as usize, height as usize, depth as usize))
             }
             _ => Err(IOError::VolCorruptData)?,
         };
@@ -61,4 +64,18 @@ impl Loaded {
             ..Default::default()
         })
     }
+}
+
+fn flip<T: Default + Clone>(data: Vec<T>, width: usize, height: usize, depth: usize) -> Vec<T> {
+    let mut out_data = vec![T::default(); width * height * depth];
+    for x in 0..width {
+        for y in 0..height {
+            for z in 0..depth {
+                let id0 = x * depth * height + y * depth + z;
+                let id1 = z * width * height + y * width + x;
+                out_data[id1] = data[id0].clone();
+            }
+        }
+    }
+    out_data
 }
