@@ -191,13 +191,13 @@ impl DeferredPipeline {
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
-            effect.use_uniform("eyePosition", camera.position())?;
+            effect.use_uniform_if_required("eyePosition", camera.position())?;
             for (i, light) in lights.iter().enumerate() {
                 light.use_uniforms(effect, i as u32)?;
             }
             effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
             effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
-            effect.use_uniform(
+            effect.use_uniform_if_required(
                 "viewProjectionInverse",
                 (camera.projection() * camera.view()).invert().unwrap(),
             )?;

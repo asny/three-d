@@ -149,6 +149,20 @@ impl Program {
     }
 
     ///
+    /// Calls [Self::use_uniform] if [Self::requires_uniform] returns true.
+    ///
+    pub fn use_uniform_if_required<T: UniformDataType>(
+        &self,
+        name: &str,
+        data: T,
+    ) -> ThreeDResult<()> {
+        if self.requires_uniform(name) {
+            self.use_uniform(name, data)?;
+        }
+        Ok(())
+    }
+
+    ///
     /// Send the given array of uniform data to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of same type and length as the data, so if the data is an array of three [Vec2], the variable must be `uniform vec2[3]`.
     /// The uniform variable is uniformly available across all processing of vertices and fragments.
