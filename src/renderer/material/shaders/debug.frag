@@ -34,7 +34,7 @@ void main()
         if (z > 0.0001) {
             z = sqrt(z);
         }
-        vec3 normal = normalize(vec3(n2.x, n2.y, z));
+        vec3 normal = normalize(vec3(n2.x, n2.y, (int(floor(n.z * 255.0)) & 128) == 128 ? z: -z));
         color = vec4(normal * 0.5 + 0.5, 1.);
     }
     else if(type == 2) // Color
@@ -53,7 +53,7 @@ void main()
         float metallic = c.w;
         vec4 n = texture(gbuffer, vec3(uv, 1));
         float roughness = n.w;
-        float occlusion = n.z;
+        float occlusion = float(int(floor(n.z * 255.0)) & 127) / 127.0;
         color = vec4(occlusion, roughness, metallic, 1.0);
     }
     else if(type == 5) // UV

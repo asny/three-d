@@ -28,9 +28,9 @@ void main()
     if (z > 0.0001) {
         z = sqrt(z);
     }
-    vec3 normal = normalize(vec3(n2.x, n2.y, z));
+    vec3 normal = normalize(vec3(n2.x, n2.y, (int(floor(n.z * 255.0)) & 128) == 128 ? z: -z));
     float roughness_factor = n.w;
-    float occlusion = n.z;
+    float occlusion = float(int(floor(n.z * 255.0)) & 127) / 127.0;
 
     outColor.rgb = calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);
     outColor.rgb = reinhard_tone_mapping(outColor.rgb);
