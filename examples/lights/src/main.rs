@@ -32,6 +32,7 @@ pub async fn run() {
     )
     .unwrap();
     let mut control = FlyControl::new(1.0);
+    let mut gui = three_d::GUI::new(&context).unwrap();
 
     let mut loaded = Loader::load_async(
         &[
@@ -129,8 +130,9 @@ pub async fn run() {
         models.push(m);
     }
 
-    let min = aabb.min() + 0.3 * aabb.size();
-    let max = aabb.max() - 0.3 * aabb.size();
+    let size = aabb.size();
+    let min = aabb.min() + vec3(size.x * 0.1, size.y * 0.1, size.z * 0.4);
+    let max = aabb.max() - vec3(size.x * 0.1, size.y * 0.1, size.z * 0.4);
     let light_box = AxisAlignedBoundingBox::new_with_positions(&[min, max]);
     let mut lights = Vec::new();
     for _ in 0..20 {
@@ -138,17 +140,53 @@ pub async fn run() {
     }
 
     // main loop
+    let mut intensity = 0.1;
+    let mut constant = 1.0;
+    let mut linear = 0.00005;
+    let mut quadratic = 0.000005;
     window
         .render_loop(move |mut frame_input| {
-            camera.set_viewport(frame_input.viewport).unwrap();
+            let mut panel_width = frame_input.viewport.width;
+            gui.update(&mut frame_input, |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+                    ui.add(Slider::new::<f32>(&mut intensity, 0.0..=10.0).text("Light intensity"));
+                    ui.add(
+                        Slider::new::<f32>(&mut constant, 0.0..=10.0).text("Attenuation constant"),
+                    );
+                    ui.add(Slider::new::<f32>(&mut linear, 0.0..=0.01).text("Attenuation linear"));
+                    ui.add(
+                        Slider::new::<f32>(&mut quadratic, 0.0..=0.00001)
+                            .text("Attenuation quadratic"),
+                    );
+                });
+                panel_width = gui_context.used_size().x as u32;
+            })
+            .unwrap();
+
+            for light in lights.iter_mut() {
+                light.light.intensity = intensity;
+                light.light.attenuation = Attenuation {
+                    constant,
+                    linear,
+                    quadratic,
+                };
+                light.update(frame_input.elapsed_time as f32);
+            }
+
+            camera
+                .set_viewport(Viewport {
+                    x: panel_width as i32,
+                    y: 0,
+                    width: frame_input.viewport.width - panel_width,
+                    height: frame_input.viewport.height,
+                })
+                .unwrap();
+
             control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
-
-            let time = frame_input.elapsed_time as f32;
-            for light in lights.iter_mut() {
-                light.update(time);
-            }
 
             pipeline
                 .render_pass(
@@ -163,8 +201,12 @@ pub async fn run() {
                 || {
                     pipeline.lighting_pass(
                         &camera,
-                        &lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
+                        &lights
+                            .iter()
+                            .map(|l| &l.light as &dyn Light)
+                            .collect::<Vec<_>>(),
                     )?;
+                    gui.render()?;
                     Ok(())
                 },
             )
@@ -176,7 +218,7 @@ pub async fn run() {
 }
 
 struct Glow {
-    light: PointLight,
+    pub light: PointLight,
     velocity: Vec3,
     aabb: AxisAlignedBoundingBox,
 }
@@ -191,18 +233,8 @@ impl Glow {
         );
         Self {
             aabb,
-            light: PointLight::new(
-                &context,
-                0.4,
-                Color::WHITE,
-                &pos,
-                Attenuation {
-                    constant: 0.005,
-                    linear: 0.0005,
-                    quadratic: 0.00005,
-                },
-            )
-            .unwrap(),
+            light: PointLight::new(&context, 1.0, Color::WHITE, &pos, Attenuation::default())
+                .unwrap(),
             velocity: vec3(
                 rng.gen::<f32>() * 2.0 - 1.0,
                 rng.gen::<f32>() * 2.0 - 1.0,
@@ -210,10 +242,6 @@ impl Glow {
             )
             .normalize(),
         }
-    }
-
-    pub fn light(&self) -> &dyn Light {
-        &self.light
     }
 
     pub fn update(&mut self, time: f32) {
