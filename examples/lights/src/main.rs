@@ -140,10 +140,10 @@ pub async fn run() {
     }
 
     // main loop
-    let mut intensity = 0.1;
-    let mut constant = 1.0;
-    let mut linear = 0.00005;
-    let mut quadratic = 0.000005;
+    let mut intensity = 0.2;
+    let mut constant = 0.0;
+    let mut linear = 0.0025;
+    let mut quadratic = 0.00001;
     window
         .render_loop(move |mut frame_input| {
             let mut panel_width = frame_input.viewport.width;
