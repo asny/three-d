@@ -63,5 +63,10 @@ void main()
 #endif
 
     outColor = vec4(surface_color.rgb, metallic_factor);
-    outNormal = vec4(0.5 * normal.xy + 0.5, occlusion, roughness_factor);
+    int o = int(occlusion * 127.0);
+    int nz = 1;
+    if(normal.z < 0.0) {
+        nz = 0;
+    }
+    outNormal = vec4(0.5 * normal.xy + 0.5, float(o | nz << 7)/255.0, roughness_factor);
 }
