@@ -19,7 +19,7 @@ pub async fn run() {
     let mut primary_camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(-200.0, 200.0, 100.0),
+        vec3(-300.0, 250.0, 200.0),
         vec3(0.0, 100.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
@@ -31,7 +31,7 @@ pub async fn run() {
     let mut secondary_camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(-500.0, 700.0, 500.0),
+        vec3(-600.0, 600.0, 600.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
@@ -107,6 +107,36 @@ pub async fn run() {
                 .collect::<Vec<_>>(),
         )
         .unwrap();
+    // Bounding boxes
+    let mut aabb = AxisAlignedBoundingBox::EMPTY;
+    let mut bounding_boxes = Vec::new();
+    for geometry in models.iter() {
+        bounding_boxes.push(
+            BoundingBox::new_with_material_and_thickness(
+                &context,
+                geometry.aabb(),
+                ColorMaterial {
+                    color: Color::RED,
+                    ..Default::default()
+                },
+                0.5,
+            )
+            .unwrap(),
+        );
+        aabb.expand_with_aabb(&geometry.aabb());
+    }
+    bounding_boxes.push(
+        BoundingBox::new_with_material_and_thickness(
+            &context,
+            aabb,
+            ColorMaterial {
+                color: Color::BLACK,
+                ..Default::default()
+            },
+            3.0,
+        )
+        .unwrap(),
+    );
 
     // main loop
     let mut is_primary_camera = true;
@@ -148,6 +178,16 @@ pub async fn run() {
                                     &secondary_camera
                                 },
                                 &[&ambient, &directional],
+                            )?;
+                        }
+                        for bounding_box in bounding_boxes.iter() {
+                            bounding_box.render(
+                                if is_primary_camera {
+                                    &primary_camera
+                                } else {
+                                    &secondary_camera
+                                },
+                                &[],
                             )?;
                         }
                         Ok(())
