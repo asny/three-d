@@ -368,7 +368,7 @@ impl Camera {
     ///
     /// Use this buffer in your [Program] like this `program.use_uniform_block(camera.uniform_buffer(), "Camera");` and add the following to your shader code:
     ///
-    /// ```ignore
+    /// ```notrust
     /// layout (std140) uniform Camera
     /// {
     ///     mat4 viewProjection;
