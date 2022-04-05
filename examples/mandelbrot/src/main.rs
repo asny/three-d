@@ -94,7 +94,9 @@ pub fn main() {
                         let distance = camera.position().z.abs();
                         let pixel = (
                             (frame_input.device_pixel_ratio * position.0) as f32,
-                            (frame_input.device_pixel_ratio * position.1) as f32,
+                            (frame_input.viewport.height as f64
+                                - frame_input.device_pixel_ratio * position.1)
+                                as f32,
                         );
                         let mut target = camera.position_at_pixel(pixel);
                         target.z = 0.0;
