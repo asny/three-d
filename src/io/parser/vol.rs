@@ -55,12 +55,12 @@ impl Loaded {
         Ok(CpuVolume {
             voxels: CpuTexture3D {
                 data,
-                width,
-                height,
-                depth,
+                width: depth,
+                height: width,
+                depth: height,
                 ..Default::default()
             },
-            size,
+            size: vec3(size.z, size.x, size.y),
             ..Default::default()
         })
     }
@@ -72,7 +72,7 @@ fn flip<T: Default + Clone>(data: Vec<T>, width: usize, height: usize, depth: us
         for y in 0..height {
             for z in 0..depth {
                 let id0 = x * depth * height + y * depth + z;
-                let id1 = z * width * height + y * width + x;
+                let id1 = y * width * depth + x * depth + z;
                 out_data[id1] = data[id0].clone();
             }
         }
