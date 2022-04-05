@@ -103,7 +103,7 @@ impl DirectionalLight {
             return Ok(());
         }
         let target = aabb.center();
-        let position = target - self.direction;
+        let position = target - aabb.max().distance(aabb.min()) * self.direction;
         let z_far = aabb.distance_max(&position);
         let z_near = aabb.distance(&position);
         let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
