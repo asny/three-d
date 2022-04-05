@@ -154,35 +154,6 @@ impl DeferredPipeline {
             ..Default::default()
         };
 
-        if self.debug_type != DebugType::NONE {
-            return self.context.effect(
-                &format!(
-                    "{}{}",
-                    include_str!("../core/shared.frag"),
-                    include_str!("material/shaders/debug.frag")
-                ),
-                |debug_effect| {
-                    debug_effect.use_uniform(
-                        "viewProjectionInverse",
-                        (camera.projection() * camera.view()).invert().unwrap(),
-                    )?;
-                    debug_effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
-                    debug_effect.use_depth_texture_array(
-                        "depthMap",
-                        self.geometry_pass_depth_texture_array(),
-                    )?;
-                    if self.debug_type == DebugType::DEPTH {
-                        debug_effect.use_uniform("zNear", camera.z_near())?;
-                        debug_effect.use_uniform("zFar", camera.z_far())?;
-                        debug_effect.use_uniform("cameraPosition", camera.position())?;
-                    }
-                    debug_effect.use_uniform("type", self.debug_type as i32)?;
-                    debug_effect.apply(render_states, camera.viewport())?;
-                    Ok(())
-                },
-            );
-        }
-
         let mut fragment_shader = lights_fragment_shader_source(
             lights,
             LightingModel::Cook(
@@ -203,6 +174,12 @@ impl DeferredPipeline {
                 "viewProjectionInverse",
                 (camera.projection() * camera.view()).invert().unwrap(),
             )?;
+            effect.use_uniform("debug_type", self.debug_type as i32)?;
+            if self.debug_type == DebugType::DEPTH {
+                effect.use_uniform("zNear", camera.z_near())?;
+                effect.use_uniform("zFar", camera.z_far())?;
+                effect.use_uniform("cameraPosition", camera.position())?;
+            }
             effect.apply(render_states, camera.viewport())?;
             Ok(())
         })

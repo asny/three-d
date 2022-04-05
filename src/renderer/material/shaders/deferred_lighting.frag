@@ -2,6 +2,10 @@
 uniform sampler2DArray gbuffer;
 uniform sampler2DArray depthMap;
 uniform mat4 viewProjectionInverse;
+uniform float zNear;
+uniform float zFar;
+uniform vec3 cameraPosition;
+uniform int debug_type;
 
 in vec2 uv;
 
@@ -33,8 +37,35 @@ void main()
     float occlusion = float(int(floor(n.z * 255.0)) & 127) / 127.0;
     vec3 total_emissive = texture(gbuffer, vec3(uv, 2)).rgb;
 
-    outColor.rgb = total_emissive + calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);
-    outColor.rgb = reinhard_tone_mapping(outColor.rgb);
-    outColor.rgb = srgb_from_rgb(outColor.rgb);
-    outColor.a = surface_color.a;
+    if(debug_type == 0) // Position
+    {
+        outColor = vec4(position, 1.);
+    }
+    else if(debug_type == 1) // Normal
+    {
+        outColor = vec4(normal * 0.5 + 0.5, 1.);
+    }
+    else if(debug_type == 2) // Color
+    {
+        outColor = vec4(srgb_from_rgb(surface_color.rgb), surface_color.a);
+    }
+    else if(debug_type == 3) // Depth
+    {
+        float dist = (distance(position, cameraPosition) - zNear) / (zFar - zNear);
+        outColor = vec4(dist, dist, dist, 1.);
+    }
+    else if(debug_type == 4) // ORM
+    {
+        outColor = vec4(occlusion, roughness_factor, metallic_factor, 1.0);
+    }
+    else if(debug_type == 5) // UV
+    {
+        outColor = vec4(uv, 0., 1.);
+    }
+    else { // None
+        outColor.rgb = total_emissive + calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);
+        outColor.rgb = reinhard_tone_mapping(outColor.rgb);
+        outColor.rgb = srgb_from_rgb(outColor.rgb);
+        outColor.a = surface_color.a;
+    }
 }
