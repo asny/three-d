@@ -99,7 +99,28 @@ impl Format {
 
 ///
 /// The pixel/texel data for a [CpuTexture].
-/// The data array must start with the top left pixel and then one row at a time.
+///
+/// If 2D data, the data array should start with the top left texel and then one row at a time.
+/// The indices `(row, column)` into the 2D data would look like
+/// ```
+/// [
+/// (0, 0), (1, 0), .., // First row
+/// (0, 1), (1, 1), .., // Second row
+/// ..
+/// ]
+/// ```
+/// If 3D data, the data array would look like the 2D data, one layer/image at a time.
+/// The indices `(row, column, layer)` into the 3D data would look like
+/// ```
+/// [
+/// (0, 0, 0), (1, 0, 0), .., // First row in first layer
+/// (0, 1, 0), (1, 1, 0), .., // Second row in first layer
+/// ..
+/// (0, 0, 1), (1, 0, 1), .., // First row in second layer
+/// (0, 1, 1), (1, 1, 1), ..,  // Second row in second layer
+/// ..
+/// ]
+/// ```
 ///
 #[derive(Clone)]
 pub enum TextureData {
