@@ -16,7 +16,7 @@ pub async fn run() {
     })
     .unwrap();
     let context = window.gl().unwrap();
-    let image_effect = ImageEffect::new(&context, include_str!("shader.frag")).unwrap();
+    let mut image_effect = ImageEffect::new(&context, include_str!("shader.frag")).unwrap();
 
     let mut loaded = Loader::load_async(
         &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
@@ -29,6 +29,9 @@ pub async fn run() {
 
     // main loop
     let mut tone_mapping = 1.0;
+    let mut texture_transform_scale = 1.0;
+    let mut texture_transform_x = 0.0;
+    let mut texture_transform_y = 0.0;
     window
         .render_loop(move |mut frame_input| {
             let mut panel_width = 0;
@@ -37,10 +40,27 @@ pub async fn run() {
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
                     ui.add(Slider::new(&mut tone_mapping, 0.0..=50.0).text("Tone mapping"));
+                    ui.add(
+                        Slider::new(&mut texture_transform_scale, 0.0..=10.0)
+                            .text("Texture transform scale"),
+                    );
+                    ui.add(
+                        Slider::new(&mut texture_transform_x, 0.0..=1.0)
+                            .text("Texture transform x"),
+                    );
+                    ui.add(
+                        Slider::new(&mut texture_transform_y, 0.0..=1.0)
+                            .text("Texture transform y"),
+                    );
                 });
                 panel_width = gui_context.used_size().x as u32;
             })
             .unwrap();
+
+            image_effect.set_texture_transform(
+                Mat3::from_scale(texture_transform_scale)
+                    * Mat3::from_translation(vec2(texture_transform_x, texture_transform_y)),
+            );
 
             let viewport = Viewport {
                 x: panel_width as i32,
