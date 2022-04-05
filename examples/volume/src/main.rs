@@ -19,7 +19,7 @@ pub async fn run() {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(4.0, 0.5, 4.0),
+        vec3(0.25, -0.5, -2.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
@@ -30,7 +30,7 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     // Source: https://web.cs.ucdavis.edu/~okreylos/PhDStudies/Spring2000/ECS277/DataSets.html
-    let cpu_volume = Loader::load_async(&["examples/assets/C60Small.vol"])
+    let cpu_volume = Loader::load_async(&["examples/assets/Skull.vol"])
         .await
         .unwrap()
         .vol("")
@@ -42,7 +42,7 @@ pub async fn run() {
             voxels: std::rc::Rc::new(Texture3D::new(&context, &cpu_volume.voxels).unwrap()),
             lighting_model: LightingModel::Blinn,
             size: cpu_volume.size,
-            threshold: 0.9,
+            threshold: 0.15,
             color: Color::WHITE,
             roughness: 1.0,
             metallic: 0.0,
