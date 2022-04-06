@@ -79,17 +79,17 @@ impl Loaded {
         if let Some((_, bytes)) = self.loaded.remove_entry(path.as_ref()) {
             Ok(bytes)
         } else {
+            let mut p = path.as_ref().to_str().unwrap().to_owned();
+            if p.ends_with(".jpeg") {
+                p = p[0..p.len() - 2].to_string();
+            } else if p.ends_with(".jpg") {
+                p = p[0..p.len() - 1].to_string();
+            }
             let key = self
                 .loaded
                 .iter()
-                .find(|(k, _)| {
-                    k.to_str()
-                        .unwrap()
-                        .contains(path.as_ref().to_str().unwrap())
-                })
-                .ok_or(IOError::NotLoaded(
-                    path.as_ref().to_str().unwrap().to_owned(),
-                ))?
+                .find(|(k, _)| k.to_str().unwrap().contains(&p))
+                .ok_or(IOError::NotLoaded(p))?
                 .0
                 .clone();
             Ok(self.loaded.remove(&key).unwrap())
@@ -104,17 +104,17 @@ impl Loaded {
         if let Some(bytes) = self.loaded.get(path.as_ref()) {
             Ok(bytes.as_ref())
         } else {
+            let mut p = path.as_ref().to_str().unwrap().to_owned();
+            if p.ends_with(".jpeg") {
+                p = p[0..p.len() - 2].to_string();
+            } else if p.ends_with(".jpg") {
+                p = p[0..p.len() - 1].to_string();
+            }
             let key = self
                 .loaded
                 .iter()
-                .find(|(k, _)| {
-                    k.to_str()
-                        .unwrap()
-                        .contains(path.as_ref().to_str().unwrap())
-                })
-                .ok_or(IOError::NotLoaded(
-                    path.as_ref().to_str().unwrap().to_owned(),
-                ))?
+                .find(|(k, _)| k.to_str().unwrap().contains(&p))
+                .ok_or(IOError::NotLoaded(p))?
                 .0;
             Ok(self.loaded.get(key).unwrap())
         }
