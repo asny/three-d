@@ -950,99 +950,78 @@ impl Program {
 
     fn set_clip(context: &Context, clip: Clip) {
         unsafe {
-            static mut CURRENT: Clip = Clip::Disabled;
-            if clip != CURRENT {
-                if let Clip::Enabled {
-                    x,
-                    y,
-                    width,
-                    height,
-                } = clip
-                {
-                    context.enable(crate::context::SCISSOR_TEST);
-                    context.scissor(x as i32, y as i32, width as i32, height as i32);
-                } else {
-                    context.disable(crate::context::SCISSOR_TEST);
-                }
-                CURRENT = clip;
+            if let Clip::Enabled {
+                x,
+                y,
+                width,
+                height,
+            } = clip
+            {
+                context.enable(crate::context::SCISSOR_TEST);
+                context.scissor(x as i32, y as i32, width as i32, height as i32);
+            } else {
+                context.disable(crate::context::SCISSOR_TEST);
             }
         }
     }
 
     fn set_viewport(context: &Context, viewport: Viewport) {
         unsafe {
-            static mut CURRENT_VIEWPORT: Viewport = Viewport {
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0,
-            };
-            if viewport != CURRENT_VIEWPORT {
-                context.viewport(
-                    viewport.x,
-                    viewport.y,
-                    viewport.width as i32,
-                    viewport.height as i32,
-                );
-                CURRENT_VIEWPORT = viewport;
-            }
+            context.viewport(
+                viewport.x,
+                viewport.y,
+                viewport.width as i32,
+                viewport.height as i32,
+            );
         }
     }
 
     fn set_cull(context: &Context, cull: Cull) {
         unsafe {
-            static mut CURRENT_CULL: Cull = Cull::None;
-            if cull != CURRENT_CULL {
-                match cull {
-                    Cull::None => {
-                        context.disable(crate::context::CULL_FACE);
-                    }
-                    Cull::Back => {
-                        context.enable(crate::context::CULL_FACE);
-                        context.cull_face(crate::context::BACK);
-                    }
-                    Cull::Front => {
-                        context.enable(crate::context::CULL_FACE);
-                        context.cull_face(crate::context::FRONT);
-                    }
-                    Cull::FrontAndBack => {
-                        context.enable(crate::context::CULL_FACE);
-                        context.cull_face(crate::context::FRONT_AND_BACK);
-                    }
+            match cull {
+                Cull::None => {
+                    context.disable(crate::context::CULL_FACE);
                 }
-                CURRENT_CULL = cull;
+                Cull::Back => {
+                    context.enable(crate::context::CULL_FACE);
+                    context.cull_face(crate::context::BACK);
+                }
+                Cull::Front => {
+                    context.enable(crate::context::CULL_FACE);
+                    context.cull_face(crate::context::FRONT);
+                }
+                Cull::FrontAndBack => {
+                    context.enable(crate::context::CULL_FACE);
+                    context.cull_face(crate::context::FRONT_AND_BACK);
+                }
             }
         }
     }
 
     fn set_blend(context: &Context, blend: Blend) {
         unsafe {
-            static mut CURRENT: Blend = Blend::Disabled;
-            if blend != CURRENT {
-                if let Blend::Enabled {
-                    source_rgb_multiplier,
-                    source_alpha_multiplier,
-                    destination_rgb_multiplier,
-                    destination_alpha_multiplier,
-                    rgb_equation,
-                    alpha_equation,
-                } = blend
-                {
-                    context.enable(crate::context::BLEND);
-                    context.blend_func_separate(
-                        Self::blend_const_from_multiplier(source_rgb_multiplier),
-                        Self::blend_const_from_multiplier(destination_rgb_multiplier),
-                        Self::blend_const_from_multiplier(source_alpha_multiplier),
-                        Self::blend_const_from_multiplier(destination_alpha_multiplier),
-                    );
-                    context.blend_equation_separate(
-                        Self::blend_const_from_equation(rgb_equation),
-                        Self::blend_const_from_equation(alpha_equation),
-                    );
-                } else {
-                    context.disable(crate::context::BLEND);
-                }
-                CURRENT = blend;
+            if let Blend::Enabled {
+                source_rgb_multiplier,
+                source_alpha_multiplier,
+                destination_rgb_multiplier,
+                destination_alpha_multiplier,
+                rgb_equation,
+                alpha_equation,
+            } = blend
+            {
+                context.enable(crate::context::BLEND);
+                context.blend_func_separate(
+                    Self::blend_const_from_multiplier(source_rgb_multiplier),
+                    Self::blend_const_from_multiplier(destination_rgb_multiplier),
+                    Self::blend_const_from_multiplier(source_alpha_multiplier),
+                    Self::blend_const_from_multiplier(destination_alpha_multiplier),
+                );
+                context.blend_equation_separate(
+                    Self::blend_const_from_equation(rgb_equation),
+                    Self::blend_const_from_equation(alpha_equation),
+                );
+            } else {
+                context.disable(crate::context::BLEND);
             }
         }
     }
@@ -1075,72 +1054,51 @@ impl Program {
 
     pub(crate) fn set_write_mask(context: &Context, write_mask: WriteMask) {
         unsafe {
-            static mut CURRENT_COLOR_MASK: WriteMask = WriteMask::COLOR_AND_DEPTH;
-            if write_mask != CURRENT_COLOR_MASK {
-                context.color_mask(
-                    write_mask.red,
-                    write_mask.green,
-                    write_mask.blue,
-                    write_mask.alpha,
-                );
-                Self::set_depth(context, None, write_mask.depth);
-                CURRENT_COLOR_MASK = write_mask;
-            }
+            context.color_mask(
+                write_mask.red,
+                write_mask.green,
+                write_mask.blue,
+                write_mask.alpha,
+            );
+            Self::set_depth(context, None, write_mask.depth);
         }
     }
 
     fn set_depth(context: &Context, depth_test: Option<DepthTest>, depth_mask: bool) {
         unsafe {
-            static mut CURRENT_DEPTH_ENABLE: bool = false;
-            static mut CURRENT_DEPTH_MASK: bool = true;
-            static mut CURRENT_DEPTH_TEST: DepthTest = DepthTest::Less;
-
             if depth_mask == false && depth_test == Some(DepthTest::Always) {
-                if CURRENT_DEPTH_ENABLE {
-                    context.disable(crate::context::DEPTH_TEST);
-                    CURRENT_DEPTH_ENABLE = false;
-                    return;
-                }
+                context.disable(crate::context::DEPTH_TEST);
             } else {
-                if !CURRENT_DEPTH_ENABLE {
-                    context.enable(crate::context::DEPTH_TEST);
-                    CURRENT_DEPTH_ENABLE = true;
-                }
-            }
-
-            if depth_mask != CURRENT_DEPTH_MASK {
+                context.enable(crate::context::DEPTH_TEST);
                 context.depth_mask(depth_mask);
-                CURRENT_DEPTH_MASK = depth_mask;
-            }
-
-            if depth_test.is_some() && depth_test.unwrap() != CURRENT_DEPTH_TEST {
-                match depth_test.unwrap() {
-                    DepthTest::Never => {
-                        context.depth_func(crate::context::NEVER);
-                    }
-                    DepthTest::Less => {
-                        context.depth_func(crate::context::LESS);
-                    }
-                    DepthTest::Equal => {
-                        context.depth_func(crate::context::EQUAL);
-                    }
-                    DepthTest::LessOrEqual => {
-                        context.depth_func(crate::context::LEQUAL);
-                    }
-                    DepthTest::Greater => {
-                        context.depth_func(crate::context::GREATER);
-                    }
-                    DepthTest::NotEqual => {
-                        context.depth_func(crate::context::NOTEQUAL);
-                    }
-                    DepthTest::GreaterOrEqual => {
-                        context.depth_func(crate::context::GEQUAL);
-                    }
-                    DepthTest::Always => {
-                        context.depth_func(crate::context::ALWAYS);
+                if let Some(depth_test) = depth_test {
+                    match depth_test {
+                        DepthTest::Never => {
+                            context.depth_func(crate::context::NEVER);
+                        }
+                        DepthTest::Less => {
+                            context.depth_func(crate::context::LESS);
+                        }
+                        DepthTest::Equal => {
+                            context.depth_func(crate::context::EQUAL);
+                        }
+                        DepthTest::LessOrEqual => {
+                            context.depth_func(crate::context::LEQUAL);
+                        }
+                        DepthTest::Greater => {
+                            context.depth_func(crate::context::GREATER);
+                        }
+                        DepthTest::NotEqual => {
+                            context.depth_func(crate::context::NOTEQUAL);
+                        }
+                        DepthTest::GreaterOrEqual => {
+                            context.depth_func(crate::context::GEQUAL);
+                        }
+                        DepthTest::Always => {
+                            context.depth_func(crate::context::ALWAYS);
+                        }
                     }
                 }
-                CURRENT_DEPTH_TEST = depth_test.unwrap();
             }
         }
     }
