@@ -521,6 +521,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_vertex_attribute instead"]
     pub fn use_attribute(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -547,6 +548,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_instance_attribute instead"]
     pub fn use_attribute_instanced(&self, name: &str, buffer: &InstanceBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -573,6 +575,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_vertex_attribute instead and pass in a slice of Vec2 when constructing the VertexBuffer"]
     pub fn use_attribute_vec2(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -599,6 +602,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_instance_attribute instead and pass in a slice of Vec2 when constructing the InstanceBuffer"]
     pub fn use_attribute_vec2_instanced(
         &self,
         name: &str,
@@ -629,6 +633,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_vertex_attribute instead and pass in a slice of Vec3 when constructing the VertexBuffer"]
     pub fn use_attribute_vec3(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -655,6 +660,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_instance_attribute instead and pass in a slice of Vec3 when constructing the InstanceBuffer"]
     pub fn use_attribute_vec3_instanced(
         &self,
         name: &str,
@@ -685,6 +691,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_vertex_attribute instead and pass in a slice of Vec4 when constructing the VertexBuffer"]
     pub fn use_attribute_vec4(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -707,6 +714,7 @@ impl Program {
     /// Each contiguous 4 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain 4 times the number of values as the number of instances specified in those draw calls.
     ///
+    #[deprecated = "use use_instance_attribute instead and pass in a slice of Vec4 when constructing the InstanceBuffer"]
     pub fn use_attribute_vec4_instanced(
         &self,
         name: &str,
