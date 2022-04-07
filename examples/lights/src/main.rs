@@ -135,15 +135,14 @@ pub async fn run() {
     let max = aabb.max() - vec3(size.x * 0.1, size.y * 0.1, size.z * 0.4);
     let light_box = AxisAlignedBoundingBox::new_with_positions(&[min, max]);
     let mut lights = Vec::new();
-    for _ in 0..20 {
-        lights.push(Glow::new(&context, light_box));
-    }
 
     // main loop
     let mut intensity = 0.2;
     let mut constant = 0.0;
     let mut linear = 0.0025;
     let mut quadratic = 0.00001;
+    let mut light_count = 20;
+    let mut color = [1.0; 4];
     window
         .render_loop(move |mut frame_input| {
             let mut panel_width = frame_input.viewport.width;
@@ -151,6 +150,7 @@ pub async fn run() {
                 use three_d::egui::*;
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
+                    ui.add(Slider::new::<usize>(&mut light_count, 0..=50).text("Light count"));
                     ui.add(Slider::new::<f32>(&mut intensity, 0.0..=10.0).text("Light intensity"));
                     ui.add(
                         Slider::new::<f32>(&mut constant, 0.0..=10.0).text("Attenuation constant"),
@@ -160,10 +160,17 @@ pub async fn run() {
                         Slider::new::<f32>(&mut quadratic, 0.0..=0.00001)
                             .text("Attenuation quadratic"),
                     );
+                    ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
                 panel_width = gui_context.used_size().x as u32;
             })
             .unwrap();
+            while lights.len() < light_count {
+                lights.push(Glow::new(&context, light_box));
+            }
+            while lights.len() > light_count {
+                lights.pop();
+            }
 
             for light in lights.iter_mut() {
                 light.light.intensity = intensity;
@@ -172,6 +179,7 @@ pub async fn run() {
                     linear,
                     quadratic,
                 };
+                light.light.color = Color::from_rgba_slice(&color);
                 light.update(frame_input.elapsed_time as f32);
             }
 
