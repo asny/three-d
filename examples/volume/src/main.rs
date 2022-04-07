@@ -57,9 +57,9 @@ pub async fn run() {
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional1 =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0)).unwrap();
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
     let directional2 =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, 1.0, 1.0)).unwrap();
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap();
 
     // main loop
     let mut gui = three_d::GUI::new(&context).unwrap();
@@ -74,10 +74,6 @@ pub async fn run() {
                     ui.add(
                         Slider::new(&mut volume.material.threshold, 0.0..=1.0).text("Threshold"),
                     );
-                    ui.add(
-                        Slider::new(&mut volume.material.roughness, 0.0..=1.0).text("Roughness"),
-                    );
-                    ui.add(Slider::new(&mut volume.material.metallic, 0.0..=1.0).text("Metallic"));
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
                 panel_width = gui_context.used_size().x as u32;
