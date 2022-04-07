@@ -5,6 +5,12 @@ async fn main() {
     run().await;
 }
 
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+enum CameraType {
+    Primary,
+    Secondary,
+}
+
 use three_d::*;
 
 pub async fn run() {
@@ -138,68 +144,65 @@ pub async fn run() {
         .unwrap(),
     );
 
-    // main loop
-    let mut is_primary_camera = true;
+    let mut gui = three_d::GUI::new(&context).unwrap();
+    let mut camera_type = CameraType::Primary;
+    let mut bounding_box_enabled = false;
     window
         .render_loop(move |mut frame_input| {
-            let mut redraw = frame_input.first_frame;
-            redraw |= primary_camera.set_viewport(frame_input.viewport).unwrap();
-            redraw |= secondary_camera.set_viewport(frame_input.viewport).unwrap();
-            redraw |= control
+            let mut panel_width = 0;
+            gui.update(&mut frame_input, |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+                    ui.heading("Camera");
+                    ui.radio_value(&mut camera_type, CameraType::Primary, "Primary");
+                    ui.radio_value(&mut camera_type, CameraType::Secondary, "Secondary");
+
+                    ui.checkbox(&mut bounding_box_enabled, "Bounding boxes");
+                });
+                panel_width = gui_context.used_size().x as u32;
+            })
+            .unwrap();
+
+            let viewport = Viewport {
+                x: panel_width as i32,
+                y: 0,
+                width: frame_input.viewport.width - panel_width,
+                height: frame_input.viewport.height,
+            };
+            primary_camera.set_viewport(viewport).unwrap();
+            secondary_camera.set_viewport(viewport).unwrap();
+            control
                 .handle_events(&mut primary_camera, &mut frame_input.events)
                 .unwrap();
 
-            for event in frame_input.events.iter() {
-                match event {
-                    Event::KeyPress { kind, .. } => {
-                        if *kind == Key::C {
-                            is_primary_camera = !is_primary_camera;
-                            redraw = true;
+            // draw
+            Screen::write(
+                &context,
+                ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
+                || {
+                    let camera = match camera_type {
+                        CameraType::Primary => &primary_camera,
+                        CameraType::Secondary => &secondary_camera,
+                    };
+                    for model in models
+                        .iter()
+                        .filter(|o| primary_camera.in_frustum(&o.aabb()))
+                    {
+                        model.render(camera, &[&ambient, &directional])?;
+                    }
+                    if bounding_box_enabled {
+                        for bounding_box in bounding_boxes.iter() {
+                            bounding_box.render(camera, &[])?;
                         }
                     }
-                    _ => {}
-                }
-            }
+                    gui.render()?;
+                    Ok(())
+                },
+            )
+            .unwrap();
 
-            // draw
-            if redraw {
-                Screen::write(
-                    &context,
-                    ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
-                    || {
-                        for model in models
-                            .iter()
-                            .filter(|o| primary_camera.in_frustum(&o.aabb()))
-                        {
-                            model.render(
-                                if is_primary_camera {
-                                    &primary_camera
-                                } else {
-                                    &secondary_camera
-                                },
-                                &[&ambient, &directional],
-                            )?;
-                        }
-                        for bounding_box in bounding_boxes.iter() {
-                            bounding_box.render(
-                                if is_primary_camera {
-                                    &primary_camera
-                                } else {
-                                    &secondary_camera
-                                },
-                                &[],
-                            )?;
-                        }
-                        Ok(())
-                    },
-                )
-                .unwrap();
-            }
-
-            FrameOutput {
-                swap_buffers: redraw,
-                ..Default::default()
-            }
+            FrameOutput::default()
         })
         .unwrap();
 }
