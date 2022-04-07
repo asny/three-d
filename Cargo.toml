@@ -53,7 +53,7 @@ gloo-timers = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
-rand = "0.7"
+rand = "0.8"
 tokio = { version = "1.16", features = ["macros", "rt-multi-thread"] }
 
 [[example]]
