@@ -77,9 +77,9 @@ pub async fn run() {
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
                 panel_width = gui_context.used_size().x as u32;
-                volume.material.color = Color::from_rgba_slice(&color);
             })
             .unwrap();
+            volume.material.color = Color::from_rgba_slice(&color);
 
             let viewport = Viewport {
                 x: panel_width as i32,
