@@ -23,15 +23,15 @@ pub async fn run() {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(1200.0, 100.0, 0.0),
-        vec3(0.0, 100.0, 0.0),
+        vec3(10.0, 1.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
-        50000.0,
+        5000.0,
     )
     .unwrap();
-    let mut control = FlyControl::new(1.0);
+    let mut control = FlyControl::new(0.01);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
     let mut loaded = Loader::load_async(&[
@@ -139,8 +139,8 @@ pub async fn run() {
     // main loop
     let mut intensity = 0.2;
     let mut constant = 0.0;
-    let mut linear = 0.0025;
-    let mut quadratic = 0.00001;
+    let mut linear = 0.5;
+    let mut quadratic = 0.01;
     let mut light_count = 20;
     let mut color = [1.0; 4];
     window
@@ -155,9 +155,9 @@ pub async fn run() {
                     ui.add(
                         Slider::new::<f32>(&mut constant, 0.0..=10.0).text("Attenuation constant"),
                     );
-                    ui.add(Slider::new::<f32>(&mut linear, 0.0..=0.01).text("Attenuation linear"));
+                    ui.add(Slider::new::<f32>(&mut linear, 0.01..=1.0).text("Attenuation linear"));
                     ui.add(
-                        Slider::new::<f32>(&mut quadratic, 0.0..=0.00001)
+                        Slider::new::<f32>(&mut quadratic, 0.0001..=1.0)
                             .text("Attenuation quadratic"),
                     );
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
@@ -180,7 +180,7 @@ pub async fn run() {
                     quadratic,
                 };
                 light.light.color = Color::from_rgba_slice(&color);
-                light.update(frame_input.elapsed_time as f32);
+                light.update(0.00005 * size.magnitude() * frame_input.elapsed_time as f32);
             }
 
             camera
@@ -252,7 +252,7 @@ impl Glow {
         }
     }
 
-    pub fn update(&mut self, time: f32) {
+    pub fn update(&mut self, delta: f32) {
         let mut rng = rand::thread_rng();
         let min = self.aabb.min();
         let max = self.aabb.max();
@@ -264,6 +264,6 @@ impl Glow {
         self.velocity.z +=
             (min.z - p.z).max(0.0) - (p.z - max.z).max(0.0) + rng.gen::<f32>() * 0.1 - 0.05;
         self.velocity = self.velocity.normalize();
-        self.light.position += 0.2 * self.velocity * time;
+        self.light.position += self.velocity * delta;
     }
 }
