@@ -203,24 +203,7 @@ impl CpuMesh {
                 }
             }
             Positions::F64(ref mut positions) => {
-                let t = Matrix4::new(
-                    transform.x.x as f64,
-                    transform.x.y as f64,
-                    transform.x.z as f64,
-                    transform.x.w as f64,
-                    transform.y.x as f64,
-                    transform.y.y as f64,
-                    transform.y.z as f64,
-                    transform.y.w as f64,
-                    transform.z.x as f64,
-                    transform.z.y as f64,
-                    transform.z.z as f64,
-                    transform.z.w as f64,
-                    transform.w.x as f64,
-                    transform.w.y as f64,
-                    transform.w.z as f64,
-                    transform.w.w as f64,
-                );
+                let t = transform.cast::<f64>().unwrap();
                 for pos in positions.iter_mut() {
                     *pos = (t * pos.extend(1.0)).truncate();
                 }
