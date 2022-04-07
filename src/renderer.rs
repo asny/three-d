@@ -3,10 +3,12 @@
 //! Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.
 //!
 
+#[allow(deprecated)]
 pub use crate::core::{
-    math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera,
-    Context, CpuMesh, CpuTexture, CpuTexture3D, CpuTextureCube, CpuVolume, GeometryFunction,
-    Indices, LightingModel, NormalDistributionFunction, Positions, Viewport,
+    math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, CPUMaterial,
+    CPUMesh, CPUTexture, CPUTextureCube, Camera, Context, CpuMesh, CpuTexture, CpuTexture3D,
+    CpuTextureCube, CpuVolume, GeometryFunction, Indices, LightingModel,
+    NormalDistributionFunction, Positions, Viewport,
 };
 
 pub mod material;
