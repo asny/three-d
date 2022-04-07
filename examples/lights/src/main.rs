@@ -140,7 +140,7 @@ pub async fn run() {
     let mut intensity = 0.2;
     let mut constant = 0.0;
     let mut linear = 0.5;
-    let mut quadratic = 0.01;
+    let mut quadratic = 0.5;
     let mut light_count = 20;
     let mut color = [1.0; 4];
     window
@@ -166,20 +166,22 @@ pub async fn run() {
             })
             .unwrap();
             while lights.len() < light_count {
-                lights.push(Glow::new(&context, light_box));
+                lights.push(Glow::new(&context, light_box).unwrap());
             }
             while lights.len() > light_count {
                 lights.pop();
             }
 
             for light in lights.iter_mut() {
-                light.light.intensity = intensity;
-                light.light.attenuation = Attenuation {
-                    constant,
-                    linear,
-                    quadratic,
-                };
-                light.light.color = Color::from_rgba_slice(&color);
+                light.set_light(
+                    intensity,
+                    Color::from_rgba_slice(&color),
+                    Attenuation {
+                        constant,
+                        linear,
+                        quadratic,
+                    },
+                );
                 light.update(0.00005 * size.magnitude() * frame_input.elapsed_time as f32);
             }
 
@@ -207,6 +209,9 @@ pub async fn run() {
                 &context,
                 ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0),
                 || {
+                    for light in lights.iter() {
+                        light.render(&camera)?;
+                    }
                     pipeline.lighting_pass(
                         &camera,
                         &lights
@@ -226,30 +231,43 @@ pub async fn run() {
 }
 
 struct Glow {
-    pub light: PointLight,
+    light: PointLight,
     velocity: Vec3,
     aabb: AxisAlignedBoundingBox,
+    sphere: Model<PhysicalMaterial>,
 }
 
 impl Glow {
-    pub fn new(context: &Context, aabb: AxisAlignedBoundingBox) -> Self {
+    pub fn new(context: &Context, aabb: AxisAlignedBoundingBox) -> ThreeDResult<Self> {
         let mut rng = rand::thread_rng();
         let pos = vec3(
             aabb.min().x + rng.gen::<f32>() * aabb.size().x,
             aabb.min().y + rng.gen::<f32>() * aabb.size().y,
             aabb.min().z + rng.gen::<f32>() * aabb.size().z,
         );
-        Self {
+        Ok(Self {
             aabb,
-            light: PointLight::new(&context, 1.0, Color::WHITE, &pos, Attenuation::default())
-                .unwrap(),
+            light: PointLight::new(&context, 1.0, Color::WHITE, &pos, Attenuation::default())?,
             velocity: vec3(
                 rng.gen::<f32>() * 2.0 - 1.0,
                 rng.gen::<f32>() * 2.0 - 1.0,
                 rng.gen::<f32>() * 2.0 - 1.0,
             )
             .normalize(),
-        }
+            sphere: Model::new_with_material(
+                context,
+                &CpuMesh::sphere(16),
+                PhysicalMaterial::default(),
+            )?,
+        })
+    }
+
+    pub fn set_light(&mut self, intensity: f32, color: Color, attenuation: Attenuation) {
+        self.light.color = color;
+        self.light.intensity = intensity;
+        self.light.attenuation = attenuation;
+        let c = color.to_vec4() * intensity;
+        self.sphere.material.emissive = Color::from_rgba_slice(&[c.x, c.y, c.z, c.w]);
     }
 
     pub fn update(&mut self, delta: f32) {
@@ -265,5 +283,12 @@ impl Glow {
             (min.z - p.z).max(0.0) - (p.z - max.z).max(0.0) + rng.gen::<f32>() * 0.1 - 0.05;
         self.velocity = self.velocity.normalize();
         self.light.position += self.velocity * delta;
+        self.sphere.set_transformation(
+            Mat4::from_translation(self.light.position) * Mat4::from_scale(0.02),
+        );
+    }
+
+    pub fn render(&self, camera: &Camera) -> ThreeDResult<()> {
+        self.sphere.render(camera, &[])
     }
 }
