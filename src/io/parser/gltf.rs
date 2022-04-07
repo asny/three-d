@@ -35,6 +35,7 @@ impl Loaded {
         for scene in document.scenes() {
             for node in scene.nodes() {
                 parse_tree(
+                    &Mat4::identity(),
                     &node,
                     self,
                     &base_path,
@@ -49,6 +50,7 @@ impl Loaded {
 }
 
 fn parse_tree<'a>(
+    parent_transform: &Mat4,
     node: &::gltf::Node,
     loaded: &mut Loaded,
     path: &Path,
@@ -56,6 +58,12 @@ fn parse_tree<'a>(
     cpu_meshes: &mut Vec<CpuMesh>,
     cpu_materials: &mut Vec<CpuMaterial>,
 ) -> ThreeDResult<()> {
+    let node_transform = parse_transform(node.transform());
+    if node_transform.determinant() == 0.0 {
+        return Ok(()); // glTF say that if the scale is all zeroes, the node should be ignored.
+    }
+    let transform = parent_transform * node_transform;
+
     if let Some(mesh) = node.mesh() {
         let name: String = mesh
             .name()
@@ -199,7 +207,7 @@ fn parse_tree<'a>(
                     uvs
                 });
 
-                cpu_meshes.push(CpuMesh {
+                let mut cpu_mesh = CpuMesh {
                     name: name.clone(),
                     positions: Positions::F32(positions),
                     normals,
@@ -208,13 +216,25 @@ fn parse_tree<'a>(
                     colors,
                     uvs,
                     material_name: Some(material_name),
-                });
+                };
+                if transform != Mat4::identity() {
+                    cpu_mesh.transform(&transform);
+                }
+                cpu_meshes.push(cpu_mesh);
             }
         }
     }
 
     for child in node.children() {
-        parse_tree(&child, loaded, path, buffers, cpu_meshes, cpu_materials)?;
+        parse_tree(
+            &transform,
+            &child,
+            loaded,
+            path,
+            buffers,
+            cpu_meshes,
+            cpu_materials,
+        )?;
     }
     Ok(())
 }
@@ -244,4 +264,9 @@ fn parse_texture<'a>(
     };
     // TODO: Parse sampling parameters
     Ok(tex)
+}
+
+fn parse_transform(transform: gltf::scene::Transform) -> Mat4 {
+    let [c0, c1, c2, c3] = transform.matrix();
+    Mat4::from_cols(c0.into(), c1.into(), c2.into(), c3.into())
 }
