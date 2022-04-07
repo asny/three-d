@@ -72,49 +72,20 @@ fn parse_tree<'a>(
         for primitive in mesh.primitives() {
             let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
             if let Some(read_positions) = reader.read_positions() {
-                let mut positions = Vec::new();
-                for value in read_positions {
-                    positions.push(vec3(value[0], value[1], value[2]));
-                }
+                let positions = read_positions.map(|p| p.into()).collect();
 
-                let normals = reader.read_normals().map(|values| {
-                    let mut normals = Vec::new();
-                    for n in values {
-                        normals.push(vec3(n[0], n[1], n[2]));
-                    }
-                    normals
-                });
+                let normals = reader
+                    .read_normals()
+                    .map(|values| values.map(|n| n.into()).collect());
 
-                let tangents = reader.read_tangents().map(|values| {
-                    let mut tangents = Vec::new();
-                    for t in values {
-                        tangents.push(vec4(t[0], t[1], t[2], t[3]));
-                    }
-                    tangents
-                });
+                let tangents = reader
+                    .read_tangents()
+                    .map(|values| values.map(|t| t.into()).collect());
 
                 let indices = reader.read_indices().map(|values| match values {
-                    ::gltf::mesh::util::ReadIndices::U8(iter) => {
-                        let mut inds = Vec::new();
-                        for value in iter {
-                            inds.push(value);
-                        }
-                        Indices::U8(inds)
-                    }
-                    ::gltf::mesh::util::ReadIndices::U16(iter) => {
-                        let mut inds = Vec::new();
-                        for value in iter {
-                            inds.push(value);
-                        }
-                        Indices::U16(inds)
-                    }
-                    ::gltf::mesh::util::ReadIndices::U32(iter) => {
-                        let mut inds = Vec::new();
-                        for value in iter {
-                            inds.push(value);
-                        }
-                        Indices::U32(inds)
-                    }
+                    ::gltf::mesh::util::ReadIndices::U8(iter) => Indices::U8(iter.collect()),
+                    ::gltf::mesh::util::ReadIndices::U16(iter) => Indices::U16(iter.collect()),
+                    ::gltf::mesh::util::ReadIndices::U32(iter) => Indices::U32(iter.collect()),
                 });
 
                 let material = primitive.material();
@@ -124,13 +95,9 @@ fn parse_tree<'a>(
                         .map(|i| format!("index {}", i))
                         .unwrap_or("default".to_string()),
                 );
-                let mut parsed = false;
-                for material in cpu_materials.iter() {
-                    if material.name == material_name {
-                        parsed = true;
-                        break;
-                    }
-                }
+                let parsed = cpu_materials
+                    .iter()
+                    .any(|material| material.name == material_name);
 
                 if !parsed {
                     let pbr = material.pbr_metallic_roughness();
@@ -192,20 +159,15 @@ fn parse_tree<'a>(
                 }
 
                 let colors = reader.read_colors(0).map(|values| {
-                    let mut cols = Vec::new();
-                    for value in values.into_rgba_u8() {
-                        cols.push(Color::new(value[0], value[1], value[2], value[3]));
-                    }
-                    cols
+                    values
+                        .into_rgba_u8()
+                        .map(|c| Color::new(c[0], c[1], c[2], c[3]))
+                        .collect()
                 });
 
-                let uvs = reader.read_tex_coords(0).map(|values| {
-                    let mut uvs = Vec::new();
-                    for value in values.into_f32() {
-                        uvs.push(vec2(value[0], value[1]));
-                    }
-                    uvs
-                });
+                let uvs = reader
+                    .read_tex_coords(0)
+                    .map(|values| values.into_f32().map(|uv| uv.into()).collect());
 
                 let mut cpu_mesh = CpuMesh {
                     name: name.clone(),
@@ -250,16 +212,11 @@ fn parse_texture<'a>(
     let tex = match gltf_source {
         ::gltf::image::Source::Uri { uri, .. } => loaded.image(path.join(Path::new(uri)))?,
         ::gltf::image::Source::View { view, .. } => {
-            let mut bytes = Vec::with_capacity(view.length());
-            bytes.extend(
-                (0..view.length())
-                    .map(|i| buffers[view.buffer().index()][view.offset() + i])
-                    .into_iter(),
-            );
             if view.stride() != None {
                 unimplemented!();
             }
-            image_from_bytes(&bytes)?
+            let buffer = &buffers[view.buffer().index()];
+            image_from_bytes(&buffer[view.offset()..view.offset() + view.length()])?
         }
     };
     // TODO: Parse sampling parameters
