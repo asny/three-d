@@ -23,7 +23,7 @@ impl<M: Material> Line<M> {
         material: M,
     ) -> ThreeDResult<Self> {
         let mut mesh = CpuMesh::square();
-        mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))));
+        mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))?;
         let mut line = Self {
             context: context.clone(),
             model: Model::new_with_material(context, &mesh, material)?,

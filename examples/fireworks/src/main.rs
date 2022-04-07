@@ -92,7 +92,7 @@ pub fn run() {
         vec3(0.16, 0.07, 0.87),
     ];
     let mut square = CpuMesh::square();
-    square.transform(&Mat4::from_scale(0.6));
+    square.transform(&Mat4::from_scale(0.6)).unwrap();
     let mut particles = Particles::new(&context, &square).unwrap();
     let mut fireworks_material = FireworksMaterial {
         color: vec3(0.0, 0.0, 0.0),
