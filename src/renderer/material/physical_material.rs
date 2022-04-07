@@ -181,7 +181,6 @@ impl Material for PhysicalMaterial {
             program.use_uniform("metallic", self.metallic)?;
             program.use_uniform_if_required("roughness", self.roughness)?;
             program.use_uniform("albedo", self.albedo)?;
-            program.use_uniform("emissive", self.emissive)?;
             if program.requires_uniform("albedoTexture") {
                 if let Some(ref texture) = self.albedo_texture {
                     program.use_texture("albedoTexture", texture)?;
@@ -204,10 +203,11 @@ impl Material for PhysicalMaterial {
                     program.use_texture("normalTexture", texture)?;
                 }
             }
-            if program.requires_uniform("emissiveTexture") {
-                if let Some(ref texture) = self.emissive_texture {
-                    program.use_texture("emissiveTexture", texture)?;
-                }
+        }
+        program.use_uniform("emissive", self.emissive)?;
+        if program.requires_uniform("emissiveTexture") {
+            if let Some(ref texture) = self.emissive_texture {
+                program.use_texture("emissiveTexture", texture)?;
             }
         }
         Ok(())
