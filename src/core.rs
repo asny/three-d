@@ -122,6 +122,8 @@ pub enum CoreError {
     NegativeDistance,
     #[error("a minimum must be smaller than a maximum")]
     MinimumLargerThanMaximum,
+    #[error("the transformation matrix cannot be inverted and is therefore invalid")]
+    FailedInvertingTransformationMatrix,
 }
 
 mod data_type;

@@ -30,7 +30,7 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     let mut sphere = CpuMesh::sphere(8);
-    sphere.transform(&Mat4::from_scale(0.05));
+    sphere.transform(&Mat4::from_scale(0.05)).unwrap();
     let mut pick_mesh = Model::new_with_material(
         &context,
         &sphere,

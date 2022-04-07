@@ -25,7 +25,7 @@ impl<M: Material> Rectangle<M> {
         material: M,
     ) -> ThreeDResult<Self> {
         let mut mesh = CpuMesh::square();
-        mesh.transform(&(Mat4::from_scale(0.5)));
+        mesh.transform(&(Mat4::from_scale(0.5)))?;
         let mut rectangle = Self {
             model: Model::new_with_material(context, &mesh, material)?,
             context: context.clone(),
