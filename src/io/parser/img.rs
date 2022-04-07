@@ -11,14 +11,13 @@ use std::path::Path;
 ///
 pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
     use image::DynamicImage;
-    use image::GenericImageView;
     let img = image::load_from_memory(bytes)?;
-    let bytes = img.to_bytes();
     let width = img.width();
     let height = img.height();
     let data = match img {
-        DynamicImage::ImageLuma8(_) => TextureData::RU8(bytes),
+        DynamicImage::ImageLuma8(_) => TextureData::RU8(img.into_bytes()),
         DynamicImage::ImageLumaA8(_) => {
+            let bytes = img.as_bytes();
             let mut data = Vec::new();
             for i in 0..bytes.len() / 2 {
                 data.push([bytes[i * 2], bytes[i * 2 + 1]]);
@@ -26,6 +25,7 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
             TextureData::RgU8(data)
         }
         DynamicImage::ImageRgb8(_) => {
+            let bytes = img.as_bytes();
             let mut data = Vec::new();
             for i in 0..bytes.len() / 3 {
                 data.push([bytes[i * 3], bytes[i * 3 + 1], bytes[i * 3 + 2]]);
@@ -33,6 +33,7 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
             TextureData::RgbU8(data)
         }
         DynamicImage::ImageRgba8(_) => {
+            let bytes = img.as_bytes();
             let mut data = Vec::new();
             for i in 0..bytes.len() / 4 {
                 data.push([
@@ -44,12 +45,7 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
             }
             TextureData::RgbaU8(data)
         }
-        DynamicImage::ImageBgr8(_) => unimplemented!(),
-        DynamicImage::ImageBgra8(_) => unimplemented!(),
-        DynamicImage::ImageLuma16(_) => unimplemented!(),
-        DynamicImage::ImageLumaA16(_) => unimplemented!(),
-        DynamicImage::ImageRgb16(_) => unimplemented!(),
-        DynamicImage::ImageRgba16(_) => unimplemented!(),
+        _ => unimplemented!(),
     };
     Ok(CpuTexture {
         data,
