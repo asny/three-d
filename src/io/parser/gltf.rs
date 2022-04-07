@@ -180,7 +180,7 @@ fn parse_tree<'a>(
                     material_name: Some(material_name),
                 };
                 if transform != Mat4::identity() {
-                    cpu_mesh.transform(&transform);
+                    cpu_mesh.transform(&transform)?;
                 }
                 cpu_meshes.push(cpu_mesh);
             }
