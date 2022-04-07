@@ -132,12 +132,12 @@ pub async fn run() {
 
     let size = aabb.size();
     let min = aabb.min() + vec3(size.x * 0.1, size.y * 0.1, size.z * 0.4);
-    let max = aabb.max() - vec3(size.x * 0.1, size.y * 0.1, size.z * 0.4);
+    let max = aabb.max() - vec3(size.x * 0.1, size.y * 0.3, size.z * 0.4);
     let light_box = AxisAlignedBoundingBox::new_with_positions(&[min, max]);
     let mut lights = Vec::new();
 
     // main loop
-    let mut intensity = 0.2;
+    let mut intensity = 0.3;
     let mut constant = 0.0;
     let mut linear = 0.5;
     let mut quadratic = 0.5;
