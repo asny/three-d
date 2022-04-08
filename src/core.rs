@@ -1,6 +1,6 @@
 //!
 //! Mid-level modular abstractions of common graphics concepts such as buffer, texture, program, render target and so on.
-//! Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.
+//! Can be combined with low-level calls in the `context` module.
 //!
 
 mod context;
