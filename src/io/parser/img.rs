@@ -11,6 +11,7 @@ use std::path::Path;
 ///
 pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
     use image::DynamicImage;
+    use image::GenericImageView as _;
     let img = image::load_from_memory(bytes)?;
     let width = img.width();
     let height = img.height();
