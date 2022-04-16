@@ -169,21 +169,13 @@ impl Texture3D {
             }
         }
     }
-    fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
                 .bind_texture(crate::context::TEXTURE_3D, Some(self.id));
         }
     }
 }
-
-impl super::internal::TextureExtensions for Texture3D {
-    fn bind(&self) {
-        self.bind();
-    }
-}
-
-impl Texture for Texture3D {}
 
 impl Drop for Texture3D {
     fn drop(&mut self) {

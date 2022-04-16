@@ -2,13 +2,18 @@
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+    run().await;
+}
+
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+enum CameraType {
+    Primary,
+    Secondary,
 }
 
 use three_d::*;
 
-pub async fn run(screenshot: Option<std::path::PathBuf>) {
+pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "Statues!".to_string(),
         max_size: Some((1280, 720)),
@@ -20,7 +25,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut primary_camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(-200.0, 200.0, 100.0),
+        vec3(-300.0, 250.0, 200.0),
         vec3(0.0, 100.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
@@ -32,7 +37,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut secondary_camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(-500.0, 700.0, 500.0),
+        vec3(-600.0, 600.0, 600.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
@@ -108,68 +113,96 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                 .collect::<Vec<_>>(),
         )
         .unwrap();
+    // Bounding boxes
+    let mut aabb = AxisAlignedBoundingBox::EMPTY;
+    let mut bounding_boxes = Vec::new();
+    for geometry in models.iter() {
+        bounding_boxes.push(
+            BoundingBox::new_with_material_and_thickness(
+                &context,
+                geometry.aabb(),
+                ColorMaterial {
+                    color: Color::RED,
+                    ..Default::default()
+                },
+                0.5,
+            )
+            .unwrap(),
+        );
+        aabb.expand_with_aabb(&geometry.aabb());
+    }
+    bounding_boxes.push(
+        BoundingBox::new_with_material_and_thickness(
+            &context,
+            aabb,
+            ColorMaterial {
+                color: Color::BLACK,
+                ..Default::default()
+            },
+            3.0,
+        )
+        .unwrap(),
+    );
 
-    // main loop
-    let mut is_primary_camera = true;
+    let mut gui = three_d::GUI::new(&context).unwrap();
+    let mut camera_type = CameraType::Primary;
+    let mut bounding_box_enabled = false;
     window
         .render_loop(move |mut frame_input| {
-            let mut redraw = frame_input.first_frame;
-            redraw |= primary_camera.set_viewport(frame_input.viewport).unwrap();
-            redraw |= secondary_camera.set_viewport(frame_input.viewport).unwrap();
-            redraw |= control
+            let mut panel_width = 0;
+            gui.update(&mut frame_input, |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+                    ui.heading("Camera");
+                    ui.radio_value(&mut camera_type, CameraType::Primary, "Primary");
+                    ui.radio_value(&mut camera_type, CameraType::Secondary, "Secondary");
+
+                    ui.checkbox(&mut bounding_box_enabled, "Bounding boxes");
+                });
+                panel_width = gui_context.used_size().x as u32;
+            })
+            .unwrap();
+
+            let viewport = Viewport {
+                x: panel_width as i32,
+                y: 0,
+                width: frame_input.viewport.width - panel_width,
+                height: frame_input.viewport.height,
+            };
+            primary_camera.set_viewport(viewport).unwrap();
+            secondary_camera.set_viewport(viewport).unwrap();
+            control
                 .handle_events(&mut primary_camera, &mut frame_input.events)
                 .unwrap();
 
-            for event in frame_input.events.iter() {
-                match event {
-                    Event::KeyPress { kind, .. } => {
-                        if *kind == Key::C {
-                            is_primary_camera = !is_primary_camera;
-                            redraw = true;
+            // draw
+            Screen::write(
+                &context,
+                ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
+                || {
+                    let camera = match camera_type {
+                        CameraType::Primary => &primary_camera,
+                        CameraType::Secondary => &secondary_camera,
+                    };
+                    for model in models
+                        .iter()
+                        .filter(|o| primary_camera.in_frustum(&o.aabb()))
+                    {
+                        model.render(camera, &[&ambient, &directional])?;
+                    }
+                    if bounding_box_enabled {
+                        for bounding_box in bounding_boxes.iter() {
+                            bounding_box.render(camera, &[])?;
                         }
                     }
-                    _ => {}
-                }
-            }
+                    gui.render()?;
+                    Ok(())
+                },
+            )
+            .unwrap();
 
-            // draw
-            if redraw {
-                Screen::write(
-                    &context,
-                    ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
-                    || {
-                        for model in models
-                            .iter()
-                            .filter(|o| primary_camera.in_frustum(&o.aabb()))
-                        {
-                            model.render(
-                                if is_primary_camera {
-                                    &primary_camera
-                                } else {
-                                    &secondary_camera
-                                },
-                                &[&ambient, &directional],
-                            )?;
-                        }
-                        Ok(())
-                    },
-                )
-                .unwrap();
-            }
-
-            if let Some(ref screenshot) = screenshot {
-                // To automatically generate screenshots of the examples, can safely be ignored.
-                FrameOutput {
-                    screenshot: Some(screenshot.clone()),
-                    exit: true,
-                    ..Default::default()
-                }
-            } else {
-                FrameOutput {
-                    swap_buffers: redraw,
-                    ..Default::default()
-                }
-            }
+            FrameOutput::default()
         })
         .unwrap();
 }

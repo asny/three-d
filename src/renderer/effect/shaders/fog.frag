@@ -126,17 +126,11 @@ float snoise(vec3 v)
     return 42.0 * dot(m4, pdotx);
 }
 
-vec3 WorldPosFromDepth(float depth, vec2 uv) {
-    vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-    vec4 position = viewProjectionInverse * clipSpacePosition;
-    return position.xyz / position.w;
-}
-
 // factor: 1 == full fog, 0 == no fog
 void main()
 {
     float depth = texture(depthMap, uv).x;
-    vec3 pos = WorldPosFromDepth(depth, uv);
+    vec3 pos = world_pos_from_depth(viewProjectionInverse, depth, uv);
 
     // Distance
     float dist = depth < 0.999f ? distance(pos, eyePosition) : 100.f;

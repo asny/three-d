@@ -11,14 +11,14 @@ use std::path::Path;
 ///
 pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
     use image::DynamicImage;
-    use image::GenericImageView;
+    use image::GenericImageView as _;
     let img = image::load_from_memory(bytes)?;
-    let bytes = img.to_bytes();
     let width = img.width();
     let height = img.height();
     let data = match img {
-        DynamicImage::ImageLuma8(_) => TextureData::RU8(bytes),
+        DynamicImage::ImageLuma8(_) => TextureData::RU8(img.into_bytes()),
         DynamicImage::ImageLumaA8(_) => {
+            let bytes = img.as_bytes();
             let mut data = Vec::new();
             for i in 0..bytes.len() / 2 {
                 data.push([bytes[i * 2], bytes[i * 2 + 1]]);
@@ -26,6 +26,7 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
             TextureData::RgU8(data)
         }
         DynamicImage::ImageRgb8(_) => {
+            let bytes = img.as_bytes();
             let mut data = Vec::new();
             for i in 0..bytes.len() / 3 {
                 data.push([bytes[i * 3], bytes[i * 3 + 1], bytes[i * 3 + 2]]);
@@ -33,6 +34,7 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
             TextureData::RgbU8(data)
         }
         DynamicImage::ImageRgba8(_) => {
+            let bytes = img.as_bytes();
             let mut data = Vec::new();
             for i in 0..bytes.len() / 4 {
                 data.push([
@@ -44,12 +46,7 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture> {
             }
             TextureData::RgbaU8(data)
         }
-        DynamicImage::ImageBgr8(_) => unimplemented!(),
-        DynamicImage::ImageBgra8(_) => unimplemented!(),
-        DynamicImage::ImageLuma16(_) => unimplemented!(),
-        DynamicImage::ImageLumaA16(_) => unimplemented!(),
-        DynamicImage::ImageRgb16(_) => unimplemented!(),
-        DynamicImage::ImageRgba16(_) => unimplemented!(),
+        _ => unimplemented!(),
     };
     Ok(CpuTexture {
         data,
@@ -221,12 +218,10 @@ pub fn cube_image_from_bytes(
         _ => unimplemented!(),
     };
 
-    #[allow(deprecated)]
     Ok(CpuTextureCube {
         data,
         width: right.width,
         height: right.height,
-        format: right.format,
         min_filter: right.min_filter,
         mag_filter: right.mag_filter,
         mip_map_filter: right.mip_map_filter,
@@ -294,17 +289,9 @@ impl Saver {
         width: u32,
         height: u32,
     ) -> ThreeDResult<()> {
-        let mut pixels_out = vec![[0u8; 4]; width as usize * height as usize];
-        for row in 0..height as usize {
-            for col in 0..width as usize {
-                pixels_out[width as usize * (height as usize - row - 1) + col] =
-                    pixels[width as usize * row + col];
-            }
-        }
-
         image::save_buffer(
             path,
-            &pixels_out.iter().flatten().map(|v| *v).collect::<Vec<_>>(),
+            &pixels.iter().flatten().map(|v| *v).collect::<Vec<_>>(),
             width as u32,
             height as u32,
             image::ColorType::Rgba8,

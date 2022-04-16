@@ -1,10 +1,3 @@
-// Entry point for non-wasm
-#[cfg(not(target_arch = "wasm32"))]
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a)));
-}
-
 use three_d::core::*;
 use three_d::renderer::*;
 use three_d::window::*;
@@ -36,7 +29,7 @@ impl Material for MandelbrotMaterial {
     }
 }
 
-pub fn run(screenshot: Option<std::path::PathBuf>) {
+pub fn main() {
     let window = Window::new(WindowSettings {
         title: "Mandelbrot!".to_string(),
         max_size: Some((1280, 720)),
@@ -101,7 +94,9 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
                         let distance = camera.position().z.abs();
                         let pixel = (
                             (frame_input.device_pixel_ratio * position.0) as f32,
-                            (frame_input.device_pixel_ratio * position.1) as f32,
+                            (frame_input.viewport.height as f64
+                                - frame_input.device_pixel_ratio * position.1)
+                                as f32,
                         );
                         let mut target = camera.position_at_pixel(pixel);
                         target.z = 0.0;
@@ -121,19 +116,10 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
                 .unwrap();
             }
 
-            if let Some(ref screenshot) = screenshot {
-                // To automatically generate screenshots of the examples, can safely be ignored.
-                FrameOutput {
-                    screenshot: Some(screenshot.clone()),
-                    exit: true,
-                    ..Default::default()
-                }
-            } else {
-                FrameOutput {
-                    swap_buffers: redraw,
-                    wait_next_event: true,
-                    ..Default::default()
-                }
+            FrameOutput {
+                swap_buffers: redraw,
+                wait_next_event: true,
+                ..Default::default()
             }
         })
         .unwrap();

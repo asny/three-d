@@ -1,14 +1,13 @@
+use three_d::*;
+
 // Entry point for non-wasm
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+    run().await;
 }
 
-use three_d::*;
-
-pub async fn run(screenshot: Option<std::path::PathBuf>) {
+pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "Wireframe!".to_string(),
         max_size: Some((1280, 720)),
@@ -39,7 +38,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
 
     let (mut meshes, materials) = loaded.obj("suzanne.obj").unwrap();
     let mut cpu_mesh = meshes.remove(0);
-    cpu_mesh.transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
+    cpu_mesh
+        .transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)))
+        .unwrap();
     let mut model = Model::new_with_material(
         &context,
         &cpu_mesh,
@@ -59,7 +60,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         ..Default::default()
     };
     let mut cylinder = CpuMesh::cylinder(10);
-    cylinder.transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007));
+    cylinder
+        .transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007))
+        .unwrap();
     let edges = InstancedModel::new_with_material(
         &context,
         &edge_transformations(&cpu_mesh),
@@ -69,7 +72,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     .unwrap();
 
     let mut sphere = CpuMesh::sphere(8);
-    sphere.transform(&Mat4::from_scale(0.015));
+    sphere.transform(&Mat4::from_scale(0.015)).unwrap();
     let vertices = InstancedModel::new_with_material(
         &context,
         &vertex_transformations(&cpu_mesh),
@@ -109,18 +112,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                 .unwrap();
             }
 
-            if let Some(ref screenshot) = screenshot {
-                // To automatically generate screenshots of the examples, can safely be ignored.
-                FrameOutput {
-                    screenshot: Some(screenshot.clone()),
-                    exit: true,
-                    ..Default::default()
-                }
-            } else {
-                FrameOutput {
-                    swap_buffers: redraw,
-                    ..Default::default()
-                }
+            FrameOutput {
+                swap_buffers: redraw,
+                ..Default::default()
             }
         })
         .unwrap();

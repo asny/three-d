@@ -13,6 +13,6 @@ pub async fn start() -> Result<(), JsValue> {
     info!("Logging works!");
 
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    main::run(None).await;
+    main::run().await;
     Ok(())
 }

@@ -2,13 +2,12 @@
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+    run().await;
 }
 
 use three_d::*;
 
-pub async fn run(screenshot: Option<std::path::PathBuf>) {
+pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "Volume!".to_string(),
         max_size: Some((1280, 720)),
@@ -20,7 +19,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(4.0, 0.5, 4.0),
+        vec3(0.25, -0.5, -2.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
@@ -31,7 +30,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     // Source: https://web.cs.ucdavis.edu/~okreylos/PhDStudies/Spring2000/ECS277/DataSets.html
-    let cpu_volume = Loader::load_async(&["examples/assets/C60Small.vol"])
+    let cpu_volume = Loader::load_async(&["examples/assets/Skull.vol"])
         .await
         .unwrap()
         .vol("")
@@ -43,7 +42,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             voxels: std::rc::Rc::new(Texture3D::new(&context, &cpu_volume.voxels).unwrap()),
             lighting_model: LightingModel::Blinn,
             size: cpu_volume.size,
-            threshold: 0.9,
+            threshold: 0.15,
             color: Color::WHITE,
             roughness: 1.0,
             metallic: 0.0,
@@ -58,9 +57,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional1 =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0)).unwrap();
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
     let directional2 =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, 1.0, 1.0)).unwrap();
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap();
 
     // main loop
     let mut gui = three_d::GUI::new(&context).unwrap();
@@ -75,16 +74,12 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                     ui.add(
                         Slider::new(&mut volume.material.threshold, 0.0..=1.0).text("Threshold"),
                     );
-                    ui.add(
-                        Slider::new(&mut volume.material.roughness, 0.0..=1.0).text("Roughness"),
-                    );
-                    ui.add(Slider::new(&mut volume.material.metallic, 0.0..=1.0).text("Metallic"));
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
                 panel_width = gui_context.used_size().x as u32;
-                volume.material.color = Color::from_rgba_slice(&color);
             })
             .unwrap();
+            volume.material.color = Color::from_rgba_slice(&color);
 
             let viewport = Viewport {
                 x: panel_width as i32,
@@ -113,16 +108,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             )
             .unwrap();
 
-            if let Some(ref screenshot) = screenshot {
-                // To automatically generate screenshots of the examples, can safely be ignored.
-                FrameOutput {
-                    screenshot: Some(screenshot.clone()),
-                    exit: true,
-                    ..Default::default()
-                }
-            } else {
-                FrameOutput::default()
-            }
+            FrameOutput::default()
         })
         .unwrap();
 }

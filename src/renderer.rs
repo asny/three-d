@@ -1,12 +1,12 @@
 //!
 //! High-level features for easy rendering of different types of objects with different types of shading.
-//! Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.
+//! Can be combined seamlessly with the mid-level features in the `core` module as well as functionality in the `context` module.
 //!
 
 pub use crate::core::{
     math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera,
-    Context, CpuMesh, CpuTexture, CpuTexture3D, CpuTextureCube, CpuVolume, GeometryFunction,
-    Indices, LightingModel, NormalDistributionFunction, Positions, Viewport,
+    Context, CpuMaterial, CpuMesh, CpuTexture, CpuTexture3D, CpuTextureCube, CpuVolume,
+    GeometryFunction, Indices, LightingModel, NormalDistributionFunction, Positions, Viewport,
 };
 
 pub mod material;
@@ -90,8 +90,8 @@ pub fn cmp_render_order(
 
 ///
 /// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
-/// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
-/// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
+/// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
+/// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
 /// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
 ///
 pub fn pick(

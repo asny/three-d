@@ -336,7 +336,7 @@ impl TextureCubeMap {
                 vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
                 uv *= invAtan;
                 uv += 0.5;
-                return vec2(uv.x, 1.0 - uv.y);
+                return uv;
             }
             
             void main()
@@ -448,21 +448,13 @@ impl TextureCubeMap {
         }
     }
 
-    fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
                 .bind_texture(crate::context::TEXTURE_CUBE_MAP, Some(self.id));
         }
     }
 }
-
-impl internal::TextureExtensions for TextureCubeMap {
-    fn bind(&self) {
-        self.bind();
-    }
-}
-
-impl Texture for TextureCubeMap {}
 
 impl Drop for TextureCubeMap {
     fn drop(&mut self) {

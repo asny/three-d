@@ -35,6 +35,9 @@ pub enum CanvasError {
     EventListenerFail(String, String),
 }
 
+///
+/// Default window (canvas) and event handler for easy setup.
+///
 pub struct Window {
     canvas: Option<web_sys::HtmlCanvasElement>,
     window: Rc<web_sys::Window>,
@@ -48,6 +51,9 @@ pub struct Window {
 }
 
 impl Window {
+    ///
+    /// Constructs a new window with the given settings.
+    ///
     pub fn new(settings: WindowSettings) -> ThreeDResult<Window> {
         let websys_window = web_sys::window().ok_or(CanvasError::WindowCreation)?;
         let document = websys_window
@@ -94,16 +100,25 @@ impl Window {
         Ok(())
     }
 
+    ///
+    /// Return the current logical size of the window.
+    ///
     pub fn size(&self) -> ThreeDResult<(u32, u32)> {
         let canvas = self.canvas.as_ref().ok_or(CanvasError::CanvasMissing)?;
         Ok((canvas.width(), canvas.height()))
     }
 
+    ///
+    /// Returns the current viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
+    ///
     pub fn viewport(&self) -> ThreeDResult<Viewport> {
         let (w, h) = self.size()?;
         Ok(Viewport::new_at_origo(w, h))
     }
 
+    ///
+    /// Returns the graphics context for this window.
+    ///
     pub fn gl(&self) -> ThreeDResult<Context> {
         let context_options = ContextOptions {
             antialias: self.settings.multisamples > 0,
@@ -135,6 +150,9 @@ impl Window {
         ))
     }
 
+    ///
+    /// Start the main render loop which calls the `callback` closure each frame.
+    ///
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(
         mut self,
         mut callback: F,

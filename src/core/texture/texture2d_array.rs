@@ -6,15 +6,6 @@ use crate::core::texture::*;
 /// **Note:** [DepthTest] is disabled if not also writing to a [DepthTarget].
 /// Use a [RenderTarget] to write to both color and depth.
 ///
-#[deprecated = "Use Texture2DArray instead"]
-pub type ColorTargetTexture2DArray = Texture2DArray;
-
-///
-/// A array of 2D color textures that can be rendered into.
-///
-/// **Note:** [DepthTest] is disabled if not also writing to a [DepthTarget].
-/// Use a [RenderTarget] to write to both color and depth.
-///
 pub struct Texture2DArray {
     context: Context,
     id: crate::context::Texture,
@@ -152,21 +143,13 @@ impl Texture2DArray {
         }
     }
 
-    fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
                 .bind_texture(crate::context::TEXTURE_2D_ARRAY, Some(self.id));
         }
     }
 }
-
-impl super::internal::TextureExtensions for Texture2DArray {
-    fn bind(&self) {
-        self.bind();
-    }
-}
-
-impl Texture for Texture2DArray {}
 
 impl Drop for Texture2DArray {
     fn drop(&mut self) {

@@ -36,42 +36,6 @@ impl DirectionalLight {
         })
     }
 
-    #[deprecated]
-    #[allow(missing_docs)]
-    pub fn set_color(&mut self, color: Color) {
-        self.color = color;
-    }
-
-    #[deprecated]
-    #[allow(missing_docs)]
-    pub fn color(&self) -> Color {
-        self.color
-    }
-
-    #[deprecated]
-    #[allow(missing_docs)]
-    pub fn set_intensity(&mut self, intensity: f32) {
-        self.intensity = intensity;
-    }
-
-    #[deprecated]
-    #[allow(missing_docs)]
-    pub fn intensity(&self) -> f32 {
-        self.intensity
-    }
-
-    #[deprecated]
-    #[allow(missing_docs)]
-    pub fn set_direction(&mut self, direction: &Vec3) {
-        self.direction = *direction;
-    }
-
-    #[deprecated]
-    #[allow(missing_docs)]
-    pub fn direction(&self) -> Vec3 {
-        self.direction
-    }
-
     ///
     /// Clear the shadow map, effectively disable the shadow.
     /// Only necessary if you want to disable the shadow, if you want to update the shadow, just use [DirectionalLight::generate_shadow_map].
@@ -103,7 +67,7 @@ impl DirectionalLight {
             return Ok(());
         }
         let target = aabb.center();
-        let position = target - self.direction;
+        let position = target - aabb.max().distance(aabb.min()) * self.direction;
         let z_far = aabb.distance_max(&position);
         let z_near = aabb.distance(&position);
         let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
@@ -188,7 +152,7 @@ impl Light for DirectionalLight {
     }
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
         if let Some(ref tex) = self.shadow_texture {
-            program.use_texture(&format!("shadowMap{}", i), tex)?;
+            program.use_depth_texture(&format!("shadowMap{}", i), tex)?;
             program.use_uniform(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
         }
         program.use_uniform(

@@ -72,33 +72,29 @@ impl TextureDataType for Quat {}
 impl<T: TextureDataType + ?Sized> TextureDataType for &T {}
 
 ///
-/// Possible formats for pixels in a texture.
+/// The pixel/texel data for a [CpuTexture].
 ///
-#[deprecated = "the texture format is instead specified by the generic parameter, so if you fill the texture with [u8; 4] data, the format is RGBA and the data type is byte"]
-#[allow(missing_docs)]
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub enum Format {
-    R,
-    RG,
-    RGB,
-    RGBA,
-}
-
-#[allow(deprecated)]
-impl Format {
-    /// Returns the number of channels for the given format.
-    pub fn color_channel_count(&self) -> u32 {
-        match self {
-            Format::R => 1,
-            Format::RG => 2,
-            Format::RGB => 3,
-            Format::RGBA => 4,
-        }
-    }
-}
-
-///
-/// The pixel data for a [CpuTexture].
+/// If 2D data, the data array should start with the top left texel and then one row at a time.
+/// The indices `(row, column)` into the 2D data would look like
+/// ```notrust
+/// [
+/// (0, 0), (1, 0), .., // First row
+/// (0, 1), (1, 1), .., // Second row
+/// ..
+/// ]
+/// ```
+/// If 3D data, the data array would look like the 2D data, one layer/image at a time.
+/// The indices `(row, column, layer)` into the 3D data would look like
+/// ```notrust
+/// [
+/// (0, 0, 0), (1, 0, 0), .., // First row in first layer
+/// (0, 1, 0), (1, 1, 0), .., // Second row in first layer
+/// ..
+/// (0, 0, 1), (1, 0, 1), .., // First row in second layer
+/// (0, 1, 1), (1, 1, 1), ..,  // Second row in second layer
+/// ..
+/// ]
+/// ```
 ///
 #[derive(Clone)]
 pub enum TextureData {
@@ -149,16 +145,11 @@ impl std::fmt::Debug for TextureData {
     }
 }
 
-/// See [CpuTexture]
-#[deprecated = "Renamed to CpuTexture"]
-pub type CPUTexture = CpuTexture;
-
 ///
 /// A CPU-side version of a [Texture2D].
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
 #[derive(Clone, Debug)]
-#[allow(deprecated)]
 pub struct CpuTexture {
     /// The pixel data for the image
     pub data: TextureData,
@@ -166,8 +157,6 @@ pub struct CpuTexture {
     pub width: u32,
     /// The height of the image
     pub height: u32,
-    /// The format of the image
-    pub format: Format,
     /// The way the pixel data is interpolated when the texture is far away
     pub min_filter: Interpolation,
     /// The way the pixel data is interpolated when the texture is close
@@ -181,14 +170,12 @@ pub struct CpuTexture {
     pub wrap_t: Wrapping,
 }
 
-#[allow(deprecated)]
 impl Default for CpuTexture {
     fn default() -> Self {
         Self {
             data: TextureData::RgbaU8(vec![[0, 0, 0, 0]]),
             width: 1,
             height: 1,
-            format: Format::RGBA,
             min_filter: Interpolation::Linear,
             mag_filter: Interpolation::Linear,
             mip_map_filter: Some(Interpolation::Linear),
@@ -211,10 +198,6 @@ pub struct CpuTexture3D {
     pub height: u32,
     /// The depth of the image
     pub depth: u32,
-    /// The format of the image
-    #[deprecated = "the texture format is determined by the TextureData"]
-    #[allow(deprecated)]
-    pub format: Format,
     /// The way the pixel data is interpolated when the texture is far away
     pub min_filter: Interpolation,
     /// The way the pixel data is interpolated when the texture is close
@@ -230,7 +213,6 @@ pub struct CpuTexture3D {
     pub wrap_r: Wrapping,
 }
 
-#[allow(deprecated)]
 impl Default for CpuTexture3D {
     fn default() -> Self {
         Self {
@@ -238,7 +220,6 @@ impl Default for CpuTexture3D {
             width: 1,
             height: 1,
             depth: 1,
-            format: Format::RGBA,
             min_filter: Interpolation::Linear,
             mag_filter: Interpolation::Linear,
             mip_map_filter: Some(Interpolation::Linear),
@@ -345,10 +326,6 @@ pub enum TextureCubeData {
     ),
 }
 
-/// See [CpuTextureCube]
-#[deprecated = "Renamed to CpuTextureCube"]
-pub type CPUTextureCube = CpuTextureCube;
-
 ///
 /// A CPU-side version of a [TextureCubeMap]. All 6 images must have the same dimensions.
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
@@ -360,10 +337,6 @@ pub struct CpuTextureCube {
     pub width: u32,
     /// The height of each of the 6 images
     pub height: u32,
-    /// The format of the image
-    #[deprecated = "the texture format is determined by the TextureCubeData"]
-    #[allow(deprecated)]
-    pub format: Format,
     /// The way the pixel data is interpolated when the texture is far away
     pub min_filter: Interpolation,
     /// The way the pixel data is interpolated when the texture is close
@@ -379,7 +352,6 @@ pub struct CpuTextureCube {
     pub wrap_r: Wrapping,
 }
 
-#[allow(deprecated)]
 impl Default for CpuTextureCube {
     fn default() -> Self {
         Self {
@@ -393,7 +365,6 @@ impl Default for CpuTextureCube {
             ),
             width: 1,
             height: 1,
-            format: Format::RGBA,
             min_filter: Interpolation::Linear,
             mag_filter: Interpolation::Linear,
             mip_map_filter: Some(Interpolation::Linear),
@@ -419,49 +390,7 @@ impl std::fmt::Debug for CpuTextureCube {
     }
 }
 
-mod internal {
-    pub trait TextureExtensions {
-        fn bind(&self);
-    }
-    impl<T: TextureExtensions + ?Sized> TextureExtensions for &T {
-        fn bind(&self) {
-            (*self).bind()
-        }
-    }
-    impl<T: TextureExtensions + ?Sized> TextureExtensions for &mut T {
-        fn bind(&self) {
-            (**self).bind()
-        }
-    }
-    impl<T: TextureExtensions> TextureExtensions for Box<T> {
-        fn bind(&self) {
-            self.as_ref().bind()
-        }
-    }
-    impl<T: TextureExtensions> TextureExtensions for std::rc::Rc<T> {
-        fn bind(&self) {
-            self.as_ref().bind()
-        }
-    }
-    impl<T: TextureExtensions> TextureExtensions for std::rc::Rc<std::cell::RefCell<T>> {
-        fn bind(&self) {
-            self.borrow().bind()
-        }
-    }
-}
-
 use crate::core::*;
-
-///
-/// A texture that can be sampled in a fragment shader (see [Program::use_texture].
-///
-pub trait Texture: internal::TextureExtensions {}
-
-impl<T: Texture + ?Sized> Texture for &T {}
-impl<T: Texture + ?Sized> Texture for &mut T {}
-impl<T: Texture> Texture for Box<T> {}
-impl<T: Texture> Texture for std::rc::Rc<T> {}
-impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {}
 
 // COMMON TEXTURE FUNCTIONS
 

@@ -183,7 +183,7 @@ impl GUI {
         let mut uvs = Vec::new();
         for v in mesh.vertices.iter() {
             positions.push(vec2(v.pos.x, v.pos.y));
-            uvs.push(vec2(v.uv.x, v.uv.y));
+            uvs.push(vec2(v.uv.x, 1.0 - v.uv.y));
             colors.push(vec4(
                 v.color[0] as f32,
                 v.color[1] as f32,

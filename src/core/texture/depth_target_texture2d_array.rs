@@ -114,21 +114,13 @@ impl DepthTargetTexture2DArray {
         }
     }
 
-    fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
                 .bind_texture(crate::context::TEXTURE_2D_ARRAY, Some(self.id));
         }
     }
 }
-
-impl super::internal::TextureExtensions for DepthTargetTexture2DArray {
-    fn bind(&self) {
-        self.bind();
-    }
-}
-
-impl Texture for DepthTargetTexture2DArray {}
 
 impl Drop for DepthTargetTexture2DArray {
     fn drop(&mut self) {

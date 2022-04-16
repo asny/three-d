@@ -2,8 +2,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+    run().await;
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -13,7 +12,7 @@ enum Pipeline {
 }
 use three_d::*;
 
-pub async fn run(screenshot: Option<std::path::PathBuf>) {
+pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "Lighting!".to_string(),
         min_size: (512, 512),
@@ -45,11 +44,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     .await
     .unwrap();
     let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
-    let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
-    material.render_states.cull = Cull::Back;
+    let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
     cpu_meshes[0].compute_tangents().unwrap();
     let mut model = Model::new_with_material(&context, &cpu_meshes[0], material).unwrap();
-    model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
     let mut plane = Model::new_with_material(
         &context,
@@ -359,16 +356,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             })
             .unwrap();
 
-            if let Some(ref screenshot) = screenshot {
-                // To automatically generate screenshots of the examples, can safely be ignored.
-                FrameOutput {
-                    screenshot: Some(screenshot.clone()),
-                    exit: true,
-                    ..Default::default()
-                }
-            } else {
-                FrameOutput::default()
-            }
+            FrameOutput::default()
         })
         .unwrap();
 }

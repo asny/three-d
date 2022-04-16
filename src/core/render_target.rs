@@ -191,7 +191,7 @@ fn copy_from(
                 effect.use_texture("colorMap", tex)?;
             }
             if let Some(tex) = depth_texture {
-                effect.use_texture("depthMap", tex)?;
+                effect.use_depth_texture("depthMap", tex)?;
             }
             effect.apply(
                 RenderStates {
@@ -261,7 +261,7 @@ fn copy_from_array(
                 effect.use_uniform("colorLayer", layer as i32)?;
             }
             if let Some((tex, layer)) = depth_texture {
-                effect.use_texture_array("depthMap", tex)?;
+                effect.use_depth_texture_array("depthMap", tex)?;
                 effect.use_uniform("depthLayer", layer as i32)?;
             }
             effect.apply(

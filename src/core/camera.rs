@@ -230,15 +230,15 @@ impl Camera {
 
     ///
     /// Returns the 3D position at the given pixel coordinate.
-    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
-    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
     ///
     pub fn position_at_pixel(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
             ProjectionType::Orthographic { height } => {
                 let coords = self.uv_coordinates_at_pixel(pixel);
                 let width = height * self.viewport.aspect();
-                self.position() + vec3((coords.0 - 0.5) * width, (0.5 - coords.1) * height, 0.0)
+                self.position() + vec3((coords.0 - 0.5) * width, (coords.1 - 0.5) * height, 0.0)
             }
             ProjectionType::Perspective { .. } => *self.position(),
         }
@@ -246,15 +246,15 @@ impl Camera {
 
     ///
     /// Returns the 3D view direction at the given pixel coordinate.
-    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
-    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
     ///
     pub fn view_direction_at_pixel(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
             ProjectionType::Orthographic { .. } => self.view_direction(),
             ProjectionType::Perspective { .. } => {
                 let coords = self.uv_coordinates_at_pixel(pixel);
-                let screen_pos = vec4(2. * coords.0 - 1., 1. - 2. * coords.1, 0., 1.);
+                let screen_pos = vec4(2. * coords.0 - 1., 2. * coords.1 - 1.0, 0., 1.);
                 (self.screen2ray * screen_pos).truncate().normalize()
             }
         }
@@ -262,9 +262,9 @@ impl Camera {
 
     ///
     /// Returns the uv coordinate for the given pixel coordinate.
-    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
-    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
-    /// The returned uv coordinate are between 0 and 1 where (0,0) indicate the top left corner of the viewport and (1,1) indicate the bottom right corner.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
+    /// The returned uv coordinate are between 0 and 1 where (0,0) indicate the bottom left corner of the viewport and (1,1) indicate the top right corner.
     ///
     pub fn uv_coordinates_at_pixel(&self, pixel: (f32, f32)) -> (f32, f32) {
         (
@@ -368,7 +368,7 @@ impl Camera {
     ///
     /// Use this buffer in your [Program] like this `program.use_uniform_block(camera.uniform_buffer(), "Camera");` and add the following to your shader code:
     ///
-    /// ```ignore
+    /// ```notrust
     /// layout (std140) uniform Camera
     /// {
     ///     mat4 viewProjection;

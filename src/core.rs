@@ -1,6 +1,6 @@
 //!
 //! Mid-level modular abstractions of common graphics concepts such as buffer, texture, program, render target and so on.
-//! Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.
+//! Can be combined with low-level calls in the `context` module.
 //!
 
 mod context;
@@ -122,6 +122,8 @@ pub enum CoreError {
     NegativeDistance,
     #[error("a minimum must be smaller than a maximum")]
     MinimumLargerThanMaximum,
+    #[error("the transformation matrix cannot be inverted and is therefore invalid")]
+    FailedInvertingTransformationMatrix,
 }
 
 mod data_type;
@@ -149,5 +151,15 @@ fn format_from_data_type<T: DataType>() -> u32 {
         3 => crate::context::RGB,
         4 => crate::context::RGBA,
         _ => unreachable!(),
+    }
+}
+
+fn flip_y<T: TextureDataType>(pixels: &mut [T], width: usize, height: usize) {
+    for row in 0..height / 2 {
+        for col in 0..width {
+            let index0 = width * row + col;
+            let index1 = width * (height - row - 1) + col;
+            pixels.swap(index0, index1);
+        }
     }
 }

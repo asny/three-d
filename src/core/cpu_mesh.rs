@@ -132,10 +132,6 @@ impl std::fmt::Debug for Positions {
     }
 }
 
-/// See [CpuMesh]
-#[deprecated = "Renamed to CpuMesh"]
-pub type CPUMesh = CpuMesh;
-
 ///
 /// A CPU-side version of a triangle mesh.
 /// Can be constructed manually or loaded via [io](crate::io)
@@ -195,7 +191,7 @@ impl CpuMesh {
     ///
     /// Transforms the mesh by the given transformation.
     ///
-    pub fn transform(&mut self, transform: &Mat4) {
+    pub fn transform(&mut self, transform: &Mat4) -> ThreeDResult<()> {
         match self.positions {
             Positions::F32(ref mut positions) => {
                 for pos in positions.iter_mut() {
@@ -203,44 +199,33 @@ impl CpuMesh {
                 }
             }
             Positions::F64(ref mut positions) => {
-                let t = Matrix4::new(
-                    transform.x.x as f64,
-                    transform.x.y as f64,
-                    transform.x.z as f64,
-                    transform.x.w as f64,
-                    transform.y.x as f64,
-                    transform.y.y as f64,
-                    transform.y.z as f64,
-                    transform.y.w as f64,
-                    transform.z.x as f64,
-                    transform.z.y as f64,
-                    transform.z.z as f64,
-                    transform.z.w as f64,
-                    transform.w.x as f64,
-                    transform.w.y as f64,
-                    transform.w.z as f64,
-                    transform.w.w as f64,
-                );
+                let t = transform.cast::<f64>().unwrap();
                 for pos in positions.iter_mut() {
                     *pos = (t * pos.extend(1.0)).truncate();
                 }
             }
         };
-        let normal_transform = transform.invert().unwrap().transpose();
 
-        if let Some(ref mut normals) = self.normals {
-            for n in normals.iter_mut() {
-                *n = (normal_transform * n.extend(1.0)).truncate();
+        if self.normals.is_some() || self.tangents.is_some() {
+            let normal_transform = transform
+                .invert()
+                .ok_or(CoreError::FailedInvertingTransformationMatrix)?
+                .transpose();
+
+            if let Some(ref mut normals) = self.normals {
+                for n in normals.iter_mut() {
+                    *n = (normal_transform * n.extend(1.0)).truncate();
+                }
+            }
+            if let Some(ref mut tangents) = self.tangents {
+                for t in tangents.iter_mut() {
+                    *t = (normal_transform * t.truncate().extend(1.0))
+                        .truncate()
+                        .extend(t.w);
+                }
             }
         }
-
-        if let Some(ref mut tangents) = self.tangents {
-            for t in tangents.iter_mut() {
-                *t = (normal_transform * t.truncate().extend(1.0))
-                    .truncate()
-                    .extend(t.w);
-            }
-        }
+        Ok(())
     }
 
     ///
@@ -544,17 +529,20 @@ impl CpuMesh {
     ///
     pub fn arrow(tail_length: f32, tail_radius: f32, angle_subdivisions: u32) -> Self {
         let mut arrow = Self::cylinder(angle_subdivisions);
-        arrow.transform(&Mat4::from_nonuniform_scale(
-            tail_length,
-            tail_radius,
-            tail_radius,
-        ));
+        arrow
+            .transform(&Mat4::from_nonuniform_scale(
+                tail_length,
+                tail_radius,
+                tail_radius,
+            ))
+            .unwrap();
         arrow.name = "arrow".to_string();
         let mut cone = Self::cone(angle_subdivisions);
         cone.transform(
             &(Mat4::from_translation(vec3(tail_length, 0.0, 0.0))
                 * Mat4::from_nonuniform_scale(1.0 - tail_length, 1.0, 1.0)),
-        );
+        )
+        .unwrap();
         let mut indices = arrow.indices.unwrap().into_u32();
         let cone_indices = cone.indices.unwrap().into_u32();
         let offset = indices.iter().max().unwrap() + 1;

@@ -149,6 +149,20 @@ impl Program {
     }
 
     ///
+    /// Calls [Self::use_uniform] if [Self::requires_uniform] returns true.
+    ///
+    pub fn use_uniform_if_required<T: UniformDataType>(
+        &self,
+        name: &str,
+        data: T,
+    ) -> ThreeDResult<()> {
+        if self.requires_uniform(name) {
+            self.use_uniform(name, data)?;
+        }
+        Ok(())
+    }
+
+    ///
     /// Send the given array of uniform data to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of same type and length as the data, so if the data is an array of three [Vec2], the variable must be `uniform vec2[3]`.
     /// The uniform variable is uniformly available across all processing of vertices and fragments.
@@ -286,25 +300,34 @@ impl Program {
     }
 
     ///
-    /// Use the given [Texture] in this shader program and associate it with the given named variable.
-    /// The glsl shader variable can only be accessed in the fragment shader and must be of type
-    /// - `uniform sampler2D` if [Texture2D] or [DepthTargetTexture2D]
-    /// - `uniform sampler2DArray` if [Texture2DArray] or [DepthTargetTexture2DArray]
-    /// - `uniform samplerCube` if [TextureCubeMap] or [DepthTargetTextureCubeMap]
-    /// - `uniform sampler3D` if [Texture3D]
+    /// Use the given [Texture2D] in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
     /// # Errors
     /// Will return an error if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
-        let index = self.get_texture_index(name);
-        unsafe {
-            self.context
-                .active_texture(crate::context::TEXTURE0 + index);
-        }
+    pub fn use_texture(&self, name: &str, texture: &Texture2D) -> ThreeDResult<()> {
+        self.use_texture_internal(name)?;
         texture.bind();
-        self.use_uniform(name, index as i32)?;
+        self.context.error_check()
+    }
+
+    ///
+    /// Use the given [DepthTargetTexture2D] in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
+    ///
+    /// # Errors
+    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
+    pub fn use_depth_texture(
+        &self,
+        name: &str,
+        texture: &DepthTargetTexture2D,
+    ) -> ThreeDResult<()> {
+        self.use_texture_internal(name)?;
+        texture.bind();
         self.context.error_check()
     }
 
@@ -316,8 +339,28 @@ impl Program {
     /// Will return an error if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture_array(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
-        self.use_texture(name, texture)
+    pub fn use_texture_array(&self, name: &str, texture: &Texture2DArray) -> ThreeDResult<()> {
+        self.use_texture_internal(name)?;
+        texture.bind();
+        self.context.error_check()
+    }
+
+    ///
+    /// Use the given texture array in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
+    ///
+    /// # Errors
+    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
+    pub fn use_depth_texture_array(
+        &self,
+        name: &str,
+        texture: &DepthTargetTexture2DArray,
+    ) -> ThreeDResult<()> {
+        self.use_texture_internal(name)?;
+        texture.bind();
+        self.context.error_check()
     }
 
     ///
@@ -328,17 +371,57 @@ impl Program {
     /// Will return an error if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture_cube(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
-        self.use_texture(name, texture)
+    pub fn use_texture_cube(&self, name: &str, texture: &TextureCubeMap) -> ThreeDResult<()> {
+        self.use_texture_internal(name)?;
+        texture.bind();
+        self.context.error_check()
     }
 
-    fn get_texture_index(&self, name: &str) -> u32 {
+    ///
+    /// Use the given texture cube map in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
+    ///
+    /// # Errors
+    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
+    pub fn use_depth_texture_cube(
+        &self,
+        name: &str,
+        texture: &DepthTargetTextureCubeMap,
+    ) -> ThreeDResult<()> {
+        self.use_texture_internal(name)?;
+        texture.bind();
+        self.context.error_check()
+    }
+
+    ///
+    /// Use the given 3D texture in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform sampler3D` and can only be accessed in the fragment shader.
+    ///
+    /// # Errors
+    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
+    pub fn use_texture_3d(&self, name: &str, texture: &Texture3D) -> ThreeDResult<()> {
+        self.use_texture_internal(name)?;
+        texture.bind();
+        self.context.error_check()
+    }
+
+    fn use_texture_internal(&self, name: &str) -> ThreeDResult<u32> {
         if !self.textures.borrow().contains_key(name) {
             let mut map = self.textures.borrow_mut();
             let index = map.len() as u32;
             map.insert(name.to_owned(), index);
         };
-        self.textures.borrow().get(name).unwrap().clone()
+        let index = self.textures.borrow().get(name).unwrap().clone();
+        self.use_uniform(name, index as i32)?;
+        unsafe {
+            self.context
+                .active_texture(crate::context::TEXTURE0 + index);
+        }
+        Ok(index)
     }
 
     ///
@@ -421,222 +504,6 @@ impl Program {
                     0,
                     0,
                 );
-                self.context.vertex_attrib_divisor(loc, 1);
-                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
-            }
-            self.unuse_program();
-        }
-        self.context.error_check()
-    }
-
-    ///
-    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
-    /// Each value in the buffer is used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
-    /// Therefore the buffer must contain the same number of values as the number of vertices specified in those draw calls.
-    ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_attribute(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
-        if buffer.count() > 0 {
-            buffer.bind();
-            let loc = self.location(name)?;
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                self.context
-                    .vertex_attrib_pointer_f32(loc, 1, buffer.data_type(), false, 0, 0);
-                self.context.vertex_attrib_divisor(loc, 0);
-                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
-            }
-            self.unuse_program();
-        }
-        self.context.error_check()
-    }
-
-    ///
-    /// Uses the given buffer data in this shader program and associates it with the given named variable.
-    /// Each value in the buffer is used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
-    /// Therefore the buffer must contain the same number of values as the number of instances specified in those draw calls.
-    ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_attribute_instanced(&self, name: &str, buffer: &InstanceBuffer) -> ThreeDResult<()> {
-        if buffer.count() > 0 {
-            buffer.bind();
-            let loc = self.location(name)?;
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                self.context
-                    .vertex_attrib_pointer_f32(loc, 1, buffer.data_type(), false, 0, 0);
-                self.context.vertex_attrib_divisor(loc, 1);
-                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
-            }
-            self.unuse_program();
-        }
-        self.context.error_check()
-    }
-
-    ///
-    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
-    /// Each contiguous 2 values in the buffer are used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
-    /// Therefore the buffer must contain 2 times the number of values as the number of vertices specified in those draw calls.
-    ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_attribute_vec2(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
-        if buffer.count() > 0 {
-            buffer.bind();
-            let loc = self.location(name)?;
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                self.context
-                    .vertex_attrib_pointer_f32(loc, 2, buffer.data_type(), false, 0, 0);
-                self.context.vertex_attrib_divisor(loc, 0);
-                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
-            }
-            self.unuse_program();
-        }
-        self.context.error_check()
-    }
-
-    ///
-    /// Uses the given buffer data in this shader program and associates it with the given named variable.
-    /// Each contiguous 2 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
-    /// Therefore the buffer must contain 2 times the number of values as the number of instances specified in those draw calls.
-    ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_attribute_vec2_instanced(
-        &self,
-        name: &str,
-        buffer: &InstanceBuffer,
-    ) -> ThreeDResult<()> {
-        if buffer.count() > 0 {
-            buffer.bind();
-            let loc = self.location(name)?;
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                self.context
-                    .vertex_attrib_pointer_f32(loc, 2, buffer.data_type(), false, 0, 0);
-                self.context.vertex_attrib_divisor(loc, 1);
-                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
-            }
-            self.unuse_program();
-        }
-        self.context.error_check()
-    }
-
-    ///
-    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
-    /// Each contiguous 3 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
-    /// Therefore the buffer must contain 3 times the number of values as the number of instances specified in those draw calls.
-    ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_attribute_vec3(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
-        if buffer.count() > 0 {
-            buffer.bind();
-            let loc = self.location(&name)?;
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                self.context
-                    .vertex_attrib_pointer_f32(loc, 3, buffer.data_type(), false, 0, 0);
-                self.context.vertex_attrib_divisor(loc, 0);
-                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
-            }
-            self.unuse_program();
-        }
-        self.context.error_check()
-    }
-
-    ///
-    /// Uses the given buffer data in this shader program and associates it with the given named variable.
-    /// Each contiguous 3 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
-    /// Therefore the buffer must contain 3 times the number of values as the number of instances specified in those draw calls.
-    ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_attribute_vec3_instanced(
-        &self,
-        name: &str,
-        buffer: &InstanceBuffer,
-    ) -> ThreeDResult<()> {
-        if buffer.count() > 0 {
-            buffer.bind();
-            let loc = self.location(&name)?;
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                self.context
-                    .vertex_attrib_pointer_f32(loc, 3, buffer.data_type(), false, 0, 0);
-                self.context.vertex_attrib_divisor(loc, 1);
-                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
-            }
-            self.unuse_program();
-        }
-        self.context.error_check()
-    }
-
-    ///
-    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
-    /// Each contiguous 4 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
-    /// Therefore the buffer must contain 4 times the number of values as the number of instances specified in those draw calls.
-    ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_attribute_vec4(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
-        if buffer.count() > 0 {
-            buffer.bind();
-            let loc = self.location(name)?;
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                self.context
-                    .vertex_attrib_pointer_f32(loc, 4, buffer.data_type(), false, 0, 0);
-                self.context.vertex_attrib_divisor(loc, 0);
-                self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
-            }
-            self.unuse_program();
-        }
-        self.context.error_check()
-    }
-
-    ///
-    /// Uses the given buffer data in this shader program and associates it with the given named variable.
-    /// Each contiguous 4 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
-    /// Therefore the buffer must contain 4 times the number of values as the number of instances specified in those draw calls.
-    ///
-    pub fn use_attribute_vec4_instanced(
-        &self,
-        name: &str,
-        buffer: &InstanceBuffer,
-    ) -> ThreeDResult<()> {
-        if buffer.count() > 0 {
-            buffer.bind();
-            let loc = self.location(name)?;
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                self.context
-                    .vertex_attrib_pointer_f32(loc, 4, buffer.data_type(), false, 0, 0);
                 self.context.vertex_attrib_divisor(loc, 1);
                 self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
@@ -867,99 +734,78 @@ impl Program {
 
     fn set_clip(context: &Context, clip: Clip) {
         unsafe {
-            static mut CURRENT: Clip = Clip::Disabled;
-            if clip != CURRENT {
-                if let Clip::Enabled {
-                    x,
-                    y,
-                    width,
-                    height,
-                } = clip
-                {
-                    context.enable(crate::context::SCISSOR_TEST);
-                    context.scissor(x as i32, y as i32, width as i32, height as i32);
-                } else {
-                    context.disable(crate::context::SCISSOR_TEST);
-                }
-                CURRENT = clip;
+            if let Clip::Enabled {
+                x,
+                y,
+                width,
+                height,
+            } = clip
+            {
+                context.enable(crate::context::SCISSOR_TEST);
+                context.scissor(x as i32, y as i32, width as i32, height as i32);
+            } else {
+                context.disable(crate::context::SCISSOR_TEST);
             }
         }
     }
 
     fn set_viewport(context: &Context, viewport: Viewport) {
         unsafe {
-            static mut CURRENT_VIEWPORT: Viewport = Viewport {
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0,
-            };
-            if viewport != CURRENT_VIEWPORT {
-                context.viewport(
-                    viewport.x,
-                    viewport.y,
-                    viewport.width as i32,
-                    viewport.height as i32,
-                );
-                CURRENT_VIEWPORT = viewport;
-            }
+            context.viewport(
+                viewport.x,
+                viewport.y,
+                viewport.width as i32,
+                viewport.height as i32,
+            );
         }
     }
 
     fn set_cull(context: &Context, cull: Cull) {
         unsafe {
-            static mut CURRENT_CULL: Cull = Cull::None;
-            if cull != CURRENT_CULL {
-                match cull {
-                    Cull::None => {
-                        context.disable(crate::context::CULL_FACE);
-                    }
-                    Cull::Back => {
-                        context.enable(crate::context::CULL_FACE);
-                        context.cull_face(crate::context::BACK);
-                    }
-                    Cull::Front => {
-                        context.enable(crate::context::CULL_FACE);
-                        context.cull_face(crate::context::FRONT);
-                    }
-                    Cull::FrontAndBack => {
-                        context.enable(crate::context::CULL_FACE);
-                        context.cull_face(crate::context::FRONT_AND_BACK);
-                    }
+            match cull {
+                Cull::None => {
+                    context.disable(crate::context::CULL_FACE);
                 }
-                CURRENT_CULL = cull;
+                Cull::Back => {
+                    context.enable(crate::context::CULL_FACE);
+                    context.cull_face(crate::context::BACK);
+                }
+                Cull::Front => {
+                    context.enable(crate::context::CULL_FACE);
+                    context.cull_face(crate::context::FRONT);
+                }
+                Cull::FrontAndBack => {
+                    context.enable(crate::context::CULL_FACE);
+                    context.cull_face(crate::context::FRONT_AND_BACK);
+                }
             }
         }
     }
 
     fn set_blend(context: &Context, blend: Blend) {
         unsafe {
-            static mut CURRENT: Blend = Blend::Disabled;
-            if blend != CURRENT {
-                if let Blend::Enabled {
-                    source_rgb_multiplier,
-                    source_alpha_multiplier,
-                    destination_rgb_multiplier,
-                    destination_alpha_multiplier,
-                    rgb_equation,
-                    alpha_equation,
-                } = blend
-                {
-                    context.enable(crate::context::BLEND);
-                    context.blend_func_separate(
-                        Self::blend_const_from_multiplier(source_rgb_multiplier),
-                        Self::blend_const_from_multiplier(destination_rgb_multiplier),
-                        Self::blend_const_from_multiplier(source_alpha_multiplier),
-                        Self::blend_const_from_multiplier(destination_alpha_multiplier),
-                    );
-                    context.blend_equation_separate(
-                        Self::blend_const_from_equation(rgb_equation),
-                        Self::blend_const_from_equation(alpha_equation),
-                    );
-                } else {
-                    context.disable(crate::context::BLEND);
-                }
-                CURRENT = blend;
+            if let Blend::Enabled {
+                source_rgb_multiplier,
+                source_alpha_multiplier,
+                destination_rgb_multiplier,
+                destination_alpha_multiplier,
+                rgb_equation,
+                alpha_equation,
+            } = blend
+            {
+                context.enable(crate::context::BLEND);
+                context.blend_func_separate(
+                    Self::blend_const_from_multiplier(source_rgb_multiplier),
+                    Self::blend_const_from_multiplier(destination_rgb_multiplier),
+                    Self::blend_const_from_multiplier(source_alpha_multiplier),
+                    Self::blend_const_from_multiplier(destination_alpha_multiplier),
+                );
+                context.blend_equation_separate(
+                    Self::blend_const_from_equation(rgb_equation),
+                    Self::blend_const_from_equation(alpha_equation),
+                );
+            } else {
+                context.disable(crate::context::BLEND);
             }
         }
     }
@@ -992,72 +838,51 @@ impl Program {
 
     pub(crate) fn set_write_mask(context: &Context, write_mask: WriteMask) {
         unsafe {
-            static mut CURRENT_COLOR_MASK: WriteMask = WriteMask::COLOR_AND_DEPTH;
-            if write_mask != CURRENT_COLOR_MASK {
-                context.color_mask(
-                    write_mask.red,
-                    write_mask.green,
-                    write_mask.blue,
-                    write_mask.alpha,
-                );
-                Self::set_depth(context, None, write_mask.depth);
-                CURRENT_COLOR_MASK = write_mask;
-            }
+            context.color_mask(
+                write_mask.red,
+                write_mask.green,
+                write_mask.blue,
+                write_mask.alpha,
+            );
+            Self::set_depth(context, None, write_mask.depth);
         }
     }
 
     fn set_depth(context: &Context, depth_test: Option<DepthTest>, depth_mask: bool) {
         unsafe {
-            static mut CURRENT_DEPTH_ENABLE: bool = false;
-            static mut CURRENT_DEPTH_MASK: bool = true;
-            static mut CURRENT_DEPTH_TEST: DepthTest = DepthTest::Less;
-
             if depth_mask == false && depth_test == Some(DepthTest::Always) {
-                if CURRENT_DEPTH_ENABLE {
-                    context.disable(crate::context::DEPTH_TEST);
-                    CURRENT_DEPTH_ENABLE = false;
-                    return;
-                }
+                context.disable(crate::context::DEPTH_TEST);
             } else {
-                if !CURRENT_DEPTH_ENABLE {
-                    context.enable(crate::context::DEPTH_TEST);
-                    CURRENT_DEPTH_ENABLE = true;
-                }
-            }
-
-            if depth_mask != CURRENT_DEPTH_MASK {
+                context.enable(crate::context::DEPTH_TEST);
                 context.depth_mask(depth_mask);
-                CURRENT_DEPTH_MASK = depth_mask;
-            }
-
-            if depth_test.is_some() && depth_test.unwrap() != CURRENT_DEPTH_TEST {
-                match depth_test.unwrap() {
-                    DepthTest::Never => {
-                        context.depth_func(crate::context::NEVER);
-                    }
-                    DepthTest::Less => {
-                        context.depth_func(crate::context::LESS);
-                    }
-                    DepthTest::Equal => {
-                        context.depth_func(crate::context::EQUAL);
-                    }
-                    DepthTest::LessOrEqual => {
-                        context.depth_func(crate::context::LEQUAL);
-                    }
-                    DepthTest::Greater => {
-                        context.depth_func(crate::context::GREATER);
-                    }
-                    DepthTest::NotEqual => {
-                        context.depth_func(crate::context::NOTEQUAL);
-                    }
-                    DepthTest::GreaterOrEqual => {
-                        context.depth_func(crate::context::GEQUAL);
-                    }
-                    DepthTest::Always => {
-                        context.depth_func(crate::context::ALWAYS);
+                if let Some(depth_test) = depth_test {
+                    match depth_test {
+                        DepthTest::Never => {
+                            context.depth_func(crate::context::NEVER);
+                        }
+                        DepthTest::Less => {
+                            context.depth_func(crate::context::LESS);
+                        }
+                        DepthTest::Equal => {
+                            context.depth_func(crate::context::EQUAL);
+                        }
+                        DepthTest::LessOrEqual => {
+                            context.depth_func(crate::context::LEQUAL);
+                        }
+                        DepthTest::Greater => {
+                            context.depth_func(crate::context::GREATER);
+                        }
+                        DepthTest::NotEqual => {
+                            context.depth_func(crate::context::NOTEQUAL);
+                        }
+                        DepthTest::GreaterOrEqual => {
+                            context.depth_func(crate::context::GEQUAL);
+                        }
+                        DepthTest::Always => {
+                            context.depth_func(crate::context::ALWAYS);
+                        }
                     }
                 }
-                CURRENT_DEPTH_TEST = depth_test.unwrap();
             }
         }
     }

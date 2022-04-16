@@ -50,10 +50,6 @@ impl LightingModel {
     }
 }
 
-/// See [CpuMaterial]
-#[deprecated = "Renamed to CpuMaterial"]
-pub type CPUMaterial = CpuMaterial;
-
 ///
 /// A CPU-side version of a material.
 /// Can be constructed manually or loaded via [io](crate::io).

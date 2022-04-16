@@ -116,6 +116,8 @@ impl Texture2D {
     pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         check_data_length(self.width, self.height, 1, self.data_byte_size, data)?;
         self.bind();
+        let mut data = data.to_owned();
+        flip_y(&mut data, self.width as usize, self.height as usize);
         unsafe {
             self.context.tex_sub_image_2d(
                 crate::context::TEXTURE_2D,
@@ -126,7 +128,7 @@ impl Texture2D {
                 self.height as i32,
                 format_from_data_type::<T>(),
                 T::data_type(),
-                crate::context::PixelUnpackData::Slice(to_byte_slice(data)),
+                crate::context::PixelUnpackData::Slice(to_byte_slice(&data)),
             );
         }
         self.generate_mip_maps();
@@ -202,7 +204,7 @@ impl Texture2D {
             );
         }
     }
-    fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
                 .bind_texture(crate::context::TEXTURE_2D, Some(self.id));
@@ -210,78 +212,10 @@ impl Texture2D {
     }
 }
 
-impl internal::TextureExtensions for Texture2D {
-    fn bind(&self) {
-        self.bind();
-    }
-}
-
-impl Texture for Texture2D {}
-
 impl Drop for Texture2D {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_texture(self.id);
         }
-    }
-}
-
-///
-/// A 2D color texture that can be rendered into and read from.
-///
-/// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
-/// Use a [RenderTarget] to write to both color and depth.
-///
-#[deprecated = "Use Texture2D::new_empty instead"]
-pub struct ColorTargetTexture2D {
-    tex: Texture2D,
-}
-
-#[allow(deprecated)]
-impl ColorTargetTexture2D {
-    ///
-    /// Constructs a new 2D color target texture.
-    ///
-    pub fn new<T: TextureDataType>(
-        context: &Context,
-        width: u32,
-        height: u32,
-        min_filter: Interpolation,
-        mag_filter: Interpolation,
-        mip_map_filter: Option<Interpolation>,
-        wrap_s: Wrapping,
-        wrap_t: Wrapping,
-        format: Format,
-    ) -> ThreeDResult<Self> {
-        if T::size() == 1 && format.color_channel_count() > 1 {
-            panic!("use the generic data type to specify the format when creating a color target texture")
-        }
-        Ok(Self {
-            tex: Texture2D::new_empty::<T>(
-                context,
-                width,
-                height,
-                min_filter,
-                mag_filter,
-                mip_map_filter,
-                wrap_s,
-                wrap_t,
-            )?,
-        })
-    }
-}
-
-#[allow(deprecated)]
-impl std::ops::Deref for ColorTargetTexture2D {
-    type Target = Texture2D;
-    fn deref(&self) -> &Self::Target {
-        &self.tex
-    }
-}
-
-#[allow(deprecated)]
-impl std::ops::DerefMut for ColorTargetTexture2D {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.tex
     }
 }

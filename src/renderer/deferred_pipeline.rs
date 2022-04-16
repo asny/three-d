@@ -55,7 +55,7 @@ impl DeferredPipeline {
                 context,
                 1,
                 1,
-                2,
+                3,
                 Interpolation::Nearest,
                 Interpolation::Nearest,
                 None,
@@ -108,7 +108,7 @@ impl DeferredPipeline {
             &self.context,
             viewport.width,
             viewport.height,
-            2,
+            3,
             Interpolation::Nearest,
             Interpolation::Nearest,
             None,
@@ -159,32 +159,6 @@ impl DeferredPipeline {
             ..Default::default()
         };
 
-        if self.debug_type != DebugType::NONE {
-            return self.context.effect(
-                &format!(
-                    "{}{}",
-                    include_str!("../core/shared.frag"),
-                    include_str!("material/shaders/debug.frag")
-                ),
-                |debug_effect| {
-                    debug_effect.use_uniform(
-                        "viewProjectionInverse",
-                        (camera.projection() * camera.view()).invert().unwrap(),
-                    )?;
-                    debug_effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
-                    debug_effect.use_texture("depthMap", self.geometry_pass_depth_texture())?;
-                    if self.debug_type == DebugType::DEPTH {
-                        debug_effect.use_uniform("zNear", camera.z_near())?;
-                        debug_effect.use_uniform("zFar", camera.z_far())?;
-                        debug_effect.use_uniform("cameraPosition", camera.position())?;
-                    }
-                    debug_effect.use_uniform("type", self.debug_type as i32)?;
-                    debug_effect.apply(render_states, camera.viewport())?;
-                    Ok(())
-                },
-            );
-        }
-
         let mut fragment_shader = lights_fragment_shader_source(
             lights,
             LightingModel::Cook(
@@ -195,16 +169,22 @@ impl DeferredPipeline {
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
-            effect.use_uniform("eyePosition", camera.position())?;
+            effect.use_uniform_if_required("eyePosition", camera.position())?;
             for (i, light) in lights.iter().enumerate() {
                 light.use_uniforms(effect, i as u32)?;
             }
             effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
             effect.use_texture("depthMap", self.geometry_pass_depth_texture())?;
-            effect.use_uniform(
+            effect.use_uniform_if_required(
                 "viewProjectionInverse",
                 (camera.projection() * camera.view()).invert().unwrap(),
             )?;
+            effect.use_uniform("debug_type", self.debug_type as i32)?;
+            if self.debug_type == DebugType::DEPTH {
+                effect.use_uniform("zNear", camera.z_near())?;
+                effect.use_uniform("zFar", camera.z_far())?;
+                effect.use_uniform("cameraPosition", camera.position())?;
+            }
             effect.apply(render_states, camera.viewport())?;
             Ok(())
         })
