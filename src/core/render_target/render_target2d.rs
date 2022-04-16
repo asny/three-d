@@ -184,23 +184,6 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         })
     }
 
-    pub fn new_with_texture2d(
-        context: &Context,
-        color_texture: &'a mut Texture2D,
-        depth_texture: &'b mut DepthTargetTexture2D,
-    ) -> ThreeDResult<Self> {
-        Self::new(
-            context,
-            ColorTarget::Texture2D {
-                texture: color_texture,
-                mip_level: None,
-            },
-            DepthTarget::Texture2D {
-                texture: depth_texture,
-            },
-        )
-    }
-
     ///
     /// Constructs a new render target that enables rendering into the given [Texture2D].
     ///
