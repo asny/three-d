@@ -90,7 +90,11 @@ fn main() {
         .unwrap();
 
         // Save the rendered image
-        let pixels = texture.read(viewport).unwrap();
+        let pixels = texture
+            .as_render_target(None)
+            .unwrap()
+            .read_color(viewport)
+            .unwrap();
         Saver::save_pixels(
             format!("headless-{}.png", frame_index),
             &pixels,

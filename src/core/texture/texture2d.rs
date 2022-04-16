@@ -135,7 +135,7 @@ impl Texture2D {
         self.context.error_check()
     }
 
-    pub fn render_target(&mut self, mip_level: Option<u32>) -> ThreeDResult<RenderTarget> {
+    pub fn as_render_target(&mut self, mip_level: Option<u32>) -> ThreeDResult<RenderTarget> {
         RenderTarget::new(
             &self.context.clone(),
             ColorTarget::Texture2D {
@@ -153,12 +153,13 @@ impl Texture2D {
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     /// Use a [RenderTarget] to write to both color and depth.
     ///
+    #[deprecated]
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        self.render_target(None)?
+        self.as_render_target(None)?
             .clear(clear_state)?
             .write(render)?;
         Ok(())
@@ -170,8 +171,9 @@ impl Texture2D {
     ///
     /// **Note:** On web, the data format needs to match the data format of this texture.
     ///
+    #[deprecated]
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        self.render_target(None)?.read_color(viewport)
+        self.as_render_target(None)?.read_color(viewport)
     }
 
     /// The width of this texture.

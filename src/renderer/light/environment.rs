@@ -129,9 +129,10 @@ impl Environment {
             ),
         )?;
         let viewport = Viewport::new_at_origo(brdf_map.width(), brdf_map.height());
-        brdf_map.write(ClearState::default(), || {
-            effect.apply(RenderStates::default(), viewport)
-        })?;
+        brdf_map
+            .as_render_target(None)?
+            .clear(ClearState::default())?
+            .write(|| effect.apply(RenderStates::default(), viewport))?;
 
         Ok(Self {
             irradiance_map,
