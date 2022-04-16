@@ -345,10 +345,6 @@ impl Geometry for InstancedMesh {
     }
 }
 
-#[deprecated = "Renamed to Instance"]
-#[allow(missing_docs)]
-pub type ModelInstance = Instance;
-
 /// Defines an instance of the model defined in [InstancedMesh] or [InstancedModel].
 #[derive(Clone, Copy, Debug)]
 pub struct Instance {

@@ -218,12 +218,10 @@ pub fn cube_image_from_bytes(
         _ => unimplemented!(),
     };
 
-    #[allow(deprecated)]
     Ok(CpuTextureCube {
         data,
         width: right.width,
         height: right.height,
-        format: right.format,
         min_filter: right.min_filter,
         mag_filter: right.mag_filter,
         mip_map_filter: right.mip_map_filter,

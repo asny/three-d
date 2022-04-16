@@ -132,10 +132,6 @@ impl std::fmt::Debug for Positions {
     }
 }
 
-/// See [CpuMesh]
-#[deprecated = "Renamed to CpuMesh"]
-pub type CPUMesh = CpuMesh;
-
 ///
 /// A CPU-side version of a triangle mesh.
 /// Can be constructed manually or loaded via [io](crate::io)

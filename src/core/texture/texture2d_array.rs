@@ -6,15 +6,6 @@ use crate::core::texture::*;
 /// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
 /// Use a [RenderTargetArray] to write to both color and depth.
 ///
-#[deprecated = "Use Texture2DArray instead"]
-pub type ColorTargetTexture2DArray = Texture2DArray;
-
-///
-/// A array of 2D color textures that can be rendered into.
-///
-/// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
-/// Use a [RenderTargetArray] to write to both color and depth.
-///
 pub struct Texture2DArray {
     context: Context,
     id: crate::context::Texture,

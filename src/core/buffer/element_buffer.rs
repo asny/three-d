@@ -68,14 +68,6 @@ impl ElementBuffer {
     }
 
     ///
-    /// Creates a new element buffer and fills it with the given indices which must be divisable by 3.
-    ///
-    #[deprecated = "use new_with_data()"]
-    pub fn new_with<T: ElementBufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
-        Self::new_with_data(context, data)
-    }
-
-    ///
     /// Fills the buffer with the given indices which must be divisable by 3.
     ///
     pub fn fill<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
@@ -92,14 +84,6 @@ impl ElementBuffer {
         self.count = data.len();
         self.data_type = T::data_type();
         self.context.error_check()
-    }
-
-    ///
-    /// Fills the buffer with the given indices which must be divisable by 3.
-    ///
-    #[deprecated = "use fill()"]
-    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
-        self.fill(data)
     }
 
     ///

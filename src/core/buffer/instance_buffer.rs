@@ -62,47 +62,4 @@ impl InstanceBuffer {
     pub(crate) fn data_size(&self) -> u32 {
         self.buffer.data_size
     }
-
-    ///
-    /// Creates a new instance buffer and fills it with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [new_with_dynamic](InstanceBuffer::new_with_dynamic)
-    /// when you do not expect the data to change often.
-    ///
-    #[deprecated = "use new_with_data() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn new_with_static<T: BufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
-        Self::new_with_data(context, data)
-    }
-
-    ///
-    /// Creates a new instance buffer and fills it with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [new_with_static](InstanceBuffer::new_with_static)
-    /// when you expect the data to change often.
-    ///
-    #[deprecated = "use new_with_data() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn new_with_dynamic<T: BufferDataType>(
-        context: &Context,
-        data: &[T],
-    ) -> ThreeDResult<Self> {
-        Self::new_with_data(context, data)
-    }
-
-    ///
-    /// Fills the instance buffer with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [fill_with_dynamic](InstanceBuffer::fill_with_dynamic)
-    /// when you do not expect the data to change often.
-    ///
-    #[deprecated = "use fill() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn fill_with_static<T: BufferDataType>(&mut self, data: &[T]) {
-        self.fill(data).unwrap();
-    }
-
-    ///
-    /// Fills the instance buffer with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [fill_with_static](InstanceBuffer::fill_with_static)
-    /// when you expect the data to change often.
-    ///
-    #[deprecated = "use fill() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn fill_with_dynamic<T: BufferDataType>(&mut self, data: &[T]) {
-        self.fill(data).unwrap();
-    }
 }
