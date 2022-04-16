@@ -67,7 +67,9 @@ fn main() {
         // Create a render target (a combination of a color and a depth texture) to write into and clear the color and depth
         RenderTarget::new_with_texture2d(&context, &mut texture, &mut depth_texture)
             .unwrap()
-            .write(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
+            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+            .unwrap()
+            .write(|| {
                 // Set the current transformation of the triangle
                 model.set_transformation(Mat4::from_angle_y(radians(
                     (frame_index as f32 * 0.6) as f32,
