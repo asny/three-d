@@ -70,7 +70,7 @@ impl Texture2DArray {
         Ok(texture)
     }
 
-    pub fn render_target<'a>(
+    pub fn as_render_target<'a>(
         &'a mut self,
         layers: &'a [u32],
         mip_level: Option<u32>,
@@ -94,13 +94,14 @@ impl Texture2DArray {
     /// **Note:** [DepthTest] is disabled if not also writing to a [DepthTarget].
     /// Use a [RenderTarget] to write to both color and depth.
     ///
+    #[deprecated = "use as_render_target followed by clear and write"]
     pub fn write<'a, F: FnOnce() -> ThreeDResult<()>>(
         &'a mut self,
         layers: &'a [u32],
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        self.render_target(layers, None)?
+        self.as_render_target(layers, None)?
             .clear(clear_state)?
             .write(render)?;
         Ok(())

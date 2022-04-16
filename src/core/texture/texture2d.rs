@@ -153,7 +153,7 @@ impl Texture2D {
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     /// Use a [RenderTarget] to write to both color and depth.
     ///
-    #[deprecated]
+    #[deprecated = "use as_render_target followed by clear and write"]
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
         clear_state: ClearState,
@@ -171,7 +171,7 @@ impl Texture2D {
     ///
     /// **Note:** On web, the data format needs to match the data format of this texture.
     ///
-    #[deprecated]
+    #[deprecated = "use as_render_target followed by read"]
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         self.as_render_target(None)?.read_color(viewport)
     }

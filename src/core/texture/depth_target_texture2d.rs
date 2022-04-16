@@ -67,7 +67,7 @@ impl DepthTargetTexture2D {
         Ok(texture)
     }
 
-    pub fn render_target(&mut self) -> ThreeDResult<RenderTarget> {
+    pub fn as_render_target(&mut self) -> ThreeDResult<RenderTarget> {
         RenderTarget::new(
             &self.context.clone(),
             ColorTarget::None,
@@ -79,12 +79,13 @@ impl DepthTargetTexture2D {
     /// Write the depth of whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
+    #[deprecated = "use as_render_target followed by clear and write"]
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        self.render_target()?
+        self.as_render_target()?
             .clear(ClearState {
                 depth: clear_state,
                 ..ClearState::none()

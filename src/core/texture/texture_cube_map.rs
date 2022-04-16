@@ -357,7 +357,7 @@ impl TextureCubeMap {
         Ok(texture)
     }
 
-    pub fn render_target<'a>(
+    pub fn as_render_target<'a>(
         &'a mut self,
         side: CubeMapSide,
         mip_level: Option<u32>,
@@ -377,13 +377,14 @@ impl TextureCubeMap {
     /// Writes whatever rendered in the `render` closure into the color texture at the cube map side given by the input parameter `side`.
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
+    #[deprecated = "use as_render_target followed by clear and write"]
     pub fn write(
         &mut self,
         side: CubeMapSide,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.render_target(side, None)?
+        self.as_render_target(side, None)?
             .clear(clear_state)?
             .write(render)?;
         Ok(())
@@ -393,6 +394,7 @@ impl TextureCubeMap {
     /// Writes whatever rendered in the `render` closure into the given mip level of the color texture at the cube map side given by the input parameter `side`.
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
+    #[deprecated = "use as_render_target followed by clear and write"]
     pub fn write_to_mip_level(
         &mut self,
         side: CubeMapSide,
@@ -400,7 +402,7 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.render_target(side, Some(mip_level))?
+        self.as_render_target(side, Some(mip_level))?
             .clear(clear_state)?
             .write(render)?;
         Ok(())
