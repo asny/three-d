@@ -65,7 +65,7 @@ fn main() {
     // Render three frames
     for frame_index in 0..3 {
         // Create a render target (a combination of a color and a depth texture) to write into and clear the color and depth
-        RenderTarget::new(
+        let pixels = RenderTarget::new(
             &context,
             ColorTarget::Texture2D {
                 texture: &mut texture,
@@ -87,14 +87,10 @@ fn main() {
             // Render the triangle with the per vertex colors defined at construction
             model.render(&camera, &[])
         })
+        .unwrap()
+        .read_color(viewport)
         .unwrap();
-
         // Save the rendered image
-        let pixels = texture
-            .as_render_target(None)
-            .unwrap()
-            .read_color(viewport)
-            .unwrap();
         Saver::save_pixels(
             format!("headless-{}.png", frame_index),
             &pixels,
