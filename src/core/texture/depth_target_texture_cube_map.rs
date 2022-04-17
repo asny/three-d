@@ -54,7 +54,7 @@ impl DepthTargetTextureCubeMap {
         Ok(texture)
     }
 
-    pub fn as_render_target(&mut self, side: CubeMapSide) -> ThreeDResult<RenderTarget> {
+    pub fn render_target(&mut self, side: CubeMapSide) -> ThreeDResult<RenderTarget> {
         RenderTarget::new(
             &self.context.clone(),
             ColorTarget::None,
@@ -69,14 +69,14 @@ impl DepthTargetTextureCubeMap {
     /// Writes the depth of whatever rendered in the `render` closure into the depth texture at the cube map side given by the input parameter `side`.
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
-    #[deprecated = "use as_render_target followed by clear and write"]
+    #[deprecated = "use render_target followed by clear and write"]
     pub fn write(
         &mut self,
         side: CubeMapSide,
         clear_state: Option<f32>,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.as_render_target(side)?
+        self.render_target(side)?
             .clear(ClearState {
                 depth: clear_state,
                 ..ClearState::none()

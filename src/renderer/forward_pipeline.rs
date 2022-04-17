@@ -70,7 +70,7 @@ impl ForwardPipeline {
             DepthFormat::Depth32F,
         )?;
         depth_texture
-            .as_render_target()?
+            .render_target()?
             .clear(ClearState::default())?
             .write(|| self.depth_pass(&camera, objects))?;
         Ok(depth_texture)

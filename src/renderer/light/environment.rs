@@ -62,7 +62,7 @@ impl Environment {
                 effect.use_texture_cube("environmentMap", environment_map)?;
                 let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
                 irradiance_map
-                    .as_render_target(side, None)?
+                    .render_target(side, None)?
                     .clear(ClearState::default())?
                     .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
@@ -102,7 +102,7 @@ impl Environment {
                     program.use_uniform("roughness", &roughness)?;
                     program.use_uniform("resolution", &(environment_map.width() as f32))?;
                     prefilter_map
-                        .as_render_target(side, Some(mip))?
+                        .render_target(side, Some(mip))?
                         .clear(ClearState::default())?
                         .write(|| program.render(side, RenderStates::default(), viewport))?;
                 }
@@ -132,7 +132,7 @@ impl Environment {
         )?;
         let viewport = Viewport::new_at_origo(brdf_map.width(), brdf_map.height());
         brdf_map
-            .as_render_target(None)?
+            .render_target(None)?
             .clear(ClearState::default())?
             .write(|| effect.apply(RenderStates::default(), viewport))?;
 
