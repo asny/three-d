@@ -349,9 +349,10 @@ impl TextureCubeMap {
             for side in CubeMapSide::iter() {
                 effect.use_texture("equirectangularMap", &map)?;
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
-                texture.write(side, ClearState::default(), || {
-                    effect.render(side, RenderStates::default(), viewport)
-                })?;
+                texture
+                    .as_render_target(side, None)?
+                    .clear(ClearState::default())?
+                    .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
         }
         Ok(texture)

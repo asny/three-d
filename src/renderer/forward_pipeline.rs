@@ -69,7 +69,10 @@ impl ForwardPipeline {
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
         )?;
-        depth_texture.write(Some(1.0), || self.depth_pass(&camera, objects))?;
+        depth_texture
+            .as_render_target()?
+            .clear(ClearState::default())?
+            .write(|| self.depth_pass(&camera, objects))?;
         Ok(depth_texture)
     }
 }

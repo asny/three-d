@@ -61,9 +61,10 @@ impl Environment {
             for side in CubeMapSide::iter() {
                 effect.use_texture_cube("environmentMap", environment_map)?;
                 let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
-                irradiance_map.write(side, ClearState::default(), || {
-                    effect.render(side, RenderStates::default(), viewport)
-                })?;
+                irradiance_map
+                    .as_render_target(side, None)?
+                    .clear(ClearState::default())?
+                    .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
         }
 
@@ -100,9 +101,10 @@ impl Environment {
                     program.use_texture_cube("environmentMap", environment_map)?;
                     program.use_uniform("roughness", &roughness)?;
                     program.use_uniform("resolution", &(environment_map.width() as f32))?;
-                    prefilter_map.write_to_mip_level(side, mip, ClearState::default(), || {
-                        program.render(side, RenderStates::default(), viewport)
-                    })?;
+                    prefilter_map
+                        .as_render_target(side, Some(mip))?
+                        .clear(ClearState::default())?
+                        .write(|| program.render(side, RenderStates::default(), viewport))?;
                 }
             }
         }

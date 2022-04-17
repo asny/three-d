@@ -110,15 +110,18 @@ impl SpotLight {
             },
             ..Default::default()
         };
-        shadow_texture.write(Some(1.0), || {
-            for geometry in geometries
-                .iter()
-                .filter(|g| shadow_camera.in_frustum(&g.aabb()))
-            {
-                geometry.render_with_material(&depth_material, &shadow_camera, &[])?;
-            }
-            Ok(())
-        })?;
+        shadow_texture
+            .as_render_target()?
+            .clear(ClearState::default())?
+            .write(|| {
+                for geometry in geometries
+                    .iter()
+                    .filter(|g| shadow_camera.in_frustum(&g.aabb()))
+                {
+                    geometry.render_with_material(&depth_material, &shadow_camera, &[])?;
+                }
+                Ok(())
+            })?;
         self.shadow_texture = Some(shadow_texture);
         Ok(())
     }
