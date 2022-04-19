@@ -74,15 +74,14 @@ impl Texture2DArray {
         &'a mut self,
         layers: &'a [u32],
         mip_level: Option<u32>,
-    ) -> ThreeDResult<RenderTarget<'a, '_>> {
+    ) -> ThreeDResult<RenderTarget<'a>> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorTarget::Texture2DArray {
+            Target::Color(ColorTarget::Texture2DArray {
                 texture: self,
                 layers,
                 mip_level,
-            },
-            DepthTarget::None,
+            }),
         )
     }
 

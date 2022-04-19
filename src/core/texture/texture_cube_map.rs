@@ -358,19 +358,18 @@ impl TextureCubeMap {
         Ok(texture)
     }
 
-    pub fn render_target<'a>(
-        &'a mut self,
+    pub fn render_target(
+        &mut self,
         side: CubeMapSide,
         mip_level: Option<u32>,
-    ) -> ThreeDResult<RenderTarget<'a, '_>> {
+    ) -> ThreeDResult<RenderTarget> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorTarget::TextureCubeMap {
+            Target::Color(ColorTarget::TextureCubeMap {
                 texture: self,
                 side,
                 mip_level,
-            },
-            DepthTarget::None,
+            }),
         )
     }
 

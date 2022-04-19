@@ -60,11 +60,10 @@ impl DepthTargetTexture2DArray {
     pub fn render_target(&mut self, layer: u32) -> ThreeDResult<RenderTarget> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorTarget::None,
-            DepthTarget::Texture2DArray {
+            Target::Depth(DepthTarget::Texture2DArray {
                 texture: self,
                 layer,
-            },
+            }),
         )
     }
 

@@ -57,11 +57,10 @@ impl DepthTargetTextureCubeMap {
     pub fn render_target(&mut self, side: CubeMapSide) -> ThreeDResult<RenderTarget> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorTarget::None,
-            DepthTarget::TextureCubeMap {
+            Target::Depth(DepthTarget::TextureCubeMap {
                 texture: self,
                 side,
-            },
+            }),
         )
     }
 

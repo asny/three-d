@@ -70,8 +70,7 @@ impl DepthTargetTexture2D {
     pub fn render_target(&mut self) -> ThreeDResult<RenderTarget> {
         RenderTarget::new(
             &self.context.clone(),
-            ColorTarget::None,
-            DepthTarget::Texture2D { texture: self },
+            Target::Depth(DepthTarget::Texture2D { texture: self }),
         )
     }
 
