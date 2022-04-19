@@ -13,11 +13,6 @@ pub struct RenderStates {
     pub write_mask: WriteMask,
 
     ///
-    /// Defines the rectangle of pixels to write to in a render call. If none, all pixels in the current render target are possibly written into.
-    ///
-    pub clip: Clip,
-
-    ///
     /// Defines the depth test in a render call.
     /// The depth test determines whether or not a fragment from the current render call should be discarded
     /// when comparing its depth with the depth of the current fragment.
@@ -44,7 +39,6 @@ impl Default for RenderStates {
             write_mask: WriteMask::default(),
             depth_test: DepthTest::default(),
             blend: Blend::default(),
-            clip: Clip::default(),
             cull: Cull::default(),
         }
     }
@@ -93,32 +87,6 @@ pub enum DepthTest {
 impl Default for DepthTest {
     fn default() -> Self {
         Self::Less
-    }
-}
-
-///
-/// Defines the rectangle of pixels to write to in a render call.
-///
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum Clip {
-    /// Only render inside the defined rectangle of the screen/render target.
-    Enabled {
-        /// The distance in pixels from the left edge of the screen/render target.
-        x: u32,
-        /// The distance in pixels from the bottom edge of the screen/render target.
-        y: u32,
-        /// The width of the rectangle.
-        width: u32,
-        /// The height of the rectangle.
-        height: u32,
-    },
-    /// Render inside the entire screen/render target.
-    Disabled,
-}
-
-impl Default for Clip {
-    fn default() -> Self {
-        Self::Disabled
     }
 }
 

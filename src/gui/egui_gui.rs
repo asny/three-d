@@ -146,18 +146,9 @@ impl GUI {
             (self.height as f32 * scale).round() as u32,
         );
 
-        for egui::ClippedMesh(rect, mesh) in clipped_meshes {
-            let width = rect.max.x - rect.min.x;
-            let height = rect.max.y - rect.min.y;
-            let clipping = Clip::Enabled {
-                x: (rect.min.x * scale) as u32,
-                y: ((self.height as f32 - rect.max.y) * scale) as u32,
-                width: (width * scale) as u32,
-                height: (height * scale) as u32,
-            };
+        for egui::ClippedMesh(_, mesh) in clipped_meshes {
             self.paint_mesh(
                 viewport,
-                clipping,
                 self.width,
                 self.height,
                 &mesh,
@@ -170,7 +161,6 @@ impl GUI {
     fn paint_mesh(
         &self,
         viewport: Viewport,
-        clip: Clip,
         width: u32,
         height: u32,
         mesh: &egui::paint::Mesh,
@@ -208,7 +198,6 @@ impl GUI {
                 alpha_equation: BlendEquationType::Add,
             },
             depth_test: DepthTest::Always,
-            clip,
             ..Default::default()
         };
 

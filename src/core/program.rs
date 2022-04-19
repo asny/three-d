@@ -722,7 +722,6 @@ impl Program {
     fn set_states(context: &Context, render_states: RenderStates) -> ThreeDResult<()> {
         Self::set_cull(context, render_states.cull);
         Self::set_write_mask(context, render_states.write_mask);
-        Self::set_clip(context, render_states.clip);
         Self::set_depth(
             context,
             Some(render_states.depth_test),
@@ -730,23 +729,6 @@ impl Program {
         );
         Self::set_blend(context, render_states.blend);
         context.error_check()
-    }
-
-    fn set_clip(context: &Context, clip: Clip) {
-        unsafe {
-            if let Clip::Enabled {
-                x,
-                y,
-                width,
-                height,
-            } = clip
-            {
-                context.enable(crate::context::SCISSOR_TEST);
-                context.scissor(x as i32, y as i32, width as i32, height as i32);
-            } else {
-                context.disable(crate::context::SCISSOR_TEST);
-            }
-        }
     }
 
     fn set_viewport(context: &Context, viewport: Viewport) {
