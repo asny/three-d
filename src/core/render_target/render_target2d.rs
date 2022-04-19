@@ -187,7 +187,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     /// Constructs a new render target that enables rendering into the given [Texture2D].
     ///
-    #[deprecated = "use new with no depth target or call write/read directly on Texture2D"]
+    #[deprecated = "use new with no depth target or call the render_target metod on Texture2D"]
     pub fn new_color(context: &Context, texture: &'a mut Texture2D) -> ThreeDResult<Self> {
         Self::new(
             context,
@@ -202,7 +202,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     /// Constructs a new render target that enables rendering into the given [DepthTargetTexture2D].
     ///
-    #[deprecated = "use new with no color target or call write/read directly on DepthTargetTexture2D"]
+    #[deprecated = "use new with no color target or call the render_target method on DepthTargetTexture2D"]
     pub fn new_depth(
         context: &Context,
         texture: &'b mut DepthTargetTexture2D,
