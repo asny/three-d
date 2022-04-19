@@ -257,7 +257,7 @@ pub struct FrameInput {
 
 impl FrameInput {
     pub fn screen(&self) -> RenderTarget {
-        RenderTarget::screen(&self.context, self.window_width, self.window_height)
+        RenderTarget::screen(&self.context, self.viewport.width, self.viewport.height)
     }
 }
 
