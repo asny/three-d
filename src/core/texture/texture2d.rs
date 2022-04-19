@@ -173,7 +173,7 @@ impl Texture2D {
     ///
     #[deprecated = "use render_target followed by read"]
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        self.render_target(None)?.read_color(viewport)
+        self.render_target(None)?.read_color_area(viewport)
     }
 
     /// The width of this texture.

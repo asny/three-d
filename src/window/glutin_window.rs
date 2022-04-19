@@ -170,11 +170,10 @@ impl Window {
 
                     #[cfg(feature = "image-io")]
                     if let Some(ref path) = frame_output.screenshot {
-                        let pixels = crate::Screen::read_color(
-                            &context,
-                            Viewport::new_at_origo(physical_width, physical_height),
-                        )
-                        .unwrap();
+                        let pixels =
+                            RenderTarget::screen(&context, physical_width, physical_height)
+                                .read_color()
+                                .unwrap();
                         crate::Saver::save_pixels(path, &pixels, physical_width, physical_height)
                             .unwrap();
                     }

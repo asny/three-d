@@ -281,7 +281,16 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
-    pub fn read_color<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
+    pub fn read_color<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
+        if let ColorTarget::None = self.color_target {
+            Err(CoreError::RenderTargetRead("color".to_string()))?;
+        }
+        let width = self.color_target.width();
+        let height = self.color_target.height();
+        self.read_color_area(Viewport::new_at_origo(width, height))
+    }
+
+    pub fn read_color_area<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         if let ColorTarget::None = self.color_target {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
         }

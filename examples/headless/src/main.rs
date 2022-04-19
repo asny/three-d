@@ -88,7 +88,7 @@ fn main() {
             model.render(&camera, &[])
         })
         .unwrap()
-        .read_color(viewport)
+        .read_color()
         .unwrap();
         // Save the rendered image
         Saver::save_pixels(
