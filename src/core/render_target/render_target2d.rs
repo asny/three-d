@@ -23,7 +23,7 @@ pub enum ColorTarget<'a> {
 }
 
 impl<'a> ColorTarget<'a> {
-    pub fn width(&self) -> u32 {
+    fn width(&self) -> u32 {
         match self {
             Self::Texture2D { texture, .. } => texture.width(),
             Self::Texture2DArray { texture, .. } => texture.width(),
@@ -33,7 +33,7 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
-    pub fn height(&self) -> u32 {
+    fn height(&self) -> u32 {
         match self {
             Self::Texture2D { texture, .. } => texture.height(),
             Self::Texture2DArray { texture, .. } => texture.height(),
@@ -137,7 +137,7 @@ pub enum DepthTarget<'a> {
 }
 
 impl<'a> DepthTarget<'a> {
-    pub fn width(&self) -> u32 {
+    fn width(&self) -> u32 {
         match self {
             Self::Texture2D { texture, .. } => texture.width(),
             Self::Texture2DArray { texture, .. } => texture.width(),
@@ -147,7 +147,7 @@ impl<'a> DepthTarget<'a> {
         }
     }
 
-    pub fn height(&self) -> u32 {
+    fn height(&self) -> u32 {
         match self {
             Self::Texture2D { texture, .. } => texture.height(),
             Self::Texture2DArray { texture, .. } => texture.height(),
@@ -268,6 +268,15 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// Before writing, the textures are cleared based on the given clear state.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
+        self.write_to_area(self.area(), render)
+    }
+
+    pub fn write_to_area(
+        &self,
+        area: Rectangle,
+        render: impl FnOnce() -> ThreeDResult<()>,
+    ) -> ThreeDResult<&Self> {
+        set_scissor(&self.context, area);
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         render()?;
         self.color_target.generate_mip_maps();
@@ -282,15 +291,10 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
     pub fn read_color<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
-        if let ColorTarget::None = self.color_target {
-            Err(CoreError::RenderTargetRead("color".to_string()))?;
-        }
-        let width = self.color_target.width();
-        let height = self.color_target.height();
-        self.read_color_area(Viewport::new_at_origo(width, height))
+        self.read_color_area(self.area())
     }
 
-    pub fn read_color_area<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
+    pub fn read_color_area<T: TextureDataType>(&self, area: Rectangle) -> ThreeDResult<Vec<T>> {
         if let ColorTarget::None = self.color_target {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
         }
@@ -301,13 +305,13 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         if data_size / T::size() as usize == 1 {
             data_size *= 4 / T::size() as usize
         }
-        let mut bytes = vec![0u8; viewport.width as usize * viewport.height as usize * data_size];
+        let mut bytes = vec![0u8; area.width as usize * area.height as usize * data_size];
         unsafe {
             self.context.read_pixels(
-                viewport.x as i32,
-                viewport.y as i32,
-                viewport.width as i32,
-                viewport.height as i32,
+                area.x as i32,
+                area.y as i32,
+                area.width as i32,
+                area.height as i32,
                 format_from_data_type::<T>(),
                 T::data_type(),
                 crate::context::PixelPackData::Slice(&mut bytes),
@@ -315,11 +319,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             self.context.error_check()?;
         }
         let mut pixels = from_byte_slice(&bytes).to_vec();
-        flip_y(
-            &mut pixels,
-            viewport.width as usize,
-            viewport.height as usize,
-        );
+        flip_y(&mut pixels, area.width as usize, area.height as usize);
         Ok(pixels)
     }
 
@@ -328,19 +328,19 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     /// Only available on desktop.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
+    pub fn read_depth_area(&self, area: Rectangle) -> ThreeDResult<Vec<f32>> {
         if let DepthTarget::None = self.depth_target {
             Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         self.bind(crate::context::READ_FRAMEBUFFER)?;
-        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
+        let mut pixels = vec![0u8; area.width as usize * area.height as usize * 4];
         unsafe {
             self.context.read_pixels(
-                viewport.x as i32,
-                viewport.y as i32,
-                viewport.width as i32,
-                viewport.height as i32,
+                area.x as i32,
+                area.y as i32,
+                area.width as i32,
+                area.height as i32,
                 crate::context::DEPTH_COMPONENT,
                 crate::context::FLOAT,
                 crate::context::PixelPackData::Slice(&mut pixels),
@@ -392,6 +392,14 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
                 write_mask,
             )
         })
+    }
+
+    pub fn area(&self) -> Rectangle {
+        if let ColorTarget::None = self.color_target {
+            Rectangle::new_at_origo(self.depth_target.width(), self.depth_target.height())
+        } else {
+            Rectangle::new_at_origo(self.color_target.width(), self.color_target.height())
+        }
     }
 
     pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {

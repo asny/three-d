@@ -99,6 +99,22 @@ impl Default for ClearState {
     }
 }
 
+pub(in crate::core::render_target) fn set_scissor(context: &Context, rectangle: Rectangle) {
+    unsafe {
+        if rectangle.width > 0 && rectangle.height > 0 {
+            context.enable(crate::context::SCISSOR_TEST);
+            context.scissor(
+                rectangle.x as i32,
+                rectangle.y as i32,
+                rectangle.width as i32,
+                rectangle.height as i32,
+            );
+        } else {
+            context.disable(crate::context::SCISSOR_TEST);
+        }
+    }
+}
+
 pub(in crate::core) fn new_framebuffer(
     context: &Context,
 ) -> ThreeDResult<crate::context::Framebuffer> {

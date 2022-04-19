@@ -5,7 +5,7 @@ use crate::core::render_target::*;
 ///
 /// The screen render target which is essential to get something on the screen (see the [write function](Screen::write)).
 ///
-#[deprecated="use RenderTarget::screen or FrameInput::screen to get the screen render target"]
+#[deprecated = "use RenderTarget::screen or FrameInput::screen to get the screen render target"]
 pub struct Screen {}
 
 impl Screen {
@@ -38,7 +38,7 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        RenderTarget::screen(context, 0, 0).read_depth(viewport)
+        RenderTarget::screen(context, 0, 0).read_depth_area(viewport)
     }
 
     ///
