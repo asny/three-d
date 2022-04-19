@@ -256,6 +256,14 @@ pub struct FrameInput {
 }
 
 impl FrameInput {
+    ///
+    /// Returns the screen render target, which is used for drawing to the screen, for this window.
+    /// Same as
+    ///
+    /// ```notrust
+    /// RenderTarget::screen(&frame_input.context, frame_input.viewport.width, frame_input.viewport.height)
+    /// ```
+    ///
     pub fn screen(&self) -> RenderTarget {
         RenderTarget::screen(&self.context, self.viewport.width, self.viewport.height)
     }

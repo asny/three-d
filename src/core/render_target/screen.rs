@@ -1,8 +1,11 @@
+#![allow(deprecated)]
+
 use crate::core::render_target::*;
 
 ///
 /// The screen render target which is essential to get something on the screen (see the [write function](Screen::write)).
 ///
+#[deprecated="use RenderTarget::screen or FrameInput::screen to get the screen render target"]
 pub struct Screen {}
 
 impl Screen {
