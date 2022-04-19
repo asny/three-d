@@ -23,6 +23,26 @@ pub enum ColorTarget<'a> {
 }
 
 impl<'a> ColorTarget<'a> {
+    pub fn width(&self) -> u32 {
+        match self {
+            Self::Texture2D { texture, .. } => texture.width(),
+            Self::Texture2DArray { texture, .. } => texture.width(),
+            Self::TextureCubeMap { texture, .. } => texture.width(),
+            Self::Screen { width, .. } => *width,
+            Self::None => 0,
+        }
+    }
+
+    pub fn height(&self) -> u32 {
+        match self {
+            Self::Texture2D { texture, .. } => texture.height(),
+            Self::Texture2DArray { texture, .. } => texture.height(),
+            Self::TextureCubeMap { texture, .. } => texture.height(),
+            Self::Screen { height, .. } => *height,
+            Self::None => 0,
+        }
+    }
+
     fn generate_mip_maps(&self) {
         match self {
             Self::Texture2D { texture, mip_level } => {
@@ -117,6 +137,26 @@ pub enum DepthTarget<'a> {
 }
 
 impl<'a> DepthTarget<'a> {
+    pub fn width(&self) -> u32 {
+        match self {
+            Self::Texture2D { texture, .. } => texture.width(),
+            Self::Texture2DArray { texture, .. } => texture.width(),
+            Self::TextureCubeMap { texture, .. } => texture.width(),
+            Self::Screen { width, .. } => *width,
+            Self::None => 0,
+        }
+    }
+
+    pub fn height(&self) -> u32 {
+        match self {
+            Self::Texture2D { texture, .. } => texture.height(),
+            Self::Texture2DArray { texture, .. } => texture.height(),
+            Self::TextureCubeMap { texture, .. } => texture.height(),
+            Self::Screen { height, .. } => *height,
+            Self::None => 0,
+        }
+    }
+
     fn bind(&self) {
         match self {
             Self::Texture2D { texture } => {
