@@ -244,6 +244,7 @@ impl<'a> RenderTarget<'a> {
         Ok(self)
     }
 
+    #[allow(deprecated)]
     fn clear_internal(
         &self,
         area: Rectangle,
@@ -291,6 +292,7 @@ impl<'a> RenderTarget<'a> {
         self.context().error_check()
     }
 
+    #[allow(deprecated)]
     pub(in crate::core) fn clear_deprecated(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
         set_scissor(self.context(), self.area());
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
