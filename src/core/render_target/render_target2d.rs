@@ -357,10 +357,10 @@ impl<'a> RenderTarget<'a> {
     /// Renders whatever rendered in the `render` closure into this render target.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_area(self.area(), render)
+        self.write_to_viewport(self.area(), render)
     }
 
-    pub fn write_area(
+    pub fn write_to_viewport(
         &self,
         area: Viewport,
         render: impl FnOnce() -> ThreeDResult<()>,
