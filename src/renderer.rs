@@ -41,6 +41,18 @@ use thiserror::Error;
 #[allow(missing_docs)]
 pub enum RendererError {}
 
+impl<'a> RenderTarget<'a> {
+    pub fn render(
+        &self,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.write_area(camera.viewport(), || render_pass(camera, objects, lights))?;
+        Ok(self)
+    }
+}
+
 ///
 /// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
 /// Must be called in a render target render function, for example in the callback function of [Screen::write].

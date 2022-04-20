@@ -198,10 +198,7 @@ impl ImpostersMaterial {
                     },
                 )?
                 .clear(Color::BLACK, 1.0)?
-                .write(|| {
-                    render_pass(&camera, objects, lights)?;
-                    Ok(())
-                })?;
+                .render(&camera, objects, lights)?;
             }
         }
         Ok(())
