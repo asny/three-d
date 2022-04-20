@@ -333,7 +333,7 @@ impl<'a> RenderTarget<'a> {
     }
 
     ///
-    /// Returns the values of the pixels in this texture inside the given viewport.
+    /// Returns the colors of the pixels in this render target.
     /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
@@ -342,6 +342,12 @@ impl<'a> RenderTarget<'a> {
         self.read_color_area(self.area())
     }
 
+    ///
+    /// Returns the colors of the pixels in this render target inside the given viewport.
+    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
+    ///
+    /// **Note:** On web, the data format needs to match the data format of the color texture.
+    ///
     pub fn read_color_area<T: TextureDataType>(&self, area: Viewport) -> ThreeDResult<Vec<T>> {
         if let Self::Depth { .. } = self {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
@@ -372,8 +378,17 @@ impl<'a> RenderTarget<'a> {
     }
 
     ///
-    /// Returns the depth values from the screen as a list of 32-bit floats.
-    /// Only available on desktop.
+    /// Returns the depth values from the render target as a list of 32-bit floats.
+    /// Not available on web.
+    ///
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
+        self.read_depth_area(self.area())
+    }
+
+    ///
+    /// Returns the depth values from the given area of the render target as a list of 32-bit floats.
+    /// Not available on web.
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth_area(&self, area: Viewport) -> ThreeDResult<Vec<f32>> {
