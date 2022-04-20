@@ -134,7 +134,7 @@ impl DeferredPipeline {
                 texture: self.geometry_pass_depth_texture.as_mut().unwrap(),
             },
         )?
-        .clear(ClearState::default())?
+        .clear(Color::BLACK, 1.0)?
         .write(|| {
             for (geometry, material) in objects
                 .iter()

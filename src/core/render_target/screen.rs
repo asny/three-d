@@ -20,7 +20,7 @@ impl Screen {
         render: F,
     ) -> ThreeDResult<()> {
         RenderTarget::screen(context, 0, 0)
-            .clear(clear_state)?
+            .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())
     }

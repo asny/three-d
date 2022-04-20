@@ -112,7 +112,7 @@ impl SpotLight {
         };
         shadow_texture
             .render_target()?
-            .clear(ClearState::default())?
+            .clear(Color::BLACK, 1.0)?
             .write(|| {
                 for geometry in geometries
                     .iter()

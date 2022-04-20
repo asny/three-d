@@ -351,7 +351,7 @@ impl TextureCubeMap {
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
                     .render_target(side, None)?
-                    .clear(ClearState::default())?
+                    .clear(Color::BLACK, 1.0)?
                     .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
         }
@@ -385,7 +385,7 @@ impl TextureCubeMap {
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         self.render_target(side, None)?
-            .clear(clear_state)?
+            .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())
     }
@@ -403,7 +403,7 @@ impl TextureCubeMap {
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         self.render_target(side, Some(mip_level))?
-            .clear(clear_state)?
+            .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())
     }

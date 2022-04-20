@@ -178,11 +178,7 @@ pub fn ray_intersect(
             texture: &mut depth_texture,
         },
     )?
-    .clear(ClearState {
-        red: Some(1.0),
-        depth: Some(1.0),
-        ..ClearState::none()
-    })?
+    .clear(Color::WHITE, 1.0)?
     .write(|| {
         for geometry in geometries {
             geometry.render_with_material(&depth_material, &camera, &[])?;

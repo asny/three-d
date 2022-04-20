@@ -217,25 +217,83 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_area(self.area(), clear_state)
+    pub fn clear(&self, color: Color, depth: f32) -> ThreeDResult<&Self> {
+        self.clear_area(self.area(), color, depth)
     }
 
-    pub fn clear_area(&self, area: Rectangle, mut clear_state: ClearState) -> ThreeDResult<&Self> {
+    pub fn clear_area(&self, area: Rectangle, color: Color, depth: f32) -> ThreeDResult<&Self> {
+        self.clear_internal(area, Some(color), Some(depth))?;
+        Ok(self)
+    }
+
+    pub fn clear_color(&self, color: Color) -> ThreeDResult<&Self> {
+        self.clear_color_area(self.area(), color)
+    }
+
+    pub fn clear_color_area(&self, area: Rectangle, color: Color) -> ThreeDResult<&Self> {
+        self.clear_internal(area, Some(color), None)?;
+        Ok(self)
+    }
+
+    pub fn clear_depth(&self, depth: f32) -> ThreeDResult<&Self> {
+        self.clear_depth_area(self.area(), depth)
+    }
+
+    pub fn clear_depth_area(&self, area: Rectangle, depth: f32) -> ThreeDResult<&Self> {
+        self.clear_internal(area, None, Some(depth))?;
+        Ok(self)
+    }
+
+    fn clear_internal(
+        &self,
+        area: Rectangle,
+        color: Option<Color>,
+        depth: Option<f32>,
+    ) -> ThreeDResult<()> {
+        let clear_state = if let Some(color) = color {
+            if let Some(depth) = depth {
+                match self {
+                    Self::Depth { .. } => ClearState::depth(depth),
+                    Self::Color { .. } => ClearState::color(
+                        color.r as f32 / 255.0,
+                        color.g as f32 / 255.0,
+                        color.b as f32 / 255.0,
+                        color.a as f32 / 255.0,
+                    ),
+                    _ => ClearState::color_and_depth(
+                        color.r as f32 / 255.0,
+                        color.g as f32 / 255.0,
+                        color.b as f32 / 255.0,
+                        color.a as f32 / 255.0,
+                        depth,
+                    ),
+                }
+            } else {
+                match self {
+                    Self::Depth { .. } => ClearState::none(),
+                    _ => ClearState::color(
+                        color.r as f32 / 255.0,
+                        color.g as f32 / 255.0,
+                        color.b as f32 / 255.0,
+                        color.a as f32 / 255.0,
+                    ),
+                }
+            }
+        } else {
+            match self {
+                Self::Color { .. } => ClearState::none(),
+                _ => ClearState::depth(depth.unwrap()),
+            }
+        };
         set_scissor(self.context(), area);
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        match self {
-            Self::Depth { .. } => {
-                clear_state.red = None;
-                clear_state.green = None;
-                clear_state.blue = None;
-                clear_state.alpha = None;
-            }
-            Self::Color { .. } => {
-                clear_state.depth = None;
-            }
-            _ => {}
-        }
+        clear(self.context(), &clear_state);
+        self.context().error_check()
+    }
+
+    pub(in crate::core) fn clear_deprecated(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
+        set_scissor(self.context(), self.area());
+        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         clear(self.context(), &clear_state);
         self.context().error_check()?;
         Ok(self)

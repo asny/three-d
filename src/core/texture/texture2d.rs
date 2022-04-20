@@ -159,7 +159,7 @@ impl Texture2D {
         render: F,
     ) -> ThreeDResult<()> {
         self.render_target(None)?
-            .clear(clear_state)?
+            .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())
     }
