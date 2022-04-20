@@ -208,7 +208,7 @@ use crate::context::Framebuffer;
 /// Adds additional functionality to read from and write to the screen (see [RenderTarget::screen]) or a color texture and
 /// a depth texture (see [RenderTarget::new]) at the same time.
 /// If you only want to perform an operation on either a color texture or depth texture,
-/// use the `render_target` function directly on the texture structs (for example [Texture2D]).
+/// use the `render_target` function directly on the texture structs (for example [Texture2D]) or the [RenderTarget::new_color] and [RenderTarget::new_depth] functions.
 /// A render target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
 ///
 pub struct RenderTarget<'a> {
@@ -246,10 +246,7 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub(in crate::core) fn new_color(
-        context: &Context,
-        color: ColorTarget<'a>,
-    ) -> ThreeDResult<Self> {
+    pub fn new_color(context: &Context, color: ColorTarget<'a>) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             target: Target::Color {
@@ -259,10 +256,7 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub(in crate::core) fn new_depth(
-        context: &Context,
-        depth: DepthTarget<'a>,
-    ) -> ThreeDResult<Self> {
+    pub fn new_depth(context: &Context, depth: DepthTarget<'a>) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             target: Target::Depth {
