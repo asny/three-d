@@ -1,11 +1,9 @@
-pub type Viewport = Rectangle;
-
 ///
 /// Defines the part of the screen/render target that is rendered to.
 /// All values should be given in physical pixels.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Rectangle {
+pub struct Viewport {
     /// The distance in pixels from the left edge of the screen/render target.
     pub x: i32,
     /// The distance in pixels from the bottom edge of the screen/render target.
@@ -16,7 +14,7 @@ pub struct Rectangle {
     pub height: u32,
 }
 
-impl Rectangle {
+impl Viewport {
     ///
     /// New viewport which starts at origo (x and y are both zero).
     ///

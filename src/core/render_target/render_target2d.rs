@@ -221,7 +221,7 @@ impl<'a> RenderTarget<'a> {
         self.clear_area(self.area(), color, depth)
     }
 
-    pub fn clear_area(&self, area: Rectangle, color: Color, depth: f32) -> ThreeDResult<&Self> {
+    pub fn clear_area(&self, area: Viewport, color: Color, depth: f32) -> ThreeDResult<&Self> {
         self.clear_internal(area, Some(color), Some(depth))?;
         Ok(self)
     }
@@ -230,7 +230,7 @@ impl<'a> RenderTarget<'a> {
         self.clear_color_area(self.area(), color)
     }
 
-    pub fn clear_color_area(&self, area: Rectangle, color: Color) -> ThreeDResult<&Self> {
+    pub fn clear_color_area(&self, area: Viewport, color: Color) -> ThreeDResult<&Self> {
         self.clear_internal(area, Some(color), None)?;
         Ok(self)
     }
@@ -239,7 +239,7 @@ impl<'a> RenderTarget<'a> {
         self.clear_depth_area(self.area(), depth)
     }
 
-    pub fn clear_depth_area(&self, area: Rectangle, depth: f32) -> ThreeDResult<&Self> {
+    pub fn clear_depth_area(&self, area: Viewport, depth: f32) -> ThreeDResult<&Self> {
         self.clear_internal(area, None, Some(depth))?;
         Ok(self)
     }
@@ -247,7 +247,7 @@ impl<'a> RenderTarget<'a> {
     #[allow(deprecated)]
     fn clear_internal(
         &self,
-        area: Rectangle,
+        area: Viewport,
         color: Option<Color>,
         depth: Option<f32>,
     ) -> ThreeDResult<()> {
@@ -311,7 +311,7 @@ impl<'a> RenderTarget<'a> {
 
     pub fn write_to_area(
         &self,
-        area: Rectangle,
+        area: Viewport,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
         set_scissor(self.context(), area);
@@ -336,7 +336,7 @@ impl<'a> RenderTarget<'a> {
         self.read_color_area(self.area())
     }
 
-    pub fn read_color_area<T: TextureDataType>(&self, area: Rectangle) -> ThreeDResult<Vec<T>> {
+    pub fn read_color_area<T: TextureDataType>(&self, area: Viewport) -> ThreeDResult<Vec<T>> {
         if let Self::Depth { .. } = self {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
         }
@@ -370,7 +370,7 @@ impl<'a> RenderTarget<'a> {
     /// Only available on desktop.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth_area(&self, area: Rectangle) -> ThreeDResult<Vec<f32>> {
+    pub fn read_depth_area(&self, area: Viewport) -> ThreeDResult<Vec<f32>> {
         if let Self::Color { .. } = self {
             Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }
@@ -436,8 +436,8 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub fn area(&self) -> Rectangle {
-        Rectangle::new_at_origo(self.width(), self.height())
+    pub fn area(&self) -> Viewport {
+        Viewport::new_at_origo(self.width(), self.height())
     }
 
     pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {

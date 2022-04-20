@@ -102,15 +102,15 @@ impl Default for ClearState {
     }
 }
 
-pub(in crate::core::render_target) fn set_scissor(context: &Context, rectangle: Rectangle) {
+pub(in crate::core::render_target) fn set_scissor(context: &Context, viewport: Viewport) {
     unsafe {
-        if rectangle.width > 0 && rectangle.height > 0 {
+        if viewport.width > 0 && viewport.height > 0 {
             context.enable(crate::context::SCISSOR_TEST);
             context.scissor(
-                rectangle.x as i32,
-                rectangle.y as i32,
-                rectangle.width as i32,
-                rectangle.height as i32,
+                viewport.x as i32,
+                viewport.y as i32,
+                viewport.width as i32,
+                viewport.height as i32,
             );
         } else {
             context.disable(crate::context::SCISSOR_TEST);
