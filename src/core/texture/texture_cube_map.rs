@@ -363,13 +363,13 @@ impl TextureCubeMap {
         side: CubeMapSide,
         mip_level: Option<u32>,
     ) -> ThreeDResult<RenderTarget> {
-        RenderTarget::new(
+        RenderTarget::new_color(
             &self.context.clone(),
-            Target::Color(ColorTarget::TextureCubeMap {
+            ColorTarget::TextureCubeMap {
                 texture: self,
                 side,
                 mip_level,
-            }),
+            },
         )
     }
 

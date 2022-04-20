@@ -136,12 +136,12 @@ impl Texture2D {
     }
 
     pub fn render_target(&mut self, mip_level: Option<u32>) -> ThreeDResult<RenderTarget> {
-        RenderTarget::new(
+        RenderTarget::new_color(
             &self.context.clone(),
-            Target::Color(ColorTarget::Texture2D {
+            ColorTarget::Texture2D {
                 texture: self,
                 mip_level,
-            }),
+            },
         )
     }
 
