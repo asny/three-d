@@ -48,7 +48,17 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_area(camera.viewport(), || render_pass(camera, objects, lights))?;
+        self.render_to_viewport(camera.viewport(), camera, objects, lights)
+    }
+
+    pub fn render_to_viewport(
+        &self,
+        viewport: Viewport,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.write_area(viewport, || render_pass(camera, objects, lights))?;
         Ok(self)
     }
 }
