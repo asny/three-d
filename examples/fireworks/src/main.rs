@@ -42,7 +42,6 @@ impl Material for FireworksMaterial {
             },
             depth_test: DepthTest::Always,
             write_mask: WriteMask::COLOR,
-            clip: Clip::Disabled,
         }
     }
     fn is_transparent(&self) -> bool {
