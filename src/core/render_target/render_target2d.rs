@@ -217,7 +217,12 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub fn clear(&self, mut clear_state: ClearState) -> ThreeDResult<&Self> {
+    pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
+        self.clear_area(self.area(), clear_state)
+    }
+
+    pub fn clear_area(&self, area: Rectangle, mut clear_state: ClearState) -> ThreeDResult<&Self> {
+        set_scissor(self.context(), area);
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         match self {
             Self::Depth { .. } => {
