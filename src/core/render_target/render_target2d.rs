@@ -140,6 +140,69 @@ impl<'a> DepthTarget<'a> {
     }
 }
 
+enum Target<'a> {
+    Screen {
+        width: u32,
+        height: u32,
+    },
+    Color {
+        id: Framebuffer,
+        color: ColorTarget<'a>,
+    },
+    Depth {
+        id: Framebuffer,
+        depth: DepthTarget<'a>,
+    },
+    ColorAndDepth {
+        id: Framebuffer,
+        color: ColorTarget<'a>,
+        depth: DepthTarget<'a>,
+    },
+}
+
+impl<'a> Target<'a> {
+    pub(in crate::core) fn bind(&self, context: &Context, target: u32) -> ThreeDResult<()> {
+        match self {
+            Target::ColorAndDepth { color, depth, id } => unsafe {
+                context.bind_framebuffer(target, Some(*id));
+                color.bind(context);
+                depth.bind();
+            },
+            Target::Color { color, id } => unsafe {
+                context.bind_framebuffer(target, Some(*id));
+                color.bind(context);
+            },
+            Target::Depth { depth, id } => unsafe {
+                context.bind_framebuffer(target, Some(*id));
+                depth.bind();
+            },
+            Target::Screen { .. } => unsafe {
+                context.bind_framebuffer(target, None);
+            },
+        };
+        context.framebuffer_check()?;
+        context.error_check()
+    }
+
+    fn width(&self) -> u32 {
+        match self {
+            Self::ColorAndDepth { color, .. } => color.width(),
+            Self::Color { color, .. } => color.width(),
+            Self::Depth { depth, .. } => depth.width(),
+            Self::Screen { width, .. } => *width,
+        }
+    }
+
+    fn height(&self) -> u32 {
+        match self {
+            Self::ColorAndDepth { color, .. } => color.height(),
+            Self::Color { color, .. } => color.height(),
+            Self::Depth { depth, .. } => depth.height(),
+            Self::Screen { height, .. } => *height,
+        }
+    }
+}
+
 use crate::context::Framebuffer;
 ///
 /// Adds additional functionality to read from and write to the screen (see [RenderTarget::screen]) or a color texture and
@@ -148,28 +211,9 @@ use crate::context::Framebuffer;
 /// use the `render_target` function directly on the texture structs (for example [Texture2D]).
 /// A render target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
 ///
-pub enum RenderTarget<'a> {
-    Screen {
-        context: Context,
-        width: u32,
-        height: u32,
-    },
-    Color {
-        context: Context,
-        id: Framebuffer,
-        color: ColorTarget<'a>,
-    },
-    Depth {
-        context: Context,
-        id: Framebuffer,
-        depth: DepthTarget<'a>,
-    },
-    ColorAndDepth {
-        context: Context,
-        id: Framebuffer,
-        color: ColorTarget<'a>,
-        depth: DepthTarget<'a>,
-    },
+pub struct RenderTarget<'a> {
+    target: Target<'a>,
+    context: Context,
 }
 
 impl<'a> RenderTarget<'a> {
@@ -178,10 +222,9 @@ impl<'a> RenderTarget<'a> {
     /// Write to this render target to draw something on the screen.
     ///
     pub fn screen(context: &Context, width: u32, height: u32) -> Self {
-        Self::Screen {
+        Self {
             context: context.clone(),
-            width,
-            height,
+            target: Target::Screen { width, height },
         }
     }
 
@@ -193,11 +236,13 @@ impl<'a> RenderTarget<'a> {
         color: ColorTarget<'a>,
         depth: DepthTarget<'a>,
     ) -> ThreeDResult<Self> {
-        Ok(Self::ColorAndDepth {
+        Ok(Self {
             context: context.clone(),
-            id: new_framebuffer(context)?,
-            color,
-            depth,
+            target: Target::ColorAndDepth {
+                id: new_framebuffer(context)?,
+                color,
+                depth,
+            },
         })
     }
 
@@ -205,10 +250,12 @@ impl<'a> RenderTarget<'a> {
         context: &Context,
         color: ColorTarget<'a>,
     ) -> ThreeDResult<Self> {
-        Ok(Self::Color {
+        Ok(Self {
             context: context.clone(),
-            id: new_framebuffer(context)?,
-            color,
+            target: Target::Color {
+                id: new_framebuffer(context)?,
+                color,
+            },
         })
     }
 
@@ -216,10 +263,12 @@ impl<'a> RenderTarget<'a> {
         context: &Context,
         depth: DepthTarget<'a>,
     ) -> ThreeDResult<Self> {
-        Ok(Self::Depth {
+        Ok(Self {
             context: context.clone(),
-            id: new_framebuffer(context)?,
-            depth,
+            target: Target::Depth {
+                id: new_framebuffer(context)?,
+                depth,
+            },
         })
     }
 
@@ -259,9 +308,9 @@ impl<'a> RenderTarget<'a> {
     ) -> ThreeDResult<()> {
         let clear_state = if let Some(color) = color {
             if let Some(depth) = depth {
-                match self {
-                    Self::Depth { .. } => ClearState::depth(depth),
-                    Self::Color { .. } => ClearState::color(
+                match self.target {
+                    Target::Depth { .. } => ClearState::depth(depth),
+                    Target::Color { .. } => ClearState::color(
                         color.r as f32 / 255.0,
                         color.g as f32 / 255.0,
                         color.b as f32 / 255.0,
@@ -276,8 +325,8 @@ impl<'a> RenderTarget<'a> {
                     ),
                 }
             } else {
-                match self {
-                    Self::Depth { .. } => ClearState::none(),
+                match self.target {
+                    Target::Depth { .. } => ClearState::none(),
                     _ => ClearState::color(
                         color.r as f32 / 255.0,
                         color.g as f32 / 255.0,
@@ -287,23 +336,26 @@ impl<'a> RenderTarget<'a> {
                 }
             }
         } else {
-            match self {
-                Self::Color { .. } => ClearState::none(),
+            match self.target {
+                Target::Color { .. } => ClearState::none(),
                 _ => ClearState::depth(depth.unwrap()),
             }
         };
-        set_scissor(self.context(), area);
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        clear(self.context(), &clear_state);
-        self.context().error_check()
+        set_scissor(&self.context, area);
+        self.target
+            .bind(&self.context, crate::context::DRAW_FRAMEBUFFER)?;
+        clear(&self.context, &clear_state);
+        self.context.error_check()?;
+        Ok(())
     }
 
     #[allow(deprecated)]
     pub(in crate::core) fn clear_deprecated(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        set_scissor(self.context(), self.area());
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        clear(self.context(), &clear_state);
-        self.context().error_check()?;
+        set_scissor(&self.context, self.area());
+        self.target
+            .bind(&self.context, crate::context::DRAW_FRAMEBUFFER)?;
+        clear(&self.context, &clear_state);
+        self.context.error_check()?;
         Ok(self)
     }
 
@@ -320,15 +372,16 @@ impl<'a> RenderTarget<'a> {
         area: Viewport,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
-        set_scissor(self.context(), area);
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
+        set_scissor(&self.context, area);
+        self.target
+            .bind(&self.context, crate::context::DRAW_FRAMEBUFFER)?;
         render()?;
-        if let Self::Color { ref color, .. } = self {
+        if let Target::Color { ref color, .. } = self.target {
             color.generate_mip_maps();
-        } else if let Self::ColorAndDepth { ref color, .. } = self {
+        } else if let Target::ColorAndDepth { ref color, .. } = self.target {
             color.generate_mip_maps();
         }
-        self.context().error_check()?;
+        self.context.error_check()?;
         Ok(self)
     }
 
@@ -349,11 +402,13 @@ impl<'a> RenderTarget<'a> {
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
     pub fn read_color_area<T: TextureDataType>(&self, area: Viewport) -> ThreeDResult<Vec<T>> {
-        if let Self::Depth { .. } = self {
+        if let Target::Depth { .. } = self.target {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
         }
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        self.bind(crate::context::READ_FRAMEBUFFER)?;
+        self.target
+            .bind(&self.context, crate::context::DRAW_FRAMEBUFFER)?;
+        self.target
+            .bind(&self.context, crate::context::READ_FRAMEBUFFER)?;
         let mut data_size = std::mem::size_of::<T>();
         // On web, the format needs to be RGBA if the data type is byte.
         if data_size / T::size() as usize == 1 {
@@ -361,7 +416,7 @@ impl<'a> RenderTarget<'a> {
         }
         let mut bytes = vec![0u8; area.width as usize * area.height as usize * data_size];
         unsafe {
-            self.context().read_pixels(
+            self.context.read_pixels(
                 area.x as i32,
                 area.y as i32,
                 area.width as i32,
@@ -370,7 +425,7 @@ impl<'a> RenderTarget<'a> {
                 T::data_type(),
                 crate::context::PixelPackData::Slice(&mut bytes),
             );
-            self.context().error_check()?;
+            self.context.error_check()?;
         }
         let mut pixels = from_byte_slice(&bytes).to_vec();
         flip_y(&mut pixels, area.width as usize, area.height as usize);
@@ -392,14 +447,16 @@ impl<'a> RenderTarget<'a> {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth_area(&self, area: Viewport) -> ThreeDResult<Vec<f32>> {
-        if let Self::Color { .. } = self {
+        if let Target::Color { .. } = self.target {
             Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        self.bind(crate::context::READ_FRAMEBUFFER)?;
+        self.target
+            .bind(&self.context, crate::context::DRAW_FRAMEBUFFER)?;
+        self.target
+            .bind(&self.context, crate::context::READ_FRAMEBUFFER)?;
         let mut pixels = vec![0u8; area.width as usize * area.height as usize * 4];
         unsafe {
-            self.context().read_pixels(
+            self.context.read_pixels(
                 area.x as i32,
                 area.y as i32,
                 area.width as i32,
@@ -409,7 +466,7 @@ impl<'a> RenderTarget<'a> {
                 crate::context::PixelPackData::Slice(&mut pixels),
             );
         }
-        self.context().error_check()?;
+        self.context.error_check()?;
         Ok(from_byte_slice(&pixels).to_vec())
     }
 
@@ -426,7 +483,7 @@ impl<'a> RenderTarget<'a> {
     ) -> ThreeDResult<&Self> {
         self.write(|| {
             copy_from(
-                self.context(),
+                &self.context,
                 color_texture,
                 depth_texture,
                 viewport,
@@ -448,7 +505,7 @@ impl<'a> RenderTarget<'a> {
     ) -> ThreeDResult<&Self> {
         self.write(|| {
             copy_from_array(
-                self.context(),
+                &self.context,
                 color_texture,
                 depth_texture,
                 viewport,
@@ -458,73 +515,18 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn area(&self) -> Viewport {
-        Viewport::new_at_origo(self.width(), self.height())
-    }
-
-    pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {
-        match self {
-            Self::ColorAndDepth {
-                color,
-                depth,
-                context,
-                id,
-            } => unsafe {
-                context.bind_framebuffer(target, Some(*id));
-                color.bind(context);
-                depth.bind();
-            },
-            Self::Color { color, id, context } => unsafe {
-                context.bind_framebuffer(target, Some(*id));
-                color.bind(context);
-            },
-            Self::Depth { depth, id, context } => unsafe {
-                context.bind_framebuffer(target, Some(*id));
-                depth.bind();
-            },
-            Self::Screen { context, .. } => unsafe {
-                context.bind_framebuffer(target, None);
-            },
-        };
-        self.context().framebuffer_check()?;
-        self.context().error_check()
-    }
-
-    fn context(&self) -> &Context {
-        match self {
-            Self::ColorAndDepth { context, .. } => context,
-            Self::Color { context, .. } => context,
-            Self::Depth { context, .. } => context,
-            Self::Screen { context, .. } => context,
-        }
-    }
-
-    fn width(&self) -> u32 {
-        match self {
-            Self::ColorAndDepth { color, .. } => color.width(),
-            Self::Color { color, .. } => color.width(),
-            Self::Depth { depth, .. } => depth.width(),
-            Self::Screen { width, .. } => *width,
-        }
-    }
-
-    fn height(&self) -> u32 {
-        match self {
-            Self::ColorAndDepth { color, .. } => color.height(),
-            Self::Color { color, .. } => color.height(),
-            Self::Depth { depth, .. } => depth.height(),
-            Self::Screen { height, .. } => *height,
-        }
+        Viewport::new_at_origo(self.target.width(), self.target.height())
     }
 }
 
 impl Drop for RenderTarget<'_> {
     fn drop(&mut self) {
         unsafe {
-            match self {
-                Self::ColorAndDepth { context, id, .. } => context.delete_framebuffer(*id),
-                Self::Color { context, id, .. } => context.delete_framebuffer(*id),
-                Self::Depth { context, id, .. } => context.delete_framebuffer(*id),
-                Self::Screen { .. } => {}
+            match self.target {
+                Target::ColorAndDepth { id, .. } => self.context.delete_framebuffer(id),
+                Target::Color { id, .. } => self.context.delete_framebuffer(id),
+                Target::Depth { id, .. } => self.context.delete_framebuffer(id),
+                Target::Screen { .. } => {}
             }
         }
     }
