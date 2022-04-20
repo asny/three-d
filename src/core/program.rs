@@ -541,7 +541,7 @@ impl Program {
 
     ///
     /// Same as [Program::draw_arrays] except it renders 'instance_count' instances of the same set of triangles.
-    /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
+    /// Use the [Program::use_instance_attribute], method to send unique data for each instance to the shader.
     ///
     pub fn draw_arrays_instanced(
         &self,
@@ -629,7 +629,7 @@ impl Program {
 
     ///
     /// Same as [Program::draw_elements] except it renders 'instance_count' instances of the same set of triangles.
-    /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
+    /// Use the [Program::use_instance_attribute] method to send unique data for each instance to the shader.
     ///
     pub fn draw_elements_instanced(
         &self,
@@ -650,7 +650,7 @@ impl Program {
 
     ///
     /// Same as [Program::draw_subset_of_elements] except it renders 'instance_count' instances of the same set of triangles.
-    /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
+    /// Use the [Program::use_instance_attribute] method to send unique data for each instance to the shader.
     ///
     pub fn draw_subset_of_elements_instanced(
         &self,
