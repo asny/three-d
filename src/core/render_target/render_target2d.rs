@@ -354,14 +354,13 @@ impl<'a> RenderTarget<'a> {
     }
 
     ///
-    /// Renders whatever rendered in the `render` closure into the textures defined at construction.
-    /// Before writing, the textures are cleared based on the given clear state.
+    /// Renders whatever rendered in the `render` closure into this render target.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_to_area(self.area(), render)
+        self.write_area(self.area(), render)
     }
 
-    pub fn write_to_area(
+    pub fn write_area(
         &self,
         area: Viewport,
         render: impl FnOnce() -> ThreeDResult<()>,
