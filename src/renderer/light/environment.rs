@@ -98,11 +98,9 @@ impl Environment {
                     program.use_uniform("roughness", &roughness)?;
                     program.use_uniform("resolution", &(environment_map.width() as f32))?;
                     let color_target = prefilter_map.as_color_target(side, Some(mip));
-                    let viewport =
-                        Viewport::new_at_origo(color_target.width(), color_target.height());
-                    color_target
-                        .clear(Color::BLACK)?
-                        .write(|| program.render(side, RenderStates::default(), viewport))?;
+                    color_target.clear(Color::BLACK)?.write(|| {
+                        program.render(side, RenderStates::default(), color_target.viewport())
+                    })?;
                 }
             }
         }

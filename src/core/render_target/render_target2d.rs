@@ -122,6 +122,10 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
+    pub fn viewport(&self) -> Viewport {
+        Viewport::new_at_origo(self.width(), self.height())
+    }
+
     pub(in crate::core) fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
         let context = match &self.0 {
             CT::Texture2D { texture, .. } => &texture.context,
@@ -130,10 +134,6 @@ impl<'a> ColorTarget<'a> {
             CT::Screen { context, .. } => context,
         };
         RenderTarget::new_color(context, self.clone())
-    }
-
-    fn viewport(&self) -> Viewport {
-        Viewport::new_at_origo(self.width(), self.height())
     }
 
     fn generate_mip_maps(&self) {
@@ -318,7 +318,7 @@ impl<'a> DepthTarget<'a> {
         }
     }
 
-    fn viewport(&self) -> Viewport {
+    pub fn viewport(&self) -> Viewport {
         Viewport::new_at_origo(self.width(), self.height())
     }
 
@@ -410,7 +410,7 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn clear(&self, color: Color, depth: f32) -> ThreeDResult<&Self> {
-        self.clear_viewport(self.viewport(), color, depth)
+        self.clear_viewport(self.color().viewport(), color, depth)
     }
 
     pub fn clear_viewport(
@@ -478,7 +478,7 @@ impl<'a> RenderTarget<'a> {
 
     #[allow(deprecated)]
     pub(in crate::core) fn clear_deprecated(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        set_scissor(&self.context, self.viewport());
+        set_scissor(&self.context, self.color().viewport());
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         clear(&self.context, &clear_state);
         self.context.error_check()?;
@@ -489,7 +489,7 @@ impl<'a> RenderTarget<'a> {
     /// Renders whatever rendered in the `render` closure into this render target.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_to_viewport(self.viewport(), render)
+        self.write_to_viewport(self.color().viewport(), render)
     }
 
     pub fn write_to_viewport(
@@ -611,26 +611,6 @@ impl<'a> RenderTarget<'a> {
                 write_mask,
             )
         })
-    }
-
-    pub fn width(&self) -> u32 {
-        if let Some(ref color) = self.color {
-            color.width()
-        } else {
-            self.depth.as_ref().unwrap().width()
-        }
-    }
-
-    pub fn height(&self) -> u32 {
-        if let Some(ref color) = self.color {
-            color.height()
-        } else {
-            self.depth.as_ref().unwrap().height()
-        }
-    }
-
-    fn viewport(&self) -> Viewport {
-        Viewport::new_at_origo(self.width(), self.height())
     }
 
     pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {
