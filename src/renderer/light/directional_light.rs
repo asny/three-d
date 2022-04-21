@@ -97,7 +97,8 @@ impl DirectionalLight {
             ..Default::default()
         };
         shadow_texture
-            .render_target()?
+            .as_depth_target()
+            .as_render_target()?
             .clear(Color::BLACK, 1.0)?
             .write(|| {
                 for geometry in geometries

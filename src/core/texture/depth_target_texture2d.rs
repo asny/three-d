@@ -18,7 +18,7 @@ pub enum DepthFormat {
 /// A 2D depth texture that can be rendered into and read from. See also [RenderTarget].
 ///
 pub struct DepthTargetTexture2D {
-    context: Context,
+    pub(in crate::core) context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -67,11 +67,8 @@ impl DepthTargetTexture2D {
         Ok(texture)
     }
 
-    pub fn render_target(&mut self) -> ThreeDResult<RenderTarget> {
-        RenderTarget::new_depth(
-            &self.context.clone(),
-            DepthTarget::Texture2D { texture: self },
-        )
+    pub fn as_depth_target(&mut self) -> DepthTarget {
+        DepthTarget::Texture2D { texture: self }
     }
 
     ///
@@ -84,7 +81,8 @@ impl DepthTargetTexture2D {
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        let rt = self.render_target()?;
+        let dt = self.as_depth_target();
+        let rt = dt.as_render_target()?;
         if let Some(depth) = clear_state {
             rt.clear_depth(depth)?;
         }

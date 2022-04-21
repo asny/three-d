@@ -110,7 +110,7 @@ impl CubeMapSide {
 /// A texture that covers all 6 sides of a cube.
 ///
 pub struct TextureCubeMap {
-    context: Context,
+    pub(in crate::core) context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -350,7 +350,8 @@ impl TextureCubeMap {
                 effect.use_texture("equirectangularMap", &map)?;
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
-                    .as_render_target(side, None)?
+                    .as_color_target(side, None)
+                    .as_render_target()?
                     .clear_color(Color::BLACK)?
                     .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
@@ -370,14 +371,6 @@ impl TextureCubeMap {
         }
     }
 
-    pub fn as_render_target(
-        &mut self,
-        side: CubeMapSide,
-        mip_level: Option<u32>,
-    ) -> ThreeDResult<RenderTarget> {
-        RenderTarget::new_color(&self.context.clone(), self.as_color_target(side, mip_level))
-    }
-
     ///
     /// Writes whatever rendered in the `render` closure into the color texture at the cube map side given by the input parameter `side`.
     /// Before writing, the texture side is cleared based on the given clear state.
@@ -390,7 +383,8 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.as_render_target(side, None)?
+        self.as_color_target(side, None)
+            .as_render_target()?
             .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())
@@ -409,7 +403,8 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.as_render_target(side, Some(mip_level))?
+        self.as_color_target(side, Some(mip_level))
+            .as_render_target()?
             .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())

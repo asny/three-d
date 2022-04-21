@@ -188,8 +188,8 @@ impl ImpostersMaterial {
                 )?;
                 RenderTarget::new(
                     &self.context,
-                    self.texture.as_color_target(&layers, None),
-                    DepthTarget::Texture2D {
+                    &self.texture.as_color_target(&layers, None),
+                    &DepthTarget::Texture2D {
                         texture: &mut depth_texture,
                     },
                 )?

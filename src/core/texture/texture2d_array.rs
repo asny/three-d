@@ -7,7 +7,7 @@ use crate::core::texture::*;
 /// Use a [RenderTarget] to write to both color and depth.
 ///
 pub struct Texture2DArray {
-    context: Context,
+    pub(in crate::core) context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -82,17 +82,6 @@ impl Texture2DArray {
         }
     }
 
-    pub fn as_render_target<'a>(
-        &'a mut self,
-        layers: &'a [u32],
-        mip_level: Option<u32>,
-    ) -> ThreeDResult<RenderTarget<'a>> {
-        RenderTarget::new_color(
-            &self.context.clone(),
-            self.as_color_target(layers, mip_level),
-        )
-    }
-
     ///
     /// Renders whatever rendered in the `render` closure into the textures defined by the input parameters `layers`.
     /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in `layers`.
@@ -109,7 +98,8 @@ impl Texture2DArray {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        self.as_render_target(layers, None)?
+        self.as_color_target(layers, None)
+            .as_render_target()?
             .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())

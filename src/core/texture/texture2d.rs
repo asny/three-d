@@ -4,7 +4,7 @@ use crate::core::texture::*;
 /// A 2D texture, basically an image that is transferred to the GPU.
 ///
 pub struct Texture2D {
-    context: Context,
+    pub(in crate::core) context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -142,10 +142,6 @@ impl Texture2D {
         }
     }
 
-    pub fn as_render_target(&mut self, mip_level: Option<u32>) -> ThreeDResult<RenderTarget> {
-        RenderTarget::new_color(&self.context.clone(), self.as_color_target(mip_level))
-    }
-
     ///
     /// Renders whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
@@ -160,7 +156,8 @@ impl Texture2D {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        self.as_render_target(None)?
+        self.as_color_target(None)
+            .as_render_target()?
             .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())
@@ -174,7 +171,9 @@ impl Texture2D {
     ///
     #[deprecated = "use render_target followed by read"]
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        self.as_render_target(None)?.read_color_area(viewport)
+        self.as_color_target(None)
+            .as_render_target()?
+            .read_color_area(viewport)
     }
 
     /// The width of this texture.

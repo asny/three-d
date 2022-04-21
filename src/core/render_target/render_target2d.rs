@@ -18,6 +18,15 @@ pub enum ColorTarget<'a> {
 }
 
 impl<'a> ColorTarget<'a> {
+    pub fn as_render_target(&self) -> ThreeDResult<RenderTarget> {
+        let context = match self {
+            Self::Texture2D { texture, .. } => &texture.context,
+            Self::Texture2DArray { texture, .. } => &texture.context,
+            Self::TextureCubeMap { texture, .. } => &texture.context,
+        };
+        RenderTarget::new_color(context, self)
+    }
+
     pub fn width(&self) -> u32 {
         match self {
             Self::Texture2D { texture, .. } => texture.width(),
@@ -109,7 +118,16 @@ pub enum DepthTarget<'a> {
 }
 
 impl<'a> DepthTarget<'a> {
-    fn width(&self) -> u32 {
+    pub fn as_render_target(&self) -> ThreeDResult<RenderTarget> {
+        let context = match self {
+            Self::Texture2D { texture, .. } => &texture.context,
+            Self::Texture2DArray { texture, .. } => &texture.context,
+            Self::TextureCubeMap { texture, .. } => &texture.context,
+        };
+        RenderTarget::new_depth(context, self)
+    }
+
+    pub fn width(&self) -> u32 {
         match self {
             Self::Texture2D { texture, .. } => texture.width(),
             Self::Texture2DArray { texture, .. } => texture.width(),
@@ -117,7 +135,7 @@ impl<'a> DepthTarget<'a> {
         }
     }
 
-    fn height(&self) -> u32 {
+    pub fn height(&self) -> u32 {
         match self {
             Self::Texture2D { texture, .. } => texture.height(),
             Self::Texture2DArray { texture, .. } => texture.height(),
@@ -147,16 +165,16 @@ enum Target<'a> {
     },
     Color {
         id: Framebuffer,
-        color: ColorTarget<'a>,
+        color: &'a ColorTarget<'a>,
     },
     Depth {
         id: Framebuffer,
-        depth: DepthTarget<'a>,
+        depth: &'a DepthTarget<'a>,
     },
     ColorAndDepth {
         id: Framebuffer,
-        color: ColorTarget<'a>,
-        depth: DepthTarget<'a>,
+        color: &'a ColorTarget<'a>,
+        depth: &'a DepthTarget<'a>,
     },
 }
 
@@ -233,8 +251,8 @@ impl<'a> RenderTarget<'a> {
     ///
     pub fn new(
         context: &Context,
-        color: ColorTarget<'a>,
-        depth: DepthTarget<'a>,
+        color: &'a ColorTarget<'a>,
+        depth: &'a DepthTarget<'a>,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -246,7 +264,7 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub fn new_color(context: &Context, color: ColorTarget<'a>) -> ThreeDResult<Self> {
+    pub fn new_color(context: &Context, color: &'a ColorTarget<'a>) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             target: Target::Color {
@@ -256,7 +274,7 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub fn new_depth(context: &Context, depth: DepthTarget<'a>) -> ThreeDResult<Self> {
+    pub fn new_depth(context: &Context, depth: &'a DepthTarget<'a>) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             target: Target::Depth {
