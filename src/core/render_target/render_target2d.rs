@@ -51,9 +51,7 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn clear(&self, color: Color) -> ThreeDResult<&Self> {
-        self.as_render_target()?
-            .clear_internal(self.viewport(), Some(color), None)?;
-        Ok(self)
+        self.clear_viewport(self.viewport(), color)
     }
 
     pub fn clear_viewport(&self, viewport: Viewport, color: Color) -> ThreeDResult<&Self> {
@@ -63,7 +61,16 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.as_render_target()?.write(render)?;
+        self.write_to_viewport(self.viewport(), render)
+    }
+
+    pub fn write_to_viewport(
+        &self,
+        viewport: Viewport,
+        render: impl FnOnce() -> ThreeDResult<()>,
+    ) -> ThreeDResult<&Self> {
+        self.as_render_target()?
+            .write_to_viewport(viewport, render)?;
         Ok(self)
     }
 
@@ -181,7 +188,49 @@ impl<'a> DepthTarget<'a> {
         }
     }
 
-    pub fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
+    pub fn clear(&self, depth: f32) -> ThreeDResult<&Self> {
+        self.clear_viewport(self.viewport(), depth)
+    }
+
+    pub fn clear_viewport(&self, viewport: Viewport, depth: f32) -> ThreeDResult<&Self> {
+        self.as_render_target()?
+            .clear_internal(viewport, None, Some(depth))?;
+        Ok(self)
+    }
+
+    pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
+        self.write_to_viewport(self.viewport(), render)
+    }
+
+    pub fn write_to_viewport(
+        &self,
+        viewport: Viewport,
+        render: impl FnOnce() -> ThreeDResult<()>,
+    ) -> ThreeDResult<&Self> {
+        self.as_render_target()?
+            .write_to_viewport(viewport, render)?;
+        Ok(self)
+    }
+
+    ///
+    /// Returns the depth values from the render target as a list of 32-bit floats.
+    /// Not available on web.
+    ///
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn read(&self) -> ThreeDResult<Vec<f32>> {
+        self.read_viewport(self.viewport())
+    }
+
+    ///
+    /// Returns the depth values from the given viewport of the render target as a list of 32-bit floats.
+    /// Not available on web.
+    ///
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn read_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
+        self.as_render_target()?.read_depth_viewport(viewport)
+    }
+
+    fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
         let context = match self {
             Self::Texture2D { texture, .. } => &texture.context,
             Self::Texture2DArray { texture, .. } => &texture.context,
@@ -207,6 +256,10 @@ impl<'a> DepthTarget<'a> {
             Self::TextureCubeMap { texture, .. } => texture.height(),
             Self::Screen { height, .. } => *height,
         }
+    }
+
+    fn viewport(&self) -> Viewport {
+        Viewport::new_at_origo(self.width(), self.height())
     }
 
     fn bind(&self) {
@@ -307,15 +360,6 @@ impl<'a> RenderTarget<'a> {
         depth: f32,
     ) -> ThreeDResult<&Self> {
         self.clear_internal(viewport, Some(color), Some(depth))?;
-        Ok(self)
-    }
-
-    pub fn clear_depth(&self, depth: f32) -> ThreeDResult<&Self> {
-        self.clear_depth_viewport(self.viewport(), depth)
-    }
-
-    pub fn clear_depth_viewport(&self, viewport: Viewport, depth: f32) -> ThreeDResult<&Self> {
-        self.clear_internal(viewport, None, Some(depth))?;
         Ok(self)
     }
 
@@ -442,21 +486,8 @@ impl<'a> RenderTarget<'a> {
         Ok(pixels)
     }
 
-    ///
-    /// Returns the depth values from the render target as a list of 32-bit floats.
-    /// Not available on web.
-    ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
-        self.read_depth_viewport(self.viewport())
-    }
-
-    ///
-    /// Returns the depth values from the given viewport of the render target as a list of 32-bit floats.
-    /// Not available on web.
-    ///
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
+    fn read_depth_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
         if self.depth.is_none() {
             Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }

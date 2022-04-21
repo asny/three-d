@@ -38,7 +38,7 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        RenderTarget::screen(context, 0, 0).read_depth_viewport(viewport)
+        DepthTarget::screen(context, 0, 0).read_viewport(viewport)
     }
 
     ///

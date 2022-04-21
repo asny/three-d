@@ -96,19 +96,15 @@ impl DirectionalLight {
             },
             ..Default::default()
         };
-        shadow_texture
-            .as_depth_target()
-            .as_render_target()?
-            .clear(Color::BLACK, 1.0)?
-            .write(|| {
-                for geometry in geometries
-                    .iter()
-                    .filter(|g| shadow_camera.in_frustum(&g.aabb()))
-                {
-                    geometry.render_with_material(&depth_material, &shadow_camera, &[])?;
-                }
-                Ok(())
-            })?;
+        shadow_texture.as_depth_target().clear(1.0)?.write(|| {
+            for geometry in geometries
+                .iter()
+                .filter(|g| shadow_camera.in_frustum(&g.aabb()))
+            {
+                geometry.render_with_material(&depth_material, &shadow_camera, &[])?;
+            }
+            Ok(())
+        })?;
         self.shadow_texture = Some(shadow_texture);
         self.shadow_matrix = shadow_matrix(&shadow_camera);
         Ok(())

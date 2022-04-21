@@ -76,11 +76,10 @@ impl DepthTargetTexture2DArray {
         render: F,
     ) -> ThreeDResult<()> {
         let dt = self.as_depth_target(layer);
-        let rt = dt.as_render_target()?;
         if let Some(depth) = clear_state {
-            rt.clear_depth(depth)?;
+            dt.clear(depth)?;
         }
-        rt.write(render)?;
+        dt.write(render)?;
         Ok(())
     }
 
