@@ -371,7 +371,7 @@ impl TextureCubeMap {
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
     #[allow(deprecated)]
-    #[deprecated = "use render_target followed by clear and write"]
+    #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write(
         &mut self,
         side: CubeMapSide,
@@ -390,7 +390,7 @@ impl TextureCubeMap {
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
     #[allow(deprecated)]
-    #[deprecated = "use render_target followed by clear and write"]
+    #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write_to_mip_level(
         &mut self,
         side: CubeMapSide,

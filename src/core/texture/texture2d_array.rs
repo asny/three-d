@@ -87,7 +87,7 @@ impl Texture2DArray {
     /// Use a [RenderTarget] to write to both color and depth.
     ///
     #[allow(deprecated)]
-    #[deprecated = "use render_target followed by clear and write"]
+    #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write<'a, F: FnOnce() -> ThreeDResult<()>>(
         &'a mut self,
         layers: &'a [u32],

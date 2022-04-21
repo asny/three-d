@@ -147,7 +147,7 @@ impl Texture2D {
     /// Use a [RenderTarget] to write to both color and depth.
     ///
     #[allow(deprecated)]
-    #[deprecated = "use render_target followed by clear and write"]
+    #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
         clear_state: ClearState,
@@ -166,7 +166,7 @@ impl Texture2D {
     ///
     /// **Note:** On web, the data format needs to match the data format of this texture.
     ///
-    #[deprecated = "use render_target followed by read"]
+    #[deprecated = "use as_color_target followed by read"]
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         self.as_color_target(None).read_viewport(viewport)
     }

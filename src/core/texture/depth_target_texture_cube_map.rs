@@ -62,7 +62,7 @@ impl DepthTargetTextureCubeMap {
     /// Writes the depth of whatever rendered in the `render` closure into the depth texture at the cube map side given by the input parameter `side`.
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
-    #[deprecated = "use render_target followed by clear and write"]
+    #[deprecated = "use as_depth_target followed by clear and write"]
     pub fn write(
         &mut self,
         side: CubeMapSide,

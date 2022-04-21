@@ -65,7 +65,7 @@ impl DepthTargetTexture2DArray {
     /// Writes the depth of whatever rendered in the `render` closure into the depth texture defined by the input parameter `layer`.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
-    #[deprecated = "use render_target followed by clear and write"]
+    #[deprecated = "use as_depth_target followed by clear and write"]
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
         layer: u32,
