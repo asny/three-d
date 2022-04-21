@@ -135,14 +135,15 @@ impl Texture2D {
         self.context.error_check()
     }
 
-    pub fn render_target(&mut self, mip_level: Option<u32>) -> ThreeDResult<RenderTarget> {
-        RenderTarget::new_color(
-            &self.context.clone(),
-            ColorTarget::Texture2D {
-                texture: self,
-                mip_level,
-            },
-        )
+    pub fn as_color_target(&mut self, mip_level: Option<u32>) -> ColorTarget {
+        ColorTarget::Texture2D {
+            texture: self,
+            mip_level,
+        }
+    }
+
+    pub fn as_render_target(&mut self, mip_level: Option<u32>) -> ThreeDResult<RenderTarget> {
+        RenderTarget::new_color(&self.context.clone(), self.as_color_target(mip_level))
     }
 
     ///
@@ -159,7 +160,7 @@ impl Texture2D {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        self.render_target(None)?
+        self.as_render_target(None)?
             .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())
@@ -173,7 +174,7 @@ impl Texture2D {
     ///
     #[deprecated = "use render_target followed by read"]
     pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        self.render_target(None)?.read_color_area(viewport)
+        self.as_render_target(None)?.read_color_area(viewport)
     }
 
     /// The width of this texture.

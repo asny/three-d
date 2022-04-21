@@ -191,10 +191,7 @@ pub fn ray_intersect(
     };
     let depth = RenderTarget::new(
         context,
-        ColorTarget::Texture2D {
-            texture: &mut texture,
-            mip_level: None,
-        },
+        texture.as_color_target(None),
         DepthTarget::Texture2D {
             texture: &mut depth_texture,
         },

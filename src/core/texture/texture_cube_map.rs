@@ -350,27 +350,32 @@ impl TextureCubeMap {
                 effect.use_texture("equirectangularMap", &map)?;
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
-                    .render_target(side, None)?
-                    .clear(Color::BLACK, 1.0)?
+                    .as_render_target(side, None)?
+                    .clear_color(Color::BLACK)?
                     .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
         }
         Ok(texture)
     }
 
-    pub fn render_target(
+    pub fn as_color_target<'a>(
+        &'a mut self,
+        side: CubeMapSide,
+        mip_level: Option<u32>,
+    ) -> ColorTarget<'a> {
+        ColorTarget::TextureCubeMap {
+            texture: self,
+            side,
+            mip_level,
+        }
+    }
+
+    pub fn as_render_target(
         &mut self,
         side: CubeMapSide,
         mip_level: Option<u32>,
     ) -> ThreeDResult<RenderTarget> {
-        RenderTarget::new_color(
-            &self.context.clone(),
-            ColorTarget::TextureCubeMap {
-                texture: self,
-                side,
-                mip_level,
-            },
-        )
+        RenderTarget::new_color(&self.context.clone(), self.as_color_target(side, mip_level))
     }
 
     ///
@@ -385,7 +390,7 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.render_target(side, None)?
+        self.as_render_target(side, None)?
             .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())
@@ -404,7 +409,7 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.render_target(side, Some(mip_level))?
+        self.as_render_target(side, Some(mip_level))?
             .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())

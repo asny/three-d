@@ -70,18 +70,26 @@ impl Texture2DArray {
         Ok(texture)
     }
 
-    pub fn render_target<'a>(
+    pub fn as_color_target<'a>(
+        &'a mut self,
+        layers: &'a [u32],
+        mip_level: Option<u32>,
+    ) -> ColorTarget<'a> {
+        ColorTarget::Texture2DArray {
+            texture: self,
+            layers,
+            mip_level,
+        }
+    }
+
+    pub fn as_render_target<'a>(
         &'a mut self,
         layers: &'a [u32],
         mip_level: Option<u32>,
     ) -> ThreeDResult<RenderTarget<'a>> {
         RenderTarget::new_color(
             &self.context.clone(),
-            ColorTarget::Texture2DArray {
-                texture: self,
-                layers,
-                mip_level,
-            },
+            self.as_color_target(layers, mip_level),
         )
     }
 
@@ -101,7 +109,7 @@ impl Texture2DArray {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        self.render_target(layers, None)?
+        self.as_render_target(layers, None)?
             .clear_deprecated(clear_state)?
             .write(render)?;
         Ok(())

@@ -18,7 +18,7 @@ pub enum ColorTarget<'a> {
 }
 
 impl<'a> ColorTarget<'a> {
-    fn width(&self) -> u32 {
+    pub fn width(&self) -> u32 {
         match self {
             Self::Texture2D { texture, .. } => texture.width(),
             Self::Texture2DArray { texture, .. } => texture.width(),
@@ -26,7 +26,7 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
-    fn height(&self) -> u32 {
+    pub fn height(&self) -> u32 {
         match self {
             Self::Texture2D { texture, .. } => texture.height(),
             Self::Texture2DArray { texture, .. } => texture.height(),
