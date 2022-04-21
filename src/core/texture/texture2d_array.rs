@@ -75,11 +75,7 @@ impl Texture2DArray {
         layers: &'a [u32],
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {
-        ColorTarget::Texture2DArray {
-            texture: self,
-            layers,
-            mip_level,
-        }
+        ColorTarget::new_texture_2d_array(self, layers, mip_level)
     }
 
     ///

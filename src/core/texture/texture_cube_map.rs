@@ -363,11 +363,7 @@ impl TextureCubeMap {
         side: CubeMapSide,
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {
-        ColorTarget::TextureCubeMap {
-            texture: self,
-            side,
-            mip_level,
-        }
+        ColorTarget::new_texture_cube_map(self, side, mip_level)
     }
 
     ///

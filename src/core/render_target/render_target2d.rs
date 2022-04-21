@@ -1,7 +1,10 @@
 use crate::core::render_target::*;
 
 #[derive(Clone)]
-pub enum ColorTarget<'a> {
+pub struct ColorTarget<'a>(CT<'a>);
+
+#[derive(Clone)]
+enum CT<'a> {
     Texture2D {
         texture: &'a Texture2D,
         mip_level: Option<u32>,
@@ -24,29 +27,57 @@ pub enum ColorTarget<'a> {
 }
 
 impl<'a> ColorTarget<'a> {
-    pub fn screen(context: &Context, width: u32, height: u32) -> Self {
-        ColorTarget::Screen {
+    pub(in crate::core) fn screen(context: &Context, width: u32, height: u32) -> Self {
+        ColorTarget(CT::Screen {
             context: context.clone(),
             width,
             height,
-        }
+        })
+    }
+
+    pub(in crate::core) fn new_texture2d(texture: &'a Texture2D, mip_level: Option<u32>) -> Self {
+        ColorTarget(CT::Texture2D { texture, mip_level })
+    }
+
+    pub(in crate::core) fn new_texture_cube_map(
+        texture: &'a TextureCubeMap,
+        side: CubeMapSide,
+        mip_level: Option<u32>,
+    ) -> Self {
+        ColorTarget(CT::TextureCubeMap {
+            texture,
+            side,
+            mip_level,
+        })
+    }
+
+    pub(in crate::core) fn new_texture_2d_array(
+        texture: &'a Texture2DArray,
+        layers: &'a [u32],
+        mip_level: Option<u32>,
+    ) -> Self {
+        ColorTarget(CT::Texture2DArray {
+            texture,
+            layers,
+            mip_level,
+        })
     }
 
     pub fn width(&self) -> u32 {
-        match self {
-            Self::Texture2D { texture, .. } => texture.width(),
-            Self::Texture2DArray { texture, .. } => texture.width(),
-            Self::TextureCubeMap { texture, .. } => texture.width(),
-            Self::Screen { width, .. } => *width,
+        match self.0 {
+            CT::Texture2D { texture, .. } => texture.width(),
+            CT::Texture2DArray { texture, .. } => texture.width(),
+            CT::TextureCubeMap { texture, .. } => texture.width(),
+            CT::Screen { width, .. } => width,
         }
     }
 
     pub fn height(&self) -> u32 {
-        match self {
-            Self::Texture2D { texture, .. } => texture.height(),
-            Self::Texture2DArray { texture, .. } => texture.height(),
-            Self::TextureCubeMap { texture, .. } => texture.height(),
-            Self::Screen { height, .. } => *height,
+        match self.0 {
+            CT::Texture2D { texture, .. } => texture.height(),
+            CT::Texture2DArray { texture, .. } => texture.height(),
+            CT::TextureCubeMap { texture, .. } => texture.height(),
+            CT::Screen { height, .. } => height,
         }
     }
 
@@ -84,11 +115,11 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub(in crate::core) fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
-        let context = match self {
-            Self::Texture2D { texture, .. } => &texture.context,
-            Self::Texture2DArray { texture, .. } => &texture.context,
-            Self::TextureCubeMap { texture, .. } => &texture.context,
-            Self::Screen { context, .. } => context,
+        let context = match &self.0 {
+            CT::Texture2D { texture, .. } => &texture.context,
+            CT::Texture2DArray { texture, .. } => &texture.context,
+            CT::TextureCubeMap { texture, .. } => &texture.context,
+            CT::Screen { context, .. } => context,
         };
         RenderTarget::new_color(context, self.clone())
     }
@@ -98,20 +129,20 @@ impl<'a> ColorTarget<'a> {
     }
 
     fn generate_mip_maps(&self) {
-        match self {
-            Self::Texture2D { texture, mip_level } => {
+        match self.0 {
+            CT::Texture2D { texture, mip_level } => {
                 if mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
             }
-            Self::Texture2DArray {
+            CT::Texture2DArray {
                 texture, mip_level, ..
             } => {
                 if mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
             }
-            Self::TextureCubeMap {
+            CT::TextureCubeMap {
                 texture, mip_level, ..
             } => {
                 if mip_level.is_none() {
@@ -123,12 +154,12 @@ impl<'a> ColorTarget<'a> {
     }
 
     fn bind(&self, context: &Context) {
-        match self {
-            Self::Texture2D { texture, mip_level } => unsafe {
+        match self.0 {
+            CT::Texture2D { texture, mip_level } => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
                 texture.bind_as_color_target(0, mip_level.unwrap_or(0));
             },
-            Self::Texture2DArray {
+            CT::Texture2DArray {
                 texture,
                 layers,
                 mip_level,
@@ -146,13 +177,13 @@ impl<'a> ColorTarget<'a> {
                     );
                 }
             },
-            Self::TextureCubeMap {
+            CT::TextureCubeMap {
                 texture,
                 side,
                 mip_level,
             } => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-                texture.bind_as_color_target(*side, 0, mip_level.unwrap_or(0));
+                texture.bind_as_color_target(side, 0, mip_level.unwrap_or(0));
             },
             _ => {}
         }

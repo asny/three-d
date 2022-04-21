@@ -136,10 +136,7 @@ impl Texture2D {
     }
 
     pub fn as_color_target(&mut self, mip_level: Option<u32>) -> ColorTarget {
-        ColorTarget::Texture2D {
-            texture: self,
-            mip_level,
-        }
+        ColorTarget::new_texture2d(self, mip_level)
     }
 
     ///
