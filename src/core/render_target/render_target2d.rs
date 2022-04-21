@@ -27,7 +27,7 @@ enum CT<'a> {
 }
 
 impl<'a> ColorTarget<'a> {
-    pub(in crate::core) fn screen(context: &Context, width: u32, height: u32) -> Self {
+    fn screen(context: &Context, width: u32, height: u32) -> Self {
         ColorTarget(CT::Screen {
             context: context.clone(),
             width,
@@ -222,7 +222,7 @@ enum DT<'a> {
 }
 
 impl<'a> DepthTarget<'a> {
-    pub(in crate::core) fn screen(context: &Context, width: u32, height: u32) -> Self {
+    fn screen(context: &Context, width: u32, height: u32) -> Self {
         Self(DT::Screen {
             context: context.clone(),
             width,
