@@ -393,12 +393,12 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub fn color(&self) -> Option<ColorTarget> {
-        self.color.clone()
+    pub fn color(&self) -> &ColorTarget {
+        self.color.as_ref().unwrap()
     }
 
-    pub fn depth(&self) -> Option<DepthTarget> {
-        self.depth.clone()
+    pub fn depth(&self) -> &DepthTarget {
+        self.depth.as_ref().unwrap()
     }
 
     pub fn clear(&self, color: Color, depth: f32) -> ThreeDResult<&Self> {
