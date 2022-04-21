@@ -41,6 +41,50 @@ use thiserror::Error;
 #[allow(missing_docs)]
 pub enum RendererError {}
 
+impl<'a> DepthTarget<'a> {
+    pub fn render(
+        &self,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_to_viewport(camera.viewport(), camera, objects, lights)
+    }
+
+    pub fn render_to_viewport(
+        &self,
+        viewport: Viewport,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.write_to_viewport(viewport, || render_pass(camera, objects, lights))?;
+        Ok(self)
+    }
+}
+
+impl<'a> ColorTarget<'a> {
+    pub fn render(
+        &self,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_to_viewport(camera.viewport(), camera, objects, lights)
+    }
+
+    pub fn render_to_viewport(
+        &self,
+        viewport: Viewport,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.write_to_viewport(viewport, || render_pass(camera, objects, lights))?;
+        Ok(self)
+    }
+}
+
 impl<'a> RenderTarget<'a> {
     pub fn render(
         &self,
