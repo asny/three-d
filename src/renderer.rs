@@ -191,10 +191,8 @@ pub fn ray_intersect(
     };
     let depth = RenderTarget::new(
         context,
-        &texture.as_color_target(None),
-        &DepthTarget::Texture2D {
-            texture: &mut depth_texture,
-        },
+        texture.as_color_target(None),
+        depth_texture.as_depth_target(),
     )?
     .clear(Color::WHITE, 1.0)?
     .write(|| {
@@ -203,7 +201,9 @@ pub fn ray_intersect(
         }
         Ok(())
     })?
-    .read_color()?[0];
+    .color()
+    .unwrap()
+    .read()?[0];
     Ok(if depth < 1.0 {
         Some(position + direction * depth * max_depth)
     } else {

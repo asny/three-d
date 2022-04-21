@@ -351,8 +351,7 @@ impl TextureCubeMap {
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
                     .as_color_target(side, None)
-                    .as_render_target()?
-                    .clear_color(Color::BLACK)?
+                    .clear(Color::BLACK)?
                     .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
         }

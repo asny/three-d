@@ -125,13 +125,11 @@ impl DeferredPipeline {
         )?);
         RenderTarget::new(
             &self.context,
-            &self
-                .geometry_pass_texture
+            self.geometry_pass_texture
                 .as_mut()
                 .unwrap()
                 .as_color_target(&[0, 1, 2], None),
-            &self
-                .geometry_pass_depth_texture
+            self.geometry_pass_depth_texture
                 .as_mut()
                 .unwrap()
                 .as_depth_target(),

@@ -29,7 +29,7 @@ impl Screen {
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<[u8; 4]>> {
-        RenderTarget::screen(context, 0, 0).read_color_viewport(viewport)
+        ColorTarget::screen(context, 0, 0).read_viewport(viewport)
     }
 
     ///

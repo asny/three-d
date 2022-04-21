@@ -103,8 +103,7 @@ impl Environment {
                     program.use_uniform("resolution", &(environment_map.width() as f32))?;
                     prefilter_map
                         .as_color_target(side, Some(mip))
-                        .as_render_target()?
-                        .clear(Color::BLACK, 1.0)?
+                        .clear(Color::BLACK)?
                         .write(|| program.render(side, RenderStates::default(), viewport))?;
                 }
             }
@@ -134,8 +133,7 @@ impl Environment {
         let viewport = Viewport::new_at_origo(brdf_map.width(), brdf_map.height());
         brdf_map
             .as_color_target(None)
-            .as_render_target()?
-            .clear(Color::BLACK, 1.0)?
+            .clear(Color::BLACK)?
             .write(|| effect.apply(RenderStates::default(), viewport))?;
 
         Ok(Self {
