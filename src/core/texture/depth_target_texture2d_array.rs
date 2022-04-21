@@ -58,10 +58,7 @@ impl DepthTargetTexture2DArray {
     }
 
     pub fn as_depth_target(&mut self, layer: u32) -> DepthTarget {
-        DepthTarget::Texture2DArray {
-            texture: self,
-            layer,
-        }
+        DepthTarget::new_texture_2d_array(self, layer)
     }
 
     ///

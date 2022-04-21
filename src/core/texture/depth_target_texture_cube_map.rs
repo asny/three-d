@@ -55,10 +55,7 @@ impl DepthTargetTextureCubeMap {
     }
 
     pub fn as_depth_target(&mut self, side: CubeMapSide) -> DepthTarget {
-        DepthTarget::TextureCubeMap {
-            texture: self,
-            side,
-        }
+        DepthTarget::new_texture_cube_map(self, side)
     }
 
     ///

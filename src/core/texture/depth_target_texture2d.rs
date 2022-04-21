@@ -68,7 +68,7 @@ impl DepthTargetTexture2D {
     }
 
     pub fn as_depth_target(&mut self) -> DepthTarget {
-        DepthTarget::Texture2D { texture: self }
+        DepthTarget::new_texture2d(self)
     }
 
     ///

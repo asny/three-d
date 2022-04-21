@@ -191,7 +191,10 @@ impl<'a> ColorTarget<'a> {
 }
 
 #[derive(Clone)]
-pub enum DepthTarget<'a> {
+pub struct DepthTarget<'a>(DT<'a>);
+
+#[derive(Clone)]
+enum DT<'a> {
     Texture2D {
         texture: &'a DepthTargetTexture2D,
     },
@@ -211,12 +214,30 @@ pub enum DepthTarget<'a> {
 }
 
 impl<'a> DepthTarget<'a> {
-    pub fn screen(context: &Context, width: u32, height: u32) -> Self {
-        Self::Screen {
+    pub(in crate::core) fn screen(context: &Context, width: u32, height: u32) -> Self {
+        Self(DT::Screen {
             context: context.clone(),
             width,
             height,
-        }
+        })
+    }
+
+    pub(in crate::core) fn new_texture2d(texture: &'a DepthTargetTexture2D) -> Self {
+        Self(DT::Texture2D { texture })
+    }
+
+    pub(in crate::core) fn new_texture_cube_map(
+        texture: &'a DepthTargetTextureCubeMap,
+        side: CubeMapSide,
+    ) -> Self {
+        Self(DT::TextureCubeMap { texture, side })
+    }
+
+    pub(in crate::core) fn new_texture_2d_array(
+        texture: &'a DepthTargetTexture2DArray,
+        layer: u32,
+    ) -> Self {
+        Self(DT::Texture2DArray { texture, layer })
     }
 
     pub fn clear(&self, depth: f32) -> ThreeDResult<&Self> {
@@ -262,30 +283,30 @@ impl<'a> DepthTarget<'a> {
     }
 
     fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
-        let context = match self {
-            Self::Texture2D { texture, .. } => &texture.context,
-            Self::Texture2DArray { texture, .. } => &texture.context,
-            Self::TextureCubeMap { texture, .. } => &texture.context,
-            Self::Screen { context, .. } => context,
+        let context = match &self.0 {
+            DT::Texture2D { texture, .. } => &texture.context,
+            DT::Texture2DArray { texture, .. } => &texture.context,
+            DT::TextureCubeMap { texture, .. } => &texture.context,
+            DT::Screen { context, .. } => context,
         };
         RenderTarget::new_depth(context, self.clone())
     }
 
     pub fn width(&self) -> u32 {
-        match self {
-            Self::Texture2D { texture, .. } => texture.width(),
-            Self::Texture2DArray { texture, .. } => texture.width(),
-            Self::TextureCubeMap { texture, .. } => texture.width(),
-            Self::Screen { width, .. } => *width,
+        match &self.0 {
+            DT::Texture2D { texture, .. } => texture.width(),
+            DT::Texture2DArray { texture, .. } => texture.width(),
+            DT::TextureCubeMap { texture, .. } => texture.width(),
+            DT::Screen { width, .. } => *width,
         }
     }
 
     pub fn height(&self) -> u32 {
-        match self {
-            Self::Texture2D { texture, .. } => texture.height(),
-            Self::Texture2DArray { texture, .. } => texture.height(),
-            Self::TextureCubeMap { texture, .. } => texture.height(),
-            Self::Screen { height, .. } => *height,
+        match &self.0 {
+            DT::Texture2D { texture, .. } => texture.height(),
+            DT::Texture2DArray { texture, .. } => texture.height(),
+            DT::TextureCubeMap { texture, .. } => texture.height(),
+            DT::Screen { height, .. } => *height,
         }
     }
 
@@ -294,14 +315,14 @@ impl<'a> DepthTarget<'a> {
     }
 
     fn bind(&self) {
-        match self {
-            Self::Texture2D { texture } => {
+        match &self.0 {
+            DT::Texture2D { texture } => {
                 texture.bind_as_depth_target();
             }
-            Self::Texture2DArray { texture, layer } => {
+            DT::Texture2DArray { texture, layer } => {
                 texture.bind_as_depth_target(*layer);
             }
-            Self::TextureCubeMap { texture, side } => {
+            DT::TextureCubeMap { texture, side } => {
                 texture.bind_as_depth_target(*side);
             }
             _ => {}
