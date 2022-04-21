@@ -63,8 +63,7 @@ impl Environment {
                 let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
                 irradiance_map
                     .as_color_target(side, None)
-                    .as_render_target()?
-                    .clear(Color::BLACK, 1.0)?
+                    .clear(Color::BLACK)?
                     .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
         }

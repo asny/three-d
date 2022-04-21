@@ -43,6 +43,30 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
+    pub fn clear(&self, color: Color) -> ThreeDResult<&Self> {
+        self.as_render_target()?.clear_color(color)?;
+        Ok(self)
+    }
+
+    pub fn clear_viewport(&self, viewport: Viewport, color: Color) -> ThreeDResult<&Self> {
+        self.as_render_target()?
+            .clear_color_viewport(viewport, color)?;
+        Ok(self)
+    }
+
+    pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
+        self.as_render_target()?.write(render)?;
+        Ok(self)
+    }
+
+    pub fn read<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
+        self.as_render_target()?.read_color()
+    }
+
+    pub fn read_viewport<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
+        self.as_render_target()?.read_color_viewport(viewport)
+    }
+
     fn generate_mip_maps(&self) {
         match self {
             Self::Texture2D { texture, mip_level } => {
@@ -285,36 +309,41 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn clear(&self, color: Color, depth: f32) -> ThreeDResult<&Self> {
-        self.clear_area(self.area(), color, depth)
+        self.clear_viewport(self.viewport(), color, depth)
     }
 
-    pub fn clear_area(&self, area: Viewport, color: Color, depth: f32) -> ThreeDResult<&Self> {
-        self.clear_internal(area, Some(color), Some(depth))?;
+    pub fn clear_viewport(
+        &self,
+        viewport: Viewport,
+        color: Color,
+        depth: f32,
+    ) -> ThreeDResult<&Self> {
+        self.clear_internal(viewport, Some(color), Some(depth))?;
         Ok(self)
     }
 
     pub fn clear_color(&self, color: Color) -> ThreeDResult<&Self> {
-        self.clear_color_area(self.area(), color)
+        self.clear_color_viewport(self.viewport(), color)
     }
 
-    pub fn clear_color_area(&self, area: Viewport, color: Color) -> ThreeDResult<&Self> {
-        self.clear_internal(area, Some(color), None)?;
+    pub fn clear_color_viewport(&self, viewport: Viewport, color: Color) -> ThreeDResult<&Self> {
+        self.clear_internal(viewport, Some(color), None)?;
         Ok(self)
     }
 
     pub fn clear_depth(&self, depth: f32) -> ThreeDResult<&Self> {
-        self.clear_depth_area(self.area(), depth)
+        self.clear_depth_viewport(self.viewport(), depth)
     }
 
-    pub fn clear_depth_area(&self, area: Viewport, depth: f32) -> ThreeDResult<&Self> {
-        self.clear_internal(area, None, Some(depth))?;
+    pub fn clear_depth_viewport(&self, viewport: Viewport, depth: f32) -> ThreeDResult<&Self> {
+        self.clear_internal(viewport, None, Some(depth))?;
         Ok(self)
     }
 
     #[allow(deprecated)]
     fn clear_internal(
         &self,
-        area: Viewport,
+        viewport: Viewport,
         color: Option<Color>,
         depth: Option<f32>,
     ) -> ThreeDResult<()> {
@@ -353,7 +382,7 @@ impl<'a> RenderTarget<'a> {
                 _ => ClearState::depth(depth.unwrap()),
             }
         };
-        set_scissor(&self.context, area);
+        set_scissor(&self.context, viewport);
         self.target
             .bind(&self.context, crate::context::DRAW_FRAMEBUFFER)?;
         clear(&self.context, &clear_state);
@@ -363,7 +392,7 @@ impl<'a> RenderTarget<'a> {
 
     #[allow(deprecated)]
     pub(in crate::core) fn clear_deprecated(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        set_scissor(&self.context, self.area());
+        set_scissor(&self.context, self.viewport());
         self.target
             .bind(&self.context, crate::context::DRAW_FRAMEBUFFER)?;
         clear(&self.context, &clear_state);
@@ -375,15 +404,15 @@ impl<'a> RenderTarget<'a> {
     /// Renders whatever rendered in the `render` closure into this render target.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_to_viewport(self.area(), render)
+        self.write_to_viewport(self.viewport(), render)
     }
 
     pub fn write_to_viewport(
         &self,
-        area: Viewport,
+        viewport: Viewport,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
-        set_scissor(&self.context, area);
+        set_scissor(&self.context, viewport);
         self.target
             .bind(&self.context, crate::context::DRAW_FRAMEBUFFER)?;
         render()?;
@@ -403,7 +432,7 @@ impl<'a> RenderTarget<'a> {
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
     pub fn read_color<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
-        self.read_color_area(self.area())
+        self.read_color_viewport(self.viewport())
     }
 
     ///
@@ -412,7 +441,10 @@ impl<'a> RenderTarget<'a> {
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
-    pub fn read_color_area<T: TextureDataType>(&self, area: Viewport) -> ThreeDResult<Vec<T>> {
+    pub fn read_color_viewport<T: TextureDataType>(
+        &self,
+        viewport: Viewport,
+    ) -> ThreeDResult<Vec<T>> {
         if let Target::Depth { .. } = self.target {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
         }
@@ -425,13 +457,13 @@ impl<'a> RenderTarget<'a> {
         if data_size / T::size() as usize == 1 {
             data_size *= 4 / T::size() as usize
         }
-        let mut bytes = vec![0u8; area.width as usize * area.height as usize * data_size];
+        let mut bytes = vec![0u8; viewport.width as usize * viewport.height as usize * data_size];
         unsafe {
             self.context.read_pixels(
-                area.x as i32,
-                area.y as i32,
-                area.width as i32,
-                area.height as i32,
+                viewport.x as i32,
+                viewport.y as i32,
+                viewport.width as i32,
+                viewport.height as i32,
                 format_from_data_type::<T>(),
                 T::data_type(),
                 crate::context::PixelPackData::Slice(&mut bytes),
@@ -439,7 +471,11 @@ impl<'a> RenderTarget<'a> {
             self.context.error_check()?;
         }
         let mut pixels = from_byte_slice(&bytes).to_vec();
-        flip_y(&mut pixels, area.width as usize, area.height as usize);
+        flip_y(
+            &mut pixels,
+            viewport.width as usize,
+            viewport.height as usize,
+        );
         Ok(pixels)
     }
 
@@ -449,15 +485,15 @@ impl<'a> RenderTarget<'a> {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
-        self.read_depth_area(self.area())
+        self.read_depth_viewport(self.viewport())
     }
 
     ///
-    /// Returns the depth values from the given area of the render target as a list of 32-bit floats.
+    /// Returns the depth values from the given viewport of the render target as a list of 32-bit floats.
     /// Not available on web.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth_area(&self, area: Viewport) -> ThreeDResult<Vec<f32>> {
+    pub fn read_depth_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
         if let Target::Color { .. } = self.target {
             Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }
@@ -465,13 +501,13 @@ impl<'a> RenderTarget<'a> {
             .bind(&self.context, crate::context::DRAW_FRAMEBUFFER)?;
         self.target
             .bind(&self.context, crate::context::READ_FRAMEBUFFER)?;
-        let mut pixels = vec![0u8; area.width as usize * area.height as usize * 4];
+        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         unsafe {
             self.context.read_pixels(
-                area.x as i32,
-                area.y as i32,
-                area.width as i32,
-                area.height as i32,
+                viewport.x as i32,
+                viewport.y as i32,
+                viewport.width as i32,
+                viewport.height as i32,
                 crate::context::DEPTH_COMPONENT,
                 crate::context::FLOAT,
                 crate::context::PixelPackData::Slice(&mut pixels),
@@ -525,7 +561,15 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub fn area(&self) -> Viewport {
+    pub fn width(&self) -> u32 {
+        self.target.width()
+    }
+
+    pub fn height(&self) -> u32 {
+        self.target.height()
+    }
+
+    fn viewport(&self) -> Viewport {
         Viewport::new_at_origo(self.target.width(), self.target.height())
     }
 }
