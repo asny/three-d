@@ -63,24 +63,6 @@ impl<'a> ColorTarget<'a> {
         })
     }
 
-    pub fn width(&self) -> u32 {
-        match self.0 {
-            CT::Texture2D { texture, .. } => texture.width(),
-            CT::Texture2DArray { texture, .. } => texture.width(),
-            CT::TextureCubeMap { texture, .. } => texture.width(),
-            CT::Screen { width, .. } => width,
-        }
-    }
-
-    pub fn height(&self) -> u32 {
-        match self.0 {
-            CT::Texture2D { texture, .. } => texture.height(),
-            CT::Texture2DArray { texture, .. } => texture.height(),
-            CT::TextureCubeMap { texture, .. } => texture.height(),
-            CT::Screen { height, .. } => height,
-        }
-    }
-
     pub fn clear(&self, color: Color) -> ThreeDResult<&Self> {
         self.clear_viewport(self.viewport(), color)
     }
@@ -112,6 +94,24 @@ impl<'a> ColorTarget<'a> {
 
     pub fn read_viewport<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         self.as_render_target()?.read_color_viewport(viewport)
+    }
+
+    pub fn width(&self) -> u32 {
+        match self.0 {
+            CT::Texture2D { texture, .. } => texture.width(),
+            CT::Texture2DArray { texture, .. } => texture.width(),
+            CT::TextureCubeMap { texture, .. } => texture.width(),
+            CT::Screen { width, .. } => width,
+        }
+    }
+
+    pub fn height(&self) -> u32 {
+        match self.0 {
+            CT::Texture2D { texture, .. } => texture.height(),
+            CT::Texture2DArray { texture, .. } => texture.height(),
+            CT::TextureCubeMap { texture, .. } => texture.height(),
+            CT::Screen { height, .. } => height,
+        }
     }
 
     pub(in crate::core) fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
