@@ -93,16 +93,14 @@ impl Environment {
             let max_mip_levels = 5;
             for mip in 0..max_mip_levels {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
-                let viewport = Viewport::new_at_origo(
-                    prefilter_size / 2u32.pow(mip),
-                    prefilter_size / 2u32.pow(mip),
-                );
                 for side in CubeMapSide::iter() {
                     program.use_texture_cube("environmentMap", environment_map)?;
                     program.use_uniform("roughness", &roughness)?;
                     program.use_uniform("resolution", &(environment_map.width() as f32))?;
-                    prefilter_map
-                        .as_color_target(side, Some(mip))
+                    let color_target = prefilter_map.as_color_target(side, Some(mip));
+                    let viewport =
+                        Viewport::new_at_origo(color_target.width(), color_target.height());
+                    color_target
                         .clear(Color::BLACK)?
                         .write(|| program.render(side, RenderStates::default(), viewport))?;
                 }

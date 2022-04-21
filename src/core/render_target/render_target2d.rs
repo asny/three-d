@@ -98,18 +98,26 @@ impl<'a> ColorTarget<'a> {
 
     pub fn width(&self) -> u32 {
         match self.0 {
-            CT::Texture2D { texture, .. } => texture.width(),
-            CT::Texture2DArray { texture, .. } => texture.width(),
-            CT::TextureCubeMap { texture, .. } => texture.width(),
+            CT::Texture2D { texture, mip_level } => size_with_mip(texture.width(), mip_level),
+            CT::Texture2DArray {
+                texture, mip_level, ..
+            } => size_with_mip(texture.width(), mip_level),
+            CT::TextureCubeMap {
+                texture, mip_level, ..
+            } => size_with_mip(texture.width(), mip_level),
             CT::Screen { width, .. } => width,
         }
     }
 
     pub fn height(&self) -> u32 {
         match self.0 {
-            CT::Texture2D { texture, .. } => texture.height(),
-            CT::Texture2DArray { texture, .. } => texture.height(),
-            CT::TextureCubeMap { texture, .. } => texture.height(),
+            CT::Texture2D { texture, mip_level } => size_with_mip(texture.height(), mip_level),
+            CT::Texture2DArray {
+                texture, mip_level, ..
+            } => size_with_mip(texture.height(), mip_level),
+            CT::TextureCubeMap {
+                texture, mip_level, ..
+            } => size_with_mip(texture.height(), mip_level),
             CT::Screen { height, .. } => height,
         }
     }
@@ -647,5 +655,13 @@ impl Drop for RenderTarget<'_> {
                 self.context.delete_framebuffer(id);
             }
         }
+    }
+}
+
+fn size_with_mip(size: u32, mip: Option<u32>) -> u32 {
+    if let Some(mip) = mip {
+        size / 2u32.pow(mip)
+    } else {
+        size
     }
 }
