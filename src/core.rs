@@ -66,6 +66,10 @@ mod viewport;
 #[doc(inline)]
 pub use viewport::*;
 
+mod scissor_box;
+#[doc(inline)]
+pub use scissor_box::*;
+
 pub use crate::ThreeDResult;
 use thiserror::Error;
 ///

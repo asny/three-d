@@ -89,17 +89,21 @@ impl Environment {
                 include_str!("shaders/light_shared.frag"),
                 include_str!("shaders/prefilter.frag")
             );
-            let program = ImageCubeEffect::new(context, &fragment_shader_source)?;
+            let effect = ImageCubeEffect::new(context, &fragment_shader_source)?;
             let max_mip_levels = 5;
             for mip in 0..max_mip_levels {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
                 for side in CubeMapSide::iter() {
-                    program.use_texture_cube("environmentMap", environment_map)?;
-                    program.use_uniform("roughness", &roughness)?;
-                    program.use_uniform("resolution", &(environment_map.width() as f32))?;
+                    effect.use_texture_cube("environmentMap", environment_map)?;
+                    effect.use_uniform("roughness", &roughness)?;
+                    effect.use_uniform("resolution", &(environment_map.width() as f32))?;
                     let color_target = prefilter_map.as_color_target(side, Some(mip));
                     color_target.clear(ClearState::default())?.write(|| {
-                        program.render(side, RenderStates::default(), color_target.viewport())
+                        effect.render(
+                            side,
+                            RenderStates::default(),
+                            Viewport::new_at_origo(color_target.width(), color_target.height()),
+                        )
                     })?;
                 }
             }

@@ -74,16 +74,16 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_in_viewport(self.viewport(), clear_state)
+        self.clear_in_viewport(self.scissor_box(), clear_state)
     }
 
     pub fn clear_in_viewport(
         &self,
-        viewport: Viewport,
+        scissor_box: ScissorBox,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?.clear_in_viewport(
-            viewport,
+            scissor_box,
             ClearState {
                 depth: None,
                 ..clear_state
@@ -93,25 +93,28 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_in_viewport(self.viewport(), render)
+        self.write_in_viewport(self.scissor_box(), render)
     }
 
     pub fn write_in_viewport(
         &self,
-        viewport: Viewport,
+        scissor_box: ScissorBox,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .write_in_viewport(viewport, render)?;
+            .write_in_viewport(scissor_box, render)?;
         Ok(self)
     }
 
     pub fn read<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
-        self.read_in_viewport(self.viewport())
+        self.read_in_viewport(self.scissor_box())
     }
 
-    pub fn read_in_viewport<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        self.as_render_target()?.read_color_in_viewport(viewport)
+    pub fn read_in_viewport<T: TextureDataType>(
+        &self,
+        scissor_box: ScissorBox,
+    ) -> ThreeDResult<Vec<T>> {
+        self.as_render_target()?.read_color_in_viewport(scissor_box)
     }
 
     ///
@@ -146,8 +149,8 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
-    pub fn viewport(&self) -> Viewport {
-        Viewport::new_at_origo(self.width(), self.height())
+    pub fn scissor_box(&self) -> ScissorBox {
+        ScissorBox::new_at_origo(self.width(), self.height())
     }
 
     pub(in crate::core) fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
@@ -274,16 +277,16 @@ impl<'a> DepthTarget<'a> {
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_in_viewport(self.viewport(), clear_state)
+        self.clear_in_viewport(self.scissor_box(), clear_state)
     }
 
     pub fn clear_in_viewport(
         &self,
-        viewport: Viewport,
+        scissor_box: ScissorBox,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?.clear_in_viewport(
-            viewport,
+            scissor_box,
             ClearState {
                 depth: clear_state.depth,
                 ..ClearState::none()
@@ -293,16 +296,16 @@ impl<'a> DepthTarget<'a> {
     }
 
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_in_viewport(self.viewport(), render)
+        self.write_in_viewport(self.scissor_box(), render)
     }
 
     pub fn write_in_viewport(
         &self,
-        viewport: Viewport,
+        scissor_box: ScissorBox,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .write_in_viewport(viewport, render)?;
+            .write_in_viewport(scissor_box, render)?;
         Ok(self)
     }
 
@@ -312,7 +315,7 @@ impl<'a> DepthTarget<'a> {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read(&self) -> ThreeDResult<Vec<f32>> {
-        self.read_in_viewport(self.viewport())
+        self.read_in_viewport(self.scissor_box())
     }
 
     ///
@@ -320,8 +323,8 @@ impl<'a> DepthTarget<'a> {
     /// Not available on web.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_in_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        self.as_render_target()?.read_depth_in_viewport(viewport)
+    pub fn read_in_viewport(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
+        self.as_render_target()?.read_depth_in_viewport(scissor_box)
     }
 
     fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
@@ -350,8 +353,8 @@ impl<'a> DepthTarget<'a> {
         }
     }
 
-    pub fn viewport(&self) -> Viewport {
-        Viewport::new_at_origo(self.width(), self.height())
+    pub fn scissor_box(&self) -> ScissorBox {
+        ScissorBox::new_at_origo(self.width(), self.height())
     }
 
     fn bind(&self) {
@@ -418,15 +421,15 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_in_viewport(self.viewport(), clear_state)
+        self.clear_in_viewport(self.scissor_box(), clear_state)
     }
 
     pub fn clear_in_viewport(
         &self,
-        viewport: Viewport,
+        scissor_box: ScissorBox,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
-        self.context.set_scissor(viewport);
+        self.context.set_scissor(scissor_box);
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         clear_state.apply(&self.context);
         self.context.error_check()?;
@@ -437,15 +440,15 @@ impl<'a> RenderTarget<'a> {
     /// Renders whatever rendered in the `render` closure into this render target.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_in_viewport(self.viewport(), render)
+        self.write_in_viewport(self.scissor_box(), render)
     }
 
     pub fn write_in_viewport(
         &self,
-        viewport: Viewport,
+        scissor_box: ScissorBox,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
-        self.context.set_scissor(viewport);
+        self.context.set_scissor(scissor_box);
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         render()?;
         if let Some(ref color) = self.color {
@@ -456,18 +459,18 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn read_color<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
-        self.read_color_in_viewport(self.viewport())
+        self.read_color_in_viewport(self.scissor_box())
     }
 
     ///
-    /// Returns the colors of the pixels in this render target inside the given viewport.
+    /// Returns the colors of the pixels in this render target inside the given scissor box.
     /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
     pub fn read_color_in_viewport<T: TextureDataType>(
         &self,
-        viewport: Viewport,
+        scissor_box: ScissorBox,
     ) -> ThreeDResult<Vec<T>> {
         if self.color.is_none() {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
@@ -479,13 +482,14 @@ impl<'a> RenderTarget<'a> {
         if data_size / T::size() as usize == 1 {
             data_size *= 4 / T::size() as usize
         }
-        let mut bytes = vec![0u8; viewport.width as usize * viewport.height as usize * data_size];
+        let mut bytes =
+            vec![0u8; scissor_box.width as usize * scissor_box.height as usize * data_size];
         unsafe {
             self.context.read_pixels(
-                viewport.x as i32,
-                viewport.y as i32,
-                viewport.width as i32,
-                viewport.height as i32,
+                scissor_box.x as i32,
+                scissor_box.y as i32,
+                scissor_box.width as i32,
+                scissor_box.height as i32,
                 format_from_data_type::<T>(),
                 T::data_type(),
                 crate::context::PixelPackData::Slice(&mut bytes),
@@ -495,30 +499,30 @@ impl<'a> RenderTarget<'a> {
         let mut pixels = from_byte_slice(&bytes).to_vec();
         flip_y(
             &mut pixels,
-            viewport.width as usize,
-            viewport.height as usize,
+            scissor_box.width as usize,
+            scissor_box.height as usize,
         );
         Ok(pixels)
     }
 
     pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
-        self.read_depth_in_viewport(self.viewport())
+        self.read_depth_in_viewport(self.scissor_box())
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth_in_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
+    pub fn read_depth_in_viewport(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
         if self.depth.is_none() {
             Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         self.bind(crate::context::READ_FRAMEBUFFER)?;
-        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
+        let mut pixels = vec![0u8; scissor_box.width as usize * scissor_box.height as usize * 4];
         unsafe {
             self.context.read_pixels(
-                viewport.x as i32,
-                viewport.y as i32,
-                viewport.width as i32,
-                viewport.height as i32,
+                scissor_box.x as i32,
+                scissor_box.y as i32,
+                scissor_box.width as i32,
+                scissor_box.height as i32,
                 crate::context::DEPTH_COMPONENT,
                 crate::context::FLOAT,
                 crate::context::PixelPackData::Slice(&mut pixels),
@@ -529,14 +533,14 @@ impl<'a> RenderTarget<'a> {
     }
 
     ///
-    /// Copies the content of the color and depth texture to the specified viewport of this render target.
+    /// Copies the content of the color and depth texture to the specified scissor box of this render target.
     /// Only copies the channels given by the write mask.
     ///
     pub fn copy_from(
         &self,
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
-        viewport: Viewport,
+        scissor_box: ScissorBox,
         write_mask: WriteMask,
     ) -> ThreeDResult<&Self> {
         self.write(|| {
@@ -544,7 +548,7 @@ impl<'a> RenderTarget<'a> {
                 &self.context,
                 color_texture,
                 depth_texture,
-                viewport,
+                scissor_box.into(),
                 write_mask,
             )
         })
@@ -558,7 +562,7 @@ impl<'a> RenderTarget<'a> {
         &self,
         color_texture: Option<(&Texture2DArray, u32)>,
         depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
-        viewport: Viewport,
+        scissor_box: ScissorBox,
         write_mask: WriteMask,
     ) -> ThreeDResult<&Self> {
         self.write(|| {
@@ -566,14 +570,14 @@ impl<'a> RenderTarget<'a> {
                 &self.context,
                 color_texture,
                 depth_texture,
-                viewport,
+                scissor_box.into(),
                 write_mask,
             )
         })
     }
 
-    fn viewport(&self) -> Viewport {
-        Viewport::new_at_origo(self.width, self.height)
+    pub fn scissor_box(&self) -> ScissorBox {
+        ScissorBox::new_at_origo(self.width, self.height)
     }
 
     fn new_color(color: ColorTarget<'a>) -> ThreeDResult<Self> {

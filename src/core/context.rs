@@ -133,15 +133,15 @@ impl Context {
         callback(camera2d.as_ref().unwrap())
     }
 
-    pub fn set_scissor(&self, viewport: Viewport) {
+    pub fn set_scissor(&self, scissor_box: ScissorBox) {
         unsafe {
-            if viewport.width > 0 && viewport.height > 0 {
+            if scissor_box.width > 0 && scissor_box.height > 0 {
                 self.enable(crate::context::SCISSOR_TEST);
                 self.scissor(
-                    viewport.x as i32,
-                    viewport.y as i32,
-                    viewport.width as i32,
-                    viewport.height as i32,
+                    scissor_box.x as i32,
+                    scissor_box.y as i32,
+                    scissor_box.width as i32,
+                    scissor_box.height as i32,
                 );
             } else {
                 self.disable(crate::context::SCISSOR_TEST);
