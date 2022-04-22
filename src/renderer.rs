@@ -234,7 +234,6 @@ pub fn ray_intersect(
         ..Default::default()
     };
     let depth = RenderTarget::new(
-        context,
         texture.as_color_target(None),
         depth_texture.as_depth_target(),
     )?

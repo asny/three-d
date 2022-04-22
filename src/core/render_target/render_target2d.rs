@@ -390,16 +390,12 @@ impl<'a> RenderTarget<'a> {
     ///
     /// Constructs a new render target that enables rendering into the given [ColorTarget] and [DepthTarget].
     ///
-    pub fn new(
-        context: &Context,
-        color: ColorTarget<'a>,
-        depth: DepthTarget<'a>,
-    ) -> ThreeDResult<Self> {
+    pub fn new(color: ColorTarget<'a>, depth: DepthTarget<'a>) -> ThreeDResult<Self> {
         let width = color.width();
         let height = color.height();
         Ok(Self {
-            context: context.clone(),
-            id: Some(new_framebuffer(context)?),
+            context: color.context.clone(),
+            id: Some(new_framebuffer(&color.context)?),
             color: Some(color),
             depth: Some(depth),
             width,

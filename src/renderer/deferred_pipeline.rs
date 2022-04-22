@@ -124,7 +124,6 @@ impl DeferredPipeline {
             DepthFormat::Depth32F,
         )?);
         RenderTarget::new(
-            &self.context,
             self.geometry_pass_texture
                 .as_mut()
                 .unwrap()

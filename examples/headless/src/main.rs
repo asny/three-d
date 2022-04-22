@@ -71,7 +71,6 @@ fn main() {
 
         // Create a render target (a combination of a color and a depth texture) to write into
         let pixels = RenderTarget::new(
-            &context,
             texture.as_color_target(None),
             depth_texture.as_depth_target(),
         )

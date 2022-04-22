@@ -187,7 +187,6 @@ impl ImpostersMaterial {
                     vec3(0.0, 1.0, 0.0),
                 )?;
                 RenderTarget::new(
-                    &self.context,
                     self.texture.as_color_target(&layers, None),
                     depth_texture.as_depth_target(),
                 )?
