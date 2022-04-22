@@ -1,5 +1,5 @@
 ///
-/// Defines the part of the [RenderTarget], [ColorTarget] or [DepthTarget] that is rendered to.
+/// Defines the part of the screen or render target that is rendered to.
 /// All pixels outside of the scissor box will not be modified.
 /// All values should be given in physical pixels.
 ///
