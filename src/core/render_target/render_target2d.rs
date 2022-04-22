@@ -1,5 +1,10 @@
 use crate::core::render_target::*;
 
+///
+/// Adds additional functionality to read from and write to a texture.
+/// Use the `as_color_target` function directly on the texture structs (for example [Texture2D]) to construct a color target.
+/// A color target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
+///
 #[derive(Clone)]
 pub struct ColorTarget<'a>(CT<'a>);
 
@@ -206,6 +211,11 @@ impl<'a> ColorTarget<'a> {
     }
 }
 
+///
+/// Adds additional functionality to read from and write to a texture.
+/// Use the `as_depth_target` function directly on the texture structs (for example [DepthTargetTexture2D]) to construct a depth target.
+/// A depth target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
+///
 #[derive(Clone)]
 pub struct DepthTarget<'a>(DT<'a>);
 
@@ -358,9 +368,8 @@ impl<'a> DepthTarget<'a> {
 use crate::context::Framebuffer;
 ///
 /// Adds additional functionality to read from and write to the screen (see [RenderTarget::screen]) or a color texture and
-/// a depth texture (see [RenderTarget::new]) at the same time.
-/// If you only want to perform an operation on either a color texture or depth texture,
-/// use the `render_target` function directly on the texture structs (for example [Texture2D]) or the [RenderTarget::new_color] and [RenderTarget::new_depth] functions.
+/// a depth texture at the same time (see [RenderTarget::new]).
+/// If you only want to perform an operation on either a color texture or depth texture, see [ColorTarget] and [DepthTarget] respectively.
 /// A render target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
 ///
 pub struct RenderTarget<'a> {
@@ -400,34 +409,8 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    fn new_color(context: &Context, color: ColorTarget<'a>) -> ThreeDResult<Self> {
-        Ok(Self {
-            context: context.clone(),
-            id: Some(new_framebuffer(context)?),
-            color: Some(color),
-            depth: None,
-        })
-    }
-
-    fn new_depth(context: &Context, depth: DepthTarget<'a>) -> ThreeDResult<Self> {
-        Ok(Self {
-            context: context.clone(),
-            id: Some(new_framebuffer(context)?),
-            depth: Some(depth),
-            color: None,
-        })
-    }
-
-    fn color(&self) -> &ColorTarget {
-        self.color.as_ref().unwrap()
-    }
-
-    fn depth(&self) -> &DepthTarget {
-        self.depth.as_ref().unwrap()
-    }
-
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_in_viewport(self.color().viewport(), clear_state)
+        self.clear_in_viewport(self.color.as_ref().unwrap().viewport(), clear_state)
     }
 
     pub fn clear_in_viewport(
@@ -446,7 +429,7 @@ impl<'a> RenderTarget<'a> {
     /// Renders whatever rendered in the `render` closure into this render target.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_in_viewport(self.color().viewport(), render)
+        self.write_in_viewport(self.color.as_ref().unwrap().viewport(), render)
     }
 
     pub fn write_in_viewport(
@@ -465,7 +448,7 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn read_color<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
-        self.read_color_in_viewport(self.color().viewport())
+        self.read_color_in_viewport(self.color.as_ref().unwrap().viewport())
     }
 
     ///
@@ -511,7 +494,7 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
-        self.read_depth_in_viewport(self.depth().viewport())
+        self.read_depth_in_viewport(self.depth.as_ref().unwrap().viewport())
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -581,7 +564,25 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {
+    fn new_color(context: &Context, color: ColorTarget<'a>) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: Some(new_framebuffer(context)?),
+            color: Some(color),
+            depth: None,
+        })
+    }
+
+    fn new_depth(context: &Context, depth: DepthTarget<'a>) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: Some(new_framebuffer(context)?),
+            depth: Some(depth),
+            color: None,
+        })
+    }
+
+    fn bind(&self, target: u32) -> ThreeDResult<()> {
         unsafe {
             self.context.bind_framebuffer(target, self.id);
         }
