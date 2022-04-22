@@ -3,7 +3,7 @@ use crate::core::render_target::*;
 ///
 /// Adds additional functionality to read from and write to a texture.
 /// Use the `as_color_target` function directly on the texture structs (for example [Texture2D]) to construct a color target.
-/// A color target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
+/// A color target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the texture.
 ///
 #[derive(Clone)]
 pub struct ColorTarget<'a> {
@@ -114,6 +114,10 @@ impl<'a> ColorTarget<'a> {
         self.as_render_target()?.read_color_in_viewport(viewport)
     }
 
+    ///
+    /// Returns the width of the color target in texels.
+    /// If using the zero mip level of the underlying texture, then this is simply the width of that texture, otherwise it is the width of the given mip level.
+    ///
     pub fn width(&self) -> u32 {
         match self.target {
             CT::Texture2D { texture, mip_level } => size_with_mip(texture.width(), mip_level),
@@ -126,6 +130,10 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
+    ///
+    /// Returns the height of the color target in texels.
+    /// If using the zero mip level of the underlying texture, then this is simply the height of that texture, otherwise it is the height of the given mip level.
+    ///
     pub fn height(&self) -> u32 {
         match self.target {
             CT::Texture2D { texture, mip_level } => size_with_mip(texture.height(), mip_level),
@@ -209,7 +217,7 @@ impl<'a> ColorTarget<'a> {
 ///
 /// Adds additional functionality to read from and write to a texture.
 /// Use the `as_depth_target` function directly on the texture structs (for example [DepthTargetTexture2D]) to construct a depth target.
-/// A depth target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
+/// A depth target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the texture.
 ///
 #[derive(Clone)]
 pub struct DepthTarget<'a> {
@@ -320,6 +328,9 @@ impl<'a> DepthTarget<'a> {
         RenderTarget::new_depth(self.clone())
     }
 
+    ///
+    /// Returns the width of the depth target in texels, which is simply the width of the underlying texture.
+    ///
     pub fn width(&self) -> u32 {
         match &self.target {
             DT::Texture2D { texture, .. } => texture.width(),
@@ -328,6 +339,9 @@ impl<'a> DepthTarget<'a> {
         }
     }
 
+    ///
+    /// Returns the height of the depth target in texels, which is simply the height of the underlying texture.
+    ///
     pub fn height(&self) -> u32 {
         match &self.target {
             DT::Texture2D { texture, .. } => texture.height(),
@@ -558,7 +572,7 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub fn viewport(&self) -> Viewport {
+    fn viewport(&self) -> Viewport {
         Viewport::new_at_origo(self.width, self.height)
     }
 

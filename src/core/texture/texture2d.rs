@@ -135,6 +135,11 @@ impl Texture2D {
         self.context.error_check()
     }
 
+    ///
+    /// Constructs a new [ColorTarget] which adds functionality to read from and write to the given mip level of this texture.
+    /// If `None` is specified as the mip level, the 0 level mip level is used and mip maps are generated after a write operation if a mip map filter is specified.
+    /// Otherwise, the given mip level is used and no mip maps are generated.
+    ///
     pub fn as_color_target(&mut self, mip_level: Option<u32>) -> ColorTarget {
         ColorTarget::new_texture2d(&self.context, self, mip_level)
     }

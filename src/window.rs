@@ -252,6 +252,7 @@ pub struct FrameInput {
     /// Whether or not this is the first frame.
     pub first_frame: bool,
 
+    /// The graphics context for the window.
     pub context: Context,
 }
 
