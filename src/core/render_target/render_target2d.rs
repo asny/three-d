@@ -435,7 +435,7 @@ impl<'a> RenderTarget<'a> {
         viewport: Viewport,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
-        set_scissor(&self.context, viewport);
+        self.context.set_scissor(viewport);
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         clear_state.apply(&self.context);
         self.context.error_check()?;
@@ -454,7 +454,7 @@ impl<'a> RenderTarget<'a> {
         viewport: Viewport,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
-        set_scissor(&self.context, viewport);
+        self.context.set_scissor(viewport);
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         render()?;
         if let Some(ref color) = self.color {

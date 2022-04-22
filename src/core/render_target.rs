@@ -93,14 +93,13 @@ impl ClearState {
     }
 
     pub(in crate::core) fn apply(&self, context: &Context) {
-        WriteMask {
+        context.set_write_mask(WriteMask {
             red: self.red.is_some(),
             green: self.green.is_some(),
             blue: self.blue.is_some(),
             alpha: self.alpha.is_some(),
             depth: self.depth.is_some(),
-        }
-        .set(context);
+        });
         unsafe {
             let clear_color = self.red.is_some()
                 || self.green.is_some()
@@ -133,22 +132,6 @@ impl ClearState {
 impl Default for ClearState {
     fn default() -> Self {
         Self::color_and_depth(0.0, 0.0, 0.0, 1.0, 1.0)
-    }
-}
-
-pub(in crate::core::render_target) fn set_scissor(context: &Context, viewport: Viewport) {
-    unsafe {
-        if viewport.width > 0 && viewport.height > 0 {
-            context.enable(crate::context::SCISSOR_TEST);
-            context.scissor(
-                viewport.x as i32,
-                viewport.y as i32,
-                viewport.width as i32,
-                viewport.height as i32,
-            );
-        } else {
-            context.disable(crate::context::SCISSOR_TEST);
-        }
     }
 }
 

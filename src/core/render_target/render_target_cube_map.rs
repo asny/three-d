@@ -130,14 +130,13 @@ impl Drop for RenderTargetCubeMap<'_, '_> {
 }
 
 fn clear(context: &Context, clear_state: &ClearState) {
-    WriteMask {
+    context.set_write_mask(WriteMask {
         red: clear_state.red.is_some(),
         green: clear_state.green.is_some(),
         blue: clear_state.blue.is_some(),
         alpha: clear_state.alpha.is_some(),
         depth: clear_state.depth.is_some(),
-    }
-    .set(context);
+    });
     let clear_color = clear_state.red.is_some()
         || clear_state.green.is_some()
         || clear_state.blue.is_some()

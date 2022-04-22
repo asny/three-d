@@ -524,8 +524,8 @@ impl Program {
         viewport: Viewport,
         count: u32,
     ) -> ThreeDResult<()> {
-        viewport.set(&self.context);
-        render_states.set(&self.context)?;
+        self.context.set_viewport(viewport);
+        self.context.set_render_states(render_states)?;
         self.use_program();
         unsafe {
             self.context
@@ -550,8 +550,8 @@ impl Program {
         count: u32,
         instance_count: u32,
     ) -> ThreeDResult<()> {
-        viewport.set(&self.context);
-        render_states.set(&self.context)?;
+        self.context.set_viewport(viewport);
+        self.context.set_render_states(render_states)?;
         self.use_program();
         unsafe {
             self.context.draw_arrays_instanced(
@@ -604,8 +604,8 @@ impl Program {
         first: u32,
         count: u32,
     ) -> ThreeDResult<()> {
-        viewport.set(&self.context);
-        render_states.set(&self.context)?;
+        self.context.set_viewport(viewport);
+        self.context.set_render_states(render_states)?;
         self.use_program();
         element_buffer.bind();
         unsafe {
@@ -661,8 +661,8 @@ impl Program {
         count: u32,
         instance_count: u32,
     ) -> ThreeDResult<()> {
-        viewport.set(&self.context);
-        render_states.set(&self.context)?;
+        self.context.set_viewport(viewport);
+        self.context.set_render_states(render_states)?;
         self.use_program();
         element_buffer.bind();
         unsafe {

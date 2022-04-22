@@ -1,5 +1,3 @@
-use crate::core::*;
-
 ///
 /// Defines the part of the screen/render target that is rendered to.
 /// All values should be given in physical pixels.
@@ -34,11 +32,5 @@ impl Viewport {
     ///
     pub fn aspect(&self) -> f32 {
         self.width as f32 / self.height as f32
-    }
-
-    pub(in crate::core) fn set(&self, context: &Context) {
-        unsafe {
-            context.viewport(self.x, self.y, self.width as i32, self.height as i32);
-        }
     }
 }
