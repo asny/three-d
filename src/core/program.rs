@@ -524,7 +524,7 @@ impl Program {
         viewport: Viewport,
         count: u32,
     ) -> ThreeDResult<()> {
-        Self::set_viewport(&self.context, viewport);
+        viewport.set(&self.context);
         render_states.set(&self.context)?;
         self.use_program();
         unsafe {
@@ -550,7 +550,7 @@ impl Program {
         count: u32,
         instance_count: u32,
     ) -> ThreeDResult<()> {
-        Self::set_viewport(&self.context, viewport);
+        viewport.set(&self.context);
         render_states.set(&self.context)?;
         self.use_program();
         unsafe {
@@ -604,7 +604,7 @@ impl Program {
         first: u32,
         count: u32,
     ) -> ThreeDResult<()> {
-        Self::set_viewport(&self.context, viewport);
+        viewport.set(&self.context);
         render_states.set(&self.context)?;
         self.use_program();
         element_buffer.bind();
@@ -661,7 +661,7 @@ impl Program {
         count: u32,
         instance_count: u32,
     ) -> ThreeDResult<()> {
-        Self::set_viewport(&self.context, viewport);
+        viewport.set(&self.context);
         render_states.set(&self.context)?;
         self.use_program();
         element_buffer.bind();
@@ -716,17 +716,6 @@ impl Program {
     fn unuse_program(&self) {
         unsafe {
             self.context.use_program(None);
-        }
-    }
-
-    fn set_viewport(context: &Context, viewport: Viewport) {
-        unsafe {
-            context.viewport(
-                viewport.x,
-                viewport.y,
-                viewport.width as i32,
-                viewport.height as i32,
-            );
         }
     }
 }
