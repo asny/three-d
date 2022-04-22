@@ -190,44 +190,37 @@ impl Context {
                 write_mask.blue,
                 write_mask.alpha,
             );
-            self.set_depth(None, write_mask.depth);
+            self.depth_mask(write_mask.depth);
         }
     }
 
-    pub fn set_depth(&self, depth_test: Option<DepthTest>, depth_mask: bool) {
+    pub fn set_depth_test(&self, depth_test: DepthTest) {
         unsafe {
-            if depth_mask == false && depth_test == Some(DepthTest::Always) {
-                self.disable(crate::context::DEPTH_TEST);
-            } else {
-                self.enable(crate::context::DEPTH_TEST);
-                self.depth_mask(depth_mask);
-                if let Some(depth_test) = depth_test {
-                    match depth_test {
-                        DepthTest::Never => {
-                            self.depth_func(crate::context::NEVER);
-                        }
-                        DepthTest::Less => {
-                            self.depth_func(crate::context::LESS);
-                        }
-                        DepthTest::Equal => {
-                            self.depth_func(crate::context::EQUAL);
-                        }
-                        DepthTest::LessOrEqual => {
-                            self.depth_func(crate::context::LEQUAL);
-                        }
-                        DepthTest::Greater => {
-                            self.depth_func(crate::context::GREATER);
-                        }
-                        DepthTest::NotEqual => {
-                            self.depth_func(crate::context::NOTEQUAL);
-                        }
-                        DepthTest::GreaterOrEqual => {
-                            self.depth_func(crate::context::GEQUAL);
-                        }
-                        DepthTest::Always => {
-                            self.depth_func(crate::context::ALWAYS);
-                        }
-                    }
+            self.enable(crate::context::DEPTH_TEST);
+            match depth_test {
+                DepthTest::Never => {
+                    self.depth_func(crate::context::NEVER);
+                }
+                DepthTest::Less => {
+                    self.depth_func(crate::context::LESS);
+                }
+                DepthTest::Equal => {
+                    self.depth_func(crate::context::EQUAL);
+                }
+                DepthTest::LessOrEqual => {
+                    self.depth_func(crate::context::LEQUAL);
+                }
+                DepthTest::Greater => {
+                    self.depth_func(crate::context::GREATER);
+                }
+                DepthTest::NotEqual => {
+                    self.depth_func(crate::context::NOTEQUAL);
+                }
+                DepthTest::GreaterOrEqual => {
+                    self.depth_func(crate::context::GEQUAL);
+                }
+                DepthTest::Always => {
+                    self.depth_func(crate::context::ALWAYS);
                 }
             }
         }
@@ -289,10 +282,11 @@ impl Context {
     pub fn set_render_states(&self, render_states: RenderStates) -> ThreeDResult<()> {
         self.set_cull(render_states.cull);
         self.set_write_mask(render_states.write_mask);
-        self.set_depth(
-            Some(render_states.depth_test),
-            render_states.write_mask.depth,
-        );
+        if render_states.write_mask.depth {
+            self.set_depth_test(render_states.depth_test);
+        } else {
+            unsafe { self.disable(crate::context::DEPTH_TEST) }
+        }
         self.set_blend(render_states.blend);
         self.error_check()
     }
