@@ -154,7 +154,7 @@ impl Texture2D {
     ) -> ThreeDResult<()> {
         self.as_color_target(None)
             .as_render_target()?
-            .clear_deprecated(clear_state)?
+            .clear(clear_state)?
             .write(render)?;
         Ok(())
     }

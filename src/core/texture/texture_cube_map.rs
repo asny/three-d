@@ -379,7 +379,7 @@ impl TextureCubeMap {
     ) -> ThreeDResult<()> {
         self.as_color_target(side, None)
             .as_render_target()?
-            .clear_deprecated(clear_state)?
+            .clear(clear_state)?
             .write(render)?;
         Ok(())
     }
@@ -398,7 +398,7 @@ impl TextureCubeMap {
     ) -> ThreeDResult<()> {
         self.as_color_target(side, Some(mip_level))
             .as_render_target()?
-            .clear_deprecated(clear_state)?
+            .clear(clear_state)?
             .write(render)?;
         Ok(())
     }

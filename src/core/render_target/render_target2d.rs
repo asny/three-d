@@ -433,14 +433,6 @@ impl<'a> RenderTarget<'a> {
         Ok(self)
     }
 
-    pub(in crate::core) fn clear_deprecated(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        set_scissor(&self.context, self.color().viewport());
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        clear(&self.context, &clear_state);
-        self.context.error_check()?;
-        Ok(self)
-    }
-
     ///
     /// Renders whatever rendered in the `render` closure into this render target.
     ///
