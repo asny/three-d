@@ -64,30 +64,30 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_viewport(self.viewport(), clear_state)
+        self.clear_in_viewport(self.viewport(), clear_state)
     }
 
-    pub fn clear_viewport(
+    pub fn clear_in_viewport(
         &self,
         viewport: Viewport,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .clear_viewport(viewport, clear_state)?;
+            .clear_in_viewport(viewport, clear_state)?;
         Ok(self)
     }
 
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_to_viewport(self.viewport(), render)
+        self.write_in_viewport(self.viewport(), render)
     }
 
-    pub fn write_to_viewport(
+    pub fn write_in_viewport(
         &self,
         viewport: Viewport,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .write_to_viewport(viewport, render)?;
+            .write_in_viewport(viewport, render)?;
         Ok(self)
     }
 
@@ -252,30 +252,30 @@ impl<'a> DepthTarget<'a> {
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_viewport(self.viewport(), clear_state)
+        self.clear_in_viewport(self.viewport(), clear_state)
     }
 
-    pub fn clear_viewport(
+    pub fn clear_in_viewport(
         &self,
         viewport: Viewport,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .clear_viewport(viewport, clear_state)?;
+            .clear_in_viewport(viewport, clear_state)?;
         Ok(self)
     }
 
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_to_viewport(self.viewport(), render)
+        self.write_in_viewport(self.viewport(), render)
     }
 
-    pub fn write_to_viewport(
+    pub fn write_in_viewport(
         &self,
         viewport: Viewport,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .write_to_viewport(viewport, render)?;
+            .write_in_viewport(viewport, render)?;
         Ok(self)
     }
 
@@ -417,10 +417,10 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_viewport(self.color().viewport(), clear_state)
+        self.clear_in_viewport(self.color().viewport(), clear_state)
     }
 
-    pub fn clear_viewport(
+    pub fn clear_in_viewport(
         &self,
         viewport: Viewport,
         clear_state: ClearState,
@@ -436,10 +436,10 @@ impl<'a> RenderTarget<'a> {
     /// Renders whatever rendered in the `render` closure into this render target.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_to_viewport(self.color().viewport(), render)
+        self.write_in_viewport(self.color().viewport(), render)
     }
 
-    pub fn write_to_viewport(
+    pub fn write_in_viewport(
         &self,
         viewport: Viewport,
         render: impl FnOnce() -> ThreeDResult<()>,

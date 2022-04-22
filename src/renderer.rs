@@ -48,17 +48,17 @@ impl<'a> DepthTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.render_to_viewport(camera.viewport(), camera, objects, lights)
+        self.render_in_viewport(camera.viewport(), camera, objects, lights)
     }
 
-    pub fn render_to_viewport(
+    pub fn render_in_viewport(
         &self,
         viewport: Viewport,
         camera: &Camera,
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_to_viewport(viewport, || render_pass(camera, objects, lights))?;
+        self.write_in_viewport(viewport, || render_pass(camera, objects, lights))?;
         Ok(self)
     }
 }
@@ -70,17 +70,17 @@ impl<'a> ColorTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.render_to_viewport(camera.viewport(), camera, objects, lights)
+        self.render_in_viewport(camera.viewport(), camera, objects, lights)
     }
 
-    pub fn render_to_viewport(
+    pub fn render_in_viewport(
         &self,
         viewport: Viewport,
         camera: &Camera,
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_to_viewport(viewport, || render_pass(camera, objects, lights))?;
+        self.write_in_viewport(viewport, || render_pass(camera, objects, lights))?;
         Ok(self)
     }
 }
@@ -92,17 +92,17 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.render_to_viewport(camera.viewport(), camera, objects, lights)
+        self.render_in_viewport(camera.viewport(), camera, objects, lights)
     }
 
-    pub fn render_to_viewport(
+    pub fn render_in_viewport(
         &self,
         viewport: Viewport,
         camera: &Camera,
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_to_viewport(viewport, || render_pass(camera, objects, lights))?;
+        self.write_in_viewport(viewport, || render_pass(camera, objects, lights))?;
         Ok(self)
     }
 }
