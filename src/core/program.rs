@@ -525,7 +525,7 @@ impl Program {
         count: u32,
     ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
-        Self::set_states(&self.context, render_states)?;
+        render_states.set(&self.context)?;
         self.use_program();
         unsafe {
             self.context
@@ -551,7 +551,7 @@ impl Program {
         instance_count: u32,
     ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
-        Self::set_states(&self.context, render_states)?;
+        render_states.set(&self.context)?;
         self.use_program();
         unsafe {
             self.context.draw_arrays_instanced(
@@ -605,7 +605,7 @@ impl Program {
         count: u32,
     ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
-        Self::set_states(&self.context, render_states)?;
+        render_states.set(&self.context)?;
         self.use_program();
         element_buffer.bind();
         unsafe {
@@ -662,7 +662,7 @@ impl Program {
         instance_count: u32,
     ) -> ThreeDResult<()> {
         Self::set_viewport(&self.context, viewport);
-        Self::set_states(&self.context, render_states)?;
+        render_states.set(&self.context)?;
         self.use_program();
         element_buffer.bind();
         unsafe {
@@ -719,18 +719,6 @@ impl Program {
         }
     }
 
-    fn set_states(context: &Context, render_states: RenderStates) -> ThreeDResult<()> {
-        Self::set_cull(context, render_states.cull);
-        Self::set_write_mask(context, render_states.write_mask);
-        Self::set_depth(
-            context,
-            Some(render_states.depth_test),
-            render_states.write_mask.depth,
-        );
-        Self::set_blend(context, render_states.blend);
-        context.error_check()
-    }
-
     fn set_viewport(context: &Context, viewport: Viewport) {
         unsafe {
             context.viewport(
@@ -739,133 +727,6 @@ impl Program {
                 viewport.width as i32,
                 viewport.height as i32,
             );
-        }
-    }
-
-    fn set_cull(context: &Context, cull: Cull) {
-        unsafe {
-            match cull {
-                Cull::None => {
-                    context.disable(crate::context::CULL_FACE);
-                }
-                Cull::Back => {
-                    context.enable(crate::context::CULL_FACE);
-                    context.cull_face(crate::context::BACK);
-                }
-                Cull::Front => {
-                    context.enable(crate::context::CULL_FACE);
-                    context.cull_face(crate::context::FRONT);
-                }
-                Cull::FrontAndBack => {
-                    context.enable(crate::context::CULL_FACE);
-                    context.cull_face(crate::context::FRONT_AND_BACK);
-                }
-            }
-        }
-    }
-
-    fn set_blend(context: &Context, blend: Blend) {
-        unsafe {
-            if let Blend::Enabled {
-                source_rgb_multiplier,
-                source_alpha_multiplier,
-                destination_rgb_multiplier,
-                destination_alpha_multiplier,
-                rgb_equation,
-                alpha_equation,
-            } = blend
-            {
-                context.enable(crate::context::BLEND);
-                context.blend_func_separate(
-                    Self::blend_const_from_multiplier(source_rgb_multiplier),
-                    Self::blend_const_from_multiplier(destination_rgb_multiplier),
-                    Self::blend_const_from_multiplier(source_alpha_multiplier),
-                    Self::blend_const_from_multiplier(destination_alpha_multiplier),
-                );
-                context.blend_equation_separate(
-                    Self::blend_const_from_equation(rgb_equation),
-                    Self::blend_const_from_equation(alpha_equation),
-                );
-            } else {
-                context.disable(crate::context::BLEND);
-            }
-        }
-    }
-
-    fn blend_const_from_multiplier(multiplier: BlendMultiplierType) -> u32 {
-        match multiplier {
-            BlendMultiplierType::Zero => crate::context::ZERO,
-            BlendMultiplierType::One => crate::context::ONE,
-            BlendMultiplierType::SrcColor => crate::context::SRC_COLOR,
-            BlendMultiplierType::OneMinusSrcColor => crate::context::ONE_MINUS_SRC_COLOR,
-            BlendMultiplierType::DstColor => crate::context::DST_COLOR,
-            BlendMultiplierType::OneMinusDstColor => crate::context::ONE_MINUS_DST_COLOR,
-            BlendMultiplierType::SrcAlpha => crate::context::SRC_ALPHA,
-            BlendMultiplierType::OneMinusSrcAlpha => crate::context::ONE_MINUS_SRC_ALPHA,
-            BlendMultiplierType::DstAlpha => crate::context::DST_ALPHA,
-            BlendMultiplierType::OneMinusDstAlpha => crate::context::ONE_MINUS_DST_ALPHA,
-            BlendMultiplierType::SrcAlphaSaturate => crate::context::SRC_ALPHA_SATURATE,
-        }
-    }
-
-    fn blend_const_from_equation(equation: BlendEquationType) -> u32 {
-        match equation {
-            BlendEquationType::Add => crate::context::FUNC_ADD,
-            BlendEquationType::Subtract => crate::context::FUNC_SUBTRACT,
-            BlendEquationType::ReverseSubtract => crate::context::FUNC_REVERSE_SUBTRACT,
-            BlendEquationType::Min => crate::context::MIN,
-            BlendEquationType::Max => crate::context::MAX,
-        }
-    }
-
-    pub(crate) fn set_write_mask(context: &Context, write_mask: WriteMask) {
-        unsafe {
-            context.color_mask(
-                write_mask.red,
-                write_mask.green,
-                write_mask.blue,
-                write_mask.alpha,
-            );
-            Self::set_depth(context, None, write_mask.depth);
-        }
-    }
-
-    fn set_depth(context: &Context, depth_test: Option<DepthTest>, depth_mask: bool) {
-        unsafe {
-            if depth_mask == false && depth_test == Some(DepthTest::Always) {
-                context.disable(crate::context::DEPTH_TEST);
-            } else {
-                context.enable(crate::context::DEPTH_TEST);
-                context.depth_mask(depth_mask);
-                if let Some(depth_test) = depth_test {
-                    match depth_test {
-                        DepthTest::Never => {
-                            context.depth_func(crate::context::NEVER);
-                        }
-                        DepthTest::Less => {
-                            context.depth_func(crate::context::LESS);
-                        }
-                        DepthTest::Equal => {
-                            context.depth_func(crate::context::EQUAL);
-                        }
-                        DepthTest::LessOrEqual => {
-                            context.depth_func(crate::context::LEQUAL);
-                        }
-                        DepthTest::Greater => {
-                            context.depth_func(crate::context::GREATER);
-                        }
-                        DepthTest::NotEqual => {
-                            context.depth_func(crate::context::NOTEQUAL);
-                        }
-                        DepthTest::GreaterOrEqual => {
-                            context.depth_func(crate::context::GEQUAL);
-                        }
-                        DepthTest::Always => {
-                            context.depth_func(crate::context::ALWAYS);
-                        }
-                    }
-                }
-            }
         }
     }
 }
