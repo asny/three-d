@@ -72,8 +72,13 @@ impl<'a> ColorTarget<'a> {
         viewport: Viewport,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?
-            .clear_in_viewport(viewport, clear_state)?;
+        self.as_render_target()?.clear_in_viewport(
+            viewport,
+            ClearState {
+                depth: None,
+                ..clear_state
+            },
+        )?;
         Ok(self)
     }
 
@@ -260,8 +265,13 @@ impl<'a> DepthTarget<'a> {
         viewport: Viewport,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?
-            .clear_in_viewport(viewport, clear_state)?;
+        self.as_render_target()?.clear_in_viewport(
+            viewport,
+            ClearState {
+                depth: clear_state.depth,
+                ..ClearState::none()
+            },
+        )?;
         Ok(self)
     }
 
@@ -427,41 +437,7 @@ impl<'a> RenderTarget<'a> {
     ) -> ThreeDResult<&Self> {
         set_scissor(&self.context, viewport);
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        WriteMask {
-            red: clear_state.red.is_some(),
-            green: clear_state.green.is_some(),
-            blue: clear_state.blue.is_some(),
-            alpha: clear_state.alpha.is_some(),
-            depth: clear_state.depth.is_some(),
-        }
-        .set(&self.context);
-        let clear_color = clear_state.red.is_some()
-            || clear_state.green.is_some()
-            || clear_state.blue.is_some()
-            || clear_state.alpha.is_some();
-        unsafe {
-            if clear_color {
-                self.context.clear_color(
-                    clear_state.red.unwrap_or(0.0),
-                    clear_state.green.unwrap_or(0.0),
-                    clear_state.blue.unwrap_or(0.0),
-                    clear_state.alpha.unwrap_or(1.0),
-                );
-            }
-            if let Some(depth) = clear_state.depth {
-                self.context.clear_depth_f32(depth);
-            }
-            self.context
-                .clear(if clear_color && clear_state.depth.is_some() {
-                    crate::context::COLOR_BUFFER_BIT | crate::context::DEPTH_BUFFER_BIT
-                } else {
-                    if clear_color {
-                        crate::context::COLOR_BUFFER_BIT
-                    } else {
-                        crate::context::DEPTH_BUFFER_BIT
-                    }
-                });
-        }
+        clear_state.apply(&self.context);
         self.context.error_check()?;
         Ok(self)
     }

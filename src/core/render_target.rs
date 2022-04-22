@@ -91,6 +91,43 @@ impl ClearState {
             depth: Some(depth),
         }
     }
+
+    pub(in crate::core) fn apply(&self, context: &Context) {
+        WriteMask {
+            red: self.red.is_some(),
+            green: self.green.is_some(),
+            blue: self.blue.is_some(),
+            alpha: self.alpha.is_some(),
+            depth: self.depth.is_some(),
+        }
+        .set(context);
+        unsafe {
+            let clear_color = self.red.is_some()
+                || self.green.is_some()
+                || self.blue.is_some()
+                || self.alpha.is_some();
+            if clear_color {
+                context.clear_color(
+                    self.red.unwrap_or(0.0),
+                    self.green.unwrap_or(0.0),
+                    self.blue.unwrap_or(0.0),
+                    self.alpha.unwrap_or(1.0),
+                );
+            }
+            if let Some(depth) = self.depth {
+                context.clear_depth_f32(depth);
+            }
+            context.clear(if clear_color && self.depth.is_some() {
+                crate::context::COLOR_BUFFER_BIT | crate::context::DEPTH_BUFFER_BIT
+            } else {
+                if clear_color {
+                    crate::context::COLOR_BUFFER_BIT
+                } else {
+                    crate::context::DEPTH_BUFFER_BIT
+                }
+            });
+        }
+    }
 }
 
 impl Default for ClearState {
