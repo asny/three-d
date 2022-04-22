@@ -92,12 +92,11 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn read<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
-        self.as_render_target()?
-            .read_color_viewport(self.viewport())
+        self.read_in_viewport(self.viewport())
     }
 
-    pub fn read_viewport<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        self.as_render_target()?.read_color_viewport(viewport)
+    pub fn read_in_viewport<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
+        self.as_render_target()?.read_color_in_viewport(viewport)
     }
 
     pub fn width(&self) -> u32 {
@@ -286,7 +285,7 @@ impl<'a> DepthTarget<'a> {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read(&self) -> ThreeDResult<Vec<f32>> {
-        self.read_viewport(self.viewport())
+        self.read_in_viewport(self.viewport())
     }
 
     ///
@@ -294,8 +293,8 @@ impl<'a> DepthTarget<'a> {
     /// Not available on web.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        self.as_render_target()?.read_depth_viewport(viewport)
+    pub fn read_in_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
+        self.as_render_target()?.read_depth_in_viewport(viewport)
     }
 
     fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
@@ -409,11 +408,11 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    pub fn color(&self) -> &ColorTarget {
+    fn color(&self) -> &ColorTarget {
         self.color.as_ref().unwrap()
     }
 
-    pub fn depth(&self) -> &DepthTarget {
+    fn depth(&self) -> &DepthTarget {
         self.depth.as_ref().unwrap()
     }
 
@@ -455,13 +454,20 @@ impl<'a> RenderTarget<'a> {
         Ok(self)
     }
 
+    pub fn read_color<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
+        self.read_color_in_viewport(self.color().viewport())
+    }
+
     ///
     /// Returns the colors of the pixels in this render target inside the given viewport.
     /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
-    fn read_color_viewport<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
+    pub fn read_color_in_viewport<T: TextureDataType>(
+        &self,
+        viewport: Viewport,
+    ) -> ThreeDResult<Vec<T>> {
         if self.color.is_none() {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
         }
@@ -494,8 +500,12 @@ impl<'a> RenderTarget<'a> {
         Ok(pixels)
     }
 
+    pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
+        self.read_depth_in_viewport(self.depth().viewport())
+    }
+
     #[cfg(not(target_arch = "wasm32"))]
-    fn read_depth_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
+    pub fn read_depth_in_viewport(&self, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
         if self.depth.is_none() {
             Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }

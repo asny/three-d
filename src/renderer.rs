@@ -245,8 +245,7 @@ pub fn ray_intersect(
         }
         Ok(())
     })?
-    .color()
-    .read()?[0];
+    .read_color()?[0];
     Ok(if depth < 1.0 {
         Some(position + direction * depth * max_depth)
     } else {

@@ -77,14 +77,13 @@ fn main() {
         )
         .unwrap()
         // Clear color and depth of the render target
-        .clear(Color::new_opaque(200, 200, 200), 1.0)
+        .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
         .unwrap()
         // Render the triangle with the per vertex colors defined at construction
         .render(&camera, &[&model], &[])
         .unwrap()
         // Read out the colors from the render target
-        .color()
-        .read()
+        .read_color()
         .unwrap();
 
         // Save the rendered image

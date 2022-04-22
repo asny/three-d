@@ -29,9 +29,7 @@ impl Screen {
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<[u8; 4]>> {
-        RenderTarget::screen(context, 0, 0)
-            .color()
-            .read_viewport(viewport)
+        RenderTarget::screen(context, 0, 0).read_color_in_viewport(viewport)
     }
 
     ///
@@ -40,9 +38,7 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        RenderTarget::screen(context, 0, 0)
-            .depth()
-            .read_viewport(viewport)
+        RenderTarget::screen(context, 0, 0).read_depth_in_viewport(viewport)
     }
 
     ///

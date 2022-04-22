@@ -172,8 +172,7 @@ impl Window {
                     if let Some(ref path) = frame_output.screenshot {
                         let pixels =
                             RenderTarget::screen(&context, physical_width, physical_height)
-                                .color()
-                                .read()
+                                .read_color()
                                 .unwrap();
                         crate::Saver::save_pixels(path, &pixels, physical_width, physical_height)
                             .unwrap();
