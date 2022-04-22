@@ -6,7 +6,10 @@ use crate::core::render_target::*;
 /// A color target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
 ///
 #[derive(Clone)]
-pub struct ColorTarget<'a>(CT<'a>);
+pub struct ColorTarget<'a> {
+    context: Context,
+    target: CT<'a>,
+}
 
 #[derive(Clone)]
 enum CT<'a> {
@@ -27,32 +30,47 @@ enum CT<'a> {
 }
 
 impl<'a> ColorTarget<'a> {
-    pub(in crate::core) fn new_texture2d(texture: &'a Texture2D, mip_level: Option<u32>) -> Self {
-        ColorTarget(CT::Texture2D { texture, mip_level })
+    pub(in crate::core) fn new_texture2d(
+        context: &Context,
+        texture: &'a Texture2D,
+        mip_level: Option<u32>,
+    ) -> Self {
+        ColorTarget {
+            context: context.clone(),
+            target: CT::Texture2D { texture, mip_level },
+        }
     }
 
     pub(in crate::core) fn new_texture_cube_map(
+        context: &Context,
         texture: &'a TextureCubeMap,
         side: CubeMapSide,
         mip_level: Option<u32>,
     ) -> Self {
-        ColorTarget(CT::TextureCubeMap {
-            texture,
-            side,
-            mip_level,
-        })
+        ColorTarget {
+            context: context.clone(),
+            target: CT::TextureCubeMap {
+                texture,
+                side,
+                mip_level,
+            },
+        }
     }
 
     pub(in crate::core) fn new_texture_2d_array(
+        context: &Context,
         texture: &'a Texture2DArray,
         layers: &'a [u32],
         mip_level: Option<u32>,
     ) -> Self {
-        ColorTarget(CT::Texture2DArray {
-            texture,
-            layers,
-            mip_level,
-        })
+        ColorTarget {
+            context: context.clone(),
+            target: CT::Texture2DArray {
+                texture,
+                layers,
+                mip_level,
+            },
+        }
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
@@ -97,7 +115,7 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn width(&self) -> u32 {
-        match self.0 {
+        match self.target {
             CT::Texture2D { texture, mip_level } => size_with_mip(texture.width(), mip_level),
             CT::Texture2DArray {
                 texture, mip_level, ..
@@ -109,7 +127,7 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn height(&self) -> u32 {
-        match self.0 {
+        match self.target {
             CT::Texture2D { texture, mip_level } => size_with_mip(texture.height(), mip_level),
             CT::Texture2DArray {
                 texture, mip_level, ..
@@ -125,16 +143,11 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub(in crate::core) fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
-        let context = match &self.0 {
-            CT::Texture2D { texture, .. } => &texture.context,
-            CT::Texture2DArray { texture, .. } => &texture.context,
-            CT::TextureCubeMap { texture, .. } => &texture.context,
-        };
-        RenderTarget::new_color(context, self.clone())
+        RenderTarget::new_color(self.clone())
     }
 
     fn generate_mip_maps(&self) {
-        match self.0 {
+        match self.target {
             CT::Texture2D { texture, mip_level } => {
                 if mip_level.is_none() {
                     texture.generate_mip_maps()
@@ -158,7 +171,7 @@ impl<'a> ColorTarget<'a> {
     }
 
     fn bind(&self, context: &Context) {
-        match self.0 {
+        match self.target {
             CT::Texture2D { texture, mip_level } => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
                 texture.bind_as_color_target(0, mip_level.unwrap_or(0));
@@ -199,7 +212,10 @@ impl<'a> ColorTarget<'a> {
 /// A depth target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
 ///
 #[derive(Clone)]
-pub struct DepthTarget<'a>(DT<'a>);
+pub struct DepthTarget<'a> {
+    context: Context,
+    target: DT<'a>,
+}
 
 #[derive(Clone)]
 enum DT<'a> {
@@ -217,22 +233,36 @@ enum DT<'a> {
 }
 
 impl<'a> DepthTarget<'a> {
-    pub(in crate::core) fn new_texture2d(texture: &'a DepthTargetTexture2D) -> Self {
-        Self(DT::Texture2D { texture })
+    pub(in crate::core) fn new_texture2d(
+        context: &Context,
+        texture: &'a DepthTargetTexture2D,
+    ) -> Self {
+        Self {
+            context: context.clone(),
+            target: DT::Texture2D { texture },
+        }
     }
 
     pub(in crate::core) fn new_texture_cube_map(
+        context: &Context,
         texture: &'a DepthTargetTextureCubeMap,
         side: CubeMapSide,
     ) -> Self {
-        Self(DT::TextureCubeMap { texture, side })
+        Self {
+            context: context.clone(),
+            target: DT::TextureCubeMap { texture, side },
+        }
     }
 
     pub(in crate::core) fn new_texture_2d_array(
+        context: &Context,
         texture: &'a DepthTargetTexture2DArray,
         layer: u32,
     ) -> Self {
-        Self(DT::Texture2DArray { texture, layer })
+        Self {
+            context: context.clone(),
+            target: DT::Texture2DArray { texture, layer },
+        }
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
@@ -287,16 +317,11 @@ impl<'a> DepthTarget<'a> {
     }
 
     fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
-        let context = match &self.0 {
-            DT::Texture2D { texture, .. } => &texture.context,
-            DT::Texture2DArray { texture, .. } => &texture.context,
-            DT::TextureCubeMap { texture, .. } => &texture.context,
-        };
-        RenderTarget::new_depth(context, self.clone())
+        RenderTarget::new_depth(self.clone())
     }
 
     pub fn width(&self) -> u32 {
-        match &self.0 {
+        match &self.target {
             DT::Texture2D { texture, .. } => texture.width(),
             DT::Texture2DArray { texture, .. } => texture.width(),
             DT::TextureCubeMap { texture, .. } => texture.width(),
@@ -304,7 +329,7 @@ impl<'a> DepthTarget<'a> {
     }
 
     pub fn height(&self) -> u32 {
-        match &self.0 {
+        match &self.target {
             DT::Texture2D { texture, .. } => texture.height(),
             DT::Texture2DArray { texture, .. } => texture.height(),
             DT::TextureCubeMap { texture, .. } => texture.height(),
@@ -316,7 +341,7 @@ impl<'a> DepthTarget<'a> {
     }
 
     fn bind(&self) {
-        match &self.0 {
+        match &self.target {
             DT::Texture2D { texture } => {
                 texture.bind_as_depth_target();
             }
@@ -541,12 +566,12 @@ impl<'a> RenderTarget<'a> {
         Viewport::new_at_origo(self.width, self.height)
     }
 
-    fn new_color(context: &Context, color: ColorTarget<'a>) -> ThreeDResult<Self> {
+    fn new_color(color: ColorTarget<'a>) -> ThreeDResult<Self> {
         let width = color.width();
         let height = color.height();
         Ok(Self {
-            context: context.clone(),
-            id: Some(new_framebuffer(context)?),
+            context: color.context.clone(),
+            id: Some(new_framebuffer(&color.context)?),
             color: Some(color),
             depth: None,
             width,
@@ -554,12 +579,12 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
-    fn new_depth(context: &Context, depth: DepthTarget<'a>) -> ThreeDResult<Self> {
+    fn new_depth(depth: DepthTarget<'a>) -> ThreeDResult<Self> {
         let width = depth.width();
         let height = depth.height();
         Ok(Self {
-            context: context.clone(),
-            id: Some(new_framebuffer(context)?),
+            context: depth.context.clone(),
+            id: Some(new_framebuffer(&depth.context)?),
             depth: Some(depth),
             color: None,
             width,

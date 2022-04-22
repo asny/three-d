@@ -4,7 +4,7 @@ use crate::core::texture::*;
 /// A depth texture cube map that can be rendered into and read from. See also [RenderTarget].
 ///
 pub struct DepthTargetTextureCubeMap {
-    pub(in crate::core) context: Context,
+    context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -55,7 +55,7 @@ impl DepthTargetTextureCubeMap {
     }
 
     pub fn as_depth_target(&mut self, side: CubeMapSide) -> DepthTarget {
-        DepthTarget::new_texture_cube_map(self, side)
+        DepthTarget::new_texture_cube_map(&self.context, self, side)
     }
 
     ///

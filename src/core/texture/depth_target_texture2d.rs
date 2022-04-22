@@ -18,7 +18,7 @@ pub enum DepthFormat {
 /// A 2D depth texture that can be rendered into and read from. See also [RenderTarget].
 ///
 pub struct DepthTargetTexture2D {
-    pub(in crate::core) context: Context,
+    context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -68,7 +68,7 @@ impl DepthTargetTexture2D {
     }
 
     pub fn as_depth_target(&mut self) -> DepthTarget {
-        DepthTarget::new_texture2d(self)
+        DepthTarget::new_texture2d(&self.context, self)
     }
 
     ///

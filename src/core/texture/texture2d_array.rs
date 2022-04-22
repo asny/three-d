@@ -7,7 +7,7 @@ use crate::core::texture::*;
 /// Use a [RenderTarget] to write to both color and depth.
 ///
 pub struct Texture2DArray {
-    pub(in crate::core) context: Context,
+    context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -75,7 +75,7 @@ impl Texture2DArray {
         layers: &'a [u32],
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {
-        ColorTarget::new_texture_2d_array(self, layers, mip_level)
+        ColorTarget::new_texture_2d_array(&self.context, self, layers, mip_level)
     }
 
     ///

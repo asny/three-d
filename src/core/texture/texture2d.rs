@@ -4,7 +4,7 @@ use crate::core::texture::*;
 /// A 2D texture, basically an image that is transferred to the GPU.
 ///
 pub struct Texture2D {
-    pub(in crate::core) context: Context,
+    context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -136,7 +136,7 @@ impl Texture2D {
     }
 
     pub fn as_color_target(&mut self, mip_level: Option<u32>) -> ColorTarget {
-        ColorTarget::new_texture2d(self, mip_level)
+        ColorTarget::new_texture2d(&self.context, self, mip_level)
     }
 
     ///

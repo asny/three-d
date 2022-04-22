@@ -110,7 +110,7 @@ impl CubeMapSide {
 /// A texture that covers all 6 sides of a cube.
 ///
 pub struct TextureCubeMap {
-    pub(in crate::core) context: Context,
+    context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -363,7 +363,7 @@ impl TextureCubeMap {
         side: CubeMapSide,
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {
-        ColorTarget::new_texture_cube_map(self, side, mip_level)
+        ColorTarget::new_texture_cube_map(&self.context, self, side, mip_level)
     }
 
     ///

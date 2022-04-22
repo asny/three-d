@@ -4,7 +4,7 @@ use crate::core::texture::*;
 /// An array of 2D depth textures that can be rendered into and read from. See also [RenderTarget].
 ///
 pub struct DepthTargetTexture2DArray {
-    pub(in crate::core) context: Context,
+    context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
@@ -58,7 +58,7 @@ impl DepthTargetTexture2DArray {
     }
 
     pub fn as_depth_target(&mut self, layer: u32) -> DepthTarget {
-        DepthTarget::new_texture_2d_array(self, layer)
+        DepthTarget::new_texture_2d_array(&self.context, self, layer)
     }
 
     ///
