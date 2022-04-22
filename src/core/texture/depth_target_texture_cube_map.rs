@@ -69,11 +69,12 @@ impl DepthTargetTextureCubeMap {
         clear_state: Option<f32>,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        let dt = self.as_depth_target(side);
-        if let Some(depth) = clear_state {
-            dt.clear(depth)?;
-        }
-        dt.write(render)?;
+        self.as_depth_target(side)
+            .clear(ClearState {
+                depth: clear_state,
+                ..ClearState::none()
+            })?
+            .write(render)?;
         Ok(())
     }
 

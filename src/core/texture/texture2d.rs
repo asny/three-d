@@ -146,7 +146,6 @@ impl Texture2D {
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     /// Use a [RenderTarget] to write to both color and depth.
     ///
-    #[allow(deprecated)]
     #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,

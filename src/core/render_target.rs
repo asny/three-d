@@ -25,7 +25,6 @@ use crate::core::*;
 /// [RenderTarget] or the [Screen].
 /// If `None` then the channel is not cleared and if `Some(value)` the channel is cleared to that value (the value must be between 0 and 1).
 ///
-#[deprecated]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ClearState {
     /// Defines the clear value for the red channel.
@@ -40,7 +39,6 @@ pub struct ClearState {
     pub depth: Option<f32>,
 }
 
-#[allow(deprecated)]
 impl ClearState {
     ///
     /// Nothing will be cleared.
@@ -95,7 +93,6 @@ impl ClearState {
     }
 }
 
-#[allow(deprecated)]
 impl Default for ClearState {
     fn default() -> Self {
         Self::color_and_depth(0.0, 0.0, 0.0, 1.0, 1.0)
@@ -128,7 +125,6 @@ pub(in crate::core) fn new_framebuffer(
     }
 }
 
-#[allow(deprecated)]
 fn clear(context: &Context, clear_state: &ClearState) {
     Program::set_write_mask(
         context,

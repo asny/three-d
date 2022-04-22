@@ -134,7 +134,7 @@ impl DeferredPipeline {
                 .unwrap()
                 .as_depth_target(),
         )?
-        .clear(Color::BLACK, 1.0)?
+        .clear(ClearState::default())?
         .write(|| {
             for (geometry, material) in objects
                 .iter()

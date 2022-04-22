@@ -238,7 +238,7 @@ pub fn ray_intersect(
         texture.as_color_target(None),
         depth_texture.as_depth_target(),
     )?
-    .clear(Color::WHITE, 1.0)?
+    .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))?
     .write(|| {
         for geometry in geometries {
             geometry.render_with_material(&depth_material, &camera, &[])?;

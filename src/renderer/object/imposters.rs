@@ -191,7 +191,7 @@ impl ImpostersMaterial {
                     self.texture.as_color_target(&layers, None),
                     depth_texture.as_depth_target(),
                 )?
-                .clear(Color::BLACK, 1.0)?
+                .clear(ClearState::default())?
                 .render(&camera, objects, lights)?;
             }
         }

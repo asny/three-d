@@ -63,13 +63,17 @@ impl<'a> ColorTarget<'a> {
         })
     }
 
-    pub fn clear(&self, color: Color) -> ThreeDResult<&Self> {
-        self.clear_viewport(self.viewport(), color)
+    pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
+        self.clear_viewport(self.viewport(), clear_state)
     }
 
-    pub fn clear_viewport(&self, viewport: Viewport, color: Color) -> ThreeDResult<&Self> {
+    pub fn clear_viewport(
+        &self,
+        viewport: Viewport,
+        clear_state: ClearState,
+    ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .clear_internal(viewport, Some(color), None)?;
+            .clear_viewport(viewport, clear_state)?;
         Ok(self)
     }
 
@@ -248,13 +252,17 @@ impl<'a> DepthTarget<'a> {
         Self(DT::Texture2DArray { texture, layer })
     }
 
-    pub fn clear(&self, depth: f32) -> ThreeDResult<&Self> {
-        self.clear_viewport(self.viewport(), depth)
+    pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
+        self.clear_viewport(self.viewport(), clear_state)
     }
 
-    pub fn clear_viewport(&self, viewport: Viewport, depth: f32) -> ThreeDResult<&Self> {
+    pub fn clear_viewport(
+        &self,
+        viewport: Viewport,
+        clear_state: ClearState,
+    ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .clear_internal(viewport, None, Some(depth))?;
+            .clear_viewport(viewport, clear_state)?;
         Ok(self)
     }
 
@@ -409,74 +417,22 @@ impl<'a> RenderTarget<'a> {
         self.depth.as_ref().unwrap()
     }
 
-    pub fn clear(&self, color: Color, depth: f32) -> ThreeDResult<&Self> {
-        self.clear_viewport(self.color().viewport(), color, depth)
+    pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
+        self.clear_viewport(self.color().viewport(), clear_state)
     }
 
     pub fn clear_viewport(
         &self,
         viewport: Viewport,
-        color: Color,
-        depth: f32,
+        clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
-        self.clear_internal(viewport, Some(color), Some(depth))?;
-        Ok(self)
-    }
-
-    #[allow(deprecated)]
-    fn clear_internal(
-        &self,
-        viewport: Viewport,
-        color: Option<Color>,
-        depth: Option<f32>,
-    ) -> ThreeDResult<()> {
-        let clear_state = if let Some(color) = color {
-            if let Some(depth) = depth {
-                if self.depth.is_some() && self.color.is_some() {
-                    ClearState::color_and_depth(
-                        color.r as f32 / 255.0,
-                        color.g as f32 / 255.0,
-                        color.b as f32 / 255.0,
-                        color.a as f32 / 255.0,
-                        depth,
-                    )
-                } else if self.color.is_some() {
-                    ClearState::color(
-                        color.r as f32 / 255.0,
-                        color.g as f32 / 255.0,
-                        color.b as f32 / 255.0,
-                        color.a as f32 / 255.0,
-                    )
-                } else {
-                    ClearState::depth(depth)
-                }
-            } else {
-                if self.color.is_some() {
-                    ClearState::color(
-                        color.r as f32 / 255.0,
-                        color.g as f32 / 255.0,
-                        color.b as f32 / 255.0,
-                        color.a as f32 / 255.0,
-                    )
-                } else {
-                    ClearState::none()
-                }
-            }
-        } else {
-            if self.depth.is_some() {
-                ClearState::depth(depth.unwrap())
-            } else {
-                ClearState::none()
-            }
-        };
         set_scissor(&self.context, viewport);
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
         clear(&self.context, &clear_state);
         self.context.error_check()?;
-        Ok(())
+        Ok(self)
     }
 
-    #[allow(deprecated)]
     pub(in crate::core) fn clear_deprecated(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
         set_scissor(&self.context, self.color().viewport());
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;

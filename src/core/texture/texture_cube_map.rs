@@ -351,7 +351,7 @@ impl TextureCubeMap {
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
                     .as_color_target(side, None)
-                    .clear(Color::BLACK)?
+                    .clear(ClearState::default())?
                     .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
         }
@@ -370,7 +370,6 @@ impl TextureCubeMap {
     /// Writes whatever rendered in the `render` closure into the color texture at the cube map side given by the input parameter `side`.
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
-    #[allow(deprecated)]
     #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write(
         &mut self,
@@ -389,7 +388,6 @@ impl TextureCubeMap {
     /// Writes whatever rendered in the `render` closure into the given mip level of the color texture at the cube map side given by the input parameter `side`.
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
-    #[allow(deprecated)]
     #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write_to_mip_level(
         &mut self,
