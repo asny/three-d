@@ -105,7 +105,7 @@ pub enum Clip {
     Enabled {
         /// The distance in pixels from the left edge of the screen/render target.
         x: u32,
-        /// The distance in pixels from the top edge of the screen/render target.
+        /// The distance in pixels from the bottom edge of the screen/render target.
         y: u32,
         /// The width of the rectangle.
         width: u32,
