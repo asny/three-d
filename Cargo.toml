@@ -61,6 +61,10 @@ name = "triangle"
 path = "examples/triangle/src/main.rs"
 
 [[example]]
+name = "screen"
+path = "examples/screen/src/main.rs"
+
+[[example]]
 name = "mandelbrot"
 path = "examples/mandelbrot/src/main.rs"
 
