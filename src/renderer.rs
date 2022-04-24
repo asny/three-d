@@ -103,7 +103,7 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_in_viewport(scissor_box, || render_pass(camera, objects, lights))?;
+        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
         Ok(self)
     }
 }

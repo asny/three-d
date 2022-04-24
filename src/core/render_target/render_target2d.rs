@@ -82,7 +82,7 @@ impl<'a> ColorTarget<'a> {
         scissor_box: ScissorBox,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?.clear_in_viewport(
+        self.as_render_target()?.clear_partially(
             scissor_box,
             ClearState {
                 depth: None,
@@ -102,7 +102,7 @@ impl<'a> ColorTarget<'a> {
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .write_in_viewport(scissor_box, render)?;
+            .write_partially(scissor_box, render)?;
         Ok(self)
     }
 
@@ -285,7 +285,7 @@ impl<'a> DepthTarget<'a> {
         scissor_box: ScissorBox,
         clear_state: ClearState,
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?.clear_in_viewport(
+        self.as_render_target()?.clear_partially(
             scissor_box,
             ClearState {
                 depth: clear_state.depth,
@@ -305,7 +305,7 @@ impl<'a> DepthTarget<'a> {
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
-            .write_in_viewport(scissor_box, render)?;
+            .write_partially(scissor_box, render)?;
         Ok(self)
     }
 
@@ -421,10 +421,10 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_in_viewport(self.scissor_box(), clear_state)
+        self.clear_partially(self.scissor_box(), clear_state)
     }
 
-    pub fn clear_in_viewport(
+    pub fn clear_partially(
         &self,
         scissor_box: ScissorBox,
         clear_state: ClearState,
@@ -440,10 +440,10 @@ impl<'a> RenderTarget<'a> {
     /// Renders whatever rendered in the `render` closure into this render target.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_in_viewport(self.scissor_box(), render)
+        self.write_partially(self.scissor_box(), render)
     }
 
-    pub fn write_in_viewport(
+    pub fn write_partially(
         &self,
         scissor_box: ScissorBox,
         render: impl FnOnce() -> ThreeDResult<()>,
