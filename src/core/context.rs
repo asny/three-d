@@ -133,6 +133,9 @@ impl Context {
         callback(camera2d.as_ref().unwrap())
     }
 
+    ///
+    /// Set the scissor test for this context (see [ScissorBox]).
+    ///
     pub fn set_scissor(&self, scissor_box: ScissorBox) {
         unsafe {
             if scissor_box.width > 0 && scissor_box.height > 0 {
@@ -149,6 +152,9 @@ impl Context {
         }
     }
 
+    ///
+    /// Set the viewport for this context (See [Viewport]).
+    ///
     pub fn set_viewport(&self, viewport: Viewport) {
         unsafe {
             self.viewport(
@@ -160,6 +166,9 @@ impl Context {
         }
     }
 
+    ///
+    /// Set the face culling for this context (see [Cull]).
+    ///
     pub fn set_cull(&self, cull: Cull) {
         unsafe {
             match cull {
@@ -182,6 +191,9 @@ impl Context {
         }
     }
 
+    ///
+    /// Set the write mask for this context (see [WriteMask]).
+    ///
     pub fn set_write_mask(&self, write_mask: WriteMask) {
         unsafe {
             self.color_mask(
@@ -194,6 +206,9 @@ impl Context {
         }
     }
 
+    ///
+    /// Set the depth test for this context (see [DepthTest]).
+    ///
     pub fn set_depth_test(&self, depth_test: DepthTest) {
         unsafe {
             self.enable(crate::context::DEPTH_TEST);
@@ -226,6 +241,9 @@ impl Context {
         }
     }
 
+    ///
+    /// Set the blend state for this context (see [Blend]).
+    ///
     pub fn set_blend(&self, blend: Blend) {
         unsafe {
             if let Blend::Enabled {
@@ -279,6 +297,9 @@ impl Context {
         }
     }
 
+    ///
+    /// Set the render states for this context (see [RenderStates]).
+    ///
     pub fn set_render_states(&self, render_states: RenderStates) -> ThreeDResult<()> {
         self.set_cull(render_states.cull);
         self.set_write_mask(render_states.write_mask);
