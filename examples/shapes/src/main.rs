@@ -108,27 +108,24 @@ pub fn main() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
-                || {
-                    render_pass(
-                        &camera,
-                        &[
-                            &sphere,
-                            &cylinder,
-                            &cube,
-                            &axes,
-                            &bounding_box_sphere,
-                            &bounding_box_cube,
-                            &bounding_box_cylinder,
-                        ],
-                        &[&light0, &light1],
-                    )?;
-                    Ok(())
-                },
-            )
-            .unwrap();
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                .unwrap()
+                .render(
+                    &camera,
+                    &[
+                        &sphere,
+                        &cylinder,
+                        &cube,
+                        &axes,
+                        &bounding_box_sphere,
+                        &bounding_box_cube,
+                        &bounding_box_cylinder,
+                    ],
+                    &[&light0, &light1],
+                )
+                .unwrap();
 
             FrameOutput::default()
         })

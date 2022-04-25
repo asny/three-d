@@ -68,21 +68,30 @@ impl DepthTargetTexture2D {
     }
 
     ///
+    /// Returns a [DepthTarget] which can be used to clear, write to and read from this texture.
+    /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
+    ///
+    pub fn as_depth_target(&mut self) -> DepthTarget {
+        DepthTarget::new_texture2d(&self.context, self)
+    }
+
+    ///
     /// Write the depth of whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
+    #[deprecated = "use as_depth_target followed by clear and write"]
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_depth(&self.context.clone(), self)?.write(
-            ClearState {
+        self.as_depth_target()
+            .clear(ClearState {
                 depth: clear_state,
                 ..ClearState::none()
-            },
-            render,
-        )
+            })?
+            .write(render)?;
+        Ok(())
     }
 
     /// The width of this texture.

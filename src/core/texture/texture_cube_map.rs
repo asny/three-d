@@ -345,40 +345,58 @@ impl TextureCubeMap {
                 outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
             }";
             let effect = ImageCubeEffect::new(context, fragment_shader_source)?;
-            let render_target = RenderTargetCubeMap::new_color(context, &mut texture)?;
 
             for side in CubeMapSide::iter() {
                 effect.use_texture("equirectangularMap", &map)?;
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
-                render_target.write(side, ClearState::default(), || {
-                    effect.render(side, RenderStates::default(), viewport)
-                })?;
+                texture
+                    .as_color_target(side, None)
+                    .clear(ClearState::default())?
+                    .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
         }
         Ok(texture)
     }
 
     ///
+    /// Returns a [ColorTarget] which can be used to clear, write to and read from the given side and mip level of this texture.
+    /// Combine this together with a [DepthTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
+    /// If `None` is specified as the mip level, the 0 level mip level is used and mip maps are generated after a write operation if a mip map filter is specified.
+    /// Otherwise, the given mip level is used and no mip maps are generated.
+    ///
+    /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
+    ///
+    pub fn as_color_target<'a>(
+        &'a mut self,
+        side: CubeMapSide,
+        mip_level: Option<u32>,
+    ) -> ColorTarget<'a> {
+        ColorTarget::new_texture_cube_map(&self.context, self, side, mip_level)
+    }
+
+    ///
     /// Writes whatever rendered in the `render` closure into the color texture at the cube map side given by the input parameter `side`.
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
+    #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write(
         &mut self,
         side: CubeMapSide,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        RenderTargetCubeMap::new_color(&self.context.clone(), self)?.write(
-            side,
-            clear_state,
-            render,
-        )
+        self.as_color_target(side, None)
+            .as_render_target()?
+            .clear(clear_state)?
+            .write(render)?;
+        Ok(())
     }
 
     ///
     /// Writes whatever rendered in the `render` closure into the given mip level of the color texture at the cube map side given by the input parameter `side`.
     /// Before writing, the texture side is cleared based on the given clear state.
     ///
+    #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write_to_mip_level(
         &mut self,
         side: CubeMapSide,
@@ -386,12 +404,11 @@ impl TextureCubeMap {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        RenderTargetCubeMap::new_color(&self.context.clone(), self)?.write_to_mip_level(
-            side,
-            mip_level,
-            clear_state,
-            render,
-        )
+        self.as_color_target(side, Some(mip_level))
+            .as_render_target()?
+            .clear(clear_state)?
+            .write(render)?;
+        Ok(())
     }
 
     /// The width of this texture.

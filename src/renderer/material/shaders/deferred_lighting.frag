@@ -1,6 +1,6 @@
 
 uniform sampler2DArray gbuffer;
-uniform sampler2DArray depthMap;
+uniform sampler2D depthMap;
 uniform mat4 viewProjectionInverse;
 uniform float zNear;
 uniform float zFar;
@@ -13,7 +13,7 @@ layout (location = 0) out vec4 outColor;
 
 void main()
 {
-    float depth = texture(depthMap, vec3(uv,0)).r;
+    float depth = texture(depthMap, uv).r;
     if(depth > 0.99999)
     {
         discard;

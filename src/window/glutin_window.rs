@@ -106,7 +106,6 @@ impl Window {
         let mut modifiers = Modifiers::default();
         let mut first_frame = true;
         let mut mouse_pressed = None;
-        #[cfg(feature = "image-io")]
         let context = self.gl.clone();
         self.event_loop.run(move |event, _, control_flow| {
             match event {
@@ -141,6 +140,7 @@ impl Window {
                         window_height: height,
                         device_pixel_ratio: device_pixel_ratio,
                         first_frame: first_frame,
+                        context: context.clone(),
                     };
                     first_frame = false;
                     events.clear();
@@ -170,11 +170,10 @@ impl Window {
 
                     #[cfg(feature = "image-io")]
                     if let Some(ref path) = frame_output.screenshot {
-                        let pixels = crate::Screen::read_color(
-                            &context,
-                            Viewport::new_at_origo(physical_width, physical_height),
-                        )
-                        .unwrap();
+                        let pixels =
+                            RenderTarget::screen(&context, physical_width, physical_height)
+                                .read_color()
+                                .unwrap();
                         crate::Saver::save_pixels(path, &pixels, physical_width, physical_height)
                             .unwrap();
                     }

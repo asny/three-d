@@ -136,18 +136,35 @@ impl Texture2D {
     }
 
     ///
+    /// Returns a [ColorTarget] which can be used to clear, write to and read from the given mip level of this texture.
+    /// Combine this together with a [DepthTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
+    /// If `None` is specified as the mip level, the 0 level mip level is used and mip maps are generated after a write operation if a mip map filter is specified.
+    /// Otherwise, the given mip level is used and no mip maps are generated.
+    ///
+    /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
+    ///
+    pub fn as_color_target(&mut self, mip_level: Option<u32>) -> ColorTarget {
+        ColorTarget::new_texture2d(&self.context, self, mip_level)
+    }
+
+    ///
     /// Renders whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     /// Use a [RenderTarget] to write to both color and depth.
     ///
+    #[deprecated = "use as_color_target followed by clear and write"]
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_color(&self.context.clone(), self)?.write(clear_state, render)
+        self.as_color_target(None)
+            .as_render_target()?
+            .clear(clear_state)?
+            .write(render)?;
+        Ok(())
     }
 
     ///
@@ -156,8 +173,9 @@ impl Texture2D {
     ///
     /// **Note:** On web, the data format needs to match the data format of this texture.
     ///
-    pub fn read<T: TextureDataType>(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        RenderTarget::new_color_internal(&self.context.clone(), self)?.read_color(viewport)
+    #[deprecated = "use as_color_target followed by read"]
+    pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
+        self.as_color_target(None).read_partially(viewport.into())
     }
 
     /// The width of this texture.
@@ -179,14 +197,14 @@ impl Texture2D {
         }
     }
 
-    pub(in crate::core) fn bind_as_color_target(&self, channel: u32) {
+    pub(in crate::core) fn bind_as_color_target(&self, channel: u32, mip_level: u32) {
         unsafe {
             self.context.framebuffer_texture_2d(
                 crate::context::FRAMEBUFFER,
                 crate::context::COLOR_ATTACHMENT0 + channel,
                 crate::context::TEXTURE_2D,
                 Some(self.id),
-                0,
+                mip_level as i32,
             );
         }
     }

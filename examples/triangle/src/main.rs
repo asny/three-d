@@ -51,15 +51,18 @@ pub fn main() {
         // Ensure the viewport matches the current window viewport which changes if the window is resized
         camera.set_viewport(frame_input.viewport).unwrap();
 
-        // Start writing to the screen and clears the color and depth
-        Screen::write(&context, ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
-            // Set the current transformation of the triangle
-            model.set_transformation(Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32)));
+        // Set the current transformation of the triangle
+        model.set_transformation(Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32)));
 
-            // Render the triangle with the color material which uses the per vertex colors defined at construction
-            model.render(&camera, &[])?;
-            Ok(())
-        }).unwrap();
+        // Get the screen render target to be able to render something on the screen
+        frame_input.screen()
+            // Clear the color and depth of the screen render target
+            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0)).unwrap()
+            // Write to the screen render target
+            .write(|| {
+                // Render the triangle with the color material which uses the per vertex colors defined at construction
+                model.render(&camera, &[])
+            }).unwrap();
 
         // Returns default frame output to end the frame
         FrameOutput::default()

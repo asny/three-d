@@ -1,7 +1,7 @@
 use crate::core::texture::*;
 
 ///
-/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTargetArray].
+/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTarget].
 ///
 pub struct DepthTargetTexture2DArray {
     context: Context,
@@ -58,24 +58,31 @@ impl DepthTargetTexture2DArray {
     }
 
     ///
-    /// Writes the depth of whatever rendered in the `render` closure into the depth texture defined by the input parameter `depth_layer`.
+    /// Returns a [DepthTarget] which can be used to clear, write to and read from the given layer of this texture.
+    /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
+    ///
+    pub fn as_depth_target(&mut self, layer: u32) -> DepthTarget {
+        DepthTarget::new_texture_2d_array(&self.context, self, layer)
+    }
+
+    ///
+    /// Writes the depth of whatever rendered in the `render` closure into the depth texture defined by the input parameter `layer`.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
+    #[deprecated = "use as_depth_target followed by clear and write"]
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &mut self,
-        depth_layer: u32,
+        layer: u32,
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTargetArray::new_depth(&self.context.clone(), self)?.write(
-            &[],
-            depth_layer,
-            ClearState {
+        self.as_depth_target(layer)
+            .clear(ClearState {
                 depth: clear_state,
                 ..ClearState::none()
-            },
-            render,
-        )
+            })?
+            .write(render)?;
+        Ok(())
     }
 
     /// The width of this texture.

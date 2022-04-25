@@ -42,7 +42,6 @@ impl Material for FireworksMaterial {
             },
             depth_test: DepthTest::Always,
             write_mask: WriteMask::COLOR,
-            clip: Clip::Disabled,
         }
     }
     fn is_transparent(&self) -> bool {
@@ -138,14 +137,18 @@ pub fn run() {
                 particles.update(&data).unwrap();
             }
 
-            Screen::write(&context, ClearState::color(0.0, 0.0, 0.0, 1.0), || {
-                let f = particles.time / explosion_time.max(0.0);
-                fireworks_material.fade = 1.0 - f * f * f * f;
-                fireworks_material.color = colors[color_index];
-                particles.render_with_material(&fireworks_material, &camera, &[])?;
-                Ok(())
-            })
-            .unwrap();
+            frame_input
+                .screen()
+                .clear(ClearState::color(0.0, 0.0, 0.0, 1.0))
+                .unwrap()
+                .write(|| {
+                    let f = particles.time / explosion_time.max(0.0);
+                    fireworks_material.fade = 1.0 - f * f * f * f;
+                    fireworks_material.color = colors[color_index];
+                    particles.render_with_material(&fireworks_material, &camera, &[])?;
+                    Ok(())
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use crate::core::render_target::*;
 
 ///
@@ -5,6 +6,7 @@ use crate::core::render_target::*;
 /// a [DepthTargetTextureCubeMap] at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
+#[deprecated = "use RenderTarget instead"]
 pub struct RenderTargetCubeMap<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
@@ -124,5 +126,41 @@ impl Drop for RenderTargetCubeMap<'_, '_> {
         unsafe {
             self.context.delete_framebuffer(self.id);
         }
+    }
+}
+
+fn clear(context: &Context, clear_state: &ClearState) {
+    context.set_write_mask(WriteMask {
+        red: clear_state.red.is_some(),
+        green: clear_state.green.is_some(),
+        blue: clear_state.blue.is_some(),
+        alpha: clear_state.alpha.is_some(),
+        depth: clear_state.depth.is_some(),
+    });
+    let clear_color = clear_state.red.is_some()
+        || clear_state.green.is_some()
+        || clear_state.blue.is_some()
+        || clear_state.alpha.is_some();
+    unsafe {
+        if clear_color {
+            context.clear_color(
+                clear_state.red.unwrap_or(0.0),
+                clear_state.green.unwrap_or(0.0),
+                clear_state.blue.unwrap_or(0.0),
+                clear_state.alpha.unwrap_or(1.0),
+            );
+        }
+        if let Some(depth) = clear_state.depth {
+            context.clear_depth_f32(depth);
+        }
+        context.clear(if clear_color && clear_state.depth.is_some() {
+            crate::context::COLOR_BUFFER_BIT | crate::context::DEPTH_BUFFER_BIT
+        } else {
+            if clear_color {
+                crate::context::COLOR_BUFFER_BIT
+            } else {
+                crate::context::DEPTH_BUFFER_BIT
+            }
+        });
     }
 }

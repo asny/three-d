@@ -6,7 +6,8 @@
 pub use crate::core::{
     math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera,
     Context, CpuMaterial, CpuMesh, CpuTexture, CpuTexture3D, CpuTextureCube, CpuVolume,
-    GeometryFunction, Indices, LightingModel, NormalDistributionFunction, Positions, Viewport,
+    GeometryFunction, Indices, LightingModel, NormalDistributionFunction, Positions, ScissorBox,
+    Viewport,
 };
 
 pub mod material;
@@ -41,9 +42,106 @@ use thiserror::Error;
 #[allow(missing_docs)]
 pub enum RendererError {}
 
+impl<'a> DepthTarget<'a> {
+    ///
+    /// Render the objects using the given camera and lights into this depth target.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render(
+        &self,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_partially(self.scissor_box(), camera, objects, lights)
+    }
+
+    ///
+    /// Render the objects using the given camera and lights into the part of this depth target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render_partially(
+        &self,
+        scissor_box: ScissorBox,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
+        Ok(self)
+    }
+}
+
+impl<'a> ColorTarget<'a> {
+    ///
+    /// Render the objects using the given camera and lights into this color target.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render(
+        &self,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_partially(self.scissor_box(), camera, objects, lights)
+    }
+
+    ///
+    /// Render the objects using the given camera and lights into the part of this color target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render_partially(
+        &self,
+        scissor_box: ScissorBox,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
+        Ok(self)
+    }
+}
+
+impl<'a> RenderTarget<'a> {
+    ///
+    /// Render the objects using the given camera and lights into this render target.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render(
+        &self,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_partially(self.scissor_box(), camera, objects, lights)
+    }
+
+    ///
+    /// Render the objects using the given camera and lights into the part of this render target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render_partially(
+        &self,
+        scissor_box: ScissorBox,
+        camera: &Camera,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
+        Ok(self)
+    }
+}
+
 ///
-/// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
-/// Must be called in a render target render function, for example in the callback function of [Screen::write].
+/// Render the objects using the given camera and lights. If the objects materials doesn't require lighting, you can use `&[]` as the `lights` argument.
+/// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+/// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
 ///
 pub fn render_pass(
     camera: &Camera,
@@ -167,23 +265,18 @@ pub fn ray_intersect(
         },
         ..Default::default()
     };
-    {
-        let render_target = RenderTarget::new(context, &mut texture, &mut depth_texture)?;
-        render_target.write(
-            ClearState {
-                red: Some(1.0),
-                depth: Some(1.0),
-                ..ClearState::none()
-            },
-            || {
-                for geometry in geometries {
-                    geometry.render_with_material(&depth_material, &camera, &[])?;
-                }
-                Ok(())
-            },
-        )?;
-    }
-    let depth = texture.read::<f32>(viewport)?[0];
+    let depth = RenderTarget::new(
+        texture.as_color_target(None),
+        depth_texture.as_depth_target(),
+    )?
+    .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))?
+    .write(|| {
+        for geometry in geometries {
+            geometry.render_with_material(&depth_material, &camera, &[])?;
+        }
+        Ok(())
+    })?
+    .read_color()?[0];
     Ok(if depth < 1.0 {
         Some(position + direction * depth * max_depth)
     } else {

@@ -57,7 +57,7 @@ pub async fn run() {
     let mut emissive_map_enabled = true;
     window
         .render_loop(move |mut frame_input| {
-            let mut panel_width = 0;
+            let mut panel_width = 0.0;
             gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
                 SidePanel::left("side_panel").show(gui_context, |ui| {
@@ -68,14 +68,15 @@ pub async fn run() {
                     ui.checkbox(&mut occlusion_map_enabled, "Occlusion map");
                     ui.checkbox(&mut emissive_map_enabled, "Emissive map");
                 });
-                panel_width = gui_context.used_size().x as u32;
+                panel_width = gui_context.used_size().x as f64;
             })
             .unwrap();
 
             let viewport = Viewport {
-                x: panel_width as i32,
+                x: (panel_width * frame_input.device_pixel_ratio) as i32,
                 y: 0,
-                width: frame_input.viewport.width - panel_width,
+                width: frame_input.viewport.width
+                    - (panel_width * frame_input.device_pixel_ratio) as u32,
                 height: frame_input.viewport.height,
             };
             camera.set_viewport(viewport).unwrap();
@@ -83,11 +84,13 @@ pub async fn run() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
-                || {
-                    skybox.render(&camera, &[])?;
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
+                .unwrap()
+                .render(&camera, &[&skybox], &[])
+                .unwrap()
+                .write(|| {
                     let material = PhysicalMaterial {
                         name: model.material.name.clone(),
                         albedo: model.material.albedo,
@@ -135,9 +138,8 @@ pub async fn run() {
                     model.render_with_material(&material, &camera, &[&light])?;
                     gui.render()?;
                     Ok(())
-                },
-            )
-            .unwrap();
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

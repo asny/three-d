@@ -86,19 +86,21 @@ pub async fn run() {
                 .unwrap();
 
             // Draw
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
-                || {
-                    let lights: [&dyn Light; 2] = [&ambient, &directional];
-                    model_with_computed_tangents.render(&camera, &lights)?;
-                    model_with_loaded_tangents.render(&camera, &lights)?;
-                    instanced_model_with_computed_tangents.render(&camera, &lights)?;
-                    instanced_model_with_loaded_tangents.render(&camera, &lights)?;
-                    Ok(())
-                },
-            )
-            .unwrap();
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
+                .unwrap()
+                .render(
+                    &camera,
+                    &[
+                        &model_with_computed_tangents,
+                        &model_with_loaded_tangents,
+                        &instanced_model_with_computed_tangents,
+                        &instanced_model_with_loaded_tangents,
+                    ],
+                    &[&ambient, &directional],
+                )
+                .unwrap();
             FrameOutput::default()
         })
         .unwrap();

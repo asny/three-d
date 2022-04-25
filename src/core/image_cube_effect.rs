@@ -75,8 +75,7 @@ impl ImageCubeEffect {
 
     ///
     /// Applies the effect defined in the fragment shader source given at construction to the given side of a cube map.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn render(
         &self,

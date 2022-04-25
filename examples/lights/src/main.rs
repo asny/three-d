@@ -145,7 +145,7 @@ pub async fn run() {
     let mut color = [1.0; 4];
     window
         .render_loop(move |mut frame_input| {
-            let mut panel_width = frame_input.viewport.width;
+            let mut panel_width = 0.0;
             gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
                 SidePanel::left("side_panel").show(gui_context, |ui| {
@@ -162,7 +162,7 @@ pub async fn run() {
                     );
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
-                panel_width = gui_context.used_size().x as u32;
+                panel_width = gui_context.used_size().x as f64;
             })
             .unwrap();
             while lights.len() < light_count {
@@ -184,15 +184,14 @@ pub async fn run() {
                 );
                 light.update(0.00005 * size.magnitude() * frame_input.elapsed_time as f32);
             }
-
-            camera
-                .set_viewport(Viewport {
-                    x: panel_width as i32,
-                    y: 0,
-                    width: frame_input.viewport.width - panel_width,
-                    height: frame_input.viewport.height,
-                })
-                .unwrap();
+            let viewport = Viewport {
+                x: (panel_width * frame_input.device_pixel_ratio) as i32,
+                y: 0,
+                width: frame_input.viewport.width
+                    - (panel_width * frame_input.device_pixel_ratio) as u32,
+                height: frame_input.viewport.height,
+            };
+            camera.set_viewport(viewport).unwrap();
 
             control
                 .handle_events(&mut camera, &mut frame_input.events)
@@ -205,10 +204,11 @@ pub async fn run() {
                 )
                 .unwrap();
 
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0),
-                || {
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0))
+                .unwrap()
+                .write(|| {
                     for light in lights.iter() {
                         light.render(&camera)?;
                     }
@@ -221,9 +221,8 @@ pub async fn run() {
                     )?;
                     gui.render()?;
                     Ok(())
-                },
-            )
-            .unwrap();
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

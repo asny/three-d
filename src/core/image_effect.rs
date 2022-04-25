@@ -65,8 +65,7 @@ impl ImageEffect {
 
     ///
     /// Applies the calculations defined in the fragment shader given at construction and output it to the current screen/render target.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn render(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
         self.program
@@ -81,8 +80,7 @@ impl ImageEffect {
 
     ///
     /// Applies the calculations defined in the fragment shader given at construction and output it to the current screen/render target.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
         self.render(render_states, viewport)

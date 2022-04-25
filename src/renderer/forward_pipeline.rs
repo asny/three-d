@@ -21,7 +21,7 @@ impl ForwardPipeline {
 
     ///
     /// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
-    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn render_pass(
         &self,
@@ -34,7 +34,7 @@ impl ForwardPipeline {
 
     ///
     /// Render the distance from the camera to the objects in each pixel into a depth texture. Also, do not render transparent objects and objects outside the camera frustum.
-    /// Must be called in a render target render function, where a depth texture is bound, for example in the callback function of [Screen::write] or [DepthTargetTexture2D::write].
+    /// Must be called in the callback given as input to a [RenderTarget] or [DepthTarget] write method.
     ///
     pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> ThreeDResult<()> {
         let depth_material = DepthMaterial {
@@ -69,7 +69,10 @@ impl ForwardPipeline {
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
         )?;
-        depth_texture.write(Some(1.0), || self.depth_pass(&camera, objects))?;
+        depth_texture
+            .as_depth_target()
+            .clear(ClearState::default())?
+            .write(|| self.depth_pass(&camera, objects))?;
         Ok(depth_texture)
     }
 }

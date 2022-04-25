@@ -87,14 +87,16 @@ pub async fn run() {
 
             // draw
             if redraw {
-                Screen::write(&context, ClearState::default(), || {
-                    render_pass(
+                frame_input
+                    .screen()
+                    .clear(ClearState::default())
+                    .unwrap()
+                    .render(
                         &camera,
                         &[&box_object, &penguin_object, &skybox],
                         &[&ambient, &directional],
                     )
-                })
-                .unwrap();
+                    .unwrap();
             }
 
             FrameOutput {

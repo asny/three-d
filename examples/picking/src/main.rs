@@ -90,15 +90,12 @@ pub async fn run() {
 
             // draw
             if change {
-                Screen::write(
-                    &context,
-                    ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
-                    || {
-                        render_pass(&camera, &[&monkey, &pick_mesh], &[&ambient, &directional])?;
-                        Ok(())
-                    },
-                )
-                .unwrap();
+                frame_input
+                    .screen()
+                    .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
+                    .unwrap()
+                    .render(&camera, &[&monkey, &pick_mesh], &[&ambient, &directional])
+                    .unwrap();
             }
 
             FrameOutput {

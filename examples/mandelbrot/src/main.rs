@@ -110,10 +110,12 @@ pub fn main() {
             }
 
             if redraw {
-                Screen::write(&context, ClearState::color(0.0, 1.0, 1.0, 1.0), || {
-                    mesh.render(&camera, &[])
-                })
-                .unwrap();
+                frame_input
+                    .screen()
+                    .clear(ClearState::color(0.0, 1.0, 1.0, 1.0))
+                    .unwrap()
+                    .render(&camera, &[&mesh], &[])
+                    .unwrap();
             }
 
             FrameOutput {

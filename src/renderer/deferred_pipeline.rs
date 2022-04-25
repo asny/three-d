@@ -30,7 +30,7 @@ pub struct DeferredPipeline {
     pub debug_type: DebugType,
     camera: Camera,
     geometry_pass_texture: Option<Texture2DArray>,
-    geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
+    geometry_pass_depth_texture: Option<DepthTargetTexture2D>,
 }
 
 impl DeferredPipeline {
@@ -62,9 +62,8 @@ impl DeferredPipeline {
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
             )?),
-            geometry_pass_depth_texture: Some(DepthTargetTexture2DArray::new(
+            geometry_pass_depth_texture: Some(DepthTargetTexture2D::new(
                 context,
-                1,
                 1,
                 1,
                 Wrapping::ClampToEdge,
@@ -116,21 +115,26 @@ impl DeferredPipeline {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
         )?);
-        self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(
+        self.geometry_pass_depth_texture = Some(DepthTargetTexture2D::new(
             &self.context,
             viewport.width,
             viewport.height,
-            1,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
         )?);
-        RenderTargetArray::new(
-            &self.context,
-            self.geometry_pass_texture.as_mut().unwrap(),
-            self.geometry_pass_depth_texture.as_mut().unwrap(),
+        RenderTarget::new(
+            self.geometry_pass_texture
+                .as_mut()
+                .unwrap()
+                .as_color_target(&[0, 1, 2], None),
+            self.geometry_pass_depth_texture
+                .as_mut()
+                .unwrap()
+                .as_depth_target(),
         )?
-        .write(&[0, 1, 2], 0, ClearState::default(), || {
+        .clear(ClearState::default())?
+        .write(|| {
             for (geometry, material) in objects
                 .iter()
                 .filter(|(g, _)| self.camera.in_frustum(&g.aabb()))
@@ -145,8 +149,7 @@ impl DeferredPipeline {
     ///
     /// Uses the geometry and surface material parameters written in the last [DeferredPipeline::render_pass] call
     /// and all of the given lights to render the objects.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn lighting_pass(&mut self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         let render_states = RenderStates {
@@ -169,7 +172,7 @@ impl DeferredPipeline {
                 light.use_uniforms(effect, i as u32)?;
             }
             effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
-            effect.use_depth_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
+            effect.use_depth_texture("depthMap", self.geometry_pass_depth_texture())?;
             effect.use_uniform_if_required(
                 "viewProjectionInverse",
                 (camera.projection() * camera.view()).invert().unwrap(),
@@ -191,33 +194,7 @@ impl DeferredPipeline {
     }
 
     /// Returns the geometry pass depth texture
-    pub fn geometry_pass_depth_texture_array(&self) -> &DepthTargetTexture2DArray {
+    pub fn geometry_pass_depth_texture(&self) -> &DepthTargetTexture2D {
         self.geometry_pass_depth_texture.as_ref().unwrap()
-    }
-
-    /// Returns the geometry pass depth texture
-    pub fn geometry_pass_depth_texture(&self) -> DepthTargetTexture2D {
-        let depth_array: &DepthTargetTexture2DArray =
-            self.geometry_pass_depth_texture.as_ref().unwrap();
-        let mut depth_texture = DepthTargetTexture2D::new(
-            &self.context,
-            depth_array.width(),
-            depth_array.height(),
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            DepthFormat::Depth32F,
-        )
-        .unwrap();
-
-        RenderTarget::new_depth(&self.context, &mut depth_texture)
-            .unwrap()
-            .copy_from_array(
-                None,
-                Some((&depth_array, 0)),
-                Viewport::new_at_origo(depth_array.width(), depth_array.height()),
-                WriteMask::default(),
-            )
-            .unwrap();
-        depth_texture
     }
 }

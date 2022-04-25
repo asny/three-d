@@ -64,27 +64,33 @@ fn main() {
 
     // Render three frames
     for frame_index in 0..3 {
-        // Create a render target (a combination of a color and a depth texture) to write into and clear the color and depth
-        RenderTarget::new(&context, &mut texture, &mut depth_texture)
-            .unwrap()
-            .write(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
-                // Set the current transformation of the triangle
-                model.set_transformation(Mat4::from_angle_y(radians(
-                    (frame_index as f32 * 0.6) as f32,
-                )));
+        // Set the current transformation of the triangle
+        model.set_transformation(Mat4::from_angle_y(radians(
+            (frame_index as f32 * 0.6) as f32,
+        )));
 
-                // Render the triangle with the per vertex colors defined at construction
-                model.render(&camera, &[])
-            })
-            .unwrap();
+        // Create a render target (a combination of a color and a depth texture) to write into
+        let pixels = RenderTarget::new(
+            texture.as_color_target(None),
+            depth_texture.as_depth_target(),
+        )
+        .unwrap()
+        // Clear color and depth of the render target
+        .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+        .unwrap()
+        // Render the triangle with the per vertex colors defined at construction
+        .render(&camera, &[&model], &[])
+        .unwrap()
+        // Read out the colors from the render target
+        .read_color()
+        .unwrap();
 
         // Save the rendered image
-        let pixels = texture.read(viewport).unwrap();
         Saver::save_pixels(
             format!("headless-{}.png", frame_index),
             &pixels,
-            viewport.width,
-            viewport.height,
+            texture.width(),
+            texture.height(),
         )
         .unwrap();
     }

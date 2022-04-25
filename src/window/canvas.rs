@@ -164,6 +164,7 @@ impl Window {
         let mut last_time = performance.now();
         let mut accumulated_time = 0.0;
         let mut first_frame = true;
+        let context = self.gl()?;
 
         let input = Input::new(self.window.clone());
         self.add_context_menu_event_listener()?;
@@ -192,6 +193,7 @@ impl Window {
             let canvas = self.canvas.as_ref().unwrap();
             let (width, height) = (canvas.width(), canvas.height());
             let frame_input = FrameInput {
+                context: context.clone(),
                 events,
                 elapsed_time,
                 accumulated_time,

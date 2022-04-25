@@ -34,3 +34,14 @@ impl Viewport {
         self.width as f32 / self.height as f32
     }
 }
+
+impl From<crate::core::ScissorBox> for Viewport {
+    fn from(viewport: crate::core::ScissorBox) -> Self {
+        Self {
+            x: viewport.x,
+            y: viewport.y,
+            width: viewport.width,
+            height: viewport.height,
+        }
+    }
+}

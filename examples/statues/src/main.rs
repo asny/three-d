@@ -149,25 +149,25 @@ pub async fn run() {
     let mut bounding_box_enabled = false;
     window
         .render_loop(move |mut frame_input| {
-            let mut panel_width = 0;
+            let mut panel_width = 0.0;
             gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
-                    ui.heading("Camera");
-                    ui.radio_value(&mut camera_type, CameraType::Primary, "Primary");
-                    ui.radio_value(&mut camera_type, CameraType::Secondary, "Secondary");
+                    ui.radio_value(&mut camera_type, CameraType::Primary, "Primary camera");
+                    ui.radio_value(&mut camera_type, CameraType::Secondary, "Secondary camera");
 
                     ui.checkbox(&mut bounding_box_enabled, "Bounding boxes");
                 });
-                panel_width = gui_context.used_size().x as u32;
+                panel_width = gui_context.used_size().x as f64;
             })
             .unwrap();
 
             let viewport = Viewport {
-                x: panel_width as i32,
+                x: (panel_width * frame_input.device_pixel_ratio) as i32,
                 y: 0,
-                width: frame_input.viewport.width - panel_width,
+                width: frame_input.viewport.width
+                    - (panel_width * frame_input.device_pixel_ratio) as u32,
                 height: frame_input.viewport.height,
             };
             primary_camera.set_viewport(viewport).unwrap();
@@ -177,10 +177,11 @@ pub async fn run() {
                 .unwrap();
 
             // draw
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
-                || {
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0))
+                .unwrap()
+                .write(|| {
                     let camera = match camera_type {
                         CameraType::Primary => &primary_camera,
                         CameraType::Secondary => &secondary_camera,
@@ -198,9 +199,8 @@ pub async fn run() {
                     }
                     gui.render()?;
                     Ok(())
-                },
-            )
-            .unwrap();
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

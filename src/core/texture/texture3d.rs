@@ -72,7 +72,7 @@ impl Texture3D {
         let id = generate(context)?;
         let number_of_mip_maps =
             calculate_number_of_mip_maps(mip_map_filter, width, height, Some(depth));
-        let tex = Self {
+        let texture = Self {
             context: context.clone(),
             id,
             width,
@@ -81,7 +81,7 @@ impl Texture3D {
             number_of_mip_maps,
             data_byte_size: std::mem::size_of::<T>(),
         };
-        tex.bind();
+        texture.bind();
         set_parameters(
             context,
             crate::context::TEXTURE_3D,
@@ -106,8 +106,9 @@ impl Texture3D {
                 depth as i32,
             );
         }
+        texture.generate_mip_maps();
         context.error_check()?;
-        Ok(tex)
+        Ok(texture)
     }
 
     ///

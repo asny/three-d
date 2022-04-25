@@ -1,8 +1,11 @@
+#![allow(deprecated)]
+
 use crate::core::render_target::*;
 
 ///
 /// The screen render target which is essential to get something on the screen (see the [write function](Screen::write)).
 ///
+#[deprecated = "use RenderTarget::screen or FrameInput::screen to get the screen render target"]
 pub struct Screen {}
 
 impl Screen {
@@ -16,14 +19,17 @@ impl Screen {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::screen(context)?.write(clear_state, render)
+        RenderTarget::screen(context, 0, 0)
+            .clear(clear_state)?
+            .write(render)?;
+        Ok(())
     }
 
     ///
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<[u8; 4]>> {
-        RenderTarget::screen(context)?.read_color(viewport)
+        RenderTarget::screen(context, 0, 0).read_color_partially(viewport.into())
     }
 
     ///
@@ -32,7 +38,7 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
-        RenderTarget::screen(context)?.read_depth(viewport)
+        RenderTarget::screen(context, 0, 0).read_depth_partially(viewport.into())
     }
 
     ///
@@ -46,7 +52,13 @@ impl Screen {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
-        RenderTarget::screen(context)?.copy_from(color_texture, depth_texture, viewport, write_mask)
+        RenderTarget::screen(context, 0, 0).copy_from(
+            color_texture,
+            depth_texture,
+            viewport.into(),
+            write_mask,
+        )?;
+        Ok(())
     }
 
     ///
@@ -60,11 +72,12 @@ impl Screen {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
-        RenderTarget::screen(context)?.copy_from_array(
+        RenderTarget::screen(context, 0, 0).copy_from_array(
             color_texture,
             depth_texture,
-            viewport,
+            viewport.into(),
             write_mask,
-        )
+        )?;
+        Ok(())
     }
 }
