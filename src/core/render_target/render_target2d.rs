@@ -505,6 +505,7 @@ impl<'a> RenderTarget<'a> {
         Ok(pixels)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
         self.read_depth_in_viewport(self.scissor_box())
     }
