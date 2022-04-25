@@ -76,17 +76,17 @@ pub fn main() {
                     _ => {}
                 }
             }
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
-                || {
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                .unwrap()
+                .write(|| {
                     line.render(frame_input.viewport)?;
                     rectangle.render(frame_input.viewport)?;
                     circle.render(frame_input.viewport)?;
                     Ok(())
-                },
-            )
-            .unwrap();
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

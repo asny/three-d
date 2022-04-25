@@ -204,10 +204,11 @@ pub async fn run() {
                 )
                 .unwrap();
 
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0),
-                || {
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0))
+                .unwrap()
+                .write(|| {
                     for light in lights.iter() {
                         light.render(&camera)?;
                     }
@@ -220,9 +221,8 @@ pub async fn run() {
                     )?;
                     gui.render()?;
                     Ok(())
-                },
-            )
-            .unwrap();
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

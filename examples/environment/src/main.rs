@@ -83,17 +83,14 @@ pub async fn run() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
-                || {
-                    skybox.render(&camera, &[&light])?;
-                    model.render(&camera, &[&light])?;
-                    gui.render()?;
-                    Ok(())
-                },
-            )
-            .unwrap();
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
+                .unwrap()
+                .render(&camera, &[&skybox as &dyn Object, &model], &[&light])
+                .unwrap()
+                .write(|| gui.render())
+                .unwrap();
 
             FrameOutput::default()
         })

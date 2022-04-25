@@ -79,18 +79,12 @@ pub async fn run() {
     window
         .render_loop(move |frame_input: FrameInput| {
             camera.set_viewport(frame_input.viewport).unwrap();
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
-                || {
-                    /*model.set_transformation(Mat4::from_angle_y(radians(
-                        (frame_input.accumulated_time * 0.0002) as f32,
-                    )));*/
-                    model.render(&camera, &[&light])?;
-                    Ok(())
-                },
-            )
-            .unwrap();
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
+                .unwrap()
+                .render(&camera, &[&model], &[&light])
+                .unwrap();
 
             FrameOutput::default()
         })

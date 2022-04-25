@@ -84,11 +84,13 @@ pub async fn run() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
-                || {
-                    skybox.render(&camera, &[])?;
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
+                .unwrap()
+                .render(&camera, &[&skybox], &[])
+                .unwrap()
+                .write(|| {
                     let material = PhysicalMaterial {
                         name: model.material.name.clone(),
                         albedo: model.material.albedo,
@@ -136,9 +138,8 @@ pub async fn run() {
                     model.render_with_material(&material, &camera, &[&light])?;
                     gui.render()?;
                     Ok(())
-                },
-            )
-            .unwrap();
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

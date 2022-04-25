@@ -154,9 +154,8 @@ pub async fn run() {
                 use three_d::egui::*;
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
-                    ui.heading("Camera");
-                    ui.radio_value(&mut camera_type, CameraType::Primary, "Primary");
-                    ui.radio_value(&mut camera_type, CameraType::Secondary, "Secondary");
+                    ui.radio_value(&mut camera_type, CameraType::Primary, "Primary camera");
+                    ui.radio_value(&mut camera_type, CameraType::Secondary, "Secondary camera");
 
                     ui.checkbox(&mut bounding_box_enabled, "Bounding boxes");
                 });
@@ -178,10 +177,11 @@ pub async fn run() {
                 .unwrap();
 
             // draw
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
-                || {
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0))
+                .unwrap()
+                .write(|| {
                     let camera = match camera_type {
                         CameraType::Primary => &primary_camera,
                         CameraType::Secondary => &secondary_camera,
@@ -199,9 +199,8 @@ pub async fn run() {
                     }
                     gui.render()?;
                     Ok(())
-                },
-            )
-            .unwrap();
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

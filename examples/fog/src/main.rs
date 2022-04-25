@@ -80,23 +80,27 @@ pub async fn run() {
                 );
             }
 
-            Screen::write(&context, ClearState::default(), || {
-                monkey
-                    .as_ref()
-                    .unwrap()
-                    .render(&camera, &[&ambient, &directional])?;
-                if fog_enabled {
-                    if let Some(ref depth_texture) = depth_texture {
-                        fog_effect.apply(
-                            &camera,
-                            depth_texture,
-                            frame_input.accumulated_time as f32,
-                        )?;
+            frame_input
+                .screen()
+                .clear(ClearState::default())
+                .unwrap()
+                .write(|| {
+                    monkey
+                        .as_ref()
+                        .unwrap()
+                        .render(&camera, &[&ambient, &directional])?;
+                    if fog_enabled {
+                        if let Some(ref depth_texture) = depth_texture {
+                            fog_effect.apply(
+                                &camera,
+                                depth_texture,
+                                frame_input.accumulated_time as f32,
+                            )?;
+                        }
                     }
-                }
-                Ok(())
-            })
-            .unwrap();
+                    Ok(())
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

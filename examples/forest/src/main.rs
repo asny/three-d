@@ -131,20 +131,14 @@ pub async fn run() {
                 .unwrap();
 
             if redraw {
-                Screen::write(
-                    &context,
-                    ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
-                    || {
-                        render_pass(
-                            &camera,
-                            &models.iter().map(|m| m as &dyn Object).collect::<Vec<_>>(),
-                            &[&ambient, &directional],
-                        )?;
-                        imposters.render(&camera, &[])?;
-                        Ok(())
-                    },
-                )
-                .unwrap();
+                let mut models = models.iter().map(|m| m as &dyn Object).collect::<Vec<_>>();
+                models.push(&imposters);
+                frame_input
+                    .screen()
+                    .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                    .unwrap()
+                    .render(&camera, &models, &[&ambient, &directional])
+                    .unwrap();
             }
 
             FrameOutput {

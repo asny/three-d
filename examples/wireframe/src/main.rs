@@ -97,19 +97,16 @@ pub async fn run() {
                 .unwrap();
 
             if redraw {
-                Screen::write(
-                    &context,
-                    ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
-                    || {
-                        render_pass(
-                            &camera,
-                            &[&model, &vertices, &edges],
-                            &[&ambient, &directional0, &directional1],
-                        )?;
-                        Ok(())
-                    },
-                )
-                .unwrap();
+                frame_input
+                    .screen()
+                    .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
+                    .unwrap()
+                    .render(
+                        &camera,
+                        &[&model, &vertices, &edges],
+                        &[&ambient, &directional0, &directional1],
+                    )
+                    .unwrap();
             }
 
             FrameOutput {

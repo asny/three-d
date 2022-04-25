@@ -70,14 +70,18 @@ pub async fn run() {
                 height: frame_input.viewport.height,
             };
 
-            Screen::write(&context, ClearState::default(), || {
-                image_effect.use_texture("image", &image)?;
-                image_effect.use_uniform("parameter", tone_mapping)?;
-                image_effect.apply(RenderStates::default(), viewport)?;
-                gui.render()?;
-                Ok(())
-            })
-            .unwrap();
+            frame_input
+                .screen()
+                .clear(ClearState::default())
+                .unwrap()
+                .write(|| {
+                    image_effect.use_texture("image", &image)?;
+                    image_effect.use_uniform("parameter", tone_mapping)?;
+                    image_effect.apply(RenderStates::default(), viewport)?;
+                    gui.render()?;
+                    Ok(())
+                })
+                .unwrap();
 
             FrameOutput::default()
         })

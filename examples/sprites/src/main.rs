@@ -84,33 +84,30 @@ pub async fn run() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
-                || {
-                    render_pass(
-                        &camera,
-                        &[
-                            &axes,
-                            &Gm {
-                                geometry: &billboards,
-                                material: &material,
-                            },
-                            &Gm {
-                                geometry: &sprites_up,
-                                material: &material,
-                            },
-                            &Gm {
-                                geometry: &sprites,
-                                material: &material,
-                            },
-                        ],
-                        &[&ambient],
-                    )?;
-                    Ok(())
-                },
-            )
-            .unwrap();
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                .unwrap()
+                .render(
+                    &camera,
+                    &[
+                        &axes,
+                        &Gm {
+                            geometry: &billboards,
+                            material: &material,
+                        },
+                        &Gm {
+                            geometry: &sprites_up,
+                            material: &material,
+                        },
+                        &Gm {
+                            geometry: &sprites,
+                            material: &material,
+                        },
+                    ],
+                    &[&ambient],
+                )
+                .unwrap();
 
             FrameOutput::default()
         })
