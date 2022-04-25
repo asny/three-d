@@ -46,7 +46,7 @@ pub fn main() {
                 (frame_input.accumulated_time * 0.005) as f32,
             )));
 
-            let mut panel_width = 0;
+            let mut panel_width = 0.0;
             gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
                 SidePanel::left("side_panel").show(gui_context, |ui| {
@@ -55,62 +55,81 @@ pub fn main() {
                     ui.add(Slider::new(&mut viewport_zoom, 0.01..=1.0).text("Viewport"));
                     ui.add(Slider::new(&mut scissor_zoom, 0.01..=1.0).text("Scissor"));
                 });
-                panel_width = gui_context.used_size().x as u32;
+                panel_width = gui_context.used_size().x;
             })
             .unwrap();
+            let panel_width = (panel_width as f64 * frame_input.device_pixel_ratio) as u32;
 
-            let scissor_width =
-                ((frame_input.viewport.width - panel_width) as f32 * scissor_zoom) as u32;
-            let scissor_height = ((frame_input.viewport.height) as f32 * scissor_zoom) as u32;
-            let scissor_box = ScissorBox {
-                x: ((frame_input.viewport.width - panel_width - scissor_width) / 2 + panel_width)
-                    as i32,
-                y: ((frame_input.viewport.height - scissor_height) / 2) as i32,
-                width: scissor_width,
-                height: scissor_height,
-            };
-
-            let viewport_width =
-                ((frame_input.viewport.width - panel_width) as f32 * viewport_zoom) as u32;
-            let viewport_height = ((frame_input.viewport.height) as f32 * viewport_zoom) as u32;
             let viewport = Viewport {
-                x: ((frame_input.viewport.width - panel_width - viewport_width) / 2 + panel_width)
-                    as i32,
-                y: ((frame_input.viewport.height - viewport_height) / 2) as i32,
-                width: viewport_width,
-                height: viewport_height,
+                x: panel_width as i32,
+                y: 0,
+                width: frame_input.viewport.width - panel_width,
+                height: frame_input.viewport.height,
             };
-            camera.set_viewport(viewport).unwrap();
 
+            // Main view
+            let viewport_zoomed = zoom(viewport_zoom, viewport);
+            let scissor_box_zoomed = zoom(scissor_zoom, viewport).into();
+
+            camera.set_viewport(viewport_zoomed).unwrap();
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
                 .unwrap()
                 .clear_partially(
                     if viewport_zoom < scissor_zoom {
-                        scissor_box
+                        scissor_box_zoomed
                     } else {
-                        viewport.into()
+                        viewport_zoomed.into()
                     },
-                    ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
+                    ClearState::color(0.8, 0.8, 0.8, 1.0),
                 )
                 .unwrap()
                 .clear_partially(
                     if viewport_zoom > scissor_zoom {
-                        scissor_box
+                        scissor_box_zoomed
                     } else {
-                        viewport.into()
+                        viewport_zoomed.into()
                     },
-                    ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
+                    ClearState::color(0.5, 0.5, 0.5, 1.0),
                 )
                 .unwrap()
-                .render_in_viewport(scissor_box, &camera, &[&model], &[])
+                .render_in_viewport(scissor_box_zoomed, &camera, &[&model], &[])
                 .unwrap()
                 .write(|| gui.render())
+                .unwrap();
+
+            // Secondary view
+            let secondary_viewport = Viewport {
+                x: viewport.x,
+                y: viewport.y,
+                width: 200,
+                height: 200,
+            };
+            camera.set_viewport(secondary_viewport).unwrap();
+            frame_input
+                .screen()
+                .clear_partially(
+                    secondary_viewport.into(),
+                    ClearState::color(0.3, 0.3, 0.3, 1.0),
+                )
+                .unwrap()
+                .render_in_viewport(secondary_viewport.into(), &camera, &[&model], &[])
                 .unwrap();
 
             // Returns default frame output to end the frame
             FrameOutput::default()
         })
         .unwrap();
+}
+
+fn zoom(zoom: f32, viewport: Viewport) -> Viewport {
+    let width = (viewport.width as f32 * zoom) as u32;
+    let height = (viewport.height as f32 * zoom) as u32;
+    Viewport {
+        x: ((viewport.width - width) / 2 + viewport.x as u32) as i32,
+        y: ((viewport.height - height) / 2 + viewport.y as u32) as i32,
+        width,
+        height,
+    }
 }
