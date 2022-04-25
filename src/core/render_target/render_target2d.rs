@@ -73,10 +73,16 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
+    ///
+    /// Clears the color of this color target as defined by the given clear state.
+    ///
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
         self.clear_partially(self.scissor_box(), clear_state)
     }
 
+    ///
+    /// Clears the color of the part of this color target that is inside the given scissor box.
+    ///
     pub fn clear_partially(
         &self,
         scissor_box: ScissorBox,
@@ -149,6 +155,9 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
+    ///
+    /// Returns the scissor box that encloses the entire target.
+    ///
     pub fn scissor_box(&self) -> ScissorBox {
         ScissorBox::new_at_origo(self.width(), self.height())
     }
@@ -276,10 +285,16 @@ impl<'a> DepthTarget<'a> {
         }
     }
 
+    ///
+    /// Clears the depth of this depth target as defined by the given clear state.
+    ///
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
         self.clear_partially(self.scissor_box(), clear_state)
     }
 
+    ///
+    /// Clears the depth of the part of this depth target that is inside the given scissor box.
+    ///
     pub fn clear_partially(
         &self,
         scissor_box: ScissorBox,
@@ -353,6 +368,9 @@ impl<'a> DepthTarget<'a> {
         }
     }
 
+    ///
+    /// Returns the scissor box that encloses the entire target.
+    ///
     pub fn scissor_box(&self) -> ScissorBox {
         ScissorBox::new_at_origo(self.width(), self.height())
     }
@@ -420,10 +438,16 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
+    ///
+    /// Clears the color and depth of this render target as defined by the given clear state.
+    ///
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
         self.clear_partially(self.scissor_box(), clear_state)
     }
 
+    ///
+    /// Clears the color and depth of the part of this render target that is inside the given scissor box.
+    ///
     pub fn clear_partially(
         &self,
         scissor_box: ScissorBox,
@@ -577,6 +601,9 @@ impl<'a> RenderTarget<'a> {
         })
     }
 
+    ///
+    /// Returns the scissor box that encloses the entire target.
+    ///
     pub fn scissor_box(&self) -> ScissorBox {
         ScissorBox::new_at_origo(self.width, self.height)
     }
