@@ -115,7 +115,7 @@ pub async fn run() {
     window
         .render_loop(move |mut frame_input| {
             let mut change = frame_input.first_frame;
-            let mut panel_width = frame_input.viewport.width;
+            let mut panel_width = 0.0;
             change |= gui
                 .update(&mut frame_input, |gui_context| {
                     use three_d::egui::*;
@@ -224,14 +224,15 @@ pub async fn run() {
                         );
                         ui.radio_value(&mut deferred_pipeline.debug_type, DebugType::ORM, "ORM");
                     });
-                    panel_width = gui_context.used_size().x as u32;
+                    panel_width = gui_context.used_size().x as f64;
                 })
                 .unwrap();
 
             let viewport = Viewport {
-                x: panel_width as i32,
+                x: (panel_width * frame_input.device_pixel_ratio) as i32,
                 y: 0,
-                width: frame_input.viewport.width - panel_width,
+                width: frame_input.viewport.width
+                    - (panel_width * frame_input.device_pixel_ratio) as u32,
                 height: frame_input.viewport.height,
             };
             change |= camera.set_viewport(viewport).unwrap();

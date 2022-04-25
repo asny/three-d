@@ -55,15 +55,15 @@ pub fn main() {
                     ui.add(Slider::new(&mut viewport_zoom, 0.01..=1.0).text("Viewport"));
                     ui.add(Slider::new(&mut scissor_zoom, 0.01..=1.0).text("Scissor"));
                 });
-                panel_width = gui_context.used_size().x;
+                panel_width = gui_context.used_size().x as f64;
             })
             .unwrap();
-            let panel_width = (panel_width as f64 * frame_input.device_pixel_ratio) as u32;
 
             let viewport = Viewport {
-                x: panel_width as i32,
+                x: (panel_width * frame_input.device_pixel_ratio) as i32,
                 y: 0,
-                width: frame_input.viewport.width - panel_width,
+                width: frame_input.viewport.width
+                    - (panel_width * frame_input.device_pixel_ratio) as u32,
                 height: frame_input.viewport.height,
             };
 
