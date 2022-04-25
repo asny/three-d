@@ -74,10 +74,10 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_in_viewport(self.scissor_box(), clear_state)
+        self.clear_partially(self.scissor_box(), clear_state)
     }
 
-    pub fn clear_in_viewport(
+    pub fn clear_partially(
         &self,
         scissor_box: ScissorBox,
         clear_state: ClearState,
@@ -93,10 +93,10 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_in_viewport(self.scissor_box(), render)
+        self.write_partially(self.scissor_box(), render)
     }
 
-    pub fn write_in_viewport(
+    pub fn write_partially(
         &self,
         scissor_box: ScissorBox,
         render: impl FnOnce() -> ThreeDResult<()>,
@@ -107,14 +107,14 @@ impl<'a> ColorTarget<'a> {
     }
 
     pub fn read<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
-        self.read_in_viewport(self.scissor_box())
+        self.read_partially(self.scissor_box())
     }
 
-    pub fn read_in_viewport<T: TextureDataType>(
+    pub fn read_partially<T: TextureDataType>(
         &self,
         scissor_box: ScissorBox,
     ) -> ThreeDResult<Vec<T>> {
-        self.as_render_target()?.read_color_in_viewport(scissor_box)
+        self.as_render_target()?.read_color_partially(scissor_box)
     }
 
     ///
@@ -277,10 +277,10 @@ impl<'a> DepthTarget<'a> {
     }
 
     pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
-        self.clear_in_viewport(self.scissor_box(), clear_state)
+        self.clear_partially(self.scissor_box(), clear_state)
     }
 
-    pub fn clear_in_viewport(
+    pub fn clear_partially(
         &self,
         scissor_box: ScissorBox,
         clear_state: ClearState,
@@ -296,10 +296,10 @@ impl<'a> DepthTarget<'a> {
     }
 
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
-        self.write_in_viewport(self.scissor_box(), render)
+        self.write_partially(self.scissor_box(), render)
     }
 
-    pub fn write_in_viewport(
+    pub fn write_partially(
         &self,
         scissor_box: ScissorBox,
         render: impl FnOnce() -> ThreeDResult<()>,
@@ -315,7 +315,7 @@ impl<'a> DepthTarget<'a> {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read(&self) -> ThreeDResult<Vec<f32>> {
-        self.read_in_viewport(self.scissor_box())
+        self.read_partially(self.scissor_box())
     }
 
     ///
@@ -323,8 +323,8 @@ impl<'a> DepthTarget<'a> {
     /// Not available on web.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_in_viewport(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
-        self.as_render_target()?.read_depth_in_viewport(scissor_box)
+    pub fn read_partially(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
+        self.as_render_target()?.read_depth_partially(scissor_box)
     }
 
     fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
@@ -459,7 +459,7 @@ impl<'a> RenderTarget<'a> {
     }
 
     pub fn read_color<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
-        self.read_color_in_viewport(self.scissor_box())
+        self.read_color_partially(self.scissor_box())
     }
 
     ///
@@ -468,7 +468,7 @@ impl<'a> RenderTarget<'a> {
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
-    pub fn read_color_in_viewport<T: TextureDataType>(
+    pub fn read_color_partially<T: TextureDataType>(
         &self,
         scissor_box: ScissorBox,
     ) -> ThreeDResult<Vec<T>> {
@@ -507,11 +507,11 @@ impl<'a> RenderTarget<'a> {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
-        self.read_depth_in_viewport(self.scissor_box())
+        self.read_depth_partially(self.scissor_box())
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth_in_viewport(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
+    pub fn read_depth_partially(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
         if self.id.is_some() && self.depth.is_none() {
             Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }

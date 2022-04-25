@@ -94,7 +94,7 @@ pub fn main() {
                     ClearState::color(0.5, 0.5, 0.5, 1.0),
                 )
                 .unwrap()
-                .render_in_viewport(scissor_box_zoomed, &camera, &[&model], &[])
+                .render_partially(scissor_box_zoomed, &camera, &[&model], &[])
                 .unwrap()
                 .write(|| gui.render())
                 .unwrap();
@@ -114,7 +114,7 @@ pub fn main() {
                     ClearState::color(0.3, 0.3, 0.3, 1.0),
                 )
                 .unwrap()
-                .render_in_viewport(secondary_viewport.into(), &camera, &[&model], &[])
+                .render_partially(secondary_viewport.into(), &camera, &[&model], &[])
                 .unwrap();
 
             // Returns default frame output to end the frame

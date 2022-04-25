@@ -49,17 +49,17 @@ impl<'a> DepthTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.render_in_viewport(self.scissor_box(), camera, objects, lights)
+        self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
-    pub fn render_in_viewport(
+    pub fn render_partially(
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_in_viewport(scissor_box, || render_pass(camera, objects, lights))?;
+        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
         Ok(self)
     }
 }
@@ -71,17 +71,17 @@ impl<'a> ColorTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.render_in_viewport(self.scissor_box(), camera, objects, lights)
+        self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
-    pub fn render_in_viewport(
+    pub fn render_partially(
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_in_viewport(scissor_box, || render_pass(camera, objects, lights))?;
+        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
         Ok(self)
     }
 }
@@ -93,10 +93,10 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.render_in_viewport(self.scissor_box(), camera, objects, lights)
+        self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
-    pub fn render_in_viewport(
+    pub fn render_partially(
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
