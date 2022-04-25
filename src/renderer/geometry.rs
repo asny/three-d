@@ -38,9 +38,8 @@ use crate::renderer::*;
 pub trait Geometry {
     ///
     /// Render the geometry with the given material.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
-    /// You can use an empty array for the `lights` argument, if you know the object does not require lights to be rendered.
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     ///
     fn render_with_material(
         &self,
@@ -136,8 +135,7 @@ impl<T: Geometry> Geometry for std::rc::Rc<std::cell::RefCell<T>> {
 pub trait Geometry2D {
     ///
     /// Render the object with the given material.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     fn render_with_material(&self, material: &dyn Material, viewport: Viewport)
         -> ThreeDResult<()>;

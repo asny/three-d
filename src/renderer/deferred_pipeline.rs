@@ -149,8 +149,7 @@ impl DeferredPipeline {
     ///
     /// Uses the geometry and surface material parameters written in the last [DeferredPipeline::render_pass] call
     /// and all of the given lights to render the objects.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn lighting_pass(&mut self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         let render_states = RenderStates {
