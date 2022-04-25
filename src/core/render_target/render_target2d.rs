@@ -121,10 +121,22 @@ impl<'a> ColorTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Returns the colors of the pixels in this color target.
+    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
+    ///
+    /// **Note:** On web, the data format needs to match the data format of the color texture.
+    ///
     pub fn read<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
         self.read_partially(self.scissor_box())
     }
 
+    ///
+    /// Returns the colors of the pixels in this color target inside the given scissor box.
+    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
+    ///
+    /// **Note:** On web, the data format needs to match the data format of the color texture.
+    ///
     pub fn read_partially<T: TextureDataType>(
         &self,
         scissor_box: ScissorBox,
@@ -341,8 +353,7 @@ impl<'a> DepthTarget<'a> {
     }
 
     ///
-    /// Returns the depth values from the render target as a list of 32-bit floats.
-    /// Not available on web.
+    /// Returns the depth values in this depth target.
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read(&self) -> ThreeDResult<Vec<f32>> {
@@ -350,8 +361,7 @@ impl<'a> DepthTarget<'a> {
     }
 
     ///
-    /// Returns the depth values from the given viewport of the render target as a list of 32-bit floats.
-    /// Not available on web.
+    /// Returns the depth values in this depth target inside the given scissor box.
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_partially(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
@@ -501,6 +511,12 @@ impl<'a> RenderTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Returns the colors of the pixels in this render target.
+    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
+    ///
+    /// **Note:** On web, the data format needs to match the data format of the color texture.
+    ///
     pub fn read_color<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
         self.read_color_partially(self.scissor_box())
     }
@@ -548,11 +564,17 @@ impl<'a> RenderTarget<'a> {
         Ok(pixels)
     }
 
+    ///
+    /// Returns the depth values in this render target.
+    ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
         self.read_depth_partially(self.scissor_box())
     }
 
+    ///
+    /// Returns the depth values in this render target inside the given scissor box.
+    ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth_partially(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
         if self.id.is_some() && self.depth.is_none() {

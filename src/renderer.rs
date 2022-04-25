@@ -43,6 +43,11 @@ use thiserror::Error;
 pub enum RendererError {}
 
 impl<'a> DepthTarget<'a> {
+    ///
+    /// Render the objects using the given camera and lights into this depth target.
+    /// If the objects materials doesn't require lighting, you can use `&[]` as the `lights` argument.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render(
         &self,
         camera: &Camera,
@@ -52,6 +57,11 @@ impl<'a> DepthTarget<'a> {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
+    ///
+    /// Render the objects using the given camera and lights into the part of this depth target defined by the scissor box.
+    /// If the objects materials doesn't require lighting, you can use `&[]` as the `lights` argument.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render_partially(
         &self,
         scissor_box: ScissorBox,
@@ -65,6 +75,11 @@ impl<'a> DepthTarget<'a> {
 }
 
 impl<'a> ColorTarget<'a> {
+    ///
+    /// Render the objects using the given camera and lights into this color target.
+    /// If the objects materials doesn't require lighting, you can use `&[]` as the `lights` argument.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render(
         &self,
         camera: &Camera,
@@ -74,6 +89,11 @@ impl<'a> ColorTarget<'a> {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
+    ///
+    /// Render the objects using the given camera and lights into the part of this color target defined by the scissor box.
+    /// If the objects materials doesn't require lighting, you can use `&[]` as the `lights` argument.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render_partially(
         &self,
         scissor_box: ScissorBox,
@@ -87,6 +107,11 @@ impl<'a> ColorTarget<'a> {
 }
 
 impl<'a> RenderTarget<'a> {
+    ///
+    /// Render the objects using the given camera and lights into this render target.
+    /// If the objects materials doesn't require lighting, you can use `&[]` as the `lights` argument.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render(
         &self,
         camera: &Camera,
@@ -96,6 +121,11 @@ impl<'a> RenderTarget<'a> {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
+    ///
+    /// Render the objects using the given camera and lights into the part of this render target defined by the scissor box.
+    /// If the objects materials doesn't require lighting, you can use `&[]` as the `lights` argument.
+    /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render_partially(
         &self,
         scissor_box: ScissorBox,
@@ -109,7 +139,8 @@ impl<'a> RenderTarget<'a> {
 }
 
 ///
-/// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
+/// Render the objects using the given camera and lights. If the objects materials doesn't require lighting, you can use `&[]` as the `lights` argument.
+/// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
 /// Must be called in a render target render function, for example in the callback function of [Screen::write].
 ///
 pub fn render_pass(
