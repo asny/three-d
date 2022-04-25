@@ -472,7 +472,7 @@ impl<'a> RenderTarget<'a> {
         &self,
         scissor_box: ScissorBox,
     ) -> ThreeDResult<Vec<T>> {
-        if self.color.is_none() {
+        if self.id.is_some() && self.color.is_none() {
             Err(CoreError::RenderTargetRead("color".to_string()))?;
         }
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
@@ -512,7 +512,7 @@ impl<'a> RenderTarget<'a> {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth_in_viewport(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
-        if self.depth.is_none() {
+        if self.id.is_some() && self.depth.is_none() {
             Err(CoreError::RenderTargetRead("depth".to_string()))?;
         }
         self.bind(crate::context::DRAW_FRAMEBUFFER)?;
