@@ -1,9 +1,12 @@
 use crate::core::render_target::*;
 
 ///
-/// Adds additional functionality to read from and write to a texture.
+/// Adds additional functionality to clear, read from and write to a texture.
 /// Use the `as_color_target` function directly on the texture structs (for example [Texture2D]) to construct a color target.
+/// Combine this together with a [DepthTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
 /// A color target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the texture.
+///
+/// **Note:** [DepthTest] is disabled if not also writing to a [DepthTarget].
 ///
 #[derive(Clone)]
 pub struct ColorTarget<'a> {
@@ -98,10 +101,16 @@ impl<'a> ColorTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Writes whatever rendered in the `render` closure into this color target.
+    ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
         self.write_partially(self.scissor_box(), render)
     }
 
+    ///
+    /// Writes whatever rendered in the `render` closure into the part of this color target defined by the scissor box.
+    ///
     pub fn write_partially(
         &self,
         scissor_box: ScissorBox,
@@ -227,8 +236,9 @@ impl<'a> ColorTarget<'a> {
 }
 
 ///
-/// Adds additional functionality to read from and write to a texture.
+/// Adds additional functionality to clear, read from and write to a texture.
 /// Use the `as_depth_target` function directly on the texture structs (for example [DepthTargetTexture2D]) to construct a depth target.
+/// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
 /// A depth target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the texture.
 ///
 #[derive(Clone)]
@@ -310,10 +320,16 @@ impl<'a> DepthTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Writes whatever rendered in the `render` closure into this depth target.
+    ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
         self.write_partially(self.scissor_box(), render)
     }
 
+    ///
+    /// Writes whatever rendered in the `render` closure into the part of this depth target defined by the scissor box.
+    ///
     pub fn write_partially(
         &self,
         scissor_box: ScissorBox,
@@ -392,7 +408,7 @@ impl<'a> DepthTarget<'a> {
 
 use crate::context::Framebuffer;
 ///
-/// Adds additional functionality to read from and write to the screen (see [RenderTarget::screen]) or a color texture and
+/// Adds additional functionality to clear, read from and write to the screen (see [RenderTarget::screen]) or a color texture and
 /// a depth texture at the same time (see [RenderTarget::new]).
 /// If you only want to perform an operation on either a color texture or depth texture, see [ColorTarget] and [DepthTarget] respectively.
 /// A render target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the textures.
@@ -461,12 +477,15 @@ impl<'a> RenderTarget<'a> {
     }
 
     ///
-    /// Renders whatever rendered in the `render` closure into this render target.
+    /// Writes whatever rendered in the `render` closure into this render target.
     ///
     pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
         self.write_partially(self.scissor_box(), render)
     }
 
+    ///
+    /// Writes whatever rendered in the `render` closure into the part of this render target defined by the scissor box.
+    ///
     pub fn write_partially(
         &self,
         scissor_box: ScissorBox,

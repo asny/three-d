@@ -70,6 +70,14 @@ impl Texture2DArray {
         Ok(texture)
     }
 
+    ///
+    /// Returns a [ColorTarget] which can be used to clear, write to and read from the given layers and mip level of this texture.
+    /// Combine this together with a [DepthTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
+    /// If `None` is specified as the mip level, the 0 level mip level is used and mip maps are generated after a write operation if a mip map filter is specified.
+    /// Otherwise, the given mip level is used and no mip maps are generated.
+    ///
+    /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
+    ///
     pub fn as_color_target<'a>(
         &'a mut self,
         layers: &'a [u32],
