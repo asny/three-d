@@ -12,6 +12,7 @@ pub struct InstancedMesh {
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
     instance_buffer3: InstanceBuffer,
+    instance_color_buffer: Option<InstanceBuffer>,
     instance_tex_transform: Option<(InstanceBuffer, InstanceBuffer)>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
@@ -38,6 +39,7 @@ impl InstancedMesh {
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
             instance_tex_transform: None,
+            instance_color_buffer: None,
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
@@ -160,6 +162,12 @@ impl InstancedMesh {
                 InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2)?,
             ));
         }
+        if let Some(instance_colors) = &self.instances.colors {
+            self.instance_color_buffer = Some(InstanceBuffer::new_with_data(
+                &self.context,
+                &instance_colors,
+            )?);
+        }
         self.update_aabb();
         Ok(())
     }
@@ -251,10 +259,13 @@ impl Geometry for InstancedMesh {
                     if let Some((tex_transform_row1, tex_transform_row2)) =
                         &self.instance_tex_transform
                     {
-                        program
-                            .use_instance_attribute("tex_transform_row1", &tex_transform_row1)?;
-                        program
-                            .use_instance_attribute("tex_transform_row2", &tex_transform_row2)?;
+                        program.use_instance_attribute("tex_transform_row1", tex_transform_row1)?;
+                        program.use_instance_attribute("tex_transform_row2", tex_transform_row2)?;
+                    }
+                }
+                if program.requires_attribute("color") {
+                    if let Some(instance_color_buffer) = &self.instance_color_buffer {
+                        program.use_instance_attribute("instance_color", instance_color_buffer)?;
                     }
                 }
 
@@ -296,6 +307,8 @@ pub struct Instances {
     pub geometry_transforms: Vec<Mat4>,
     /// The texture transform applied to the uv coordinates of the model instance.
     pub texture_transforms: Option<Vec<Mat3>>,
+    /// Colors multiplied onto the base color for the mesh.
+    pub colors: Option<Vec<Color>>,
 }
 
 impl Instances {
@@ -336,6 +349,7 @@ impl Default for Instances {
         Self {
             geometry_transforms: vec![Mat4::identity()],
             texture_transforms: None,
+            colors: None,
         }
     }
 }

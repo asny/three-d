@@ -39,6 +39,9 @@ out vec2 uvs;
 
 #ifdef USE_COLORS 
 in vec4 color;
+#ifdef USE_INSTANCE_COLORS
+in vec4 instance_color;
+#endif
 out vec4 col;
 #endif
 
@@ -93,6 +96,9 @@ void main()
 #endif
 
 #ifdef USE_COLORS 
-    col = color/255.0;
+    col = color / 255.0;
+#ifdef USE_INSTANCE_COLORS
+    col *= instance_color / 255.0;
+#endif
 #endif
 }
