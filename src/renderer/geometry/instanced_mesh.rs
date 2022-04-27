@@ -7,7 +7,7 @@ use std::collections::HashMap;
 ///
 pub struct InstancedMesh {
     context: Context,
-    buffers: HashMap<String, VertexBuffer>,
+    vertex_buffers: HashMap<String, VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
@@ -34,7 +34,7 @@ impl InstancedMesh {
         let mut model = Self {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh)?,
-            buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
+            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
@@ -237,7 +237,7 @@ impl Geometry for InstancedMesh {
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         let fragment_shader_source =
-            material.fragment_shader_source(self.buffers.contains_key("color"), lights);
+            material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
         self.context.program(
             &self.vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
@@ -273,7 +273,7 @@ impl Geometry for InstancedMesh {
                     if program.requires_attribute(attribute_name) {
                         program.use_vertex_attribute(
                             attribute_name,
-                            self.buffers
+                            self.vertex_buffers
                                 .get(attribute_name)
                                 .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
                         )?;
@@ -291,7 +291,7 @@ impl Geometry for InstancedMesh {
                     program.draw_arrays_instanced(
                         material.render_states(),
                         camera.viewport(),
-                        self.buffers.get("position").unwrap().vertex_count() as u32,
+                        self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
                         self.instance_count,
                     )
                 }

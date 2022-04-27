@@ -7,7 +7,7 @@ use std::collections::HashMap;
 /// This mesh can be rendered together with a [material].
 ///
 pub struct Mesh {
-    buffers: HashMap<String, VertexBuffer>,
+    vertex_buffers: HashMap<String, VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     context: Context,
     aabb: AxisAlignedBoundingBox,
@@ -26,7 +26,7 @@ impl Mesh {
         Ok(Self {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh)?,
-            buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
+            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
@@ -136,7 +136,7 @@ impl Geometry for Mesh {
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         let fragment_shader_source =
-            material.fragment_shader_source(self.buffers.contains_key("color"), lights);
+            material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
         self.context.program(
             &Self::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
@@ -154,7 +154,7 @@ impl Geometry for Mesh {
                     if program.requires_attribute(attribute_name) {
                         program.use_vertex_attribute(
                             attribute_name,
-                            self.buffers
+                            self.vertex_buffers
                                 .get(attribute_name)
                                 .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
                         )?;
@@ -167,7 +167,7 @@ impl Geometry for Mesh {
                     program.draw_arrays(
                         material.render_states(),
                         camera.viewport(),
-                        self.buffers.get("position").unwrap().vertex_count() as u32,
+                        self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
                     )
                 }
             },
