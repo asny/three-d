@@ -207,7 +207,7 @@ impl InstancedMesh {
                 ""
             },
             if self.instances.texture_transforms.is_some() {
-                "#define USE_TEXTURE_TRANSFORMATIONS\n"
+                "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
             } else {
                 ""
             },
