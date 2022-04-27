@@ -15,12 +15,11 @@ pub struct InstancedMesh {
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
     instance_buffer3: InstanceBuffer,
-    instance_tex_transform1: InstanceBuffer,
-    instance_tex_transform2: InstanceBuffer,
+    instance_tex_transform: Option<(InstanceBuffer, InstanceBuffer)>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
-    instances: Vec<Instance>,
+    instances: Instances,
     instance_count: u32,
     texture_transform: Mat3,
 }
@@ -32,11 +31,7 @@ impl InstancedMesh {
     /// The mesh is rendered in as many instances as there are [Instance] structs given as input.
     /// The transformation and texture transform in [Instance] are applied to each instance before they are rendered.
     ///
-    pub fn new(
-        context: &Context,
-        instances: &[Instance],
-        cpu_mesh: &CpuMesh,
-    ) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
         #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
@@ -87,13 +82,12 @@ impl InstancedMesh {
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
-            instance_tex_transform1: InstanceBuffer::new(context)?,
-            instance_tex_transform2: InstanceBuffer::new(context)?,
+            instance_tex_transform: None,
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
-            instances: Vec::new(),
             instance_count: 0,
+            instances: Instances::default(),
             texture_transform: Mat3::identity(),
         };
         model.set_instances(instances)?;
@@ -139,23 +133,25 @@ impl InstancedMesh {
     /// This is the same as changing the instances using `set_instances`, except that it is faster since it doesn't update any buffers.
     /// `instance_count` will be set to the number of instances when they are defined by `set_instances`, so all instanced are rendered by default.
     pub fn set_instance_count(&mut self, instance_count: u32) {
-        self.instance_count = instance_count.min(self.instances.len() as u32);
+        self.instance_count = instance_count.min(self.instances.count());
         self.update_aabb();
     }
 
     ///
     /// Returns all instances
     ///
-    pub fn instances(&self) -> &[Instance] {
+    pub fn instances(&self) -> &Instances {
         &self.instances
     }
 
     ///
     /// Create an instance for each element with the given mesh and texture transforms.
     ///
-    pub fn set_instances(&mut self, instances: &[Instance]) -> ThreeDResult<()> {
-        self.instance_count = instances.len() as u32;
-        self.instances = instances.to_vec();
+    pub fn set_instances(&mut self, instances: &Instances) -> ThreeDResult<()> {
+        #[cfg(debug_assertions)]
+        instances.validate()?;
+        self.instance_count = instances.count();
+        self.instances = instances.clone();
         self.update_buffers()
     }
 
@@ -163,49 +159,52 @@ impl InstancedMesh {
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
-        let mut instance_tex_transform1 = Vec::new();
-        let mut instance_tex_transform2 = Vec::new();
-        for instance in self.instances.iter() {
+        for geometry_transform in self.instances.geometry_transforms.iter() {
             row1.push(vec4(
-                instance.geometry_transform.x.x,
-                instance.geometry_transform.y.x,
-                instance.geometry_transform.z.x,
-                instance.geometry_transform.w.x,
+                geometry_transform.x.x,
+                geometry_transform.y.x,
+                geometry_transform.z.x,
+                geometry_transform.w.x,
             ));
 
             row2.push(vec4(
-                instance.geometry_transform.x.y,
-                instance.geometry_transform.y.y,
-                instance.geometry_transform.z.y,
-                instance.geometry_transform.w.y,
+                geometry_transform.x.y,
+                geometry_transform.y.y,
+                geometry_transform.z.y,
+                geometry_transform.w.y,
             ));
 
             row3.push(vec4(
-                instance.geometry_transform.x.z,
-                instance.geometry_transform.y.z,
-                instance.geometry_transform.z.z,
-                instance.geometry_transform.w.z,
-            ));
-
-            instance_tex_transform1.push(vec3(
-                instance.texture_transform.x.x,
-                instance.texture_transform.y.x,
-                instance.texture_transform.z.x,
-            ));
-
-            instance_tex_transform2.push(vec3(
-                instance.texture_transform.x.y,
-                instance.texture_transform.y.y,
-                instance.texture_transform.z.y,
+                geometry_transform.x.z,
+                geometry_transform.y.z,
+                geometry_transform.z.z,
+                geometry_transform.w.z,
             ));
         }
         self.instance_buffer1.fill(&row1)?;
         self.instance_buffer2.fill(&row2)?;
         self.instance_buffer3.fill(&row3)?;
-        self.instance_tex_transform1
-            .fill(&instance_tex_transform1)?;
-        self.instance_tex_transform2
-            .fill(&instance_tex_transform2)?;
+
+        if let Some(texture_transforms) = &self.instances.texture_transforms {
+            let mut instance_tex_transform1 = Vec::new();
+            let mut instance_tex_transform2 = Vec::new();
+            for texture_transform in texture_transforms.iter() {
+                instance_tex_transform1.push(vec3(
+                    texture_transform.x.x,
+                    texture_transform.y.x,
+                    texture_transform.z.x,
+                ));
+                instance_tex_transform2.push(vec3(
+                    texture_transform.x.y,
+                    texture_transform.y.y,
+                    texture_transform.z.y,
+                ));
+            }
+            self.instance_tex_transform = Some((
+                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1)?,
+                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2)?,
+            ));
+        }
         self.update_aabb();
         Ok(())
     }
@@ -214,20 +213,20 @@ impl InstancedMesh {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         for i in 0..self.instance_count as usize {
             let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(self.instances[i].geometry_transform * self.transformation));
+            aabb2.transform(&(self.instances.geometry_transforms[i] * self.transformation));
             aabb.expand_with_aabb(&aabb2);
         }
         self.aabb = aabb;
     }
 
-    fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
+    fn vertex_shader_source(&self, fragment_shader_source: &str) -> ThreeDResult<String> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         Ok(format!(
-            "#define INSTANCED\n{}{}{}{}{}{}{}",
+            "#define INSTANCED\n{}{}{}{}{}{}{}{}",
             if use_positions {
                 "#define USE_POSITIONS\n"
             } else {
@@ -252,6 +251,11 @@ impl InstancedMesh {
             } else {
                 ""
             },
+            if self.instances.texture_transforms.is_some() {
+                "#define USE_TEXTURE_TRANSFORMATIONS\n"
+            } else {
+                ""
+            },
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
         ))
@@ -272,7 +276,7 @@ impl Geometry for InstancedMesh {
         let fragment_shader_source =
             material.fragment_shader_source(self.color_buffer.is_some(), lights);
         self.context.program(
-            &Self::vertex_shader_source(&fragment_shader_source)?,
+            &self.vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
@@ -289,14 +293,14 @@ impl Geometry for InstancedMesh {
                 }
                 if program.requires_attribute("uv_coordinates") {
                     program.use_uniform("textureTransform", &self.texture_transform)?;
-                    program.use_instance_attribute(
-                        "tex_transform_row1",
-                        &self.instance_tex_transform1,
-                    )?;
-                    program.use_instance_attribute(
-                        "tex_transform_row2",
-                        &self.instance_tex_transform2,
-                    )?;
+                    if let Some((tex_transform_row1, tex_transform_row2)) =
+                        &self.instance_tex_transform
+                    {
+                        program
+                            .use_instance_attribute("tex_transform_row1", &tex_transform_row1)?;
+                        program
+                            .use_instance_attribute("tex_transform_row2", &tex_transform_row2)?;
+                    }
                     let uv_buffer = self
                         .uv_buffer
                         .as_ref()
@@ -346,19 +350,52 @@ impl Geometry for InstancedMesh {
 }
 
 /// Defines an instance of the model defined in [InstancedMesh] or [InstancedModel].
-#[derive(Clone, Copy, Debug)]
-pub struct Instance {
+#[derive(Clone, Debug)]
+pub struct Instances {
     /// The local to world transformation applied to the positions of the model instance.
-    pub geometry_transform: Mat4,
+    pub geometry_transforms: Vec<Mat4>,
     /// The texture transform applied to the uv coordinates of the model instance.
-    pub texture_transform: Mat3,
+    pub texture_transforms: Option<Vec<Mat3>>,
 }
 
-impl Default for Instance {
+impl Instances {
+    ///
+    /// Returns an error if the instances is not valid.
+    ///
+    pub fn validate(&self) -> ThreeDResult<()> {
+        let instance_count = self.geometry_transforms.len();
+        let buffer_check = |length: Option<usize>, name: &str| -> ThreeDResult<()> {
+            if let Some(length) = length {
+                if length < instance_count {
+                    Err(CoreError::InvalidBufferLength(
+                        name.to_string(),
+                        instance_count,
+                        length,
+                    ))?;
+                }
+            }
+            Ok(())
+        };
+
+        buffer_check(
+            self.texture_transforms.as_ref().map(|b| b.len()),
+            "texture transforms",
+        )?;
+
+        Ok(())
+    }
+
+    /// Returns the number of instances.
+    pub fn count(&self) -> u32 {
+        self.geometry_transforms.len() as u32
+    }
+}
+
+impl Default for Instances {
     fn default() -> Self {
         Self {
-            geometry_transform: Mat4::identity(),
-            texture_transform: Mat3::identity(),
+            geometry_transforms: vec![Mat4::identity()],
+            texture_transforms: None,
         }
     }
 }

@@ -11,11 +11,7 @@ impl InstancedModel<ColorMaterial> {
     /// The model is rendered in as many instances as there are [Instance] structs given as input.
     /// The transformation and texture transform in [Instance] are applied to each model instance before they are rendered.
     ///
-    pub fn new(
-        context: &Context,
-        instances: &[Instance],
-        cpu_mesh: &CpuMesh,
-    ) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
         Self::new_with_material(context, instances, cpu_mesh, ColorMaterial::default())
     }
 }
@@ -28,7 +24,7 @@ impl<M: Material> InstancedModel<M> {
     ///
     pub fn new_with_material(
         context: &Context,
-        instances: &[Instance],
+        instances: &Instances,
         cpu_mesh: &CpuMesh,
         material: M,
     ) -> ThreeDResult<Self> {
