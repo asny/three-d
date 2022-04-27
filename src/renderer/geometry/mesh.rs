@@ -22,58 +22,11 @@ impl Mesh {
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     ///
     pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
-        #[cfg(debug_assertions)]
-        cpu_mesh.validate()?;
-
-        let mut buffers = HashMap::new();
-        buffers.insert(
-            "position".to_string(),
-            VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32())?,
-        );
-        if let Some(ref normals) = cpu_mesh.normals {
-            buffers.insert(
-                "normal".to_string(),
-                VertexBuffer::new_with_data(context, normals)?,
-            );
-        };
-        if let Some(ref tangents) = cpu_mesh.tangents {
-            buffers.insert(
-                "tangent".to_string(),
-                VertexBuffer::new_with_data(context, tangents)?,
-            );
-        };
-        if let Some(ref uvs) = cpu_mesh.uvs {
-            buffers.insert(
-                "uv_coordinates".to_string(),
-                VertexBuffer::new_with_data(
-                    context,
-                    &uvs.iter()
-                        .map(|uv| vec2(uv.x, 1.0 - uv.y))
-                        .collect::<Vec<_>>(),
-                )?,
-            );
-        };
-        if let Some(ref colors) = cpu_mesh.colors {
-            buffers.insert(
-                "color".to_string(),
-                VertexBuffer::new_with_data(context, colors)?,
-            );
-        };
-        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
-            })
-        } else {
-            None
-        };
-
         let aabb = cpu_mesh.compute_aabb();
         Ok(Self {
             context: context.clone(),
-            index_buffer,
-            buffers,
+            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh)?,
+            buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
