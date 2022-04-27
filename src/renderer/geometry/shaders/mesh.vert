@@ -28,7 +28,7 @@ out vec3 bitang;
 
 
 #ifdef USE_UVS 
-#ifdef INSTANCED
+#ifdef USE_TEXTURE_TRANSFORMATIONS
 in vec3 tex_transform_row1;
 in vec3 tex_transform_row2;
 #endif
@@ -82,7 +82,7 @@ void main()
 
 #ifdef USE_UVS 
     mat3 texTransform = textureTransform;
-#ifdef INSTANCED
+#ifdef USE_TEXTURE_TRANSFORMATIONS
     mat3 instancedTexTransform;
     instancedTexTransform[0] = vec3(tex_transform_row1.x, tex_transform_row2.x, 0.0);
     instancedTexTransform[1] = vec3(tex_transform_row1.y, tex_transform_row2.y, 0.0);

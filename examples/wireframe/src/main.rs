@@ -117,19 +117,18 @@ pub async fn run() {
         .unwrap();
 }
 
-fn vertex_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
+fn vertex_transformations(cpu_mesh: &CpuMesh) -> Instances {
     let positions = cpu_mesh.positions.to_f32();
-    let mut instances = Vec::new();
-    for p in positions {
-        instances.push(Instance {
-            geometry_transform: Mat4::from_translation(p),
-            ..Default::default()
-        });
+    Instances {
+        geometry_transforms: positions
+            .iter()
+            .map(|p| Mat4::from_translation(*p))
+            .collect::<Vec<_>>(),
+        ..Default::default()
     }
-    instances
 }
 
-fn edge_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
+fn edge_transformations(cpu_mesh: &CpuMesh) -> Instances {
     let mut edge_transformations = std::collections::HashMap::new();
     let indices = cpu_mesh.indices.as_ref().unwrap().to_u32();
     let positions = cpu_mesh.positions.to_f32();
@@ -151,11 +150,11 @@ fn edge_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
         fun(i1, i3);
         fun(i2, i3);
     }
-    edge_transformations
-        .drain()
-        .map(|(_, v)| Instance {
-            geometry_transform: v,
-            ..Default::default()
-        })
-        .collect::<Vec<_>>()
+    Instances {
+        geometry_transforms: edge_transformations
+            .drain()
+            .map(|(_, m)| m)
+            .collect::<Vec<_>>(),
+        ..Default::default()
+    }
 }

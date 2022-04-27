@@ -71,13 +71,10 @@ impl<M: Material> BoundingBox<M> {
         ];
         let model = InstancedModel::new_with_material(
             context,
-            &transformations
-                .iter()
-                .map(|t| Instance {
-                    geometry_transform: *t,
-                    ..Default::default()
-                })
-                .collect::<Vec<_>>(),
+            &Instances {
+                geometry_transforms: transformations.to_vec(),
+                ..Default::default()
+            },
             &CpuMesh::cylinder(16),
             material,
         )?;
