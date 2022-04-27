@@ -8,12 +8,8 @@ use std::collections::HashMap;
 pub struct InstancedMesh {
     context: Context,
     vertex_buffers: HashMap<String, VertexBuffer>,
+    instance_buffers: HashMap<String, InstanceBuffer>,
     index_buffer: Option<ElementBuffer>,
-    instance_buffer1: InstanceBuffer,
-    instance_buffer2: InstanceBuffer,
-    instance_buffer3: InstanceBuffer,
-    instance_color_buffer: Option<InstanceBuffer>,
-    instance_tex_transform: Option<(InstanceBuffer, InstanceBuffer)>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -35,11 +31,7 @@ impl InstancedMesh {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh)?,
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
-            instance_buffer1: InstanceBuffer::new(context)?,
-            instance_buffer2: InstanceBuffer::new(context)?,
-            instance_buffer3: InstanceBuffer::new(context)?,
-            instance_tex_transform: None,
-            instance_color_buffer: None,
+            instance_buffers: HashMap::new(),
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
@@ -138,9 +130,18 @@ impl InstancedMesh {
                 geometry_transform.w.z,
             ));
         }
-        self.instance_buffer1.fill(&row1)?;
-        self.instance_buffer2.fill(&row2)?;
-        self.instance_buffer3.fill(&row3)?;
+        self.instance_buffers.insert(
+            "row1".to_string(),
+            InstanceBuffer::new_with_data(&self.context, &row1)?,
+        );
+        self.instance_buffers.insert(
+            "row2".to_string(),
+            InstanceBuffer::new_with_data(&self.context, &row2)?,
+        );
+        self.instance_buffers.insert(
+            "row3".to_string(),
+            InstanceBuffer::new_with_data(&self.context, &row3)?,
+        );
 
         if let Some(texture_transforms) = &self.instances.texture_transforms {
             let mut instance_tex_transform1 = Vec::new();
@@ -157,16 +158,20 @@ impl InstancedMesh {
                     texture_transform.z.y,
                 ));
             }
-            self.instance_tex_transform = Some((
+            self.instance_buffers.insert(
+                "tex_transform_row1".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1)?,
+            );
+            self.instance_buffers.insert(
+                "tex_transform_row2".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2)?,
-            ));
+            );
         }
         if let Some(instance_colors) = &self.instances.colors {
-            self.instance_color_buffer = Some(InstanceBuffer::new_with_data(
-                &self.context,
-                &instance_colors,
-            )?);
+            self.instance_buffers.insert(
+                "instance_color".to_string(),
+                InstanceBuffer::new_with_data(&self.context, &instance_colors)?,
+            );
         }
         self.update_aabb();
         Ok(())
@@ -251,29 +256,29 @@ impl Geometry for InstancedMesh {
                     &self.transformation.invert().unwrap().transpose(),
                 )?;
 
-                program.use_instance_attribute("row1", &self.instance_buffer1)?;
-                program.use_instance_attribute("row2", &self.instance_buffer2)?;
-                program.use_instance_attribute("row3", &self.instance_buffer3)?;
-
-                if program.requires_attribute("uv_coordinates") {
-                    if let Some((tex_transform_row1, tex_transform_row2)) =
-                        &self.instance_tex_transform
-                    {
-                        program.use_instance_attribute("tex_transform_row1", tex_transform_row1)?;
-                        program.use_instance_attribute("tex_transform_row2", tex_transform_row2)?;
-                    }
-                }
-                if program.requires_attribute("color") {
-                    if let Some(instance_color_buffer) = &self.instance_color_buffer {
-                        program.use_instance_attribute("instance_color", instance_color_buffer)?;
-                    }
-                }
-
                 for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
                     if program.requires_attribute(attribute_name) {
                         program.use_vertex_attribute(
                             attribute_name,
                             self.vertex_buffers
+                                .get(attribute_name)
+                                .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
+                        )?;
+                    }
+                }
+
+                for attribute_name in [
+                    "row1",
+                    "row2",
+                    "row3",
+                    "tex_transform_row1",
+                    "tex_transform_row2",
+                    "instance_color",
+                ] {
+                    if program.requires_attribute(attribute_name) {
+                        program.use_instance_attribute(
+                            attribute_name,
+                            self.instance_buffers
                                 .get(attribute_name)
                                 .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
                         )?;
@@ -307,7 +312,7 @@ pub struct Instances {
     pub geometry_transforms: Vec<Mat4>,
     /// The texture transform applied to the uv coordinates of the model instance.
     pub texture_transforms: Option<Vec<Mat3>>,
-    /// Colors multiplied onto the base color for the mesh.
+    /// Colors multiplied onto the base color for the model instance.
     pub colors: Option<Vec<Color>>,
 }
 
