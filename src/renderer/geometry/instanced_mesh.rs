@@ -1,16 +1,13 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::collections::HashMap;
 
 ///
 /// Similar to [Mesh], except it is possible to render many instances of the same mesh efficiently.
 ///
 pub struct InstancedMesh {
     context: Context,
-    position_buffer: VertexBuffer,
-    normal_buffer: Option<VertexBuffer>,
-    tangent_buffer: Option<VertexBuffer>,
-    uv_buffer: Option<VertexBuffer>,
-    color_buffer: Option<VertexBuffer>,
+    buffers: HashMap<String, VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
@@ -32,53 +29,11 @@ impl InstancedMesh {
     /// The transformation and texture transform in [Instance] are applied to each instance before they are rendered.
     ///
     pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
-        #[cfg(debug_assertions)]
-        cpu_mesh.validate()?;
-
-        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32())?;
-        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_data(context, normals)?)
-        } else {
-            None
-        };
-        let tangent_buffer = if let Some(ref tangents) = cpu_mesh.tangents {
-            Some(VertexBuffer::new_with_data(context, tangents)?)
-        } else {
-            None
-        };
-        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
-            })
-        } else {
-            None
-        };
-        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_data(
-                context,
-                &uvs.iter()
-                    .map(|uv| vec2(uv.x, 1.0 - uv.y))
-                    .collect::<Vec<_>>(),
-            )?)
-        } else {
-            None
-        };
-        let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with_data(context, colors)?)
-        } else {
-            None
-        };
         let aabb = cpu_mesh.compute_aabb();
         let mut model = Self {
             context: context.clone(),
-            position_buffer,
-            normal_buffer,
-            tangent_buffer,
-            index_buffer,
-            uv_buffer,
-            color_buffer,
+            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh)?,
+            buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
@@ -274,25 +229,25 @@ impl Geometry for InstancedMesh {
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         let fragment_shader_source =
-            material.fragment_shader_source(self.color_buffer.is_some(), lights);
+            material.fragment_shader_source(self.buffers.contains_key("color"), lights);
         self.context.program(
             &self.vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-
                 program.use_uniform("viewProjection", camera.projection() * camera.view())?;
                 program.use_uniform("modelMatrix", &self.transformation)?;
+                program.use_uniform_if_required("textureTransform", &self.texture_transform)?;
+                program.use_uniform_if_required(
+                    "normalMatrix",
+                    &self.transformation.invert().unwrap().transpose(),
+                )?;
 
                 program.use_instance_attribute("row1", &self.instance_buffer1)?;
                 program.use_instance_attribute("row2", &self.instance_buffer2)?;
                 program.use_instance_attribute("row3", &self.instance_buffer3)?;
 
-                if program.requires_attribute("position") {
-                    program.use_vertex_attribute("position", &self.position_buffer)?;
-                }
                 if program.requires_attribute("uv_coordinates") {
-                    program.use_uniform("textureTransform", &self.texture_transform)?;
                     if let Some((tex_transform_row1, tex_transform_row2)) =
                         &self.instance_tex_transform
                     {
@@ -301,32 +256,17 @@ impl Geometry for InstancedMesh {
                         program
                             .use_instance_attribute("tex_transform_row2", &tex_transform_row2)?;
                     }
-                    let uv_buffer = self
-                        .uv_buffer
-                        .as_ref()
-                        .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
-                    program.use_vertex_attribute("uv_coordinates", uv_buffer)?;
                 }
-                if program.requires_attribute("normal") {
-                    let normal_buffer = self
-                        .normal_buffer
-                        .as_ref()
-                        .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-                    program.use_vertex_attribute("normal", normal_buffer)?;
-                    if program.requires_attribute("tangent") {
-                        let tangent_buffer = self
-                            .tangent_buffer
-                            .as_ref()
-                            .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
-                        program.use_vertex_attribute("tangent", tangent_buffer)?;
+
+                for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
+                    if program.requires_attribute(attribute_name) {
+                        program.use_vertex_attribute(
+                            attribute_name,
+                            self.buffers
+                                .get(attribute_name)
+                                .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
+                        )?;
                     }
-                }
-                if program.requires_attribute("color") {
-                    let color_buffer = self
-                        .color_buffer
-                        .as_ref()
-                        .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
-                    program.use_vertex_attribute("color", color_buffer)?;
                 }
 
                 if let Some(ref index_buffer) = self.index_buffer {
@@ -340,7 +280,7 @@ impl Geometry for InstancedMesh {
                     program.draw_arrays_instanced(
                         material.render_states(),
                         camera.viewport(),
-                        self.position_buffer.vertex_count() as u32,
+                        self.buffers.get("position").unwrap().vertex_count() as u32,
                         self.instance_count,
                     )
                 }
