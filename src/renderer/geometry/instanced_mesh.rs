@@ -305,14 +305,16 @@ impl Geometry for InstancedMesh {
     }
 }
 
-/// Defines an instance of the model defined in [InstancedMesh] or [InstancedModel].
+///
+/// Defines the attributes for the instances of the model defined in [InstancedMesh] or [InstancedModel].
+///
 #[derive(Clone, Debug)]
 pub struct Instances {
-    /// The local to world transformation applied to the positions of the model instance.
+    /// The local to world transformation applied to the positions of the model instances.
     pub geometry_transforms: Vec<Mat4>,
-    /// The texture transform applied to the uv coordinates of the model instance.
+    /// The texture transform applied to the uv coordinates of the model instances.
     pub texture_transforms: Option<Vec<Mat3>>,
-    /// Colors multiplied onto the base color for the model instance.
+    /// Colors multiplied onto the base color for the model instances.
     pub colors: Option<Vec<Color>>,
 }
 
@@ -339,6 +341,7 @@ impl Instances {
             self.texture_transforms.as_ref().map(|b| b.len()),
             "texture transforms",
         )?;
+        buffer_check(self.colors.as_ref().map(|b| b.len()), "colors")?;
 
         Ok(())
     }
