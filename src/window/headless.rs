@@ -24,14 +24,14 @@ impl Context {
     }
 }
 
-#[cfg(target_os = "linux")]
+/*#[cfg(target_os = "linux")]
 fn build_context_surfaceless<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
     el: &EventLoop<()>,
 ) -> Result<glutin::Context<NotCurrent>, CreationError> {
     use glutin::platform::unix::HeadlessContextExt;
     cb.build_surfaceless(&el)
-}
+}*/
 
 fn build_context_headless<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
