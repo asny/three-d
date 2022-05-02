@@ -53,7 +53,7 @@ fn build_context_osmesa<T1: ContextCurrentState>(
 #[cfg(target_os = "linux")]
 fn build_context<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
-) -> Result<(glutin::Context<NotCurrent>, EventLoop<()>), [CreationError; 3]> {
+) -> Result<(glutin::Context<NotCurrent>, EventLoop<()>), [CreationError; 2]> {
     // On unix operating systems, you should always try for surfaceless first,
     // and if that does not work, headless (pbuffers), and if that too fails,
     // finally osmesa.
@@ -64,11 +64,11 @@ fn build_context<T1: ContextCurrentState>(
     use glutin::platform::unix::EventLoopExtUnix;
     let el = EventLoopExtUnix::new_any_thread();
 
-    println!("Trying surfaceless");
+    /*println!("Trying surfaceless");
     let err1 = match build_context_surfaceless(cb.clone(), &el) {
         Ok(ctx) => return Ok((ctx, el)),
         Err(err) => err,
-    };
+    };*/
 
     println!("Trying headless");
     let err2 = match build_context_headless(cb.clone(), &el) {
@@ -82,7 +82,7 @@ fn build_context<T1: ContextCurrentState>(
         Err(err) => err,
     };
 
-    Err([err1, err2, err3])
+    Err([err2, err3])
 }
 
 #[cfg(not(target_os = "linux"))]
