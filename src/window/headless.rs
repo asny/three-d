@@ -13,12 +13,14 @@ impl Context {
     pub fn new() -> ThreeDResult<Self> {
         let cb = ContextBuilder::new();
         let (headless_context, _el) = build_context(cb).unwrap();
-        let current_context = unsafe { headless_context.make_current().unwrap() };
-        Self::from_gl_context(std::rc::Rc::new(unsafe {
+        let headless_context = unsafe { headless_context.make_current().unwrap() };
+        let mut c = Self::from_gl_context(std::rc::Rc::new(unsafe {
             crate::context::Context::from_loader_function(|s| {
-                current_context.get_proc_address(s) as *const _
+                headless_context.get_proc_address(s) as *const _
             })
-        }))
+        }))?;
+        c.glutin_context = Some(std::rc::Rc::new(headless_context));
+        Ok(c)
     }
 }
 
