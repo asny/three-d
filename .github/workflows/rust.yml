@@ -68,7 +68,7 @@ jobs:
             fi
           done
 
-examples:
+  examples:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
