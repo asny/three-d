@@ -111,7 +111,7 @@ pub(crate) fn lights_fragment_shader_source(
     lights: &[&dyn Light],
     lighting_model: LightingModel,
 ) -> String {
-    let mut shader_source = lighting_model.shader().to_string();
+    let mut shader_source = lighting_model_shader(lighting_model).to_string();
     shader_source.push_str(include_str!("../core/shared.frag"));
     shader_source.push_str(include_str!("light/shaders/light_shared.frag"));
     let mut dir_fun = String::new();
@@ -147,5 +147,17 @@ fn compute_up_direction(direction: Vec3) -> Vec3 {
         (vec3(0.0, 1.0, 0.0).cross(direction)).normalize()
     } else {
         (vec3(1.0, 0.0, 0.0).cross(direction)).normalize()
+    }
+}
+
+pub(crate) fn lighting_model_shader(lighting_model: LightingModel) -> &'static str {
+    match lighting_model {
+        LightingModel::Phong => "#define PHONG",
+        LightingModel::Blinn => "#define BLINN",
+        LightingModel::Cook(normal, _) => match normal {
+            NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
+            NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
+            NormalDistributionFunction::TrowbridgeReitzGGX => "#define COOK\n#define COOK_GGX\n",
+        },
     }
 }

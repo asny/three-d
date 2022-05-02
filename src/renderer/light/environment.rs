@@ -84,7 +84,7 @@ impl Environment {
         {
             let fragment_shader_source = format!(
                 "{}{}{}{}",
-                lighting_model.shader(),
+                super::lighting_model_shader(lighting_model),
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/light_shared.frag"),
                 include_str!("shaders/prefilter.frag")
@@ -124,7 +124,7 @@ impl Environment {
             context,
             &format!(
                 "{}{}{}{}",
-                lighting_model.shader(),
+                super::lighting_model_shader(lighting_model),
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/light_shared.frag"),
                 include_str!("shaders/brdf.frag")
