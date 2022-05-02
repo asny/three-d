@@ -4,6 +4,7 @@ on: [ push, pull_request ]
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
 
 jobs:
   desktop:
@@ -67,3 +68,18 @@ jobs:
             fi
           done
 
+examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/cargo@v1
+      - run: sudo apt-get update && sudo apt-get install -y mesa-utils xvfb
+
+      - name: Install Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - run: DISPLAY=:0 xvfb-run -s '-screen 0 1024x768x24' cargo run --example headless --no-default-features --features "glutin-window image-io"
