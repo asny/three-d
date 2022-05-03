@@ -50,7 +50,14 @@ pub use scissor_box::*;
 pub use crate::ThreeDResult;
 use thiserror::Error;
 
-pub use three_d_data_types::math::*;
+pub mod math {
+    //!
+    //! Basic math functionality. Mostly just an re-export of [cgmath](https://crates.io/crates/cgmath).
+    //!
+    pub use three_d_data_types::math::*;
+}
+pub use math::*;
+
 pub use three_d_data_types::surface::{
     GeometryFunction, Indices, LightingModel, Material as CpuMaterial, NormalDistributionFunction,
     Positions, TriMesh as CpuMesh,
