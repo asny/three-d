@@ -4,10 +4,9 @@
 //!
 
 pub use crate::core::{
-    math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera,
-    Context, CpuMaterial, CpuMesh, CpuTexture, CpuTexture3D, CpuTextureCube, CpuVolume,
-    GeometryFunction, Indices, LightingModel, NormalDistributionFunction, Positions, ScissorBox,
-    Viewport,
+    math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera, Color,
+    Context, CpuMaterial, CpuMesh, CpuVolume, GeometryFunction, Indices, LightingModel,
+    NormalDistributionFunction, Positions, ScissorBox, Viewport,
 };
 
 pub mod material;

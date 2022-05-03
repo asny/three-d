@@ -16,10 +16,6 @@ pub use math::*;
 pub mod texture;
 pub use texture::*;
 
-mod cpu_mesh;
-#[doc(inline)]
-pub use cpu_mesh::*;
-
 pub mod render_states;
 pub use render_states::*;
 
@@ -29,14 +25,6 @@ pub use render_target::*;
 mod uniform;
 #[doc(inline)]
 pub use uniform::*;
-
-mod cpu_material;
-#[doc(inline)]
-pub use cpu_material::*;
-
-mod cpu_volume;
-#[doc(inline)]
-pub use cpu_volume::*;
 
 mod camera;
 #[doc(inline)]
@@ -54,14 +42,6 @@ mod program;
 #[doc(inline)]
 pub use program::*;
 
-mod aabb;
-#[doc(inline)]
-pub use aabb::*;
-
-mod color;
-#[doc(inline)]
-pub use color::*;
-
 mod viewport;
 #[doc(inline)]
 pub use viewport::*;
@@ -72,6 +52,14 @@ pub use scissor_box::*;
 
 pub use crate::ThreeDResult;
 use thiserror::Error;
+
+pub use three_d_data_types::math::{Color, AxisAlignedBoundingBox};
+pub use three_d_data_types::model::{
+    GeometryFunction, Indices, LightingModel, Material as CpuMaterial, Mesh as CpuMesh,
+    NormalDistributionFunction, Positions,
+};
+pub use three_d_data_types::volume::Volume as CpuVolume;
+
 ///
 /// Error in the [core](crate::core) module.
 ///
