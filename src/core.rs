@@ -10,9 +10,6 @@ pub use context::*;
 pub mod buffer;
 pub use buffer::*;
 
-pub mod math;
-pub use math::*;
-
 pub mod texture;
 pub use texture::*;
 
@@ -53,7 +50,7 @@ pub use scissor_box::*;
 pub use crate::ThreeDResult;
 use thiserror::Error;
 
-pub use three_d_data_types::math::{Color, AxisAlignedBoundingBox};
+pub use three_d_data_types::math::*;
 pub use three_d_data_types::model::{
     GeometryFunction, Indices, LightingModel, Material as CpuMaterial, Mesh as CpuMesh,
     NormalDistributionFunction, Positions,
