@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 three-d = { path = "../../" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.16", features = ["macros"] }
+tokio = { version = "1.16", features = ["macros", "rt-multi-thread"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"
