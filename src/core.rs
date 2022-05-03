@@ -51,9 +51,9 @@ pub use crate::ThreeDResult;
 use thiserror::Error;
 
 pub use three_d_data_types::math::*;
-pub use three_d_data_types::model::{
-    GeometryFunction, Indices, LightingModel, Material as CpuMaterial, Mesh as CpuMesh,
-    NormalDistributionFunction, Positions,
+pub use three_d_data_types::surface::{
+    GeometryFunction, Indices, LightingModel, Material as CpuMaterial, NormalDistributionFunction,
+    Positions, TriMesh as CpuMesh,
 };
 pub use three_d_data_types::volume::Volume as CpuVolume;
 
