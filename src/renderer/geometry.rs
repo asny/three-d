@@ -22,6 +22,8 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
+pub use three_d_data_types::surface::{Indices, Positions, TriMesh as CpuMesh};
+
 ///
 /// Represents a 3D geometry that, together with a [material], can be rendered using [Geometry::render_with_material].
 /// Alternatively, a geometry and a material can be combined in a [Gm],

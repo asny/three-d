@@ -6,6 +6,10 @@
 use crate::core::*;
 use crate::renderer::*;
 
+pub use three_d_data_types::surface::{
+    GeometryFunction, LightingModel, NormalDistributionFunction, PbrMaterial as CpuMaterial,
+};
+
 mod color_material;
 #[doc(inline)]
 pub use color_material::*;

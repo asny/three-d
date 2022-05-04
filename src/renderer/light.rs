@@ -24,7 +24,7 @@ mod environment;
 #[doc(inline)]
 pub use environment::*;
 
-use crate::renderer::*;
+use crate::core::*;
 
 ///
 /// Specifies how the intensity of a light fades over distance.
@@ -150,6 +150,7 @@ fn compute_up_direction(direction: Vec3) -> Vec3 {
     }
 }
 
+use crate::renderer::{LightingModel, NormalDistributionFunction};
 pub(crate) fn lighting_model_shader(lighting_model: LightingModel) -> &'static str {
     match lighting_model {
         LightingModel::Phong => "#define PHONG",
