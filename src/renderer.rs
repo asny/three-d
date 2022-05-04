@@ -5,6 +5,18 @@
 
 pub use crate::core::*;
 
+/*pub use crate::core::{
+    math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera, Color,
+    Context, CpuMaterial, CpuMesh, CpuVolume, GeometryFunction, Indices, LightingModel,
+    NormalDistributionFunction, Positions, ScissorBox, Viewport,
+};*/
+
+pub use three_d_data_types::surface::{
+    GeometryFunction, Indices, LightingModel, NormalDistributionFunction,
+    PbrMaterial as CpuMaterial, Positions, TriMesh as CpuMesh,
+};
+pub use three_d_data_types::volume::Volume as CpuVolume;
+
 pub mod material;
 pub use material::*;
 

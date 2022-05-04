@@ -6,8 +6,6 @@
 use crate::core::*;
 use crate::renderer::*;
 
-pub use crate::core::{Color, CpuMaterial};
-
 mod color_material;
 #[doc(inline)]
 pub use color_material::*;

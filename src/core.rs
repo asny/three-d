@@ -57,12 +57,6 @@ pub mod math {
     pub use three_d_data_types::math::*;
 }
 pub use math::*;
-
-pub use three_d_data_types::surface::{
-    GeometryFunction, Indices, LightingModel, Material as CpuMaterial, NormalDistributionFunction,
-    Positions, TriMesh as CpuMesh,
-};
-pub use three_d_data_types::volume::Volume as CpuVolume;
 pub use three_d_data_types::{AxisAlignedBoundingBox, Color};
 
 ///

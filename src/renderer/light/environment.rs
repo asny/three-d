@@ -1,4 +1,4 @@
-use crate::core::*;
+use crate::renderer::*;
 
 ///
 /// Precalculations of light shining from an environment map (known as image based lighting - IBL).
