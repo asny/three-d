@@ -63,6 +63,7 @@ pub use three_d_data_types::surface::{
     Positions, TriMesh as CpuMesh,
 };
 pub use three_d_data_types::volume::Volume as CpuVolume;
+pub use three_d_data_types::{AxisAlignedBoundingBox, Color};
 
 ///
 /// Error in the [core](crate::core) module.

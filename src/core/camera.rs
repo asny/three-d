@@ -407,11 +407,19 @@ impl Camera {
     }
 
     fn update_uniform_buffer(&mut self) -> ThreeDResult<()> {
+        let as_array = |m: Mat4| {
+            [
+                m.x.x, m.x.y, m.x.z, m.x.w, m.y.x, m.y.y, m.y.z, m.y.w, m.z.x, m.z.y, m.z.z, m.z.w,
+                m.w.x, m.w.y, m.w.z, m.w.w,
+            ]
+        };
+
         self.uniform_buffer
-            .update(0, &(self.projection * self.view).as_array())?;
-        self.uniform_buffer.update(1, &self.view.as_array())?;
-        self.uniform_buffer.update(2, &self.projection.as_array())?;
-        self.uniform_buffer.update(3, &self.position.as_array())?;
+            .update(0, &as_array(self.projection * self.view))?;
+        self.uniform_buffer.update(1, &as_array(self.view))?;
+        self.uniform_buffer.update(2, &as_array(self.projection))?;
+        self.uniform_buffer
+            .update(3, &[self.position.x, self.position.y, self.position.z])?;
         Ok(())
     }
 
