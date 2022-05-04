@@ -119,7 +119,7 @@ impl ImpostersMaterial {
     ) -> ThreeDResult<Self> {
         let mut m = Self {
             context: context.clone(),
-            texture: Texture2DArray::new_empty::<Vector4<u8>>(
+            texture: Texture2DArray::new_empty::<[u8; 4]>(
                 context,
                 1,
                 1,
@@ -159,7 +159,7 @@ impl ImpostersMaterial {
                 0.0,
                 4.0 * (width + height),
             )?;
-            self.texture = Texture2DArray::new_empty::<Vector4<f16>>(
+            self.texture = Texture2DArray::new_empty::<[f16; 4]>(
                 &self.context,
                 texture_width,
                 texture_height,
