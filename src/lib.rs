@@ -18,6 +18,7 @@ pub mod window;
 pub use window::*;
 
 pub mod io;
+#[allow(deprecated)]
 pub use io::*;
 
 mod gui;
