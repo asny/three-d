@@ -86,7 +86,7 @@ fn main() {
         .unwrap();
 
         // Save the rendered image
-        Saver::save_pixels(
+        three_d_io::Saver::save_pixels(
             format!("headless-{}.png", frame_index),
             &pixels,
             texture.width(),

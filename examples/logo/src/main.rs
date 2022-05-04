@@ -63,7 +63,7 @@ pub async fn run() {
     let mut model = Model::new_with_material(&context, &cpu_mesh, material).unwrap();
     model.set_transformation(Mat4::from_angle_y(degrees(35.0)));
 
-    let mut loaded = Loader::load_async(
+    let mut loaded = three_d_io::Loader::load_async(
         &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
     )
     .await

@@ -45,10 +45,12 @@ pub async fn run() {
     let directional =
         DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
 
-    let mut loaded =
-        Loader::load_async(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"])
-            .await
-            .unwrap();
+    let mut loaded = three_d_io::Loader::load_async(&[
+        "examples/assets/suzanne.obj",
+        "examples/assets/suzanne.mtl",
+    ])
+    .await
+    .unwrap();
 
     let (meshes, materials) = loaded.obj("suzanne.obj").unwrap();
     let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();

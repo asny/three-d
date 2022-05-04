@@ -38,7 +38,7 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
-    let mut loaded = Loader::load_async(
+    let mut loaded = three_d_io::Loader::load_async(
         &["examples/assets/gltf/DamagedHelmet.glb"], // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
     )
     .await

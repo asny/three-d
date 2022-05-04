@@ -31,10 +31,12 @@ pub async fn run() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 0.1 * scene_radius, 100.0 * scene_radius);
 
-    let mut loaded =
-        Loader::load_async(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"])
-            .await
-            .unwrap();
+    let mut loaded = three_d_io::Loader::load_async(&[
+        "examples/assets/suzanne.obj",
+        "examples/assets/suzanne.mtl",
+    ])
+    .await
+    .unwrap();
 
     let (mut meshes, materials) = loaded.obj("suzanne.obj").unwrap();
     let mut cpu_mesh = meshes.remove(0);

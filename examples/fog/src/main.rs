@@ -30,10 +30,12 @@ pub async fn run() {
     .unwrap();
     let mut control = FlyControl::new(0.05);
 
-    let mut loaded =
-        Loader::load_async(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"])
-            .await
-            .unwrap();
+    let mut loaded = three_d_io::Loader::load_async(&[
+        "examples/assets/suzanne.obj",
+        "examples/assets/suzanne.mtl",
+    ])
+    .await
+    .unwrap();
 
     let (meshes, materials) = loaded.obj("suzanne.obj").unwrap();
     let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();

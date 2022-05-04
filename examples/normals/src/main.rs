@@ -18,7 +18,7 @@ pub async fn run() {
     let context = window.gl().unwrap();
 
     // Model source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/
-    let mut loaded = Loader::load_async(&[
+    let mut loaded = three_d_io::Loader::load_async(&[
         "examples/assets/gltf/NormalTangentTest.glb",
         "examples/assets/gltf/NormalTangentMirrorTest.glb",
     ])

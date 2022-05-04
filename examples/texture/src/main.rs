@@ -29,7 +29,7 @@ pub async fn run() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut loaded = Loader::load_async(&[
+    let mut loaded = three_d_io::Loader::load_async(&[
         "examples/assets/skybox_evening/right.jpg",
         "examples/assets/skybox_evening/left.jpg",
         "examples/assets/skybox_evening/top.jpg",

@@ -18,7 +18,7 @@ pub async fn run() {
     let context = window.gl().unwrap();
     let mut image_effect = ImageEffect::new(&context, include_str!("shader.frag")).unwrap();
 
-    let mut loaded = Loader::load_async(
+    let mut loaded = three_d_io::Loader::load_async(
         &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
     )
     .await

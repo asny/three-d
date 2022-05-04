@@ -34,7 +34,7 @@ pub async fn run() {
     let mut control = FlyControl::new(0.01);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
-    let mut loaded = Loader::load_async(&[
+    let mut loaded = three_d_io::Loader::load_async(&[
         "examples/assets/sponza/Sponza.gltf",
         "examples/assets/sponza/Sponza.bin",
         "examples/assets/sponza/10381718147657362067.jpeg",
