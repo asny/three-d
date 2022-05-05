@@ -7,8 +7,7 @@ pub use half::f16;
 pub use half::slice::HalfFloatSliceExt;
 pub use half::vec::HalfFloatVecExt;
 
-pub(crate) use cgmath::ortho;
-pub(crate) use cgmath::perspective;
+#[doc(hidden)]
 pub use cgmath::prelude::*;
 use cgmath::{Basis3, Deg, Point3, Rad};
 pub use cgmath::{Matrix2, Matrix3, Matrix4, Quaternion, Vector2, Vector3, Vector4};
