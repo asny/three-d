@@ -6,7 +6,7 @@
 use crate::core::*;
 use crate::renderer::*;
 
-pub use three_d_data_types::surface::{
+pub use three_d_io::material::{
     GeometryFunction, LightingModel, NormalDistributionFunction, PbrMaterial as CpuMaterial,
 };
 

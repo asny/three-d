@@ -54,10 +54,10 @@ pub mod math {
     //!
     //! Basic math functionality. Mostly just an re-export of [cgmath](https://crates.io/crates/cgmath).
     //!
-    pub use three_d_data_types::math::*;
+    pub use three_d_io::math::*;
 }
 pub use math::*;
-pub use three_d_data_types::{AxisAlignedBoundingBox, Color};
+pub use three_d_io::{AxisAlignedBoundingBox, Color};
 
 ///
 /// Error in the [core](crate::core) module.

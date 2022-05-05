@@ -30,7 +30,7 @@ mod depth_target_texture_cube_map;
 pub use depth_target_texture_cube_map::*;
 
 use data_type::*;
-pub use three_d_data_types::texture::{
+pub use three_d_io::texture::{
     Interpolation, Texture2D as CpuTexture, Texture3D as CpuTexture3D,
     TextureCube as CpuTextureCube, TextureCubeData, TextureData, Wrapping,
 };
