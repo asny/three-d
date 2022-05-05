@@ -50,14 +50,11 @@ pub use scissor_box::*;
 pub use crate::ThreeDResult;
 use thiserror::Error;
 
-pub mod math {
-    //!
-    //! Basic math functionality. Mostly just an re-export of [cgmath](https://crates.io/crates/cgmath).
-    //!
-    pub use three_d_io::math::*;
-}
+pub mod math;
 pub use math::*;
-pub use three_d_io::{AxisAlignedBoundingBox, Color};
+
+pub use three_d_io::geometry::AxisAlignedBoundingBox;
+pub use three_d_io::material::Color;
 
 ///
 /// Error in the [core](crate::core) module.
