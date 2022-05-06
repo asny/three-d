@@ -50,7 +50,11 @@ pub use scissor_box::*;
 pub use crate::ThreeDResult;
 use thiserror::Error;
 
-pub use three_d_io::prelude::*;
+pub mod prelude {
+
+    pub use three_d_io::prelude::*;
+}
+pub use prelude::*;
 
 ///
 /// Error in the [core](crate::core) module.
