@@ -38,7 +38,7 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let environment_map = loaded.hdr_image("chinese").unwrap();
+    let environment_map = loaded.image("chinese").unwrap();
     let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
 
     let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();

@@ -36,7 +36,7 @@ pub async fn run() {
     .await
     .unwrap();
     let skybox =
-        Skybox::new_from_equirectangular(&context, &loaded.hdr_image("chinese_garden_4k").unwrap())
+        Skybox::new_from_equirectangular(&context, &loaded.image("chinese_garden_4k").unwrap())
             .unwrap();
     let light =
         AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture()).unwrap();
