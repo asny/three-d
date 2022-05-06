@@ -17,7 +17,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 targets = ["x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
 
 [features]
-default = ["window", "egui-gui", "image-io", "obj-io", "gltf-io"]
+default = ["window", "egui-gui", "image-io", "obj-io", "gltf-io", "three-d-io/vol"]
 window = ["glutin"] # Window module
 egui-gui = ["egui"] # Additional GUI features 
 image-io = ["three-d-io/https", "three-d-io/hdr", "three-d-io/tiff", "three-d-io/tga", "three-d-io/gif", "three-d-io/bmp"] # Additional image functionality, for example loading an image to a texture
