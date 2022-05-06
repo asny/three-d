@@ -4,9 +4,10 @@
 //!
 
 pub use crate::core::{
-    math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera, Color,
-    Context, ScissorBox, Viewport,
+    render_states::*, render_target::*, texture::*, Camera, Context, ScissorBox, Viewport,
 };
+
+pub use three_d_io::prelude::*;
 
 pub mod material;
 pub use material::*;

@@ -50,11 +50,7 @@ pub use scissor_box::*;
 pub use crate::ThreeDResult;
 use thiserror::Error;
 
-pub mod math;
-pub use math::*;
-
-pub use three_d_io::geometry::AxisAlignedBoundingBox;
-pub use three_d_io::material::Color;
+pub use three_d_io::prelude::*;
 
 ///
 /// Error in the [core](crate::core) module.

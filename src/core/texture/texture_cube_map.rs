@@ -73,33 +73,33 @@ impl CubeMapSide {
     pub(in crate::core) fn view(&self) -> Mat4 {
         match self {
             CubeMapSide::Right => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(1.0, 0.0, 0.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(1.0, 0.0, 0.0),
                 vec3(0.0, -1.0, 0.0),
             ),
             CubeMapSide::Left => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(-1.0, 0.0, 0.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(-1.0, 0.0, 0.0),
                 vec3(0.0, -1.0, 0.0),
             ),
             CubeMapSide::Top => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(0.0, 1.0, 0.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(0.0, 1.0, 0.0),
                 vec3(0.0, 0.0, 1.0),
             ),
             CubeMapSide::Bottom => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(0.0, -1.0, 0.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(0.0, -1.0, 0.0),
                 vec3(0.0, 0.0, -1.0),
             ),
             CubeMapSide::Front => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(0.0, 0.0, 1.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(0.0, 0.0, 1.0),
                 vec3(0.0, -1.0, 0.0),
             ),
             CubeMapSide::Back => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(0.0, 0.0, -1.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(0.0, 0.0, -1.0),
                 vec3(0.0, -1.0, 0.0),
             ),
         }

@@ -162,8 +162,8 @@ impl Camera {
         self.target = target;
         self.up = up;
         self.view = Mat4::look_at_rh(
-            Point::from_vec(self.position),
-            Point::from_vec(self.target),
+            Point3::from_vec(self.position),
+            Point3::from_vec(self.target),
             self.up,
         );
         self.update_screen2ray();
