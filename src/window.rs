@@ -286,13 +286,6 @@ pub struct FrameOutput {
     pub swap_buffers: bool,
 
     ///
-    /// Takes a screenshot if this is set to some path and saves it at the given location.
-    /// Only works on desktop and if the `image-io` feature is enabled.
-    ///
-    #[cfg_attr(docsrs, doc(cfg(feature = "image-io")))]
-    pub screenshot: Option<std::path::PathBuf>,
-
-    ///
     /// Whether to stop the render loop until next event.
     ///
     pub wait_next_event: bool,
@@ -303,7 +296,6 @@ impl Default for FrameOutput {
         Self {
             exit: false,
             swap_buffers: true,
-            screenshot: None,
             wait_next_event: false,
         }
     }

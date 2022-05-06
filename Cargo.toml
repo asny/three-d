@@ -34,6 +34,7 @@ egui = { version = "0.13", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 glutin = { version = "0.28", optional = true }
+image = { version = "0.23", optional = true, default-features = false, features = ["png"]} # Used for automatically generate screenshots
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3"
