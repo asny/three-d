@@ -27,7 +27,7 @@ gltf-io = ["three-d-io/gltf", "three-d-io/https"]
 [dependencies]
 glow = "0.11"
 cgmath = "0.18"
-three-d-io = { path = "../three-d-io" }
+three-d-io = { git = "https://github.com/asny/three-d-io" }
 half = {version="1.8", features=["std", "num-traits", "zerocopy", "serde"]}
 thiserror = "1.0"
 egui = { version = "0.13", optional = true }
@@ -45,7 +45,6 @@ gloo-timers = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
-three-d-io = {path = "../three-d-io" }
 rand = "0.8"
 tokio = { version = "1.16", features = ["macros", "rt-multi-thread"] }
 
