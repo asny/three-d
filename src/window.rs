@@ -5,35 +5,29 @@
 //! can be replaced by any other window with similar functionality. Also contains camera control utilities.
 //!
 
-#[cfg(any(feature = "glutin-window", feature = "canvas"))]
 mod settings;
 #[doc(inline)]
-#[cfg(any(feature = "glutin-window", feature = "canvas"))]
 pub use settings::*;
 
 pub mod control;
 pub use control::*;
 
-#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 mod glutin_window;
 #[doc(inline)]
-#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 pub use glutin_window::*;
 
-#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
-#[cfg_attr(
-    docsrs,
-    doc(all(feature = "glutin-window", not(target_arch = "wasm32")))
-)]
+#[cfg(not(target_arch = "wasm32"))]
 mod headless;
 #[doc(inline)]
-#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 pub use headless::*;
 
-#[cfg(all(feature = "canvas", target_arch = "wasm32"))]
+#[cfg(target_arch = "wasm32")]
 mod canvas;
 #[doc(inline)]
-#[cfg(all(feature = "canvas", target_arch = "wasm32"))]
+#[cfg(target_arch = "wasm32")]
 pub use canvas::*;
 
 /// Type of mouse button.

@@ -14,7 +14,10 @@ pub mod core;
 pub mod renderer;
 pub use renderer::*;
 
+#[cfg(feature = "window")]
+#[cfg_attr(docsrs, doc(feature = "window"))]
 pub mod window;
+#[cfg(feature = "window")]
 pub use window::*;
 
 pub mod io;

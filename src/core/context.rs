@@ -18,7 +18,7 @@ pub struct Context {
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
-    #[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "glutin", not(target_arch = "wasm32")))]
     pub(crate) glutin_context: Option<Rc<glutin::Context<glutin::PossiblyCurrent>>>,
 }
 
@@ -48,7 +48,7 @@ impl Context {
                 programs: Rc::new(RefCell::new(HashMap::new())),
                 effects: Rc::new(RefCell::new(HashMap::new())),
                 camera2d: Rc::new(RefCell::new(None)),
-                #[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+                #[cfg(all(feature = "glutin", not(target_arch = "wasm32")))]
                 glutin_context: None,
             }
         };

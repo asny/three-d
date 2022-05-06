@@ -20,4 +20,5 @@ pub type Loaded = three_d_io::Loaded;
 ///
 /// Functionality for saving resources. Only available on desktop at the moment.
 ///
+#[cfg(not(target_arch = "wasm32"))]
 pub type Saver = three_d_io::Saver;
