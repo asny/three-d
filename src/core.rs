@@ -55,7 +55,7 @@ pub mod prelude {
     //!
     //! Basic types used throughout this crate, mostly basic math.
     //!
-    pub use three_d_io::prelude::*;
+    pub use three_d_asset::prelude::*;
 }
 pub use prelude::*;
 
