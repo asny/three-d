@@ -30,7 +30,7 @@ pub async fn run() {
     .unwrap();
     let mut control = FlyControl::new(0.05);
 
-    let mut loaded = three_d_io::Loader::load_async(&[
+    let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/suzanne.obj",
         "examples/assets/suzanne.mtl",
     ])

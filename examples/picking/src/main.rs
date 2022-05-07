@@ -45,7 +45,7 @@ pub async fn run() {
     let directional =
         DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
 
-    let mut loaded = three_d_io::Loader::load_async(&[
+    let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/suzanne.obj",
         "examples/assets/suzanne.mtl",
     ])

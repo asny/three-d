@@ -30,7 +30,7 @@ pub async fn run() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut loaded = three_d_io::Loader::load_async(
+    let mut loaded = three_d_asset::io::load_async(
         &["examples/assets/chinese_garden_4k.hdr"], // Source: https://polyhaven.com/
     )
     .await

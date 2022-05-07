@@ -31,7 +31,7 @@ pub async fn run() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 0.1 * scene_radius, 100.0 * scene_radius);
 
-    let mut loaded = three_d_io::Loader::load_async(&[
+    let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/suzanne.obj",
         "examples/assets/suzanne.mtl",
     ])

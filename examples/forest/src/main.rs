@@ -29,7 +29,7 @@ pub async fn run() {
     .unwrap();
     let mut control = FlyControl::new(0.1);
 
-    let mut loaded = three_d_io::Loader::load_async(&[
+    let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/Gledista_Triacanthos.obj",
         "examples/assets/Gledista_Triacanthos.mtl",
         "examples/assets/maps/gleditsia_triacanthos_flowers_color.jpg",
