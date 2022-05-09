@@ -15,8 +15,26 @@ use three_d_asset::Result;
 pub struct Loader {}
 
 impl Loader {
+    ///
+    /// Loads all of the resources in the given paths then calls `on_done` with all of the [Loaded] resources.
+    /// Alternatively use [load_async] on both web and desktop or [load_blocking] on desktop.
+    ///
+    /// **Note:** This method must not be called from an async function. In that case, use [load_async] instead.
+    ///
     pub fn load(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(Result<Loaded>)) {
-        three_d_asset::io::load(paths, on_done)
+        #[cfg(target_arch = "wasm32")]
+        {
+            let paths: Vec<std::path::PathBuf> =
+                paths.iter().map(|p| p.as_ref().to_path_buf()).collect();
+            wasm_bindgen_futures::spawn_local(async move {
+                let loaded = Self::load_async(&paths).await;
+                on_done(loaded);
+            });
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            on_done(Self::load_blocking(paths));
+        }
     }
 
     #[cfg(not(target_arch = "wasm32"))]
