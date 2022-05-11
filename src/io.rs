@@ -6,6 +6,7 @@
 #![allow(missing_docs)]
 #![deprecated = "moved to the `three-d-io` crate"]
 
+use crate::{CpuMaterial, CpuMesh, CpuTexture, CpuVolume};
 use std::path::Path;
 use three_d_asset::Result;
 
@@ -39,15 +40,51 @@ impl Loader {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn load_blocking(paths: &[impl AsRef<Path>]) -> Result<Loaded> {
-        three_d_asset::io::load(paths)
+        Ok(Loaded(three_d_asset::io::load(paths)?))
     }
 
     pub async fn load_async(paths: &[impl AsRef<Path>]) -> Result<Loaded> {
-        three_d_asset::io::load_async(paths).await
+        Ok(Loaded(three_d_asset::io::load_async(paths).await?))
     }
 }
 
-pub type Loaded = three_d_asset::io::RawAssets;
+pub struct Loaded(three_d_asset::io::RawAssets);
+
+impl Loaded {
+    pub fn gltf<P: AsRef<Path>>(&mut self, path: P) -> Result<(Vec<CpuMesh>, Vec<CpuMaterial>)> {
+        let r: three_d_asset::Model = self.deserialize(path)?;
+        Ok((r.geometries, r.materials))
+    }
+
+    pub fn obj<P: AsRef<Path>>(&mut self, path: P) -> Result<(Vec<CpuMesh>, Vec<CpuMaterial>)> {
+        let r: three_d_asset::Model = self.deserialize(path)?;
+        Ok((r.geometries, r.materials))
+    }
+
+    pub fn vol<P: AsRef<Path>>(&mut self, path: P) -> Result<CpuVolume> {
+        self.deserialize(path)
+    }
+
+    ///
+    /// Deserialize the image resource at the given path into a [CpuTexture].
+    ///
+    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CpuTexture> {
+        self.deserialize(path)
+    }
+}
+
+impl std::ops::Deref for Loaded {
+    type Target = three_d_asset::io::RawAssets;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for Loaded {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 ///
 /// Functionality for saving resources. Only available on desktop at the moment.
