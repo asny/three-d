@@ -39,7 +39,7 @@ impl Loader {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn load_blocking(paths: &[impl AsRef<Path>]) -> Result<Loaded> {
-        three_d_asset::io::load_blocking(paths)
+        three_d_asset::io::load(paths)
     }
 
     pub async fn load_async(paths: &[impl AsRef<Path>]) -> Result<Loaded> {
@@ -47,7 +47,7 @@ impl Loader {
     }
 }
 
-pub type Loaded = three_d_asset::io::Loaded;
+pub type Loaded = three_d_asset::io::RawAssets;
 
 ///
 /// Functionality for saving resources. Only available on desktop at the moment.
@@ -57,7 +57,13 @@ pub struct Saver {}
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Saver {
-    pub fn save(path: impl AsRef<Path>, bytes: &[u8]) -> Result<()> {
-        three_d_asset::io::save(path, bytes)
+    ///
+    /// Save the byte array as a file.
+    ///
+    pub fn save_file<P: AsRef<Path>>(path: P, bytes: &[u8]) -> crate::ThreeDResult<()> {
+        let mut file = std::fs::File::create(path)?;
+        use std::io::prelude::*;
+        file.write_all(bytes)?;
+        Ok(())
     }
 }
