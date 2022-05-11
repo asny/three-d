@@ -34,22 +34,6 @@ pub enum NormalDistributionFunction {
     TrowbridgeReitzGGX,
 }
 
-impl LightingModel {
-    pub(crate) fn shader(&self) -> &str {
-        match self {
-            LightingModel::Phong => "#define PHONG",
-            LightingModel::Blinn => "#define BLINN",
-            LightingModel::Cook(normal, _) => match normal {
-                NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
-                NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
-                NormalDistributionFunction::TrowbridgeReitzGGX => {
-                    "#define COOK\n#define COOK_GGX\n"
-                }
-            },
-        }
-    }
-}
-
 ///
 /// A CPU-side version of a material.
 /// Can be constructed manually or loaded via [io](crate::io).
