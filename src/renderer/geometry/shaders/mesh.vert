@@ -37,7 +37,7 @@ in vec2 uv_coordinates;
 out vec2 uvs;
 #endif
 
-#ifdef USE_COLORS 
+#ifdef USE_VERTEX_COLORS 
 in vec4 color;
 #ifdef USE_INSTANCE_COLORS
 in vec4 instance_color;
@@ -95,7 +95,7 @@ void main()
     uvs = (texTransform * vec3(uv_coordinates, 1.0)).xy;
 #endif
 
-#ifdef USE_COLORS 
+#ifdef USE_VERTEX_COLORS 
     col = color / 255.0;
 #ifdef USE_INSTANCE_COLORS
     col *= instance_color / 255.0;
