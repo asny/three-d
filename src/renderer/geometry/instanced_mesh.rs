@@ -13,7 +13,7 @@ pub struct InstancedMesh {
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
-    instances: Instances,
+    instance_transforms: Vec<Mat4>,
     instance_count: u32,
     texture_transform: Mat3,
 }
@@ -36,7 +36,7 @@ impl InstancedMesh {
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             instance_count: 0,
-            instances: Instances::default(),
+            instance_transforms: Vec::new(),
             texture_transform: Mat3::identity(),
         };
         model.set_instances(instances)?;
@@ -82,33 +82,23 @@ impl InstancedMesh {
     /// This is the same as changing the instances using `set_instances`, except that it is faster since it doesn't update any buffers.
     /// `instance_count` will be set to the number of instances when they are defined by `set_instances`, so all instanced are rendered by default.
     pub fn set_instance_count(&mut self, instance_count: u32) {
-        self.instance_count = instance_count.min(self.instances.count());
+        self.instance_count = instance_count.min(self.instance_transforms.len() as u32);
         self.update_aabb();
     }
 
     ///
-    /// Returns all instances
-    ///
-    pub fn instances(&self) -> &Instances {
-        &self.instances
-    }
-
-    ///
-    /// Create an instance for each element with the given mesh and texture transforms.
+    /// Update the instances.
     ///
     pub fn set_instances(&mut self, instances: &Instances) -> ThreeDResult<()> {
         #[cfg(debug_assertions)]
         instances.validate()?;
         self.instance_count = instances.count();
-        self.instances = instances.clone();
-        self.update_buffers()
-    }
+        self.instance_transforms = instances.geometry_transforms.clone();
 
-    fn update_buffers(&mut self) -> ThreeDResult<()> {
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
-        for geometry_transform in self.instances.geometry_transforms.iter() {
+        for geometry_transform in instances.geometry_transforms.iter() {
             row1.push(vec4(
                 geometry_transform.x.x,
                 geometry_transform.y.x,
@@ -143,7 +133,7 @@ impl InstancedMesh {
             InstanceBuffer::new_with_data(&self.context, &row3)?,
         );
 
-        if let Some(texture_transforms) = &self.instances.texture_transforms {
+        if let Some(texture_transforms) = &instances.texture_transforms {
             let mut instance_tex_transform1 = Vec::new();
             let mut instance_tex_transform2 = Vec::new();
             for texture_transform in texture_transforms.iter() {
@@ -167,7 +157,7 @@ impl InstancedMesh {
                 InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2)?,
             );
         }
-        if let Some(instance_colors) = &self.instances.colors {
+        if let Some(instance_colors) = &instances.colors {
             self.instance_buffers.insert(
                 "instance_color".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &instance_colors)?,
@@ -181,7 +171,7 @@ impl InstancedMesh {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         for i in 0..self.instance_count as usize {
             let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(self.instances.geometry_transforms[i] * self.transformation));
+            aabb2.transform(&(self.instance_transforms[i] * self.transformation));
             aabb.expand_with_aabb(&aabb2);
         }
         self.aabb = aabb;
@@ -227,7 +217,7 @@ impl InstancedMesh {
             } else {
                 ""
             },
-            if self.instances.texture_transforms.is_some() {
+            if self.instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
             } else {
                 ""
