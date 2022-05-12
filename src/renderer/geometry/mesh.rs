@@ -114,7 +114,7 @@ impl Mesh {
             },
             if use_uvs { "#define USE_UVS\n" } else { "" },
             if use_colors {
-                "#define USE_VERTEX_COLORS\n"
+                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },

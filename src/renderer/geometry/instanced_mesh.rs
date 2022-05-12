@@ -215,7 +215,15 @@ impl InstancedMesh {
             },
             if use_uvs { "#define USE_UVS\n" } else { "" },
             if use_colors {
-                "#define USE_VERTEX_COLORS\n"
+                if self.instance_buffers.contains_key("color")
+                    && self.vertex_buffers.contains_key("color")
+                {
+                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+                } else if self.instance_buffers.contains_key("color") {
+                    "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
+                } else {
+                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
+                }
             } else {
                 ""
             },
