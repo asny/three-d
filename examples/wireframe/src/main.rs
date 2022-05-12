@@ -118,9 +118,8 @@ pub async fn run() {
 }
 
 fn vertex_transformations(cpu_mesh: &CpuMesh) -> Instances {
-    let positions = cpu_mesh.positions.to_f32();
     Instances {
-        positions,
+        translations: cpu_mesh.positions.to_f32(),
         ..Default::default()
     }
 }
@@ -128,9 +127,9 @@ fn vertex_transformations(cpu_mesh: &CpuMesh) -> Instances {
 fn edge_transformations(cpu_mesh: &CpuMesh) -> Instances {
     let indices = cpu_mesh.indices.as_ref().unwrap().to_u32();
     let positions = cpu_mesh.positions.to_f32();
-    let mut instance_positions = Vec::new();
-    let mut instance_rotations = Vec::new();
-    let mut instance_scales = Vec::new();
+    let mut translations = Vec::new();
+    let mut rotations = Vec::new();
+    let mut scales = Vec::new();
     let mut keys = Vec::new();
     for f in 0..indices.len() / 3 {
         let mut fun = |i1, i2| {
@@ -139,9 +138,9 @@ fn edge_transformations(cpu_mesh: &CpuMesh) -> Instances {
                 keys.push(key);
                 let p1: Vec3 = positions[i1];
                 let p2: Vec3 = positions[i2];
-                instance_positions.push(p1);
-                instance_scales.push(vec3((p1 - p2).magnitude(), 1.0, 1.0));
-                instance_rotations.push(Quat::from_arc(
+                translations.push(p1);
+                scales.push(vec3((p1 - p2).magnitude(), 1.0, 1.0));
+                rotations.push(Quat::from_arc(
                     vec3(1.0, 0.0, 0.0),
                     (p2 - p1).normalize(),
                     None,
@@ -156,9 +155,9 @@ fn edge_transformations(cpu_mesh: &CpuMesh) -> Instances {
         fun(i3, i1);
     }
     Instances {
-        positions: instance_positions,
-        rotations: Some(instance_rotations),
-        scales: Some(instance_scales),
+        translations,
+        rotations: Some(rotations),
+        scales: Some(scales),
         ..Default::default()
     }
 }

@@ -95,7 +95,7 @@ impl InstancedMesh {
         self.instance_count = instances.count();
         self.instance_transforms = (0..self.instance_count as usize)
             .map(|i| {
-                Mat4::from_translation(instances.positions[i])
+                Mat4::from_translation(instances.translations[i])
                     * instances
                         .rotations
                         .as_ref()
@@ -111,8 +111,8 @@ impl InstancedMesh {
 
         if instances.rotations.is_none() && instances.scales.is_none() {
             self.instance_buffers.insert(
-                "instance_position".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instances.positions)?,
+                "instance_translation".to_string(),
+                InstanceBuffer::new_with_data(&self.context, &instances.translations)?,
             );
         } else {
             let mut row1 = Vec::new();
@@ -207,8 +207,8 @@ impl InstancedMesh {
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         Ok(format!(
             "{}{}{}{}{}{}{}{}{}",
-            if self.instance_buffers.contains_key("instance_position") {
-                "#define USE_INSTANCE_POSITIONS\n"
+            if self.instance_buffers.contains_key("instance_translation") {
+                "#define USE_INSTANCE_TRANSLATIONS\n"
             } else {
                 "#define USE_INSTANCE_TRANSFORMS\n"
             },
@@ -296,7 +296,7 @@ impl Geometry for InstancedMesh {
                 }
 
                 for attribute_name in [
-                    "instance_position",
+                    "instance_translation",
                     "row1",
                     "row2",
                     "row3",
@@ -336,15 +336,19 @@ impl Geometry for InstancedMesh {
 
 ///
 /// Defines the attributes for the instances of the model defined in [InstancedMesh] or [InstancedModel].
+/// Each list of attributes must contain the same number of elements as the number of instances.
 ///
 #[derive(Clone, Debug)]
 pub struct Instances {
-    pub positions: Vec<Vec3>,
+    /// The translation applied to the positions of each instance.
+    pub translations: Vec<Vec3>,
+    /// The rotations applied to the positions of each instance.
     pub rotations: Option<Vec<Quat>>,
+    /// The non-uniform scales applied to the positions of each instance.
     pub scales: Option<Vec<Vec3>>,
-    /// The texture transform applied to the uv coordinates of the model instances.
+    /// The texture transform applied to the uv coordinates of each instance.
     pub texture_transforms: Option<Vec<Mat3>>,
-    /// Colors multiplied onto the base color for the model instances.
+    /// Colors multiplied onto the base color of each instance.
     pub colors: Option<Vec<Color>>,
 }
 
@@ -380,14 +384,14 @@ impl Instances {
 
     /// Returns the number of instances.
     pub fn count(&self) -> u32 {
-        self.positions.len() as u32
+        self.translations.len() as u32
     }
 }
 
 impl Default for Instances {
     fn default() -> Self {
         Self {
-            positions: vec![Vec3::zero()],
+            translations: vec![Vec3::zero()],
             rotations: None,
             scales: None,
             texture_transforms: None,
