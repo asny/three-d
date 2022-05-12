@@ -5,6 +5,13 @@ mod obj;
 #[cfg(feature = "obj-io")]
 pub use obj::*;
 
+#[cfg(feature = "ply-io")]
+#[cfg_attr(docsrs, doc(cfg(feature = "ply-io")))]
+mod ply;
+#[doc(inline)]
+#[cfg(feature = "ply-io")]
+pub use self::ply::*;
+
 #[cfg(feature = "gltf-io")]
 #[cfg_attr(docsrs, doc(cfg(feature = "gltf-io")))]
 mod gltf;

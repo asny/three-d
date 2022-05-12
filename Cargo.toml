@@ -17,13 +17,14 @@ rustdoc-args = ["--cfg", "docsrs"]
 targets = ["x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
 
 [features]
-default = ["glutin-window", "canvas", "egui-gui", "obj-io", "gltf-io", "image-io", "reqwest"]
+default = ["glutin-window", "canvas", "egui-gui", "obj-io", "gltf-io", "ply-io", "image-io", "reqwest"]
 glutin-window = ["glutin"] # Default window for desktop (only available when NOT building for the wasm32 architecture)
 canvas = [] # Default window for web (only available when building for the wasm32 architecture)
 egui-gui = ["egui"] # Additional GUI features 
 image-io = ["image"] # Additional image functionality, for example loading an image to a texture
 obj-io = ["wavefront_obj", "image-io"]
 gltf-io = ["gltf", "image-io"]
+ply-io = ["ply-rs"]
 
 [dependencies]
 glow = "0.11"
@@ -35,6 +36,8 @@ gltf = { version = "1.0.0", features = ["utils"], optional = true }
 wavefront_obj = { version = "10.0", optional = true }
 image = { version = "0.23", optional = true, default-features = false, features = ["gif", "jpeg", "ico", "png", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt", "dds", "farbfeld"]}
 egui = { version = "0.13", optional = true }
+ply-rs = { version = "0.1.3", optional = true }
+
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 glutin = { version = "0.28", optional = true }
@@ -82,6 +85,10 @@ path = "examples/texture/src/main.rs"
 [[example]]
 name = "volume"
 path = "examples/volume/src/main.rs"
+
+[[example]]
+name = "point_cloud"
+path = "examples/point_cloud/src/main.rs"
 
 [[example]]
 name = "picking"

@@ -15,6 +15,10 @@ mod instanced_model;
 #[doc(inline)]
 pub use instanced_model::*;
 
+mod point_cloud;
+#[doc(inline)]
+pub use point_cloud::*;
+
 mod line;
 #[doc(inline)]
 pub use line::*;
