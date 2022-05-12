@@ -215,11 +215,11 @@ impl InstancedMesh {
             },
             if use_uvs { "#define USE_UVS\n" } else { "" },
             if use_colors {
-                if self.instance_buffers.contains_key("color")
+                if self.instance_buffers.contains_key("instance_color")
                     && self.vertex_buffers.contains_key("color")
                 {
                     "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else if self.instance_buffers.contains_key("color") {
+                } else if self.instance_buffers.contains_key("instance_color") {
                     "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
                 } else {
                     "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
@@ -249,8 +249,11 @@ impl Geometry for InstancedMesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        let fragment_shader_source =
-            material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
+        let fragment_shader_source = material.fragment_shader_source(
+            self.vertex_buffers.contains_key("color")
+                || self.instance_buffers.contains_key("instance_color"),
+            lights,
+        );
         self.context.program(
             &self.vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
