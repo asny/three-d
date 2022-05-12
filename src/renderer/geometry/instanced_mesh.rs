@@ -109,43 +109,51 @@ impl InstancedMesh {
             })
             .collect::<Vec<_>>();
 
-        let mut row1 = Vec::new();
-        let mut row2 = Vec::new();
-        let mut row3 = Vec::new();
-        for geometry_transform in self.instance_transforms.iter() {
-            row1.push(vec4(
-                geometry_transform.x.x,
-                geometry_transform.y.x,
-                geometry_transform.z.x,
-                geometry_transform.w.x,
-            ));
+        if instances.rotations.is_none() && instances.scales.is_none() {
+            self.instance_buffers.insert(
+                "instance_position".to_string(),
+                InstanceBuffer::new_with_data(&self.context, &instances.positions)?,
+            );
+        } else {
+            let mut row1 = Vec::new();
+            let mut row2 = Vec::new();
+            let mut row3 = Vec::new();
+            for geometry_transform in self.instance_transforms.iter() {
+                row1.push(vec4(
+                    geometry_transform.x.x,
+                    geometry_transform.y.x,
+                    geometry_transform.z.x,
+                    geometry_transform.w.x,
+                ));
 
-            row2.push(vec4(
-                geometry_transform.x.y,
-                geometry_transform.y.y,
-                geometry_transform.z.y,
-                geometry_transform.w.y,
-            ));
+                row2.push(vec4(
+                    geometry_transform.x.y,
+                    geometry_transform.y.y,
+                    geometry_transform.z.y,
+                    geometry_transform.w.y,
+                ));
 
-            row3.push(vec4(
-                geometry_transform.x.z,
-                geometry_transform.y.z,
-                geometry_transform.z.z,
-                geometry_transform.w.z,
-            ));
+                row3.push(vec4(
+                    geometry_transform.x.z,
+                    geometry_transform.y.z,
+                    geometry_transform.z.z,
+                    geometry_transform.w.z,
+                ));
+            }
+
+            self.instance_buffers.insert(
+                "row1".to_string(),
+                InstanceBuffer::new_with_data(&self.context, &row1)?,
+            );
+            self.instance_buffers.insert(
+                "row2".to_string(),
+                InstanceBuffer::new_with_data(&self.context, &row2)?,
+            );
+            self.instance_buffers.insert(
+                "row3".to_string(),
+                InstanceBuffer::new_with_data(&self.context, &row3)?,
+            );
         }
-        self.instance_buffers.insert(
-            "row1".to_string(),
-            InstanceBuffer::new_with_data(&self.context, &row1)?,
-        );
-        self.instance_buffers.insert(
-            "row2".to_string(),
-            InstanceBuffer::new_with_data(&self.context, &row2)?,
-        );
-        self.instance_buffers.insert(
-            "row3".to_string(),
-            InstanceBuffer::new_with_data(&self.context, &row3)?,
-        );
 
         if let Some(texture_transforms) = &instances.texture_transforms {
             let mut instance_tex_transform1 = Vec::new();
@@ -198,7 +206,12 @@ impl InstancedMesh {
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         Ok(format!(
-            "#define INSTANCED\n{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}",
+            if self.instance_buffers.contains_key("instance_position") {
+                "#define USE_INSTANCE_POSITIONS\n"
+            } else {
+                "#define USE_INSTANCE_TRANSFORMS\n"
+            },
             if use_positions {
                 "#define USE_POSITIONS\n"
             } else {
@@ -283,6 +296,7 @@ impl Geometry for InstancedMesh {
                 }
 
                 for attribute_name in [
+                    "instance_position",
                     "row1",
                     "row2",
                     "row3",
