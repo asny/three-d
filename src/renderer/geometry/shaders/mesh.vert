@@ -3,7 +3,11 @@ uniform mat4 viewProjection;
 uniform mat4 modelMatrix;
 in vec3 position;
 
-#ifdef INSTANCED
+#ifdef USE_INSTANCE_POSITIONS
+in vec3 instance_position;
+#endif
+
+#ifdef USE_INSTANCE_TRANSFORMS
 in vec4 row1;
 in vec4 row2;
 in vec4 row3;
@@ -50,25 +54,20 @@ out vec4 col;
 void main()
 {
     mat4 local2World = modelMatrix;
-    mat3 normalMat;
-#ifdef INSTANCED
+    
+#ifdef USE_INSTANCE_TRANSFORMS
     mat4 transform;
     transform[0] = vec4(row1.x, row2.x, row3.x, 0.0);
     transform[1] = vec4(row1.y, row2.y, row3.y, 0.0);
     transform[2] = vec4(row1.z, row2.z, row3.z, 0.0);
     transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
     local2World *= transform;
-
-#ifdef USE_NORMALS
-    normalMat = mat3(transpose(inverse(local2World)));
-#endif
-#else
-#ifdef USE_NORMALS
-    normalMat = mat3(normalMatrix);
-#endif
 #endif
 
     vec4 worldPosition = local2World * vec4(position, 1.);
+#ifdef USE_INSTANCE_POSITIONS 
+    worldPosition.xyz += instance_position;
+#endif
     gl_Position = viewProjection * worldPosition;
 
 #ifdef USE_POSITIONS
@@ -76,6 +75,11 @@ void main()
 #endif
 
 #ifdef USE_NORMALS 
+#ifdef USE_INSTANCE_TRANSFORMS
+    mat3 normalMat = mat3(transpose(inverse(local2World)));
+#else
+    mat3 normalMat = mat3(normalMatrix);
+#endif
     nor = normalize(normalMat * normal);
 
 #ifdef USE_TANGENTS 
