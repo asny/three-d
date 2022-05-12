@@ -36,7 +36,7 @@ impl<M: Material> BoundingBox<M> {
         let max = aabb.max();
         let min = aabb.min();
         let size = aabb.size();
-        let positions = vec![
+        let translations = vec![
             min,
             vec3(min.x, max.y, max.z),
             vec3(min.x, min.y, max.z),
@@ -83,7 +83,7 @@ impl<M: Material> BoundingBox<M> {
         let model = InstancedModel::new_with_material(
             context,
             &Instances {
-                positions,
+                translations,
                 rotations: Some(rotations),
                 scales: Some(scales),
                 ..Default::default()

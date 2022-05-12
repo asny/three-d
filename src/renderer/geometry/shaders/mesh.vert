@@ -3,8 +3,8 @@ uniform mat4 viewProjection;
 uniform mat4 modelMatrix;
 in vec3 position;
 
-#ifdef USE_INSTANCE_POSITIONS
-in vec3 instance_position;
+#ifdef USE_INSTANCE_TRANSLATIONS
+in vec3 instance_translation;
 #endif
 
 #ifdef USE_INSTANCE_TRANSFORMS
@@ -65,8 +65,8 @@ void main()
 #endif
 
     vec4 worldPosition = local2World * vec4(position, 1.);
-#ifdef USE_INSTANCE_POSITIONS 
-    worldPosition.xyz += instance_position;
+#ifdef USE_INSTANCE_TRANSLATIONS 
+    worldPosition.xyz += instance_translation;
 #endif
     gl_Position = viewProjection * worldPosition;
 
