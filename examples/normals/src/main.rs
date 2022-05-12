@@ -35,7 +35,7 @@ pub async fn run() {
 
     let mut instanced_model_with_computed_tangents = InstancedModel::new_with_material(
         &context,
-        &[Instance::default()],
+        &Instances::default(),
         &cpu_meshes[0],
         material.clone(),
     )
@@ -52,7 +52,7 @@ pub async fn run() {
 
     let mut instanced_model_with_loaded_tangents = InstancedModel::new_with_material(
         &context,
-        &[Instance::default()],
+        &Instances::default(),
         &cpu_meshes[0],
         material.clone(),
     )

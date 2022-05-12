@@ -36,48 +36,58 @@ impl<M: Material> BoundingBox<M> {
         let max = aabb.max();
         let min = aabb.min();
         let size = aabb.size();
-        let transformations = [
-            Mat4::from_translation(min) * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
-            Mat4::from_translation(vec3(min.x, max.y, max.z))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
-            Mat4::from_translation(vec3(min.x, min.y, max.z))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
-            Mat4::from_translation(vec3(min.x, max.y, min.z))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
-            Mat4::from_translation(min)
-                * Mat4::from_angle_z(degrees(90.0))
-                * Mat4::from_nonuniform_scale(size.y, thickness, thickness),
-            Mat4::from_translation(vec3(max.x, min.y, max.z))
-                * Mat4::from_angle_z(degrees(90.0))
-                * Mat4::from_nonuniform_scale(size.y, thickness, thickness),
-            Mat4::from_translation(vec3(min.x, min.y, max.z))
-                * Mat4::from_angle_z(degrees(90.0))
-                * Mat4::from_nonuniform_scale(size.y, thickness, thickness),
-            Mat4::from_translation(vec3(max.x, min.y, min.z))
-                * Mat4::from_angle_z(degrees(90.0))
-                * Mat4::from_nonuniform_scale(size.y, thickness, thickness),
-            Mat4::from_translation(min)
-                * Mat4::from_angle_y(degrees(-90.0))
-                * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
-            Mat4::from_translation(vec3(max.x, max.y, min.z))
-                * Mat4::from_angle_y(degrees(-90.0))
-                * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
-            Mat4::from_translation(vec3(min.x, max.y, min.z))
-                * Mat4::from_angle_y(degrees(-90.0))
-                * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
-            Mat4::from_translation(vec3(max.x, min.y, min.z))
-                * Mat4::from_angle_y(degrees(-90.0))
-                * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
+        let translations = vec![
+            min,
+            vec3(min.x, max.y, max.z),
+            vec3(min.x, min.y, max.z),
+            vec3(min.x, max.y, min.z),
+            min,
+            vec3(max.x, min.y, max.z),
+            vec3(min.x, min.y, max.z),
+            vec3(max.x, min.y, min.z),
+            min,
+            vec3(max.x, max.y, min.z),
+            vec3(min.x, max.y, min.z),
+            vec3(max.x, min.y, min.z),
+        ];
+
+        let rotations = vec![
+            Quat::zero(),
+            Quat::zero(),
+            Quat::zero(),
+            Quat::zero(),
+            Quat::from_angle_z(degrees(90.0)),
+            Quat::from_angle_z(degrees(90.0)),
+            Quat::from_angle_z(degrees(90.0)),
+            Quat::from_angle_z(degrees(90.0)),
+            Quat::from_angle_y(degrees(-90.0)),
+            Quat::from_angle_y(degrees(-90.0)),
+            Quat::from_angle_y(degrees(-90.0)),
+            Quat::from_angle_y(degrees(-90.0)),
+        ];
+
+        let scales = vec![
+            vec3(size.x, thickness, thickness),
+            vec3(size.x, thickness, thickness),
+            vec3(size.x, thickness, thickness),
+            vec3(size.x, thickness, thickness),
+            vec3(size.y, thickness, thickness),
+            vec3(size.y, thickness, thickness),
+            vec3(size.y, thickness, thickness),
+            vec3(size.y, thickness, thickness),
+            vec3(size.z, thickness, thickness),
+            vec3(size.z, thickness, thickness),
+            vec3(size.z, thickness, thickness),
+            vec3(size.z, thickness, thickness),
         ];
         let model = InstancedModel::new_with_material(
             context,
-            &transformations
-                .iter()
-                .map(|t| Instance {
-                    geometry_transform: *t,
-                    ..Default::default()
-                })
-                .collect::<Vec<_>>(),
+            &Instances {
+                translations,
+                rotations: Some(rotations),
+                scales: Some(scales),
+                ..Default::default()
+            },
             &CpuMesh::cylinder(16),
             material,
         )?;
