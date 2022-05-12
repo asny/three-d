@@ -120,41 +120,45 @@ pub async fn run() {
 fn vertex_transformations(cpu_mesh: &CpuMesh) -> Instances {
     let positions = cpu_mesh.positions.to_f32();
     Instances {
-        geometry_transforms: positions
-            .iter()
-            .map(|p| Mat4::from_translation(*p))
-            .collect::<Vec<_>>(),
+        positions,
         ..Default::default()
     }
 }
 
 fn edge_transformations(cpu_mesh: &CpuMesh) -> Instances {
-    let mut edge_transformations = std::collections::HashMap::new();
     let indices = cpu_mesh.indices.as_ref().unwrap().to_u32();
     let positions = cpu_mesh.positions.to_f32();
+    let mut instance_positions = Vec::new();
+    let mut instance_rotations = Vec::new();
+    let mut instance_scales = Vec::new();
+    let mut keys = Vec::new();
     for f in 0..indices.len() / 3 {
         let mut fun = |i1, i2| {
-            let p1: Vec3 = positions[i1];
-            let p2: Vec3 = positions[i2];
-            let scale = Mat4::from_nonuniform_scale((p1 - p2).magnitude(), 1.0, 1.0);
-            let rotation =
-                rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), (p2 - p1).normalize());
-            let translation = Mat4::from_translation(p1);
             let key = if i1 < i2 { (i1, i2) } else { (i2, i1) };
-            edge_transformations.insert(key, translation * rotation * scale);
+            if !keys.contains(&key) {
+                keys.push(key);
+                let p1: Vec3 = positions[i1];
+                let p2: Vec3 = positions[i2];
+                instance_positions.push(p1);
+                instance_scales.push(vec3((p1 - p2).magnitude(), 1.0, 1.0));
+                instance_rotations.push(Quat::from_arc(
+                    vec3(1.0, 0.0, 0.0),
+                    (p2 - p1).normalize(),
+                    None,
+                ));
+            }
         };
         let i1 = indices[3 * f] as usize;
         let i2 = indices[3 * f + 1] as usize;
         let i3 = indices[3 * f + 2] as usize;
         fun(i1, i2);
-        fun(i1, i3);
         fun(i2, i3);
+        fun(i3, i1);
     }
     Instances {
-        geometry_transforms: edge_transformations
-            .drain()
-            .map(|(_, m)| m)
-            .collect::<Vec<_>>(),
+        positions: instance_positions,
+        rotations: Some(instance_rotations),
+        scales: Some(instance_scales),
         ..Default::default()
     }
 }

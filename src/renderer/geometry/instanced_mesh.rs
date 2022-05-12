@@ -93,12 +93,26 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         instances.validate()?;
         self.instance_count = instances.count();
-        self.instance_transforms = instances.geometry_transforms.clone();
+        self.instance_transforms = (0..self.instance_count as usize)
+            .map(|i| {
+                Mat4::from_translation(instances.positions[i])
+                    * instances
+                        .rotations
+                        .as_ref()
+                        .map(|r| Mat4::from(r[i]))
+                        .unwrap_or(Mat4::identity())
+                    * instances
+                        .scales
+                        .as_ref()
+                        .map(|s| Mat4::from_nonuniform_scale(s[i].x, s[i].y, s[i].z))
+                        .unwrap_or(Mat4::identity())
+            })
+            .collect::<Vec<_>>();
 
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
-        for geometry_transform in instances.geometry_transforms.iter() {
+        for geometry_transform in self.instance_transforms.iter() {
             row1.push(vec4(
                 geometry_transform.x.x,
                 geometry_transform.y.x,
@@ -311,8 +325,9 @@ impl Geometry for InstancedMesh {
 ///
 #[derive(Clone, Debug)]
 pub struct Instances {
-    /// The local to world transformation applied to the positions of the model instances.
-    pub geometry_transforms: Vec<Mat4>,
+    pub positions: Vec<Vec3>,
+    pub rotations: Option<Vec<Quat>>,
+    pub scales: Option<Vec<Vec3>>,
     /// The texture transform applied to the uv coordinates of the model instances.
     pub texture_transforms: Option<Vec<Mat3>>,
     /// Colors multiplied onto the base color for the model instances.
@@ -324,13 +339,13 @@ impl Instances {
     /// Returns an error if the instances is not valid.
     ///
     pub fn validate(&self) -> ThreeDResult<()> {
-        let instance_count = self.geometry_transforms.len();
+        let instance_count = self.count();
         let buffer_check = |length: Option<usize>, name: &str| -> ThreeDResult<()> {
             if let Some(length) = length {
-                if length < instance_count {
+                if length < instance_count as usize {
                     Err(CoreError::InvalidBufferLength(
                         name.to_string(),
-                        instance_count,
+                        instance_count as usize,
                         length,
                     ))?;
                 }
@@ -342,6 +357,8 @@ impl Instances {
             self.texture_transforms.as_ref().map(|b| b.len()),
             "texture transforms",
         )?;
+        buffer_check(self.rotations.as_ref().map(|b| b.len()), "rotations")?;
+        buffer_check(self.scales.as_ref().map(|b| b.len()), "scales")?;
         buffer_check(self.colors.as_ref().map(|b| b.len()), "colors")?;
 
         Ok(())
@@ -349,14 +366,16 @@ impl Instances {
 
     /// Returns the number of instances.
     pub fn count(&self) -> u32 {
-        self.geometry_transforms.len() as u32
+        self.positions.len() as u32
     }
 }
 
 impl Default for Instances {
     fn default() -> Self {
         Self {
-            geometry_transforms: vec![Mat4::identity()],
+            positions: vec![Vec3::zero()],
+            rotations: None,
+            scales: None,
             texture_transforms: None,
             colors: None,
         }
