@@ -25,14 +25,13 @@ pub async fn run() {
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
-        1000.0,
+        100.0,
     )
     .unwrap();
-    let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
+    let mut control = OrbitControl::new(*camera.target(), 0.1, 100.0);
 
     let point_material = PhysicalMaterial {
         name: "point_material".to_string(),
-        albedo: Color::new_opaque(50, 50, 50),
         roughness: 0.7,
         metallic: 0.5,
         render_states: RenderStates {
@@ -42,8 +41,15 @@ pub async fn run() {
         ..Default::default()
     };
 
+    let mut loaded = Loader::load_async(&["examples/assets/hand.pcd"])
+        .await
+        .unwrap();
+    let cpu_point_cloud = loaded.pcd("examples/assets/hand.pcd", true, true).unwrap();
+
+    // let cpu_point_cloud = CpuPointCloud::random(250_000);
+
     let point_cloud = Gm {
-        geometry: PointCloud::new(&context, &CpuPointCloud::random(250_000)).unwrap(),
+        geometry: PointCloud::new(&context, cpu_point_cloud).unwrap(),
         material: point_material,
     };
 

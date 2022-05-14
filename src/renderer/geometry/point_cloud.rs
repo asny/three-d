@@ -11,18 +11,15 @@ impl PointCloud {
     /// Creates a new PointCloud from the given [CpuPointCloud].
     /// All data in the [CpuPointCloud] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuPointCloud] before calling this method.
     ///
-    pub fn new(context: &Context, cpu_point_cloud: &CpuPointCloud) -> ThreeDResult<Self> {
-        let positions = cpu_point_cloud.positions.to_f32();
-        let mut instances = Vec::new();
-        for p in positions {
-            instances.push(Instance {
-                geometry_transform: Mat4::from_translation(p),
-                ..Default::default()
-            });
-        }
+    pub fn new(context: &Context, cpu_point_cloud: CpuPointCloud) -> ThreeDResult<Self> {
+        let instances = Instances {
+            translations: cpu_point_cloud.positions.to_f32(),
+            colors: cpu_point_cloud.colors,
+            ..Default::default()
+        };
 
         let mut point = CpuMesh::cube();
-        point.transform(&Mat4::from_scale(0.01))?;
+        point.transform(&Mat4::from_scale(0.001))?;
 
         Ok(Self(InstancedMesh::new(context, &instances, &point)?))
     }

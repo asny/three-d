@@ -22,7 +22,7 @@ pub struct CpuPointCloud {
 
 impl std::fmt::Debug for CpuPointCloud {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut d = f.debug_struct("CpuMesh");
+        let mut d = f.debug_struct("CpuPointCloud");
         d.field("name", &self.name);
         d.field("material name", &self.material_name);
         d.field("positions", &self.positions.len());
@@ -69,8 +69,19 @@ impl CpuPointCloud {
                 })
                 .collect(),
         );
+
+        let colors = (0..number_of_points)
+            .map(|_| Color {
+                r: rng.gen_range(100..255),
+                g: rng.gen_range(100..255),
+                b: rng.gen_range(100..255),
+                a: 0,
+            })
+            .collect();
+
         let point_cloud = CpuPointCloud {
             positions,
+            colors: Some(colors),
             ..Default::default()
         };
         point_cloud
