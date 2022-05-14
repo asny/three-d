@@ -1,4 +1,5 @@
 use crate::core::*;
+use rand::Rng;
 
 ///
 /// A CPU-side version of a point cloud.
@@ -32,49 +33,44 @@ impl std::fmt::Debug for CpuPointCloud {
 
 impl CpuPointCloud {
     ///
-    /// Returns an axis aligned unconnected cube mesh with positions in the range `[-1..1]` in all axes.
+    /// Returns a point cloud whose points lie on the corners of an axis aligned unconnected cube with positions in the range `[-1..1]` in all axes.
     ///
     pub fn cube() -> Self {
         let positions = vec![
-            vec3(1.0, 1.0, -1.0),
-            vec3(-1.0, 1.0, -1.0),
-            vec3(1.0, 1.0, 1.0),
-            vec3(-1.0, 1.0, 1.0),
-            vec3(1.0, 1.0, 1.0),
-            vec3(-1.0, 1.0, -1.0),
-            vec3(-1.0, -1.0, -1.0),
-            vec3(1.0, -1.0, -1.0),
-            vec3(1.0, -1.0, 1.0),
-            vec3(1.0, -1.0, 1.0),
-            vec3(-1.0, -1.0, 1.0),
-            vec3(-1.0, -1.0, -1.0),
-            vec3(1.0, -1.0, -1.0),
-            vec3(-1.0, -1.0, -1.0),
-            vec3(1.0, 1.0, -1.0),
-            vec3(-1.0, 1.0, -1.0),
-            vec3(1.0, 1.0, -1.0),
             vec3(-1.0, -1.0, -1.0),
             vec3(-1.0, -1.0, 1.0),
-            vec3(1.0, -1.0, 1.0),
-            vec3(1.0, 1.0, 1.0),
-            vec3(1.0, 1.0, 1.0),
+            vec3(-1.0, 1.0, -1.0),
             vec3(-1.0, 1.0, 1.0),
-            vec3(-1.0, -1.0, 1.0),
             vec3(1.0, -1.0, -1.0),
+            vec3(1.0, -1.0, 1.0),
             vec3(1.0, 1.0, -1.0),
             vec3(1.0, 1.0, 1.0),
-            vec3(1.0, 1.0, 1.0),
-            vec3(1.0, -1.0, 1.0),
-            vec3(1.0, -1.0, -1.0),
-            vec3(-1.0, 1.0, -1.0),
-            vec3(-1.0, -1.0, -1.0),
-            vec3(-1.0, 1.0, 1.0),
-            vec3(-1.0, -1.0, 1.0),
-            vec3(-1.0, 1.0, 1.0),
-            vec3(-1.0, -1.0, -1.0),
         ];
         let point_cloud = CpuPointCloud {
             positions: Positions::F32(positions),
+            ..Default::default()
+        };
+        point_cloud
+    }
+
+    ///
+    /// Returns a random, unaligned point cloud with positions in the range `[-1..1]` in all axes.
+    ///
+    pub fn random(number_of_points: usize) -> Self {
+        let mut rng = rand::thread_rng();
+        let positions = Positions::F32(
+            (0..number_of_points)
+                .map(|_| {
+                    vec3(
+                        rng.gen_range(-10.0..10.0),
+                        rng.gen_range(-10.0..10.0),
+                        rng.gen_range(-10.0..10.0),
+                    )
+                })
+                .collect(),
+        );
+        let point_cloud = CpuPointCloud {
+            positions,
             ..Default::default()
         };
         point_cloud

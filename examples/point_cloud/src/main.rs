@@ -32,9 +32,9 @@ pub async fn run() {
 
     let point_material = PhysicalMaterial {
         name: "point_material".to_string(),
-        albedo: Color::new_opaque(220, 50, 50),
+        albedo: Color::new_opaque(50, 50, 50),
         roughness: 0.7,
-        metallic: 0.8,
+        metallic: 0.5,
         render_states: RenderStates {
             cull: Cull::Back,
             ..Default::default()
@@ -42,8 +42,10 @@ pub async fn run() {
         ..Default::default()
     };
 
-    let point_cloud =
-        PointCloud::new_with_material(&context, &CpuPointCloud::cube(), point_material).unwrap();
+    let point_cloud = Gm {
+        geometry: PointCloud::new(&context, &CpuPointCloud::random(250_000)).unwrap(),
+        material: point_material,
+    };
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional1 =
