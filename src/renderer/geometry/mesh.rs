@@ -1,22 +1,13 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::collections::HashMap;
 
 ///
 /// A triangle mesh that implements the [Geometry] trait.
 /// This mesh can be rendered together with a [material].
 ///
 pub struct Mesh {
-    /// Buffer with the position data, ie. `(x, y, z)` for each vertex
-    position_buffer: VertexBuffer,
-    /// Buffer with the normal data, ie. `(x, y, z)` for each vertex.
-    normal_buffer: Option<VertexBuffer>,
-    /// Buffer with the tangent data, ie. `(x, y, z)` for each vertex.
-    tangent_buffer: Option<VertexBuffer>,
-    /// Buffer with the uv coordinate data, ie. `(u, v)` for each vertex.
-    uv_buffer: Option<VertexBuffer>,
-    /// Buffer with the color data, ie. `(r, g, b)` for each vertex.
-    color_buffer: Option<VertexBuffer>,
-    /// Buffer with the index data, ie. three contiguous integers define the triangle where each integer is and index into the other vertex buffers.
+    vertex_buffers: HashMap<String, VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     context: Context,
     aabb: AxisAlignedBoundingBox,
@@ -31,53 +22,11 @@ impl Mesh {
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     ///
     pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
-        #[cfg(debug_assertions)]
-        cpu_mesh.validate()?;
-
-        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32())?;
-        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_data(context, normals)?)
-        } else {
-            None
-        };
-        let tangent_buffer = if let Some(ref tangents) = cpu_mesh.tangents {
-            Some(VertexBuffer::new_with_data(context, tangents)?)
-        } else {
-            None
-        };
-        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
-            })
-        } else {
-            None
-        };
-        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_data(
-                context,
-                &uvs.iter()
-                    .map(|uv| vec2(uv.x, 1.0 - uv.y))
-                    .collect::<Vec<_>>(),
-            )?)
-        } else {
-            None
-        };
-        let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with_data(context, colors)?)
-        } else {
-            None
-        };
         let aabb = cpu_mesh.compute_aabb();
         Ok(Self {
             context: context.clone(),
-            position_buffer,
-            normal_buffer,
-            tangent_buffer,
-            index_buffer,
-            uv_buffer,
-            color_buffer,
+            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh)?,
+            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
@@ -165,7 +114,7 @@ impl Mesh {
             },
             if use_uvs { "#define USE_UVS\n" } else { "" },
             if use_colors {
-                "#define USE_COLORS\n"
+                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },
@@ -187,7 +136,7 @@ impl Geometry for Mesh {
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         let fragment_shader_source =
-            material.fragment_shader_source(self.color_buffer.is_some(), lights);
+            material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
         self.context.program(
             &Self::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
@@ -195,50 +144,30 @@ impl Geometry for Mesh {
                 material.use_uniforms(program, camera, lights)?;
                 program.use_uniform("viewProjection", camera.projection() * camera.view())?;
                 program.use_uniform("modelMatrix", &self.transformation)?;
+                program.use_uniform_if_required("textureTransform", &self.texture_transform)?;
+                program.use_uniform_if_required(
+                    "normalMatrix",
+                    &self.transformation.invert().unwrap().transpose(),
+                )?;
 
-                if program.requires_attribute("position") {
-                    program.use_vertex_attribute("position", &self.position_buffer)?;
-                }
-                if program.requires_attribute("uv_coordinates") {
-                    program.use_uniform("textureTransform", &self.texture_transform)?;
-                    let uv_buffer = self
-                        .uv_buffer
-                        .as_ref()
-                        .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
-                    program.use_vertex_attribute("uv_coordinates", uv_buffer)?;
-                }
-                if program.requires_attribute("normal") {
-                    let normal_buffer = self
-                        .normal_buffer
-                        .as_ref()
-                        .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-                    program.use_vertex_attribute("normal", normal_buffer)?;
-                    program.use_uniform(
-                        "normalMatrix",
-                        &self.transformation.invert().unwrap().transpose(),
-                    )?;
-                    if program.requires_attribute("tangent") {
-                        let tangent_buffer = self
-                            .tangent_buffer
-                            .as_ref()
-                            .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
-                        program.use_vertex_attribute("tangent", tangent_buffer)?;
+                for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
+                    if program.requires_attribute(attribute_name) {
+                        program.use_vertex_attribute(
+                            attribute_name,
+                            self.vertex_buffers
+                                .get(attribute_name)
+                                .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
+                        )?;
                     }
                 }
-                if program.requires_attribute("color") {
-                    let color_buffer = self
-                        .color_buffer
-                        .as_ref()
-                        .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
-                    program.use_vertex_attribute("color", color_buffer)?;
-                }
+
                 if let Some(ref index_buffer) = self.index_buffer {
                     program.draw_elements(material.render_states(), camera.viewport(), index_buffer)
                 } else {
                     program.draw_arrays(
                         material.render_states(),
                         camera.viewport(),
-                        self.position_buffer.vertex_count() as u32,
+                        self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
                     )
                 }
             },
