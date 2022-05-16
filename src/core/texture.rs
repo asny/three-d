@@ -31,8 +31,7 @@ pub use depth_target_texture_cube_map::*;
 
 use data_type::*;
 pub use three_d_asset::texture::{
-    Interpolation, Texture2D as CpuTexture, Texture3D as CpuTexture3D,
-    TextureCube as CpuTextureCube, TextureCubeData, TextureData, Wrapping,
+    Interpolation, Texture2D as CpuTexture, Texture3D as CpuTexture3D, TextureData, Wrapping,
 };
 
 /// The basic data type used for each channel of each pixel in a texture.

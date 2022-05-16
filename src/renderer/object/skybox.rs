@@ -12,10 +12,19 @@ pub struct Skybox {
 
 impl Skybox {
     ///
-    /// Creates a new skybox with the given cpu-side version of a [TextureCubeMap].
+    /// Creates a new skybox with the given [CpuTexture]s placed at the indicated sides of the skybox.
+    /// All of the cpu textures must contain data with the same [TextureDataType].
     ///
-    pub fn new(context: &Context, cpu_texture: &CpuTextureCube) -> ThreeDResult<Self> {
-        let texture = TextureCubeMap::new(&context, cpu_texture)?;
+    pub fn new(
+        context: &Context,
+        right: &CpuTexture,
+        left: &CpuTexture,
+        top: &CpuTexture,
+        bottom: &CpuTexture,
+        front: &CpuTexture,
+        back: &CpuTexture,
+    ) -> ThreeDResult<Self> {
+        let texture = TextureCubeMap::new(&context, right, left, top, bottom, front, back)?;
         Self::new_with_texture(context, texture)
     }
 

@@ -93,6 +93,8 @@ pub enum CoreError {
     TextureCreation(String),
     #[error("invalid size of texture data (got {0} bytes but expected {1} bytes)")]
     InvalidTextureLength(usize, usize),
+    #[error("all of the images used for cube map sides must have the same texture data type")]
+    InvalidCubeMapTextureDataType,
     #[error("the render call requires the {0} vertex buffer which is missing on the given mesh")]
     MissingMeshBuffer(String),
     #[error(
