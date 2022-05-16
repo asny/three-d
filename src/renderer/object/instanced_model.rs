@@ -8,8 +8,7 @@ pub type InstancedModel<M> = Gm<InstancedMesh, M>;
 impl InstancedModel<ColorMaterial> {
     ///
     /// Creates a new instanced 3D model with a triangle mesh as geometry and a default [ColorMaterial].
-    /// The model is rendered in as many instances as there are [Instance] structs given as input.
-    /// The transformation and texture transform in [Instance] are applied to each model instance before they are rendered.
+    /// The model is rendered in as many instances as there are attributes in [Instances] given as input.
     ///
     pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
         Self::new_with_material(context, instances, cpu_mesh, ColorMaterial::default())
@@ -19,8 +18,7 @@ impl InstancedModel<ColorMaterial> {
 impl<M: Material> InstancedModel<M> {
     ///
     /// Creates a new instanced 3D model with a triangle mesh as geometry and the given material.
-    /// The model is rendered in as many instances as there are [Instance] structs given as input.
-    /// The transformation and texture transform in [Instance] are applied to each model instance before they are rendered.
+    /// The model is rendered in as many instances as there are data in the [Instances] given as input.
     ///
     pub fn new_with_material(
         context: &Context,

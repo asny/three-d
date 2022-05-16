@@ -18,9 +18,9 @@ pub struct Loader {}
 impl Loader {
     ///
     /// Loads all of the resources in the given paths then calls `on_done` with all of the [Loaded] resources.
-    /// Alternatively use [load_async] on both web and desktop or [load_blocking] on desktop.
+    /// Alternatively use [Self::load_async] on both web and desktop or [Self::load_blocking] on desktop.
     ///
-    /// **Note:** This method must not be called from an async function. In that case, use [load_async] instead.
+    /// **Note:** This method must not be called from an async function. In that case, use [Self::load_async] instead.
     ///
     pub fn load(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(Result<Loaded>)) {
         #[cfg(target_arch = "wasm32")]
