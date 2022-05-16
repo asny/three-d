@@ -46,8 +46,6 @@ pub use bounding_box::*;
 use crate::core::*;
 use crate::renderer::*;
 
-pub use three_d_asset::Model as CpuModel;
-
 ///
 /// Represents a 3D object which can be rendered directly or used in a render call, for example [render_pass].
 ///

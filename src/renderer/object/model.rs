@@ -29,3 +29,27 @@ impl<M: Material> Model<M> {
         })
     }
 }
+
+pub use three_d_asset::Model as CpuModel;
+
+pub fn new_models(
+    context: &Context,
+    cpu_model: &CpuModel,
+) -> ThreeDResult<Vec<Model<PhysicalMaterial>>> {
+    let mut materials = Vec::new();
+    for m in cpu_model.materials.iter() {
+        materials.push(PhysicalMaterial::new(context, m)?);
+    }
+    let mut models = Vec::new();
+    for g in cpu_model.geometries.iter() {
+        models.push(Gm {
+            geometry: Mesh::new(context, g)?,
+            material: materials
+                .iter()
+                .find(|m| Some(&m.name) == g.material_name.as_ref())
+                .unwrap()
+                .clone(),
+        });
+    }
+    Ok(models)
+}
