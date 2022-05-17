@@ -42,7 +42,7 @@ pub struct PhysicalMaterial {
     pub lighting_model: LightingModel,
 }
 
-impl PhysicalMaterial {
+impl MaterialNew for PhysicalMaterial {
     ///
     /// Constructs a new physical material from a [CpuMaterial].
     /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
@@ -50,10 +50,12 @@ impl PhysicalMaterial {
     /// Tries to infer whether this material is transparent or opaque from the alpha value of the albedo color and the alpha values in the albedo texture.
     /// Since this is not always correct, it is preferred to use [PhysicalMaterial::new_opaque] or [PhysicalMaterial::new_transparent].
     ///
-    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         Self::new_internal(context, cpu_material, super::is_transparent(cpu_material))
     }
+}
 
+impl PhysicalMaterial {
     /// Constructs a new opaque physical material from a [CpuMaterial].
     /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
     /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.

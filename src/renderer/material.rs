@@ -80,6 +80,10 @@ pub trait Material {
     fn is_transparent(&self) -> bool;
 }
 
+pub trait MaterialNew: std::marker::Sized {
+    fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self>;
+}
+
 impl<T: Material + ?Sized> Material for &T {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
