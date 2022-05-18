@@ -3,6 +3,7 @@ use crate::window::*;
 use serde::Serialize;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
@@ -145,7 +146,7 @@ impl Window {
             .get_extension("OES_texture_float_linear")
             .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
 
-        crate::core::Context::from_gl_context(Rc::new(
+        crate::core::Context::from_gl_context(Arc::new(
             crate::context::Context::from_webgl2_context(context),
         ))
     }

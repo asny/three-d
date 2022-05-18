@@ -14,7 +14,7 @@ impl Context {
         let cb = ContextBuilder::new();
         let (headless_context, _el) = build_context(cb).unwrap();
         let headless_context = unsafe { headless_context.make_current().unwrap() };
-        let mut c = Self::from_gl_context(std::rc::Rc::new(unsafe {
+        let mut c = Self::from_gl_context(std::sync::Arc::new(unsafe {
             crate::context::Context::from_loader_function(|s| {
                 headless_context.get_proc_address(s) as *const _
             })
