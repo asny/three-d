@@ -2,6 +2,7 @@ use super::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::sync::Arc;
 
 #[doc(hidden)]
 pub use crate::context::HasContext;
@@ -13,7 +14,7 @@ pub use crate::context::HasContext;
 ///
 #[derive(Clone)]
 pub struct Context {
-    context: Rc<crate::context::Context>,
+    context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
@@ -29,7 +30,7 @@ impl Context {
     /// Since the content in the [context](crate::context) module is just a re-export of [glow](https://crates.io/crates/glow),
     /// you can also call this method with a reference counter to a glow context created using glow and not the re-export in [context](crate::context).
     ///
-    pub fn from_gl_context(context: Rc<crate::context::Context>) -> ThreeDResult<Self> {
+    pub fn from_gl_context(context: Arc<crate::context::Context>) -> ThreeDResult<Self> {
         #[cfg(not(target_arch = "wasm32"))]
         unsafe {
             // Enable seamless cube map textures
