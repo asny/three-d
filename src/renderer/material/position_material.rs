@@ -12,7 +12,7 @@ pub struct PositionMaterial {
 }
 
 impl FromCpuMaterial for PositionMaterial {
-    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    fn from_cpu_material(_context: &Context, _cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         Ok(Self::default())
     }
 }

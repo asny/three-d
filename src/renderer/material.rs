@@ -80,7 +80,13 @@ pub trait Material {
     fn is_transparent(&self) -> bool;
 }
 
+///
+/// Implement this for a [Material] that can be created from a [CpuMaterial].
+///
 pub trait FromCpuMaterial: std::marker::Sized {
+    ///
+    /// Creates a new material that can be used for rendering from a [CpuMaterial].
+    ///
     fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self>;
 }
 
