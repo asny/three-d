@@ -80,8 +80,8 @@ pub trait Material {
     fn is_transparent(&self) -> bool;
 }
 
-pub trait MaterialNew: std::marker::Sized {
-    fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self>;
+pub trait FromCpuMaterial: std::marker::Sized {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self>;
 }
 
 impl<T: Material + ?Sized> Material for &T {

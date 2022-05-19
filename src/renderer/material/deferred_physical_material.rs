@@ -131,6 +131,12 @@ impl DeferredPhysicalMaterial {
     }
 }
 
+impl FromCpuMaterial for DeferredPhysicalMaterial {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        Self::new(context, cpu_material)
+    }
+}
+
 impl Material for DeferredPhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         let mut output = include_str!("../../core/shared.frag").to_string();

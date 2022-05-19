@@ -46,6 +46,12 @@ impl NormalMaterial {
     }
 }
 
+impl FromCpuMaterial for NormalMaterial {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        Self::new(context, cpu_material)
+    }
+}
+
 impl Material for NormalMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         let mut shader = String::new();

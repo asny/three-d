@@ -77,6 +77,12 @@ impl ColorMaterial {
     }
 }
 
+impl FromCpuMaterial for ColorMaterial {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        Self::new(context, cpu_material)
+    }
+}
+
 impl Material for ColorMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         let mut shader = String::new();
