@@ -30,18 +30,18 @@ impl<M: Material> Model<M> {
     }
 }
 
-pub use three_d_asset::Model as CpuModel;
+pub use three_d_asset::Models as CpuModels;
 
 pub fn new_models<T: Material + FromCpuMaterial + Clone + Default>(
     context: &Context,
-    cpu_model: &CpuModel,
+    cpu_models: &CpuModels,
 ) -> ThreeDResult<Vec<Model<T>>> {
     let mut materials = std::collections::HashMap::new();
-    for m in cpu_model.materials.iter() {
+    for m in cpu_models.materials.iter() {
         materials.insert(m.name.clone(), T::from_cpu_material(context, m)?);
     }
     let mut models: Vec<Model<T>> = Vec::new();
-    for g in cpu_model.geometries.iter() {
+    for g in cpu_models.geometries.iter() {
         models.push(if let Some(material_name) = &g.material_name {
             Model::new_with_material(context, g, materials.get(material_name).unwrap().clone())?
         } else {
