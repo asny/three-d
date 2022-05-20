@@ -30,10 +30,10 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     // Source: https://web.cs.ucdavis.edu/~okreylos/PhDStudies/Spring2000/ECS277/DataSets.html
-    let cpu_volume = three_d_asset::io::load_async(&["examples/assets/Skull.vol"])
+    let cpu_volume: CpuVolume = three_d_asset::io::load_async(&["examples/assets/Skull.vol"])
         .await
         .unwrap()
-        .vol("")
+        .deserialize("")
         .unwrap();
     let mut volume = Model::new_with_material(
         &context,

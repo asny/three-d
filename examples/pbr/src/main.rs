@@ -38,13 +38,14 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let environment_map = loaded.image("chinese").unwrap();
+    let environment_map = loaded.deserialize("chinese").unwrap();
     let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
 
-    let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
-    let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
-    cpu_meshes[0].compute_tangents().unwrap();
-    let model = Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
+    let mut models: CpuModels = loaded.deserialize("DamagedHelmet").unwrap();
+    models.geometries[0].compute_tangents().unwrap();
+    let model = Models::<PhysicalMaterial>::new(&context, &models)
+        .unwrap()
+        .remove(0);
 
     let light =
         AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture()).unwrap();

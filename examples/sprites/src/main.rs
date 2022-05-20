@@ -34,7 +34,7 @@ pub async fn run() {
     let img = three_d_asset::io::load_async(&["examples/assets/test_texture.jpg"])
         .await
         .unwrap()
-        .image("")
+        .deserialize("")
         .unwrap();
     let material = ColorMaterial {
         color: Color::WHITE,

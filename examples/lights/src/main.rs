@@ -110,24 +110,12 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let (cpu_meshes, cpu_materials) = loaded.gltf("Sponza.gltf").unwrap();
+    let models = loaded.deserialize("Sponza.gltf").unwrap();
+    let models = Models::<DeferredPhysicalMaterial>::new(&context, &models).unwrap();
 
-    let mut materials = Vec::new();
-    for m in cpu_materials.iter() {
-        materials.push(DeferredPhysicalMaterial::new(&context, &m).unwrap());
-    }
-
-    let mut models = Vec::new();
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
-    for m in cpu_meshes.iter() {
-        let material = materials
-            .iter()
-            .find(|material| &material.name == m.material_name.as_ref().unwrap())
-            .unwrap()
-            .clone();
-        let m = Model::new_with_material(&context, &m, material).unwrap();
+    for m in models.iter() {
         aabb.expand_with_aabb(&m.aabb());
-        models.push(m);
     }
 
     let size = aabb.size();

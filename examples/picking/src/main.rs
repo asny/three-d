@@ -52,10 +52,11 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let (meshes, materials) = loaded.obj("suzanne.obj").unwrap();
-    let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();
-    monkey_material.render_states.cull = Cull::Back;
-    let monkey = Model::new_with_material(&context, &meshes[0], monkey_material).unwrap();
+    let models = loaded.deserialize("suzanne.obj").unwrap();
+    let mut monkey = Models::<PhysicalMaterial>::new(&context, &models)
+        .unwrap()
+        .remove(0);
+    monkey.material.render_states.cull = Cull::Back;
 
     // main loop
     window

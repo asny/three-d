@@ -38,15 +38,17 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
-    let mut loaded = three_d_asset::io::load_async(
-        &["examples/assets/gltf/DamagedHelmet.glb"], // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
-    )
-    .await
-    .unwrap();
-    let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
-    let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
-    cpu_meshes[0].compute_tangents().unwrap();
-    let mut model = Model::new_with_material(&context, &cpu_meshes[0], material).unwrap();
+    // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+    let mut models: CpuModels =
+        three_d_asset::io::load_async(&["examples/assets/gltf/DamagedHelmet.glb"])
+            .await
+            .unwrap()
+            .deserialize("")
+            .unwrap();
+    models.geometries[0].compute_tangents().unwrap();
+    let mut model = Models::<PhysicalMaterial>::new(&context, &models)
+        .unwrap()
+        .remove(0);
 
     let mut plane = Model::new_with_material(
         &context,

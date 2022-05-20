@@ -38,17 +38,13 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let (mut meshes, materials) = loaded.obj("suzanne.obj").unwrap();
-    let mut cpu_mesh = meshes.remove(0);
-    cpu_mesh
+    let mut models: CpuModels = loaded.deserialize("suzanne.obj").unwrap();
+    models.geometries[0]
         .transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)))
         .unwrap();
-    let mut model = Model::new_with_material(
-        &context,
-        &cpu_mesh,
-        PhysicalMaterial::new(&context, &materials[0]).unwrap(),
-    )
-    .unwrap();
+    let mut model = Models::<PhysicalMaterial>::new(&context, &models)
+        .unwrap()
+        .remove(0);
     model.material.render_states.cull = Cull::Back;
     let wireframe_material = PhysicalMaterial {
         name: "wireframe".to_string(),
@@ -67,7 +63,7 @@ pub async fn run() {
         .unwrap();
     let edges = InstancedModel::new_with_material(
         &context,
-        &edge_transformations(&cpu_mesh),
+        &edge_transformations(&models.geometries[0]),
         &cylinder,
         wireframe_material.clone(),
     )
@@ -77,7 +73,7 @@ pub async fn run() {
     sphere.transform(&Mat4::from_scale(0.015)).unwrap();
     let vertices = InstancedModel::new_with_material(
         &context,
-        &vertex_transformations(&cpu_mesh),
+        &vertex_transformations(&models.geometries[0]),
         &sphere,
         wireframe_material,
     )

@@ -43,11 +43,15 @@ pub async fn run() {
     .await
     .unwrap();
 
+    let top_tex = loaded.deserialize("top").unwrap();
     let skybox = Skybox::new(
         &context,
-        &loaded
-            .cube_image("right", "left", "top", "top", "front", "back")
-            .unwrap(),
+        &loaded.deserialize("right").unwrap(),
+        &loaded.deserialize("left").unwrap(),
+        &top_tex,
+        &top_tex,
+        &loaded.deserialize("front").unwrap(),
+        &loaded.deserialize("back").unwrap(),
     )
     .unwrap();
     let mut box_object = Model::new_with_material(
@@ -55,20 +59,17 @@ pub async fn run() {
         &CpuMesh::cube(),
         ColorMaterial {
             texture: Some(std::rc::Rc::new(
-                Texture2D::new(&context, &loaded.image("test_texture").unwrap()).unwrap(),
+                Texture2D::new(&context, &loaded.deserialize("test_texture").unwrap()).unwrap(),
             )),
             ..Default::default()
         },
     )
     .unwrap();
     box_object.material.render_states.cull = Cull::Back;
-    let (penguin_cpu_meshes, penguin_cpu_materials) = loaded.obj("PenguinBaseMesh.obj").unwrap();
-    let mut penguin_object = Model::new_with_material(
-        &context,
-        &penguin_cpu_meshes[0],
-        PhysicalMaterial::new(&context, &penguin_cpu_materials[0]).unwrap(),
-    )
-    .unwrap();
+    let models = loaded.deserialize("PenguinBaseMesh.obj").unwrap();
+    let mut penguin_object = Models::<PhysicalMaterial>::new(&context, &models)
+        .unwrap()
+        .remove(0);
     penguin_object.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
     penguin_object.material.render_states.cull = Cull::Back;
 

@@ -25,38 +25,35 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let (mut cpu_meshes, cpu_materials) = loaded.gltf("NormalTangentTest.glb").unwrap();
-    let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
-    cpu_meshes[0].compute_tangents().unwrap();
+    let mut cpu_models: CpuModels = loaded.deserialize("NormalTangentTest.glb").unwrap();
+    cpu_models
+        .geometries
+        .iter_mut()
+        .for_each(|m| m.compute_tangents().unwrap());
 
-    let mut model_with_computed_tangents =
-        Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
+    let mut model_with_computed_tangents = Models::<PhysicalMaterial>::new(&context, &cpu_models)
+        .unwrap()
+        .remove(0);
     model_with_computed_tangents.set_transformation(Mat4::from_translation(vec3(1.4, 1.2, 0.0)));
 
-    let mut instanced_model_with_computed_tangents = InstancedModel::new_with_material(
-        &context,
-        &Instances::default(),
-        &cpu_meshes[0],
-        material.clone(),
-    )
-    .unwrap();
+    let mut instanced_model_with_computed_tangents =
+        InstancedModels::<PhysicalMaterial>::new(&context, &Instances::default(), &cpu_models)
+            .unwrap()
+            .remove(0);
     instanced_model_with_computed_tangents
         .set_transformation(Mat4::from_translation(vec3(1.4, -1.2, 0.0)));
 
-    let (cpu_meshes, cpu_materials) = loaded.gltf("NormalTangentMirrorTest.glb").unwrap();
-    let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
+    let cpu_models: CpuModels = loaded.deserialize("NormalTangentMirrorTest.glb").unwrap();
 
-    let mut model_with_loaded_tangents =
-        Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
+    let mut model_with_loaded_tangents = Models::<PhysicalMaterial>::new(&context, &cpu_models)
+        .unwrap()
+        .remove(0);
     model_with_loaded_tangents.set_transformation(Mat4::from_translation(vec3(-1.4, 1.2, 0.0)));
 
-    let mut instanced_model_with_loaded_tangents = InstancedModel::new_with_material(
-        &context,
-        &Instances::default(),
-        &cpu_meshes[0],
-        material.clone(),
-    )
-    .unwrap();
+    let mut instanced_model_with_loaded_tangents =
+        InstancedModels::<PhysicalMaterial>::new(&context, &Instances::default(), &cpu_models)
+            .unwrap()
+            .remove(0);
     instanced_model_with_loaded_tangents
         .set_transformation(Mat4::from_translation(vec3(-1.4, -1.2, 0.0)));
 

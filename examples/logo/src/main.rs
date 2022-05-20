@@ -69,7 +69,7 @@ pub async fn run() {
     .await
     .unwrap();
     let environment_map =
-        TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.image("").unwrap())
+        TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.deserialize("").unwrap())
             .unwrap();
     let light = AmbientLight {
         environment: Some(Environment::new(&context, &environment_map).unwrap()),

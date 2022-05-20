@@ -42,26 +42,15 @@ pub async fn run() {
     .await
     .unwrap();
     // Tree
-    let (mut meshes, materials) = loaded.obj(".obj").unwrap();
-    let mut models = Vec::new();
-    for mut mesh in meshes.drain(..) {
-        mesh.compute_normals();
-        let mut model = Model::new_with_material(
-            &context,
-            &mesh,
-            PhysicalMaterial::new(
-                &context,
-                &materials
-                    .iter()
-                    .find(|m| Some(&m.name) == mesh.material_name.as_ref())
-                    .unwrap(),
-            )
-            .unwrap(),
-        )
-        .unwrap();
-        model.material.render_states.cull = Cull::Back;
-        models.push(model);
-    }
+    let mut cpu_models: CpuModels = loaded.deserialize(".obj").unwrap();
+    cpu_models
+        .geometries
+        .iter_mut()
+        .for_each(|g| g.compute_normals());
+    let mut models = Models::<PhysicalMaterial>::new(&context, &cpu_models).unwrap();
+    models
+        .iter_mut()
+        .for_each(|m| m.material.render_states.cull = Cull::Back);
 
     // Lights
     let ambient = AmbientLight::new(&context, 0.3, Color::WHITE).unwrap();
@@ -118,7 +107,6 @@ pub async fn run() {
     )
     .unwrap();
     plane.material.render_states.cull = Cull::Back;
-    models.push(plane);
 
     // main loop
     window
@@ -133,6 +121,7 @@ pub async fn run() {
             if redraw {
                 let mut models = models.iter().map(|m| m as &dyn Object).collect::<Vec<_>>();
                 models.push(&imposters);
+                models.push(&plane);
                 frame_input
                     .screen()
                     .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))

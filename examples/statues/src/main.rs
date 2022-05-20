@@ -63,8 +63,7 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let (statue_cpu_meshes, statue_cpu_materials) =
-        loaded.obj("examples/assets/COLOMBE.obj").unwrap();
+    let cpu_models: CpuModels = loaded.deserialize("examples/assets/COLOMBE.obj").unwrap();
 
     let mut models = Vec::new();
     let scale = Mat4::from_scale(10.0);
@@ -78,21 +77,21 @@ pub async fn run() {
             angle.sin() * dist,
         ));
         let mut statue_material =
-            PhysicalMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
+            PhysicalMaterial::new(&context, &cpu_models.materials[0]).unwrap();
         statue_material.render_states.cull = Cull::Back;
         let mut statue =
-            Model::new_with_material(&context, &statue_cpu_meshes[0], statue_material).unwrap();
+            Model::new_with_material(&context, &cpu_models.geometries[0], statue_material).unwrap();
         statue.set_transformation(translation * scale * rotation);
         models.push(statue);
     }
 
-    let (fountain_cpu_meshes, fountain_cpu_materials) =
-        loaded.obj("examples/assets/pfboy.obj").unwrap();
-    let mut fountain_material =
-        PhysicalMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
-    fountain_material.render_states.cull = Cull::Back;
-    let mut fountain =
-        Model::new_with_material(&context, &fountain_cpu_meshes[0], fountain_material).unwrap();
+    let mut fountain = Models::<PhysicalMaterial>::new(
+        &context,
+        &loaded.deserialize("examples/assets/pfboy.obj").unwrap(),
+    )
+    .unwrap()
+    .remove(0);
+    fountain.material.render_states.cull = Cull::Back;
     fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
     models.push(fountain);
 

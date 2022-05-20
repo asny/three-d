@@ -86,11 +86,17 @@ fn main() {
         .unwrap();
 
         // Save the rendered image
-        three_d_asset::io::save_pixels(
-            format!("headless-{}.png", frame_index),
-            &pixels,
-            texture.width(),
-            texture.height(),
+        use three_d_asset::io::Serialize;
+
+        three_d_asset::io::save(
+            &CpuTexture {
+                data: TextureData::RgbaU8(pixels),
+                width: texture.width(),
+                height: texture.height(),
+                ..Default::default()
+            }
+            .serialize(format!("headless-{}.png", frame_index))
+            .unwrap(),
         )
         .unwrap();
     }
