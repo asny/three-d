@@ -32,9 +32,15 @@ impl<M: Material> Model<M> {
 
 pub use three_d_asset::Models as CpuModels;
 
-pub struct Models<T: Material>(Vec<Model<T>>);
+///
+/// A list of [Model]s, usually constructed from [CpuModels].
+///
+pub struct Models<T: Material>(pub Vec<Model<T>>);
 
 impl<T: Material + FromCpuMaterial + Clone + Default> Models<T> {
+    ///
+    /// Constructs a list of [Model]s from [CpuModels].
+    ///
     pub fn new(context: &Context, cpu_models: &CpuModels) -> ThreeDResult<Models<T>> {
         let mut materials = std::collections::HashMap::new();
         for m in cpu_models.materials.iter() {

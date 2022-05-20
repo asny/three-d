@@ -33,9 +33,15 @@ impl<M: Material> InstancedModel<M> {
     }
 }
 
-pub struct InstancedModels<T: Material>(Vec<InstancedModel<T>>);
+///
+/// A list of [InstancedModel]s, usually constructed from [CpuModels].
+///
+pub struct InstancedModels<T: Material>(pub Vec<InstancedModel<T>>);
 
 impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModels<T> {
+    ///
+    /// Constructs a list of [InstancedModel]s from [CpuModels] and the given [Instances] attributes.
+    ///
     pub fn new(
         context: &Context,
         instances: &Instances,
