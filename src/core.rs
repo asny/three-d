@@ -117,6 +117,8 @@ pub enum CoreError {
     MinimumLargerThanMaximum,
     #[error("the transformation matrix cannot be inverted and is therefore invalid")]
     FailedInvertingTransformationMatrix,
+    #[error("the material {0} is required by the geometry {1} but could not be found")]
+    MissingMaterial(String, String),
 }
 
 mod data_type;

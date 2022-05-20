@@ -49,7 +49,17 @@ impl<T: Material + FromCpuMaterial + Clone + Default> Models<T> {
         let mut models: Vec<Model<T>> = Vec::new();
         for g in cpu_models.geometries.iter() {
             models.push(if let Some(material_name) = &g.material_name {
-                Model::new_with_material(context, g, materials.get(material_name).unwrap().clone())?
+                Model::new_with_material(
+                    context,
+                    g,
+                    materials
+                        .get(material_name)
+                        .ok_or(CoreError::MissingMaterial(
+                            material_name.clone(),
+                            g.name.clone(),
+                        ))?
+                        .clone(),
+                )?
             } else {
                 Model::new_with_material(context, g, T::default())?
             });

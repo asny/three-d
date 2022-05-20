@@ -58,7 +58,13 @@ impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModels<T> {
                     context,
                     instances,
                     g,
-                    materials.get(material_name).unwrap().clone(),
+                    materials
+                        .get(material_name)
+                        .ok_or(CoreError::MissingMaterial(
+                            material_name.clone(),
+                            g.name.clone(),
+                        ))?
+                        .clone(),
                 )?
             } else {
                 InstancedModel::new_with_material(context, instances, g, T::default())?
