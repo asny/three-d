@@ -338,7 +338,7 @@ impl Geometry for InstancedMesh {
 /// Defines the attributes for the instances of the model defined in [InstancedMesh] or [InstancedModel].
 /// Each list of attributes must contain the same number of elements as the number of instances.
 ///
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Instances {
     /// The translation applied to the positions of each instance.
     pub translations: Vec<Vec3>,
@@ -385,17 +385,5 @@ impl Instances {
     /// Returns the number of instances.
     pub fn count(&self) -> u32 {
         self.translations.len() as u32
-    }
-}
-
-impl Default for Instances {
-    fn default() -> Self {
-        Self {
-            translations: vec![Vec3::zero()],
-            rotations: None,
-            scales: None,
-            texture_transforms: None,
-            colors: None,
-        }
     }
 }
