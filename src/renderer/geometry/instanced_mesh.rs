@@ -61,7 +61,7 @@ impl InstancedMesh {
     ///
     /// Get the texture transform applied to the uv coordinates of all of the instances.
     ///
-    pub fn texture_transform(&mut self) -> &Mat3 {
+    pub fn texture_transform(&self) -> &Mat3 {
         &self.texture_transform
     }
 
@@ -74,7 +74,7 @@ impl InstancedMesh {
     }
 
     /// Returns the number of instances that is rendered.
-    pub fn instance_count(&mut self) -> u32 {
+    pub fn instance_count(&self) -> u32 {
         self.instance_count
     }
 
