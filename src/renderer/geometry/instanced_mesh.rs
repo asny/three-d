@@ -93,6 +93,7 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         instances.validate()?;
         self.instance_count = instances.count();
+        self.instance_buffers.clear();
         self.instance_transforms = (0..self.instance_count as usize)
             .map(|i| {
                 Mat4::from_translation(instances.translations[i])
