@@ -365,6 +365,7 @@ impl Window {
                     first_frame = false;
                 }
             }
+            println!("Test done");
             Ok(())
         }
     }
