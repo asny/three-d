@@ -34,8 +34,8 @@ impl Program {
                 .create_shader(crate::context::FRAGMENT_SHADER)
                 .map_err(|e| CoreError::ShaderCreation(e))?;
 
-            #[cfg(target_arch = "wasm32")]
-            const HEADER: &str = "#version 300 es
+            let header: &str = if context.version().is_embedded {
+                "#version 300 es
                     #ifdef GL_FRAGMENT_PRECISION_HIGH
                         precision highp float;
                         precision highp int;
@@ -46,14 +46,15 @@ impl Program {
                         precision mediump int;
                         precision mediump sampler2DArray;
                         precision mediump sampler3D;
-                    #endif\n";
-            #[cfg(not(target_arch = "wasm32"))]
-            const HEADER: &str = "#version 330 core\n";
+                    #endif\n"
+            } else {
+                "#version 330 core\n"
+            };
 
-            context.shader_source(vert_shader, &format!("{}{}", HEADER, vertex_shader_source));
+            context.shader_source(vert_shader, &format!("{}{}", header, vertex_shader_source));
             context.shader_source(
                 frag_shader,
-                &format!("{}{}", HEADER, fragment_shader_source),
+                &format!("{}{}", header, fragment_shader_source),
             );
             context.compile_shader(vert_shader);
             context.compile_shader(frag_shader);
