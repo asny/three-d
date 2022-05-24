@@ -1,10 +1,11 @@
 //!
+//! *[Deprecated: Use the [three-d-asset](https://github.com/asny/three-d-asset) crate instead.]*
 //! Contains functionality to load any type of asset runtime on both desktop and web as well as parsers for different image and 3D model formats.
 //! Also includes functionality to save data which is limited to desktop.
 //!
 
 #![allow(missing_docs)]
-#![deprecated = "moved to the `three-d-io` crate"]
+#![deprecated = "moved to the `three-d-asset` crate"]
 
 use crate::{CpuMaterial, CpuMesh, CpuTexture, CpuVolume};
 use std::path::Path;
