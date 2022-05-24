@@ -338,12 +338,12 @@ impl Window {
             let exit_time = if let Ok(v) = std::env::var("THREE_D_EXIT") {
                 v.parse::<f64>().unwrap()
             } else {
-                10000.0
+                3000.0
             };
             let mut last_time = std::time::Instant::now();
             let mut accumulated_time = 0.0;
             let mut first_frame = true;
-            while exit_time < accumulated_time {
+            while exit_time > accumulated_time {
                 let now = std::time::Instant::now();
                 let duration = now.duration_since(last_time);
                 if duration.as_millis() > 30 {
