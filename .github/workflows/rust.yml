@@ -6,6 +6,7 @@ env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
   THREE_D_EXIT: 300
+  THREE_D_CI: 1
 
 jobs:
 
