@@ -53,12 +53,12 @@ pub struct Loaded(three_d_asset::io::RawAssets);
 
 impl Loaded {
     pub fn gltf<P: AsRef<Path>>(&mut self, path: P) -> Result<(Vec<CpuMesh>, Vec<CpuMaterial>)> {
-        let r: three_d_asset::Models = self.deserialize(path)?;
+        let r: three_d_asset::Model = self.deserialize(path)?;
         Ok((r.geometries, r.materials))
     }
 
     pub fn obj<P: AsRef<Path>>(&mut self, path: P) -> Result<(Vec<CpuMesh>, Vec<CpuMaterial>)> {
-        let r: three_d_asset::Models = self.deserialize(path)?;
+        let r: three_d_asset::Model = self.deserialize(path)?;
         Ok((r.geometries, r.materials))
     }
 

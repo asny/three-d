@@ -30,7 +30,7 @@ impl<M: Material> Model<M> {
     }
 }
 
-pub use three_d_asset::Models as CpuModels;
+pub use three_d_asset::Model as CpuModels;
 
 ///
 /// A list of [Model]s, usually constructed from [CpuModels].
