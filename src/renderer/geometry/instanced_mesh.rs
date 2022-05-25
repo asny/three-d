@@ -61,7 +61,7 @@ impl InstancedMesh {
     ///
     /// Get the texture transform applied to the uv coordinates of all of the instances.
     ///
-    pub fn texture_transform(&mut self) -> &Mat3 {
+    pub fn texture_transform(&self) -> &Mat3 {
         &self.texture_transform
     }
 
@@ -74,7 +74,7 @@ impl InstancedMesh {
     }
 
     /// Returns the number of instances that is rendered.
-    pub fn instance_count(&mut self) -> u32 {
+    pub fn instance_count(&self) -> u32 {
         self.instance_count
     }
 
@@ -93,6 +93,7 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         instances.validate()?;
         self.instance_count = instances.count();
+        self.instance_buffers.clear();
         self.instance_transforms = (0..self.instance_count as usize)
             .map(|i| {
                 Mat4::from_translation(instances.translations[i])
@@ -341,7 +342,7 @@ impl Geometry for InstancedMesh {
 /// The translation, rotation and scale is applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).
 /// The texture transform is also applied after the texture transform applied to all isntances (see [InstancedMesh::set_texture_transform]).
 ///
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Instances {
     /// The translation applied to the positions of each instance.
     pub translations: Vec<Vec3>,
@@ -388,17 +389,5 @@ impl Instances {
     /// Returns the number of instances.
     pub fn count(&self) -> u32 {
         self.translations.len() as u32
-    }
-}
-
-impl Default for Instances {
-    fn default() -> Self {
-        Self {
-            translations: vec![Vec3::zero()],
-            rotations: None,
-            scales: None,
-            texture_transforms: None,
-            colors: None,
-        }
     }
 }

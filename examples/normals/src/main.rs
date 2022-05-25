@@ -36,10 +36,16 @@ pub async fn run() {
         .remove(0);
     model_with_computed_tangents.set_transformation(Mat4::from_translation(vec3(1.4, 1.2, 0.0)));
 
-    let mut instanced_model_with_computed_tangents =
-        InstancedModels::<PhysicalMaterial>::new(&context, &Instances::default(), &cpu_models)
-            .unwrap()
-            .remove(0);
+    let mut instanced_model_with_computed_tangents = InstancedModels::<PhysicalMaterial>::new(
+        &context,
+        &Instances {
+            translations: vec![Vec3::zero()],
+            ..Default::default()
+        },
+        &cpu_models,
+    )
+    .unwrap()
+    .remove(0);
     instanced_model_with_computed_tangents
         .set_transformation(Mat4::from_translation(vec3(1.4, -1.2, 0.0)));
 
@@ -49,11 +55,16 @@ pub async fn run() {
         .unwrap()
         .remove(0);
     model_with_loaded_tangents.set_transformation(Mat4::from_translation(vec3(-1.4, 1.2, 0.0)));
-
-    let mut instanced_model_with_loaded_tangents =
-        InstancedModels::<PhysicalMaterial>::new(&context, &Instances::default(), &cpu_models)
-            .unwrap()
-            .remove(0);
+    let mut instanced_model_with_loaded_tangents = InstancedModels::<PhysicalMaterial>::new(
+        &context,
+        &Instances {
+            translations: vec![Vec3::zero()],
+            ..Default::default()
+        },
+        &cpu_models,
+    )
+    .unwrap()
+    .remove(0);
     instanced_model_with_loaded_tangents
         .set_transformation(Mat4::from_translation(vec3(-1.4, -1.2, 0.0)));
 
