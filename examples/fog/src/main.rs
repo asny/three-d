@@ -38,7 +38,7 @@ pub async fn run() {
     .unwrap();
 
     let mut monkey =
-        Models::<PhysicalMaterial>::new(&context, &loaded.deserialize("suzanne.obj").unwrap())
+        create_models::<PhysicalMaterial>(&context, &loaded.deserialize("suzanne.obj").unwrap())
             .unwrap()
             .remove(0);
     monkey.material.render_states.cull = Cull::Back;

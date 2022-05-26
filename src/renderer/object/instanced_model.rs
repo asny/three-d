@@ -34,55 +34,35 @@ impl<M: Material> InstancedModel<M> {
 }
 
 ///
-/// A list of [InstancedModel]s, usually constructed from [CpuModels].
+/// Constructs a list of [InstancedModel]s from [CpuModels] and the given [Instances] attributes.
 ///
-pub struct InstancedModels<T: Material>(pub Vec<InstancedModel<T>>);
-
-impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModels<T> {
-    ///
-    /// Constructs a list of [InstancedModel]s from [CpuModels] and the given [Instances] attributes.
-    ///
-    pub fn new(
-        context: &Context,
-        instances: &Instances,
-        cpu_models: &CpuModels,
-    ) -> ThreeDResult<InstancedModels<T>> {
-        let mut materials = std::collections::HashMap::new();
-        for m in cpu_models.materials.iter() {
-            materials.insert(m.name.clone(), T::from_cpu_material(context, m)?);
-        }
-        let mut models: Vec<InstancedModel<T>> = Vec::new();
-        for g in cpu_models.geometries.iter() {
-            models.push(if let Some(material_name) = &g.material_name {
-                InstancedModel::new_with_material(
-                    context,
-                    instances,
-                    g,
-                    materials
-                        .get(material_name)
-                        .ok_or(CoreError::MissingMaterial(
-                            material_name.clone(),
-                            g.name.clone(),
-                        ))?
-                        .clone(),
-                )?
-            } else {
-                InstancedModel::new_with_material(context, instances, g, T::default())?
-            });
-        }
-        Ok(Self(models))
+pub fn create_instanced_models<T: Material + FromCpuMaterial + Clone + Default>(
+    context: &Context,
+    instances: &Instances,
+    cpu_models: &CpuModels,
+) -> ThreeDResult<Vec<InstancedModel<T>>> {
+    let mut materials = std::collections::HashMap::new();
+    for m in cpu_models.materials.iter() {
+        materials.insert(m.name.clone(), T::from_cpu_material(context, m)?);
     }
-}
-
-impl<T: Material> std::ops::Deref for InstancedModels<T> {
-    type Target = Vec<InstancedModel<T>>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
+    let mut models: Vec<InstancedModel<T>> = Vec::new();
+    for g in cpu_models.geometries.iter() {
+        models.push(if let Some(material_name) = &g.material_name {
+            InstancedModel::new_with_material(
+                context,
+                instances,
+                g,
+                materials
+                    .get(material_name)
+                    .ok_or(CoreError::MissingMaterial(
+                        material_name.clone(),
+                        g.name.clone(),
+                    ))?
+                    .clone(),
+            )?
+        } else {
+            InstancedModel::new_with_material(context, instances, g, T::default())?
+        });
     }
-}
-
-impl<T: Material> std::ops::DerefMut for InstancedModels<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
+    Ok(models)
 }

@@ -67,7 +67,7 @@ pub async fn run() {
     .unwrap();
     box_object.material.render_states.cull = Cull::Back;
     let models = loaded.deserialize("PenguinBaseMesh.obj").unwrap();
-    let mut penguin_object = Models::<PhysicalMaterial>::new(&context, &models)
+    let mut penguin_object = create_models::<PhysicalMaterial>(&context, &models)
         .unwrap()
         .remove(0);
     penguin_object.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));

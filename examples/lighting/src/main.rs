@@ -46,7 +46,7 @@ pub async fn run() {
             .deserialize("")
             .unwrap();
     models.geometries[0].compute_tangents().unwrap();
-    let mut model = Models::<PhysicalMaterial>::new(&context, &models)
+    let mut model = create_models::<PhysicalMaterial>(&context, &models)
         .unwrap()
         .remove(0);
 

@@ -43,7 +43,7 @@ pub async fn run() {
 
     let mut models: CpuModels = loaded.deserialize("DamagedHelmet").unwrap();
     models.geometries[0].compute_tangents().unwrap();
-    let model = Models::<PhysicalMaterial>::new(&context, &models)
+    let model = create_models::<PhysicalMaterial>(&context, &models)
         .unwrap()
         .remove(0);
 
