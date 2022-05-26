@@ -47,7 +47,7 @@ pub async fn run() {
         .geometries
         .iter_mut()
         .for_each(|g| g.compute_normals());
-    let mut models = create_models::<PhysicalMaterial>(&context, &cpu_models).unwrap();
+    let mut models = Models::<PhysicalMaterial>::new(&context, &cpu_models).unwrap();
     models
         .iter_mut()
         .for_each(|m| m.material.render_states.cull = Cull::Back);

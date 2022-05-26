@@ -42,7 +42,7 @@ pub async fn run() {
     models.geometries[0]
         .transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)))
         .unwrap();
-    let mut model = create_models::<PhysicalMaterial>(&context, &models)
+    let mut model = Models::<PhysicalMaterial>::new(&context, &models)
         .unwrap()
         .remove(0);
     model.material.render_states.cull = Cull::Back;

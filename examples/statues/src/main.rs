@@ -85,7 +85,7 @@ pub async fn run() {
         models.push(statue);
     }
 
-    let mut fountain = create_models::<PhysicalMaterial>(
+    let mut fountain = Models::<PhysicalMaterial>::new(
         &context,
         &loaded.deserialize("examples/assets/pfboy.obj").unwrap(),
     )

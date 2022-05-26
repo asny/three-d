@@ -111,7 +111,7 @@ pub async fn run() {
     .unwrap();
 
     let models = loaded.deserialize("Sponza.gltf").unwrap();
-    let models = create_models::<DeferredPhysicalMaterial>(&context, &models).unwrap();
+    let models = Models::<DeferredPhysicalMaterial>::new(&context, &models).unwrap();
 
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     for m in models.iter() {

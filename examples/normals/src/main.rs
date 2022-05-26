@@ -31,12 +31,12 @@ pub async fn run() {
         .iter_mut()
         .for_each(|m| m.compute_tangents().unwrap());
 
-    let mut model_with_computed_tangents = create_models::<PhysicalMaterial>(&context, &cpu_models)
+    let mut model_with_computed_tangents = Models::<PhysicalMaterial>::new(&context, &cpu_models)
         .unwrap()
         .remove(0);
     model_with_computed_tangents.set_transformation(Mat4::from_translation(vec3(1.4, 1.2, 0.0)));
 
-    let mut instanced_model_with_computed_tangents = create_instanced_models::<PhysicalMaterial>(
+    let mut instanced_model_with_computed_tangents = InstancedModels::<PhysicalMaterial>::new(
         &context,
         &Instances {
             translations: vec![Vec3::zero()],
@@ -51,11 +51,11 @@ pub async fn run() {
 
     let cpu_models: CpuModels = loaded.deserialize("NormalTangentMirrorTest.glb").unwrap();
 
-    let mut model_with_loaded_tangents = create_models::<PhysicalMaterial>(&context, &cpu_models)
+    let mut model_with_loaded_tangents = Models::<PhysicalMaterial>::new(&context, &cpu_models)
         .unwrap()
         .remove(0);
     model_with_loaded_tangents.set_transformation(Mat4::from_translation(vec3(-1.4, 1.2, 0.0)));
-    let mut instanced_model_with_loaded_tangents = create_instanced_models::<PhysicalMaterial>(
+    let mut instanced_model_with_loaded_tangents = InstancedModels::<PhysicalMaterial>::new(
         &context,
         &Instances {
             translations: vec![Vec3::zero()],

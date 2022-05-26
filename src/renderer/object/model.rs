@@ -33,33 +33,50 @@ impl<M: Material> Model<M> {
 pub use three_d_asset::Model as CpuModels;
 
 ///
-/// Constructs a list of [Model]s from [CpuModels].
+/// A list of [Model]s, usually constructed from [CpuModels].
 ///
-pub fn create_models<T: Material + FromCpuMaterial + Clone + Default>(
-    context: &Context,
-    cpu_models: &CpuModels,
-) -> ThreeDResult<Vec<Model<T>>> {
-    let mut materials = std::collections::HashMap::new();
-    for m in cpu_models.materials.iter() {
-        materials.insert(m.name.clone(), T::from_cpu_material(context, m)?);
+pub struct Models<T: Material>(pub Vec<Model<T>>);
+
+impl<T: Material + FromCpuMaterial + Clone + Default> Models<T> {
+    ///
+    /// Constructs a list of [Model]s from [CpuModels].
+    ///
+    pub fn new(context: &Context, cpu_models: &CpuModels) -> ThreeDResult<Models<T>> {
+        let mut materials = std::collections::HashMap::new();
+        for m in cpu_models.materials.iter() {
+            materials.insert(m.name.clone(), T::from_cpu_material(context, m)?);
+        }
+        let mut models: Vec<Model<T>> = Vec::new();
+        for g in cpu_models.geometries.iter() {
+            models.push(if let Some(material_name) = &g.material_name {
+                Model::new_with_material(
+                    context,
+                    g,
+                    materials
+                        .get(material_name)
+                        .ok_or(CoreError::MissingMaterial(
+                            material_name.clone(),
+                            g.name.clone(),
+                        ))?
+                        .clone(),
+                )?
+            } else {
+                Model::new_with_material(context, g, T::default())?
+            });
+        }
+        Ok(Self(models))
     }
-    let mut models: Vec<Model<T>> = Vec::new();
-    for g in cpu_models.geometries.iter() {
-        models.push(if let Some(material_name) = &g.material_name {
-            Model::new_with_material(
-                context,
-                g,
-                materials
-                    .get(material_name)
-                    .ok_or(CoreError::MissingMaterial(
-                        material_name.clone(),
-                        g.name.clone(),
-                    ))?
-                    .clone(),
-            )?
-        } else {
-            Model::new_with_material(context, g, T::default())?
-        });
+}
+
+impl<T: Material> std::ops::Deref for Models<T> {
+    type Target = Vec<Model<T>>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
-    Ok(models)
+}
+
+impl<T: Material> std::ops::DerefMut for Models<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }
