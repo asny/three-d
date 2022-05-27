@@ -5,7 +5,7 @@ use crate::renderer::*;
 ///
 pub struct Line<M: Material> {
     context: Context,
-    model: Model<M>,
+    model: Gm<Mesh, M>,
     pixel0: Vec2,
     pixel1: Vec2,
     thickness: f32,
@@ -26,7 +26,7 @@ impl<M: Material> Line<M> {
         mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))?;
         let mut line = Self {
             context: context.clone(),
-            model: Model::new_with_material(context, &mesh, material)?,
+            model: Gm::new(Mesh::new(context, &mesh)?, material),
             pixel0,
             pixel1,
             thickness,

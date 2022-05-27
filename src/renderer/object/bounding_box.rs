@@ -4,7 +4,7 @@ use crate::renderer::*;
 /// A bounding box object used for visualising an [AxisAlignedBoundingBox].
 ///
 pub struct BoundingBox<M: Material> {
-    model: InstancedModel<M>,
+    model: Gm<InstancedMesh, M>,
     aabb: AxisAlignedBoundingBox,
 }
 
@@ -80,17 +80,19 @@ impl<M: Material> BoundingBox<M> {
             vec3(size.z, thickness, thickness),
             vec3(size.z, thickness, thickness),
         ];
-        let model = InstancedModel::new_with_material(
-            context,
-            &Instances {
-                translations,
-                rotations: Some(rotations),
-                scales: Some(scales),
-                ..Default::default()
-            },
-            &CpuMesh::cylinder(16),
+        let model = Gm::new(
+            InstancedMesh::new(
+                context,
+                &Instances {
+                    translations,
+                    rotations: Some(rotations),
+                    scales: Some(scales),
+                    ..Default::default()
+                },
+                &CpuMesh::cylinder(16),
+            )?,
             material,
-        )?;
+        );
         Ok(Self { model, aabb })
     }
 }
