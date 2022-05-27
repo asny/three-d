@@ -25,43 +25,43 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let mut cpu_models: CpuModels = loaded.deserialize("NormalTangentTest.glb").unwrap();
-    cpu_models
+    let mut cpu_model: CpuModel = loaded.deserialize("NormalTangentTest.glb").unwrap();
+    cpu_model
         .geometries
         .iter_mut()
         .for_each(|m| m.compute_tangents().unwrap());
 
-    let mut model_with_computed_tangents = Models::<PhysicalMaterial>::new(&context, &cpu_models)
+    let mut model_with_computed_tangents = Model::<PhysicalMaterial>::new(&context, &cpu_model)
         .unwrap()
         .remove(0);
     model_with_computed_tangents.set_transformation(Mat4::from_translation(vec3(1.4, 1.2, 0.0)));
 
-    let mut instanced_model_with_computed_tangents = InstancedModels::<PhysicalMaterial>::new(
+    let mut instanced_model_with_computed_tangents = InstancedModel::<PhysicalMaterial>::new(
         &context,
         &Instances {
             translations: vec![Vec3::zero()],
             ..Default::default()
         },
-        &cpu_models,
+        &cpu_model,
     )
     .unwrap()
     .remove(0);
     instanced_model_with_computed_tangents
         .set_transformation(Mat4::from_translation(vec3(1.4, -1.2, 0.0)));
 
-    let cpu_models: CpuModels = loaded.deserialize("NormalTangentMirrorTest.glb").unwrap();
+    let cpu_model: CpuModel = loaded.deserialize("NormalTangentMirrorTest.glb").unwrap();
 
-    let mut model_with_loaded_tangents = Models::<PhysicalMaterial>::new(&context, &cpu_models)
+    let mut model_with_loaded_tangents = Model::<PhysicalMaterial>::new(&context, &cpu_model)
         .unwrap()
         .remove(0);
     model_with_loaded_tangents.set_transformation(Mat4::from_translation(vec3(-1.4, 1.2, 0.0)));
-    let mut instanced_model_with_loaded_tangents = InstancedModels::<PhysicalMaterial>::new(
+    let mut instanced_model_with_loaded_tangents = InstancedModel::<PhysicalMaterial>::new(
         &context,
         &Instances {
             translations: vec![Vec3::zero()],
             ..Default::default()
         },
-        &cpu_models,
+        &cpu_model,
     )
     .unwrap()
     .remove(0);

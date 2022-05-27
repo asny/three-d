@@ -38,10 +38,9 @@ pub async fn run() {
     .unwrap();
 
     let mut monkey =
-        Models::<PhysicalMaterial>::new(&context, &loaded.deserialize("suzanne.obj").unwrap())
-            .unwrap()
-            .remove(0);
-    monkey.material.render_states.cull = Cull::Back;
+        Model::<PhysicalMaterial>::new(&context, &loaded.deserialize("suzanne.obj").unwrap())
+            .unwrap();
+    monkey[0].material.render_states.cull = Cull::Back;
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =
@@ -76,14 +75,18 @@ pub async fn run() {
 
             // draw
             if change && fog_enabled {
-                depth_texture = Some(pipeline.depth_pass_texture(&camera, &[&monkey]).unwrap());
+                depth_texture = Some(
+                    pipeline
+                        .depth_pass_texture(&camera, &monkey.to_objects())
+                        .unwrap(),
+                );
             }
 
             frame_input
                 .screen()
                 .clear(ClearState::default())
                 .unwrap()
-                .render(&camera, &[&monkey], &[&ambient, &directional])
+                .render(&camera, &monkey.to_objects(), &[&ambient, &directional])
                 .unwrap()
                 .write(|| {
                     if fog_enabled {

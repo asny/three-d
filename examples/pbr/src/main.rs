@@ -41,9 +41,9 @@ pub async fn run() {
     let environment_map = loaded.deserialize("chinese").unwrap();
     let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
 
-    let mut models: CpuModels = loaded.deserialize("DamagedHelmet").unwrap();
-    models.geometries[0].compute_tangents().unwrap();
-    let model = Models::<PhysicalMaterial>::new(&context, &models)
+    let mut model: CpuModel = loaded.deserialize("DamagedHelmet").unwrap();
+    model.geometries[0].compute_tangents().unwrap();
+    let model = Model::<PhysicalMaterial>::new(&context, &model)
         .unwrap()
         .remove(0);
 

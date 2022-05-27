@@ -42,13 +42,13 @@ pub async fn run() {
     .await
     .unwrap();
     // Tree
-    let mut cpu_models: CpuModels = loaded.deserialize(".obj").unwrap();
-    cpu_models
+    let mut cpu_model: CpuModel = loaded.deserialize(".obj").unwrap();
+    cpu_model
         .geometries
         .iter_mut()
         .for_each(|g| g.compute_normals());
-    let mut models = Models::<PhysicalMaterial>::new(&context, &cpu_models).unwrap();
-    models
+    let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+    model
         .iter_mut()
         .for_each(|m| m.material.render_states.cull = Cull::Back);
 
@@ -59,7 +59,7 @@ pub async fn run() {
 
     // Imposters
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
-    models.iter().for_each(|m| {
+    model.iter().for_each(|m| {
         aabb.expand_with_aabb(&m.aabb());
     });
     let size = aabb.size();
@@ -76,7 +76,7 @@ pub async fn run() {
     let imposters = Imposters::new(
         &context,
         &positions,
-        &models.iter().map(|m| m as &dyn Object).collect::<Vec<_>>(),
+        &model.iter().map(|m| m as &dyn Object).collect::<Vec<_>>(),
         &[&ambient, &directional],
         256,
     )
@@ -119,14 +119,14 @@ pub async fn run() {
                 .unwrap();
 
             if redraw {
-                let mut models = models.iter().map(|m| m as &dyn Object).collect::<Vec<_>>();
-                models.push(&imposters);
-                models.push(&plane);
+                let mut objects = model.to_objects();
+                objects.push(&imposters);
+                objects.push(&plane);
                 frame_input
                     .screen()
                     .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
                     .unwrap()
-                    .render(&camera, &models, &[&ambient, &directional])
+                    .render(&camera, &objects, &[&ambient, &directional])
                     .unwrap();
             }
 

@@ -39,14 +39,14 @@ pub async fn run() {
     let mut gui = three_d::GUI::new(&context).unwrap();
 
     // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
-    let mut models: CpuModels =
+    let mut model: CpuModel =
         three_d_asset::io::load_async(&["examples/assets/gltf/DamagedHelmet.glb"])
             .await
             .unwrap()
             .deserialize("")
             .unwrap();
-    models.geometries[0].compute_tangents().unwrap();
-    let mut model = Models::<PhysicalMaterial>::new(&context, &models)
+    model.geometries[0].compute_tangents().unwrap();
+    let mut model = Model::<PhysicalMaterial>::new(&context, &model)
         .unwrap()
         .remove(0);
 

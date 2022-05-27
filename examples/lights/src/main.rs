@@ -110,11 +110,11 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let models = loaded.deserialize("Sponza.gltf").unwrap();
-    let models = Models::<DeferredPhysicalMaterial>::new(&context, &models).unwrap();
+    let model = loaded.deserialize("Sponza.gltf").unwrap();
+    let model = Model::<DeferredPhysicalMaterial>::new(&context, &model).unwrap();
 
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
-    for m in models.iter() {
+    for m in model.iter() {
         aabb.expand_with_aabb(&m.aabb());
     }
 
@@ -188,7 +188,7 @@ pub async fn run() {
             pipeline
                 .render_pass(
                     &camera,
-                    &models.iter().map(|m| (m, &m.material)).collect::<Vec<_>>(),
+                    &model.iter().map(|m| (m, &m.material)).collect::<Vec<_>>(),
                 )
                 .unwrap();
 
