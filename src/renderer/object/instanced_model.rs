@@ -24,6 +24,9 @@ impl<M: Material> InstancedModel<M> {
         })
     }
 
+    ///
+    /// Returns a list of `&dyn [Object]` for this instanced model which can be used as input to a render function, for example [render_pass].
+    ///
     pub fn to_objects(&self) -> Vec<&dyn Object> {
         self.0.iter().map(|m| m as &dyn Object).collect::<Vec<_>>()
     }

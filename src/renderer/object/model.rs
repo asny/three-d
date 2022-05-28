@@ -25,6 +25,9 @@ impl<M: Material> Model<M> {
         })
     }
 
+    ///
+    /// Returns a list of `&dyn [Object]` for this model which can be used as input to a render function, for example [render_pass].
+    ///
     pub fn to_objects(&self) -> Vec<&dyn Object> {
         self.0.iter().map(|m| m as &dyn Object).collect::<Vec<_>>()
     }
@@ -32,7 +35,7 @@ impl<M: Material> Model<M> {
 
 impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
     ///
-    /// Constructs a [Model] from [CpuModel].
+    /// Constructs a [Model] from a [CpuModel].
     ///
     pub fn new(context: &Context, cpu_model: &CpuModel) -> ThreeDResult<Model<M>> {
         let mut materials = std::collections::HashMap::new();

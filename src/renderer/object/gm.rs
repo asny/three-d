@@ -13,6 +13,9 @@ pub struct Gm<G: Geometry, M: Material> {
 }
 
 impl<G: Geometry, M: Material> Gm<G, M> {
+    ///
+    /// Creates a new [Gm] from a geometry and material.
+    ///
     pub fn new(geometry: G, material: M) -> Self {
         Self { geometry, material }
     }
