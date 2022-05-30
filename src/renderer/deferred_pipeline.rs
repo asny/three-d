@@ -167,7 +167,7 @@ impl DeferredPipeline {
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
-            effect.use_uniform_if_required("eyePosition", camera.position())?;
+            effect.use_uniform_if_required("cameraPosition", camera.position())?;
             for (i, light) in lights.iter().enumerate() {
                 light.use_uniforms(effect, i as u32)?;
             }
@@ -181,7 +181,6 @@ impl DeferredPipeline {
             if self.debug_type == DebugType::DEPTH {
                 effect.use_uniform("zNear", camera.z_near())?;
                 effect.use_uniform("zFar", camera.z_far())?;
-                effect.use_uniform("cameraPosition", camera.position())?;
             }
             effect.apply(render_states, camera.viewport())?;
             Ok(())

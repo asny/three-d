@@ -39,8 +39,8 @@ impl Material for IsosurfaceMaterial {
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32)?;
         }
-        program.use_uniform("camera_position", camera.position())?;
-        program.use_uniform("surface_color", self.color)?;
+        program.use_uniform("cameraPosition", camera.position())?;
+        program.use_uniform("surfaceColor", self.color)?;
         program.use_uniform("metallic", self.metallic)?;
         program.use_uniform_if_required("roughness", self.roughness)?;
         program.use_uniform("size", self.size)?;

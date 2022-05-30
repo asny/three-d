@@ -1,6 +1,6 @@
 
-uniform vec3 camera_position;
-uniform vec4 surface_color;
+uniform vec3 cameraPosition;
+uniform vec4 surfaceColor;
 uniform float metallic;
 uniform float roughness;
 uniform sampler3D tex;
@@ -22,7 +22,7 @@ vec3 estimate_normal(vec3 uvw) {
 void main() {
     int steps = 200;
     float step_size = length(size) / float(steps);
-    vec3 step = step_size * normalize(pos - camera_position);
+    vec3 step = step_size * normalize(pos - cameraPosition);
     vec3 p = pos;
     for(int i = 0; i < 200; i++) {
         if(i == steps-1 || p.x < -0.501*size.x || p.y < -0.501*size.y || p.z < -0.501*size.z || p.x > 0.501*size.x || p.y > 0.501*size.y || p.z > 0.501*size.z) {
@@ -33,10 +33,10 @@ void main() {
         float value = texture(tex, uvw).r;
         if(value >= threshold) {
             vec3 normal = estimate_normal(uvw);
-            outColor.rgb = calculate_lighting(surface_color.rgb, p, normal, metallic, roughness, 1.0);
+            outColor.rgb = calculate_lighting(cameraPosition, surfaceColor.rgb, p, normal, metallic, roughness, 1.0);
             outColor.rgb = reinhard_tone_mapping(outColor.rgb);
             outColor.rgb = srgb_from_rgb(outColor.rgb);
-            outColor.a = surface_color.a;
+            outColor.a = surfaceColor.a;
             break;
         }
         p += step;

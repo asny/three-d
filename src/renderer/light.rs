@@ -119,11 +119,10 @@ pub(crate) fn lights_fragment_shader_source(
     }
     shader_source.push_str(&format!(
         "
-            uniform vec3 eyePosition;
-            vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+            vec3 calculate_lighting(vec3 camera_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
                 vec3 color = vec3(0.0, 0.0, 0.0);
-                vec3 view_direction = normalize(eyePosition - position);
+                vec3 view_direction = normalize(camera_position - position);
                 {}
                 return color;
             }}

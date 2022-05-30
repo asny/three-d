@@ -180,7 +180,7 @@ impl Material for PhysicalMaterial {
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         if lights.len() > 0 {
-            program.use_uniform_if_required("eyePosition", camera.position())?;
+            program.use_uniform_if_required("cameraPosition", camera.position())?;
             for (i, light) in lights.iter().enumerate() {
                 light.use_uniforms(program, i as u32)?;
             }

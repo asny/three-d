@@ -63,7 +63,7 @@ void main()
         outColor = vec4(uv, 0., 1.);
     }
     else { // None
-        outColor.rgb = total_emissive + calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);
+        outColor.rgb = total_emissive + calculate_lighting(cameraPosition, surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);
         outColor.rgb = reinhard_tone_mapping(outColor.rgb);
         outColor.rgb = srgb_from_rgb(outColor.rgb);
         outColor.a = surface_color.a;
