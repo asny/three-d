@@ -20,23 +20,26 @@ fn main() {
     .unwrap();
 
     // Create the scene - a single colored triangle
-    let mut model = Model::new(
-        &context,
-        &CpuMesh {
-            positions: Positions::F32(vec![
-                vec3(0.5, -0.5, 0.0),  // bottom right
-                vec3(-0.5, -0.5, 0.0), // bottom left
-                vec3(0.0, 0.5, 0.0),   // top
-            ]),
-            colors: Some(vec![
-                Color::new(255, 0, 0, 255), // bottom right
-                Color::new(0, 255, 0, 255), // bottom left
-                Color::new(0, 0, 255, 255), // top
-            ]),
-            ..Default::default()
-        },
-    )
-    .unwrap();
+    let mut model = Gm::new(
+        Mesh::new(
+            &context,
+            &CpuMesh {
+                positions: Positions::F32(vec![
+                    vec3(0.5, -0.5, 0.0),  // bottom right
+                    vec3(-0.5, -0.5, 0.0), // bottom left
+                    vec3(0.0, 0.5, 0.0),   // top
+                ]),
+                colors: Some(vec![
+                    Color::new(255, 0, 0, 255), // bottom right
+                    Color::new(0, 255, 0, 255), // bottom left
+                    Color::new(0, 0, 255, 255), // top
+                ]),
+                ..Default::default()
+            },
+        )
+        .unwrap(),
+        ColorMaterial::default(),
+    );
 
     // Create a color texture to render into
     let mut texture = Texture2D::new_empty::<[u8; 4]>(
@@ -86,11 +89,17 @@ fn main() {
         .unwrap();
 
         // Save the rendered image
-        Saver::save_pixels(
-            format!("headless-{}.png", frame_index),
-            &pixels,
-            texture.width(),
-            texture.height(),
+        use three_d_asset::io::Serialize;
+
+        three_d_asset::io::save(
+            &CpuTexture {
+                data: TextureData::RgbaU8(pixels),
+                width: texture.width(),
+                height: texture.height(),
+                ..Default::default()
+            }
+            .serialize(format!("headless-{}.png", frame_index))
+            .unwrap(),
         )
         .unwrap();
     }

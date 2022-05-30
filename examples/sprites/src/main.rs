@@ -31,10 +31,10 @@ pub async fn run() {
 
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
 
-    let img = Loader::load_async(&["examples/assets/test_texture.jpg"])
+    let img = three_d_asset::io::load_async(&["examples/assets/test_texture.jpg"])
         .await
         .unwrap()
-        .image("")
+        .deserialize("")
         .unwrap();
     let material = ColorMaterial {
         color: Color::WHITE,

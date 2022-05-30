@@ -38,25 +38,28 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
-    let mut loaded = Loader::load_async(
-        &["examples/assets/gltf/DamagedHelmet.glb"], // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
-    )
-    .await
-    .unwrap();
-    let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
-    let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
-    cpu_meshes[0].compute_tangents().unwrap();
-    let mut model = Model::new_with_material(&context, &cpu_meshes[0], material).unwrap();
+    // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+    let mut cpu_model: CpuModel =
+        three_d_asset::io::load_async(&["examples/assets/gltf/DamagedHelmet.glb"])
+            .await
+            .unwrap()
+            .deserialize("")
+            .unwrap();
+    cpu_model
+        .geometries
+        .iter_mut()
+        .for_each(|m| m.compute_tangents().unwrap());
+    let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
+        .unwrap()
+        .remove(0);
 
-    let mut plane = Model::new_with_material(
-        &context,
-        &CpuMesh::square(),
+    let mut plane = Gm::new(
+        Mesh::new(&context, &CpuMesh::square()).unwrap(),
         PhysicalMaterial {
             albedo: Color::new_opaque(128, 200, 70),
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     plane.set_transformation(
         Mat4::from_translation(vec3(0.0, -1.0, 0.0))
             * Mat4::from_scale(10.0)

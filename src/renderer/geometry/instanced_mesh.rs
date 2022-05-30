@@ -20,10 +20,9 @@ pub struct InstancedMesh {
 
 impl InstancedMesh {
     ///
-    /// Creates a new 3D mesh from the given [CpuMesh].
+    /// Creates a new instanced 3D mesh from the given [CpuMesh].
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
-    /// The mesh is rendered in as many instances as there are [Instance] structs given as input.
-    /// The transformation and texture transform in [Instance] are applied to each instance before they are rendered.
+    /// The model is rendered in as many instances as there are attributes in [Instances] given as input.
     ///
     pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
         let aabb = cpu_mesh.compute_aabb();
@@ -52,6 +51,7 @@ impl InstancedMesh {
 
     ///
     /// Set the local to world transformation applied to all instances.
+    /// This is applied before the transform for each instance.
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
@@ -67,7 +67,7 @@ impl InstancedMesh {
 
     ///
     /// Set the texture transform applied to the uv coordinates of all of the model instances.
-    /// This is multiplied to the texture transform for each instance.
+    /// This is applied before the texture transform for each instance.
     ///
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
@@ -338,6 +338,9 @@ impl Geometry for InstancedMesh {
 ///
 /// Defines the attributes for the instances of the model defined in [InstancedMesh] or [InstancedModel].
 /// Each list of attributes must contain the same number of elements as the number of instances.
+/// The attributes are applied to each instance before they are rendered.
+/// The translation, rotation and scale is applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).
+/// The texture transform is also applied after the texture transform applied to all isntances (see [InstancedMesh::set_texture_transform]).
 ///
 #[derive(Clone, Debug, Default)]
 pub struct Instances {

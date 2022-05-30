@@ -6,7 +6,9 @@
 use crate::core::*;
 use crate::renderer::*;
 
-pub use crate::core::{Color, CpuMaterial};
+pub use three_d_asset::material::{
+    GeometryFunction, LightingModel, NormalDistributionFunction, PbrMaterial as CpuMaterial,
+};
 
 mod color_material;
 #[doc(inline)]
@@ -76,6 +78,16 @@ pub trait Material {
     fn render_states(&self) -> RenderStates;
     /// Returns whether or not this material is transparent.
     fn is_transparent(&self) -> bool;
+}
+
+///
+/// Implement this for a [Material] that can be created from a [CpuMaterial].
+///
+pub trait FromCpuMaterial: std::marker::Sized {
+    ///
+    /// Creates a new material that can be used for rendering from a [CpuMaterial].
+    ///
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self>;
 }
 
 impl<T: Material + ?Sized> Material for &T {

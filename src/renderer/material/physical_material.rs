@@ -135,6 +135,12 @@ impl PhysicalMaterial {
     }
 }
 
+impl FromCpuMaterial for PhysicalMaterial {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        Self::new(context, cpu_material)
+    }
+}
+
 impl Material for PhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         let mut output = lights_fragment_shader_source(lights, self.lighting_model);

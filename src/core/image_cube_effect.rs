@@ -83,7 +83,7 @@ impl ImageCubeEffect {
         render_states: RenderStates,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
+        let projection = cgmath::perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
         self.program
             .use_uniform("viewProjection", projection * side.view())?;
         self.program

@@ -29,7 +29,7 @@ pub async fn run() {
     .unwrap();
     let mut control = FlyControl::new(0.1);
 
-    let mut loaded = Loader::load_async(&[
+    let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/Gledista_Triacanthos.obj",
         "examples/assets/Gledista_Triacanthos.mtl",
         "examples/assets/maps/gleditsia_triacanthos_flowers_color.jpg",
@@ -42,26 +42,15 @@ pub async fn run() {
     .await
     .unwrap();
     // Tree
-    let (mut meshes, materials) = loaded.obj(".obj").unwrap();
-    let mut models = Vec::new();
-    for mut mesh in meshes.drain(..) {
-        mesh.compute_normals();
-        let mut model = Model::new_with_material(
-            &context,
-            &mesh,
-            PhysicalMaterial::new(
-                &context,
-                &materials
-                    .iter()
-                    .find(|m| Some(&m.name) == mesh.material_name.as_ref())
-                    .unwrap(),
-            )
-            .unwrap(),
-        )
-        .unwrap();
-        model.material.render_states.cull = Cull::Back;
-        models.push(model);
-    }
+    let mut cpu_model: CpuModel = loaded.deserialize(".obj").unwrap();
+    cpu_model
+        .geometries
+        .iter_mut()
+        .for_each(|g| g.compute_normals());
+    let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+    model
+        .iter_mut()
+        .for_each(|m| m.material.render_states.cull = Cull::Back);
 
     // Lights
     let ambient = AmbientLight::new(&context, 0.3, Color::WHITE).unwrap();
@@ -70,7 +59,7 @@ pub async fn run() {
 
     // Imposters
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
-    models.iter().for_each(|m| {
+    model.iter().for_each(|m| {
         aabb.expand_with_aabb(&m.aabb());
     });
     let size = aabb.size();
@@ -87,38 +76,39 @@ pub async fn run() {
     let imposters = Imposters::new(
         &context,
         &positions,
-        &models.iter().map(|m| m as &dyn Object).collect::<Vec<_>>(),
+        &model.to_objects(),
         &[&ambient, &directional],
         256,
     )
     .unwrap();
 
     // Plane
-    let mut plane = Model::new_with_material(
-        &context,
-        &CpuMesh {
-            positions: Positions::F32(vec![
-                vec3(-10000.0, 0.0, 10000.0),
-                vec3(10000.0, 0.0, 10000.0),
-                vec3(0.0, 0.0, -10000.0),
-            ]),
-            normals: Some(vec![
-                vec3(0.0, 1.0, 0.0),
-                vec3(0.0, 1.0, 0.0),
-                vec3(0.0, 1.0, 0.0),
-            ]),
-            ..Default::default()
-        },
+    let mut plane = Gm::new(
+        Mesh::new(
+            &context,
+            &CpuMesh {
+                positions: Positions::F32(vec![
+                    vec3(-10000.0, 0.0, 10000.0),
+                    vec3(10000.0, 0.0, 10000.0),
+                    vec3(0.0, 0.0, -10000.0),
+                ]),
+                normals: Some(vec![
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                ]),
+                ..Default::default()
+            },
+        )
+        .unwrap(),
         PhysicalMaterial {
             albedo: Color::new_opaque(128, 200, 70),
             metallic: 0.0,
             roughness: 1.0,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     plane.material.render_states.cull = Cull::Back;
-    models.push(plane);
 
     // main loop
     window
@@ -131,13 +121,14 @@ pub async fn run() {
                 .unwrap();
 
             if redraw {
-                let mut models = models.iter().map(|m| m as &dyn Object).collect::<Vec<_>>();
-                models.push(&imposters);
+                let mut objects = model.to_objects();
+                objects.push(&imposters);
+                objects.push(&plane);
                 frame_input
                     .screen()
                     .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
                     .unwrap()
-                    .render(&camera, &models, &[&ambient, &directional])
+                    .render(&camera, &objects, &[&ambient, &directional])
                     .unwrap();
             }
 

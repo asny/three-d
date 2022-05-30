@@ -11,6 +11,12 @@ pub struct PositionMaterial {
     pub render_states: RenderStates,
 }
 
+impl FromCpuMaterial for PositionMaterial {
+    fn from_cpu_material(_context: &Context, _cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        Ok(Self::default())
+    }
+}
+
 impl Material for PositionMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         include_str!("shaders/position_material.frag").to_string()

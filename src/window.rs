@@ -5,35 +5,29 @@
 //! can be replaced by any other window with similar functionality. Also contains camera control utilities.
 //!
 
-#[cfg(any(feature = "glutin-window", feature = "canvas"))]
 mod settings;
 #[doc(inline)]
-#[cfg(any(feature = "glutin-window", feature = "canvas"))]
 pub use settings::*;
 
 pub mod control;
 pub use control::*;
 
-#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 mod glutin_window;
 #[doc(inline)]
-#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 pub use glutin_window::*;
 
-#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
-#[cfg_attr(
-    docsrs,
-    doc(all(feature = "glutin-window", not(target_arch = "wasm32")))
-)]
+#[cfg(not(target_arch = "wasm32"))]
 mod headless;
 #[doc(inline)]
-#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 pub use headless::*;
 
-#[cfg(all(feature = "canvas", target_arch = "wasm32"))]
+#[cfg(target_arch = "wasm32")]
 mod canvas;
 #[doc(inline)]
-#[cfg(all(feature = "canvas", target_arch = "wasm32"))]
+#[cfg(target_arch = "wasm32")]
 pub use canvas::*;
 
 /// Type of mouse button.
@@ -292,13 +286,6 @@ pub struct FrameOutput {
     pub swap_buffers: bool,
 
     ///
-    /// Takes a screenshot if this is set to some path and saves it at the given location.
-    /// Only works on desktop and if the `image-io` feature is enabled.
-    ///
-    #[cfg_attr(docsrs, doc(cfg(feature = "image-io")))]
-    pub screenshot: Option<std::path::PathBuf>,
-
-    ///
     /// Whether to stop the render loop until next event.
     ///
     pub wait_next_event: bool,
@@ -309,7 +296,6 @@ impl Default for FrameOutput {
         Self {
             exit: false,
             swap_buffers: true,
-            screenshot: None,
             wait_next_event: false,
         }
     }

@@ -3,56 +3,104 @@
 //! Also includes functionality to save data which is limited to desktop.
 //!
 
-mod loader;
-#[doc(inline)]
-pub use loader::*;
+#![allow(missing_docs)]
+#![deprecated = "use the `three-d-asset` crate instead"]
 
-mod parser;
-#[doc(inline)]
-pub use parser::*;
+use crate::{CpuMaterial, CpuMesh, CpuTexture, CpuVolume};
+use std::path::Path;
+use three_d_asset::Result;
 
-#[cfg(not(target_arch = "wasm32"))]
-mod saver;
-#[doc(inline)]
-#[cfg(not(target_arch = "wasm32"))]
-pub use saver::*;
-
-use thiserror::Error;
 ///
-/// Error from the [io](crate::io) module.
+/// Functionality for loading any type of resource runtime on both desktop and web.
 ///
-#[derive(Error, Debug)]
-#[allow(missing_docs)]
-pub enum IOError {
-    #[cfg(feature = "image-io")]
-    #[error("error while parsing an image file")]
-    Image(#[from] image::ImageError),
-    #[cfg(feature = "3d-io")]
-    #[error("error while parsing a .3d file")]
-    ThreeD(#[from] bincode::Error),
-    #[cfg(feature = "obj-io")]
-    #[error("error while parsing an .obj file")]
-    Obj(#[from] wavefront_obj::ParseError),
-    #[cfg(feature = "gltf-io")]
-    #[error("error while parsing a .gltf file")]
-    Gltf(#[from] ::gltf::Error),
-    #[cfg(feature = "gltf-io")]
-    #[error("the .gltf file contain corrupt buffer data")]
-    GltfCorruptData,
-    #[cfg(feature = "gltf-io")]
-    #[error("the .gltf file contain missing buffer data")]
-    GltfMissingData,
-    #[error("the .vol file contain wrong data size")]
-    VolCorruptData,
+pub struct Loader {}
+
+impl Loader {
+    ///
+    /// Loads all of the resources in the given paths then calls `on_done` with all of the [Loaded] resources.
+    /// Alternatively use [Self::load_async] on both web and desktop or [Self::load_blocking] on desktop.
+    ///
+    /// **Note:** This method must not be called from an async function. In that case, use [Self::load_async] instead.
+    ///
+    pub fn load(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(Result<Loaded>)) {
+        #[cfg(target_arch = "wasm32")]
+        {
+            let paths: Vec<std::path::PathBuf> =
+                paths.iter().map(|p| p.as_ref().to_path_buf()).collect();
+            wasm_bindgen_futures::spawn_local(async move {
+                let loaded = Self::load_async(&paths).await;
+                on_done(loaded);
+            });
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            on_done(Self::load_blocking(paths));
+        }
+    }
+
     #[cfg(not(target_arch = "wasm32"))]
-    #[error("error while loading the file {0}: {1}")]
-    FailedLoading(String, std::io::Error),
-    #[cfg(feature = "reqwest")]
-    #[error("error while loading the url {0}: {1}")]
-    FailedLoadingUrl(String, reqwest::Error),
-    #[cfg(not(feature = "reqwest"))]
-    #[error("error while loading the url {0}: feature 'reqwest' not enabled")]
-    FailedLoadingUrl(String),
-    #[error("tried to use {0} which was not loaded")]
-    NotLoaded(String),
+    pub fn load_blocking(paths: &[impl AsRef<Path>]) -> Result<Loaded> {
+        Ok(Loaded(three_d_asset::io::load(paths)?))
+    }
+
+    pub async fn load_async(paths: &[impl AsRef<Path>]) -> Result<Loaded> {
+        Ok(Loaded(three_d_asset::io::load_async(paths).await?))
+    }
+}
+
+pub struct Loaded(three_d_asset::io::RawAssets);
+
+impl Loaded {
+    pub fn gltf<P: AsRef<Path>>(&mut self, path: P) -> Result<(Vec<CpuMesh>, Vec<CpuMaterial>)> {
+        let r: three_d_asset::Model = self.deserialize(path)?;
+        Ok((r.geometries, r.materials))
+    }
+
+    pub fn obj<P: AsRef<Path>>(&mut self, path: P) -> Result<(Vec<CpuMesh>, Vec<CpuMaterial>)> {
+        let r: three_d_asset::Model = self.deserialize(path)?;
+        Ok((r.geometries, r.materials))
+    }
+
+    pub fn vol<P: AsRef<Path>>(&mut self, path: P) -> Result<CpuVolume> {
+        self.deserialize(path)
+    }
+
+    ///
+    /// Deserialize the image resource at the given path into a [CpuTexture].
+    ///
+    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CpuTexture> {
+        self.deserialize(path)
+    }
+}
+
+impl std::ops::Deref for Loaded {
+    type Target = three_d_asset::io::RawAssets;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for Loaded {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+///
+/// Functionality for saving resources. Only available on desktop at the moment.
+///
+#[cfg(not(target_arch = "wasm32"))]
+pub struct Saver {}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl Saver {
+    ///
+    /// Save the byte array as a file.
+    ///
+    pub fn save_file<P: AsRef<Path>>(path: P, bytes: &[u8]) -> crate::ThreeDResult<()> {
+        let mut file = std::fs::File::create(path)?;
+        use std::io::prelude::*;
+        file.write_all(bytes)?;
+        Ok(())
+    }
 }

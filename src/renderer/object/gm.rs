@@ -12,6 +12,15 @@ pub struct Gm<G: Geometry, M: Material> {
     pub material: M,
 }
 
+impl<G: Geometry, M: Material> Gm<G, M> {
+    ///
+    /// Creates a new [Gm] from a geometry and material.
+    ///
+    pub fn new(geometry: G, material: M) -> Self {
+        Self { geometry, material }
+    }
+}
+
 impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.geometry.aabb()

@@ -34,7 +34,7 @@ pub async fn run() {
     let mut control = FlyControl::new(0.01);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
-    let mut loaded = Loader::load_async(&[
+    let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/sponza/Sponza.gltf",
         "examples/assets/sponza/Sponza.bin",
         "examples/assets/sponza/10381718147657362067.jpeg",
@@ -110,24 +110,12 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let (cpu_meshes, cpu_materials) = loaded.gltf("Sponza.gltf").unwrap();
+    let model = loaded.deserialize("Sponza.gltf").unwrap();
+    let model = Model::<DeferredPhysicalMaterial>::new(&context, &model).unwrap();
 
-    let mut materials = Vec::new();
-    for m in cpu_materials.iter() {
-        materials.push(DeferredPhysicalMaterial::new(&context, &m).unwrap());
-    }
-
-    let mut models = Vec::new();
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
-    for m in cpu_meshes.iter() {
-        let material = materials
-            .iter()
-            .find(|material| &material.name == m.material_name.as_ref().unwrap())
-            .unwrap()
-            .clone();
-        let m = Model::new_with_material(&context, &m, material).unwrap();
+    for m in model.iter() {
         aabb.expand_with_aabb(&m.aabb());
-        models.push(m);
     }
 
     let size = aabb.size();
@@ -200,7 +188,7 @@ pub async fn run() {
             pipeline
                 .render_pass(
                     &camera,
-                    &models.iter().map(|m| (m, &m.material)).collect::<Vec<_>>(),
+                    &model.iter().map(|m| (m, &m.material)).collect::<Vec<_>>(),
                 )
                 .unwrap();
 
@@ -233,7 +221,7 @@ struct Glow {
     light: PointLight,
     velocity: Vec3,
     aabb: AxisAlignedBoundingBox,
-    sphere: Model<PhysicalMaterial>,
+    sphere: Gm<Mesh, PhysicalMaterial>,
 }
 
 impl Glow {
@@ -253,11 +241,10 @@ impl Glow {
                 rng.gen::<f32>() * 2.0 - 1.0,
             )
             .normalize(),
-            sphere: Model::new_with_material(
-                context,
-                &CpuMesh::sphere(16),
+            sphere: Gm::new(
+                Mesh::new(context, &CpuMesh::sphere(16))?,
                 PhysicalMaterial::default(),
-            )?,
+            ),
         })
     }
 

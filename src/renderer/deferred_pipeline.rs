@@ -51,7 +51,7 @@ impl DeferredPipeline {
                 10.0,
             )?,
             debug_type: DebugType::NONE,
-            geometry_pass_texture: Some(Texture2DArray::new_empty::<Vector4<u8>>(
+            geometry_pass_texture: Some(Texture2DArray::new_empty::<[u8; 4]>(
                 context,
                 1,
                 1,
@@ -104,7 +104,7 @@ impl DeferredPipeline {
         self.camera.set_viewport(viewport)?;
         self.camera
             .set_view(*camera.position(), *camera.target(), *camera.up())?;
-        self.geometry_pass_texture = Some(Texture2DArray::new_empty::<Vector4<u8>>(
+        self.geometry_pass_texture = Some(Texture2DArray::new_empty::<[u8; 4]>(
             &self.context,
             viewport.width,
             viewport.height,

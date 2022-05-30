@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 three-d = { path = "../../" }
+three-d-asset = "0.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rand = "0.7"

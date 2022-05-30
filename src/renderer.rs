@@ -3,12 +3,7 @@
 //! Can be combined seamlessly with the mid-level features in the `core` module as well as functionality in the `context` module.
 //!
 
-pub use crate::core::{
-    math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera,
-    Context, CpuMaterial, CpuMesh, CpuTexture, CpuTexture3D, CpuTextureCube, CpuVolume,
-    GeometryFunction, Indices, LightingModel, NormalDistributionFunction, Positions, ScissorBox,
-    Viewport,
-};
+pub use crate::core::*;
 
 pub mod material;
 pub use material::*;
@@ -139,9 +134,13 @@ impl<'a> RenderTarget<'a> {
 }
 
 ///
-/// Render the objects using the given camera and lights. If the objects materials doesn't require lighting, you can use `&[]` as the `lights` argument.
+/// Render the objects using the given camera and lights.
+/// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
 /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
-/// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+///
+/// **Note:**
+/// Must be called when a render target is bound, for example in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+/// If you are using one of these targets, it is preferred to use the [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods.
 ///
 pub fn render_pass(
     camera: &Camera,

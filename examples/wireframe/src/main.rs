@@ -31,22 +31,20 @@ pub async fn run() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 0.1 * scene_radius, 100.0 * scene_radius);
 
-    let mut loaded =
-        Loader::load_async(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"])
-            .await
-            .unwrap();
+    let mut loaded = three_d_asset::io::load_async(&[
+        "examples/assets/suzanne.obj",
+        "examples/assets/suzanne.mtl",
+    ])
+    .await
+    .unwrap();
 
-    let (mut meshes, materials) = loaded.obj("suzanne.obj").unwrap();
-    let mut cpu_mesh = meshes.remove(0);
-    cpu_mesh
+    let mut cpu_model: CpuModel = loaded.deserialize("suzanne.obj").unwrap();
+    cpu_model.geometries[0]
         .transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)))
         .unwrap();
-    let mut model = Model::new_with_material(
-        &context,
-        &cpu_mesh,
-        PhysicalMaterial::new(&context, &materials[0]).unwrap(),
-    )
-    .unwrap();
+    let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
+        .unwrap()
+        .remove(0);
     model.material.render_states.cull = Cull::Back;
     let wireframe_material = PhysicalMaterial {
         name: "wireframe".to_string(),
@@ -63,23 +61,27 @@ pub async fn run() {
     cylinder
         .transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007))
         .unwrap();
-    let edges = InstancedModel::new_with_material(
-        &context,
-        &edge_transformations(&cpu_mesh),
-        &cylinder,
+    let edges = Gm::new(
+        InstancedMesh::new(
+            &context,
+            &edge_transformations(&cpu_model.geometries[0]),
+            &cylinder,
+        )
+        .unwrap(),
         wireframe_material.clone(),
-    )
-    .unwrap();
+    );
 
     let mut sphere = CpuMesh::sphere(8);
     sphere.transform(&Mat4::from_scale(0.015)).unwrap();
-    let vertices = InstancedModel::new_with_material(
-        &context,
-        &vertex_transformations(&cpu_mesh),
-        &sphere,
+    let vertices = Gm::new(
+        InstancedMesh::new(
+            &context,
+            &vertex_transformations(&cpu_model.geometries[0]),
+            &sphere,
+        )
+        .unwrap(),
         wireframe_material,
-    )
-    .unwrap();
+    );
 
     let ambient = AmbientLight::new(&context, 0.7, Color::WHITE).unwrap();
     let directional0 =

@@ -52,7 +52,7 @@ pub async fn run() {
     );
 
     // Models from http://texturedmesh.isti.cnr.it/
-    let mut loaded = Loader::load_async(&[
+    let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/COLOMBE.obj",
         "examples/assets/COLOMBE.mtl",
         "examples/assets/COLOMBE.png",
@@ -63,8 +63,7 @@ pub async fn run() {
     .await
     .unwrap();
 
-    let (statue_cpu_meshes, statue_cpu_materials) =
-        loaded.obj("examples/assets/COLOMBE.obj").unwrap();
+    let cpu_model: CpuModel = loaded.deserialize("examples/assets/COLOMBE.obj").unwrap();
 
     let mut models = Vec::new();
     let scale = Mat4::from_scale(10.0);
@@ -77,24 +76,24 @@ pub async fn run() {
             (1.2 * std::f32::consts::PI - angle).cos() * 21.0 - 33.0,
             angle.sin() * dist,
         ));
-        let mut statue_material =
-            PhysicalMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
-        statue_material.render_states.cull = Cull::Back;
-        let mut statue =
-            Model::new_with_material(&context, &statue_cpu_meshes[0], statue_material).unwrap();
-        statue.set_transformation(translation * scale * rotation);
-        models.push(statue);
+        let mut statue = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+        statue.iter_mut().for_each(|m| {
+            m.set_transformation(translation * scale * rotation);
+            m.material.render_states.cull = Cull::Back;
+        });
+        models.extend(statue.drain(..));
     }
 
-    let (fountain_cpu_meshes, fountain_cpu_materials) =
-        loaded.obj("examples/assets/pfboy.obj").unwrap();
-    let mut fountain_material =
-        PhysicalMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
-    fountain_material.render_states.cull = Cull::Back;
-    let mut fountain =
-        Model::new_with_material(&context, &fountain_cpu_meshes[0], fountain_material).unwrap();
-    fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
-    models.push(fountain);
+    let mut fountain = Model::<PhysicalMaterial>::new(
+        &context,
+        &loaded.deserialize("examples/assets/pfboy.obj").unwrap(),
+    )
+    .unwrap();
+    fountain.iter_mut().for_each(|m| {
+        m.material.render_states.cull = Cull::Back;
+        m.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
+    });
+    models.extend(fountain.drain(..));
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let mut directional = DirectionalLight::new(

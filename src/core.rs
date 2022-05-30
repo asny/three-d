@@ -10,15 +10,8 @@ pub use context::*;
 pub mod buffer;
 pub use buffer::*;
 
-pub mod math;
-pub use math::*;
-
 pub mod texture;
 pub use texture::*;
-
-mod cpu_mesh;
-#[doc(inline)]
-pub use cpu_mesh::*;
 
 pub mod render_states;
 pub use render_states::*;
@@ -29,14 +22,6 @@ pub use render_target::*;
 mod uniform;
 #[doc(inline)]
 pub use uniform::*;
-
-mod cpu_material;
-#[doc(inline)]
-pub use cpu_material::*;
-
-mod cpu_volume;
-#[doc(inline)]
-pub use cpu_volume::*;
 
 mod camera;
 #[doc(inline)]
@@ -54,14 +39,6 @@ mod program;
 #[doc(inline)]
 pub use program::*;
 
-mod aabb;
-#[doc(inline)]
-pub use aabb::*;
-
-mod color;
-#[doc(inline)]
-pub use color::*;
-
 mod viewport;
 #[doc(inline)]
 pub use viewport::*;
@@ -72,6 +49,16 @@ pub use scissor_box::*;
 
 pub use crate::ThreeDResult;
 use thiserror::Error;
+
+pub mod prelude {
+
+    //!
+    //! Basic types used throughout this crate, mostly basic math.
+    //!
+    pub use three_d_asset::prelude::*;
+}
+pub use prelude::*;
+
 ///
 /// Error in the [core](crate::core) module.
 ///
@@ -106,6 +93,8 @@ pub enum CoreError {
     TextureCreation(String),
     #[error("invalid size of texture data (got {0} bytes but expected {1} bytes)")]
     InvalidTextureLength(usize, usize),
+    #[error("all of the images used for cube map sides must have the same texture data type")]
+    InvalidCubeMapTextureDataType,
     #[error("the render call requires the {0} vertex buffer which is missing on the given mesh")]
     MissingMeshBuffer(String),
     #[error(
@@ -128,6 +117,8 @@ pub enum CoreError {
     MinimumLargerThanMaximum,
     #[error("the transformation matrix cannot be inverted and is therefore invalid")]
     FailedInvertingTransformationMatrix,
+    #[error("the material {0} is required by the geometry {1} but could not be found")]
+    MissingMaterial(String, String),
 }
 
 mod data_type;

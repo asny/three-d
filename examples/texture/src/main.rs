@@ -29,7 +29,7 @@ pub async fn run() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut loaded = Loader::load_async(&[
+    let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/skybox_evening/right.jpg",
         "examples/assets/skybox_evening/left.jpg",
         "examples/assets/skybox_evening/top.jpg",
@@ -43,34 +43,33 @@ pub async fn run() {
     .await
     .unwrap();
 
+    let top_tex = loaded.deserialize("top").unwrap();
     let skybox = Skybox::new(
         &context,
-        &loaded
-            .cube_image("right", "left", "top", "top", "front", "back")
-            .unwrap(),
+        &loaded.deserialize("right").unwrap(),
+        &loaded.deserialize("left").unwrap(),
+        &top_tex,
+        &top_tex,
+        &loaded.deserialize("front").unwrap(),
+        &loaded.deserialize("back").unwrap(),
     )
     .unwrap();
-    let mut box_object = Model::new_with_material(
-        &context,
-        &CpuMesh::cube(),
+    let mut box_object = Gm::new(
+        Mesh::new(&context, &CpuMesh::cube()).unwrap(),
         ColorMaterial {
             texture: Some(std::rc::Rc::new(
-                Texture2D::new(&context, &loaded.image("test_texture").unwrap()).unwrap(),
+                Texture2D::new(&context, &loaded.deserialize("test_texture").unwrap()).unwrap(),
             )),
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     box_object.material.render_states.cull = Cull::Back;
-    let (penguin_cpu_meshes, penguin_cpu_materials) = loaded.obj("PenguinBaseMesh.obj").unwrap();
-    let mut penguin_object = Model::new_with_material(
-        &context,
-        &penguin_cpu_meshes[0],
-        PhysicalMaterial::new(&context, &penguin_cpu_materials[0]).unwrap(),
-    )
-    .unwrap();
-    penguin_object.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
-    penguin_object.material.render_states.cull = Cull::Back;
+    let model = loaded.deserialize("PenguinBaseMesh.obj").unwrap();
+    let mut penguin = Model::<PhysicalMaterial>::new(&context, &model).unwrap();
+    penguin.iter_mut().for_each(|m| {
+        m.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
+        m.material.render_states.cull = Cull::Back;
+    });
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =
@@ -85,17 +84,16 @@ pub async fn run() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
+            let mut objects = penguin.to_objects();
+            objects.push(&box_object);
+            objects.push(&skybox);
             // draw
             if redraw {
                 frame_input
                     .screen()
                     .clear(ClearState::default())
                     .unwrap()
-                    .render(
-                        &camera,
-                        &[&box_object, &penguin_object, &skybox],
-                        &[&ambient, &directional],
-                    )
+                    .render(&camera, &objects, &[&ambient, &directional])
                     .unwrap();
             }
 

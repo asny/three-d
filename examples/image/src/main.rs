@@ -18,12 +18,12 @@ pub async fn run() {
     let context = window.gl().unwrap();
     let mut image_effect = ImageEffect::new(&context, include_str!("shader.frag")).unwrap();
 
-    let mut loaded = Loader::load_async(
+    let mut loaded = three_d_asset::io::load_async(
         &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
     )
     .await
     .unwrap();
-    let image = Texture2D::new(&context, &loaded.hdr_image("").unwrap()).unwrap();
+    let image = Texture2D::new(&context, &loaded.deserialize("").unwrap()).unwrap();
 
     let mut gui = GUI::new(&context).unwrap();
 

@@ -1,7 +1,5 @@
 //!
-//! A collection of light types.
-//! Currently implemented light types are ambient light, directional light, spot light and point light.
-//! Directional and spot lights can cast shadows.
+//! A collection of lights implementing the [Light] trait.
 //!
 
 mod directional_light;
@@ -150,6 +148,7 @@ fn compute_up_direction(direction: Vec3) -> Vec3 {
     }
 }
 
+use crate::renderer::{LightingModel, NormalDistributionFunction};
 pub(crate) fn lighting_model_shader(lighting_model: LightingModel) -> &'static str {
     match lighting_model {
         LightingModel::Phong => "#define PHONG",

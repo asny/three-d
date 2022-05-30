@@ -31,20 +31,24 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
-    let mut loaded = Loader::load_async(&[
+    let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/gltf/DamagedHelmet.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
         "examples/assets/chinese_garden_4k.hdr",  // Source: https://polyhaven.com/
     ])
     .await
     .unwrap();
 
-    let environment_map = loaded.hdr_image("chinese").unwrap();
+    let environment_map = loaded.deserialize("chinese").unwrap();
     let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
 
-    let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
-    let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
-    cpu_meshes[0].compute_tangents().unwrap();
-    let model = Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
+    let mut cpu_model: CpuModel = loaded.deserialize("DamagedHelmet").unwrap();
+    cpu_model
+        .geometries
+        .iter_mut()
+        .for_each(|m| m.compute_tangents().unwrap());
+    let model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
+        .unwrap()
+        .remove(0);
 
     let light =
         AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture()).unwrap();

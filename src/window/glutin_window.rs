@@ -152,15 +152,26 @@ impl Window {
                         first_frame = false;
                         events.clear();
                         let mut frame_output = callback(frame_input);
-                        if let Ok(v) = std::env::var("THREE_D_SCREENSHOT") {
-                            frame_output.screenshot = Some(v.into());
+                        #[cfg(feature = "image")]
+                        if let Ok(ref v) = std::env::var("THREE_D_SCREENSHOT") {
+                            let mut pixels =
+                                RenderTarget::screen(&context, physical_width, physical_height)
+                                    .read_color::<[u8; 4]>()
+                                    .unwrap();
+                            image::save_buffer(
+                                &std::path::Path::new(v),
+                                &pixels.drain(..).flatten().collect::<Vec<_>>(),
+                                physical_width as u32,
+                                physical_height as u32,
+                                image::ColorType::Rgba8,
+                            )
+                            .unwrap();
                         }
                         if let Ok(v) = std::env::var("THREE_D_EXIT") {
                             if v.parse::<f64>().unwrap() < accumulated_time {
                                 frame_output.exit = true;
                             }
                         }
-
                         if frame_output.exit {
                             *control_flow = ControlFlow::Exit;
                         } else {
@@ -173,21 +184,6 @@ impl Window {
                                 *control_flow = ControlFlow::Poll;
                                 windowed_context.window().request_redraw();
                             }
-                        }
-
-                        #[cfg(feature = "image-io")]
-                        if let Some(ref path) = frame_output.screenshot {
-                            let pixels =
-                                RenderTarget::screen(&context, physical_width, physical_height)
-                                    .read_color()
-                                    .unwrap();
-                            crate::Saver::save_pixels(
-                                path,
-                                &pixels,
-                                physical_width,
-                                physical_height,
-                            )
-                            .unwrap();
                         }
                     }
                     Event::WindowEvent { ref event, .. } => match event {

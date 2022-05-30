@@ -30,15 +30,19 @@ pub async fn run() {
     .unwrap();
     let mut control = FlyControl::new(0.05);
 
-    let mut loaded =
-        Loader::load_async(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"])
-            .await
-            .unwrap();
+    let mut loaded = three_d_asset::io::load_async(&[
+        "examples/assets/suzanne.obj",
+        "examples/assets/suzanne.mtl",
+    ])
+    .await
+    .unwrap();
 
-    let (meshes, materials) = loaded.obj("suzanne.obj").unwrap();
-    let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();
-    monkey_material.render_states.cull = Cull::Back;
-    let monkey = Model::new_with_material(&context, &meshes[0], monkey_material);
+    let mut monkey =
+        Model::<PhysicalMaterial>::new(&context, &loaded.deserialize("suzanne.obj").unwrap())
+            .unwrap();
+    monkey
+        .iter_mut()
+        .for_each(|m| m.material.render_states.cull = Cull::Back);
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =
@@ -75,7 +79,7 @@ pub async fn run() {
             if change && fog_enabled {
                 depth_texture = Some(
                     pipeline
-                        .depth_pass_texture(&camera, &[monkey.as_ref().unwrap()])
+                        .depth_pass_texture(&camera, &monkey.to_objects())
                         .unwrap(),
                 );
             }
@@ -84,11 +88,9 @@ pub async fn run() {
                 .screen()
                 .clear(ClearState::default())
                 .unwrap()
+                .render(&camera, &monkey.to_objects(), &[&ambient, &directional])
+                .unwrap()
                 .write(|| {
-                    monkey
-                        .as_ref()
-                        .unwrap()
-                        .render(&camera, &[&ambient, &directional])?;
                     if fog_enabled {
                         if let Some(ref depth_texture) = depth_texture {
                             fog_effect.apply(

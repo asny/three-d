@@ -91,7 +91,8 @@ impl Camera {
         self.z_far = z_far;
         let field_of_view_y = field_of_view_y.into();
         self.projection_type = ProjectionType::Perspective { field_of_view_y };
-        self.projection = perspective(field_of_view_y, self.viewport.aspect(), z_near, z_far);
+        self.projection =
+            cgmath::perspective(field_of_view_y, self.viewport.aspect(), z_near, z_far);
         self.update_screen2ray();
         self.update_uniform_buffer()?;
         self.update_frustrum();
@@ -117,7 +118,7 @@ impl Camera {
         self.z_far = z_far;
         let width = height * self.viewport.aspect();
         self.projection_type = ProjectionType::Orthographic { height };
-        self.projection = ortho(
+        self.projection = cgmath::ortho(
             -0.5 * width,
             0.5 * width,
             -0.5 * height,
@@ -161,8 +162,8 @@ impl Camera {
         self.target = target;
         self.up = up;
         self.view = Mat4::look_at_rh(
-            Point::from_vec(self.position),
-            Point::from_vec(self.target),
+            Point3::from_vec(self.position),
+            Point3::from_vec(self.target),
             self.up,
         );
         self.update_screen2ray();
@@ -407,11 +408,19 @@ impl Camera {
     }
 
     fn update_uniform_buffer(&mut self) -> ThreeDResult<()> {
+        let as_array = |m: Mat4| {
+            [
+                m.x.x, m.x.y, m.x.z, m.x.w, m.y.x, m.y.y, m.y.z, m.y.w, m.z.x, m.z.y, m.z.z, m.z.w,
+                m.w.x, m.w.y, m.w.z, m.w.w,
+            ]
+        };
+
         self.uniform_buffer
-            .update(0, &(self.projection * self.view).as_array())?;
-        self.uniform_buffer.update(1, &self.view.as_array())?;
-        self.uniform_buffer.update(2, &self.projection.as_array())?;
-        self.uniform_buffer.update(3, &self.position.as_array())?;
+            .update(0, &as_array(self.projection * self.view))?;
+        self.uniform_buffer.update(1, &as_array(self.view))?;
+        self.uniform_buffer.update(2, &as_array(self.projection))?;
+        self.uniform_buffer
+            .update(3, &[self.position.x, self.position.y, self.position.z])?;
         Ok(())
     }
 
