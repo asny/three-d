@@ -1,7 +1,5 @@
 //!
-//! A collection of light types.
-//! Currently implemented light types are ambient light, directional light, spot light and point light.
-//! Directional and spot lights can cast shadows.
+//! A collection of lights implementing the [Light] trait.
 //!
 
 mod directional_light;

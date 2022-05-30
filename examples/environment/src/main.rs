@@ -43,16 +43,14 @@ pub async fn run() {
     let light =
         AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture()).unwrap();
 
-    let mut model = Model::new_with_material(
-        &context,
-        &CpuMesh::sphere(32),
+    let mut model = Gm::new(
+        Mesh::new(&context, &CpuMesh::sphere(32)).unwrap(),
         PhysicalMaterial {
             roughness: 0.2,
             metallic: 0.8,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     let mut gui = three_d::GUI::new(&context).unwrap();
 
     // main loop
@@ -89,7 +87,7 @@ pub async fn run() {
                 .screen()
                 .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
                 .unwrap()
-                .render(&camera, &[&skybox as &dyn Object, &model], &[&light])
+                .render(&camera, &[&skybox, &model], &[&light])
                 .unwrap()
                 .write(|| gui.render())
                 .unwrap();

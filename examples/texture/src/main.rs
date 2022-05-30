@@ -54,24 +54,22 @@ pub async fn run() {
         &loaded.deserialize("back").unwrap(),
     )
     .unwrap();
-    let mut box_object = Model::new_with_material(
-        &context,
-        &CpuMesh::cube(),
+    let mut box_object = Gm::new(
+        Mesh::new(&context, &CpuMesh::cube()).unwrap(),
         ColorMaterial {
             texture: Some(std::rc::Rc::new(
                 Texture2D::new(&context, &loaded.deserialize("test_texture").unwrap()).unwrap(),
             )),
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     box_object.material.render_states.cull = Cull::Back;
     let model = loaded.deserialize("PenguinBaseMesh.obj").unwrap();
-    let mut penguin_object = Model::<PhysicalMaterial>::new(&context, &model)
-        .unwrap()
-        .remove(0);
-    penguin_object.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
-    penguin_object.material.render_states.cull = Cull::Back;
+    let mut penguin = Model::<PhysicalMaterial>::new(&context, &model).unwrap();
+    penguin.iter_mut().for_each(|m| {
+        m.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
+        m.material.render_states.cull = Cull::Back;
+    });
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =
@@ -86,17 +84,16 @@ pub async fn run() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
+            let mut objects = penguin.to_objects();
+            objects.push(&box_object);
+            objects.push(&skybox);
             // draw
             if redraw {
                 frame_input
                     .screen()
                     .clear(ClearState::default())
                     .unwrap()
-                    .render(
-                        &camera,
-                        &[&box_object, &penguin_object, &skybox],
-                        &[&ambient, &directional],
-                    )
+                    .render(&camera, &objects, &[&ambient, &directional])
                     .unwrap();
             }
 

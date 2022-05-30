@@ -40,7 +40,9 @@ pub async fn run() {
     let mut monkey =
         Model::<PhysicalMaterial>::new(&context, &loaded.deserialize("suzanne.obj").unwrap())
             .unwrap();
-    monkey[0].material.render_states.cull = Cull::Back;
+    monkey
+        .iter_mut()
+        .for_each(|m| m.material.render_states.cull = Cull::Back);
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =

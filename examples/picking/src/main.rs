@@ -31,15 +31,13 @@ pub async fn run() {
 
     let mut sphere = CpuMesh::sphere(8);
     sphere.transform(&Mat4::from_scale(0.05)).unwrap();
-    let mut pick_mesh = Model::new_with_material(
-        &context,
-        &sphere,
+    let mut pick_mesh = Gm::new(
+        Mesh::new(&context, &sphere).unwrap(),
         PhysicalMaterial {
             albedo: Color::RED,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =
@@ -53,10 +51,10 @@ pub async fn run() {
     .unwrap();
 
     let model = loaded.deserialize("suzanne.obj").unwrap();
-    let mut monkey = Model::<PhysicalMaterial>::new(&context, &model)
-        .unwrap()
-        .remove(0);
-    monkey.material.render_states.cull = Cull::Back;
+    let mut monkey = Model::<PhysicalMaterial>::new(&context, &model).unwrap();
+    monkey
+        .iter_mut()
+        .for_each(|m| m.material.render_states.cull = Cull::Back);
 
     // main loop
     window
@@ -76,7 +74,8 @@ pub async fn run() {
                                     - frame_input.device_pixel_ratio * position.1)
                                     as f32,
                             );
-                            if let Some(pick) = pick(&context, &camera, pixel, &[&monkey]).unwrap()
+                            if let Some(pick) =
+                                pick(&context, &camera, pixel, &monkey.to_geometries()).unwrap()
                             {
                                 pick_mesh.set_transformation(Mat4::from_translation(pick));
                                 change = true;
@@ -93,11 +92,13 @@ pub async fn run() {
 
             // draw
             if change {
+                let mut objects = monkey.to_objects();
+                objects.push(&pick_mesh);
                 frame_input
                     .screen()
                     .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
                     .unwrap()
-                    .render(&camera, &[&monkey, &pick_mesh], &[&ambient, &directional])
+                    .render(&camera, &objects, &[&ambient, &directional])
                     .unwrap();
             }
 

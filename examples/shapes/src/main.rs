@@ -22,9 +22,8 @@ pub fn main() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut sphere = Model::new_with_material(
-        &context,
-        &CpuMesh::sphere(16),
+    let mut sphere = Gm::new(
+        Mesh::new(&context, &CpuMesh::sphere(16)).unwrap(),
         PhysicalMaterial {
             albedo: Color {
                 r: 255,
@@ -34,12 +33,10 @@ pub fn main() {
             },
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
-    let mut cylinder = Model::new_with_material(
-        &context,
-        &CpuMesh::cylinder(16),
+    let mut cylinder = Gm::new(
+        Mesh::new(&context, &CpuMesh::cylinder(16)).unwrap(),
         PhysicalMaterial {
             albedo: Color {
                 r: 0,
@@ -49,13 +46,11 @@ pub fn main() {
             },
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     cylinder
         .set_transformation(Mat4::from_translation(vec3(1.3, 0.0, 0.0)) * Mat4::from_scale(0.2));
-    let mut cube = Model::new_with_material(
-        &context,
-        &CpuMesh::cube(),
+    let mut cube = Gm::new(
+        Mesh::new(&context, &CpuMesh::cube()).unwrap(),
         PhysicalMaterial {
             albedo: Color {
                 r: 0,
@@ -65,8 +60,7 @@ pub fn main() {
             },
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     cube.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 1.3)) * Mat4::from_scale(0.2));
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
     let bounding_box_sphere = BoundingBox::new_with_material(

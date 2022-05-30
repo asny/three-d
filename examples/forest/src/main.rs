@@ -76,36 +76,38 @@ pub async fn run() {
     let imposters = Imposters::new(
         &context,
         &positions,
-        &model.iter().map(|m| m as &dyn Object).collect::<Vec<_>>(),
+        &model.to_objects(),
         &[&ambient, &directional],
         256,
     )
     .unwrap();
 
     // Plane
-    let mut plane = Model::new_with_material(
-        &context,
-        &CpuMesh {
-            positions: Positions::F32(vec![
-                vec3(-10000.0, 0.0, 10000.0),
-                vec3(10000.0, 0.0, 10000.0),
-                vec3(0.0, 0.0, -10000.0),
-            ]),
-            normals: Some(vec![
-                vec3(0.0, 1.0, 0.0),
-                vec3(0.0, 1.0, 0.0),
-                vec3(0.0, 1.0, 0.0),
-            ]),
-            ..Default::default()
-        },
+    let mut plane = Gm::new(
+        Mesh::new(
+            &context,
+            &CpuMesh {
+                positions: Positions::F32(vec![
+                    vec3(-10000.0, 0.0, 10000.0),
+                    vec3(10000.0, 0.0, 10000.0),
+                    vec3(0.0, 0.0, -10000.0),
+                ]),
+                normals: Some(vec![
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                ]),
+                ..Default::default()
+            },
+        )
+        .unwrap(),
         PhysicalMaterial {
             albedo: Color::new_opaque(128, 200, 70),
             metallic: 0.0,
             roughness: 1.0,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     plane.material.render_states.cull = Cull::Back;
 
     // main loop

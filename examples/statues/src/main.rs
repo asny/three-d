@@ -76,12 +76,12 @@ pub async fn run() {
             (1.2 * std::f32::consts::PI - angle).cos() * 21.0 - 33.0,
             angle.sin() * dist,
         ));
-        let mut statue_material = PhysicalMaterial::new(&context, &cpu_model.materials[0]).unwrap();
-        statue_material.render_states.cull = Cull::Back;
-        let mut statue =
-            Model::new_with_material(&context, &cpu_model.geometries[0], statue_material).unwrap();
-        statue.set_transformation(translation * scale * rotation);
-        models.push(statue);
+        let mut statue = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+        statue.iter_mut().for_each(|m| {
+            m.set_transformation(translation * scale * rotation);
+            m.material.render_states.cull = Cull::Back;
+        });
+        models.extend(statue.drain(..));
     }
 
     let mut fountain = Model::<PhysicalMaterial>::new(
@@ -89,8 +89,10 @@ pub async fn run() {
         &loaded.deserialize("examples/assets/pfboy.obj").unwrap(),
     )
     .unwrap();
-    fountain[0].material.render_states.cull = Cull::Back;
-    fountain[0].set_transformation(Mat4::from_angle_x(degrees(-90.0)));
+    fountain.iter_mut().for_each(|m| {
+        m.material.render_states.cull = Cull::Back;
+        m.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
+    });
     models.extend(fountain.drain(..));
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();

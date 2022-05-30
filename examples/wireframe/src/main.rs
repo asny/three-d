@@ -61,23 +61,27 @@ pub async fn run() {
     cylinder
         .transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007))
         .unwrap();
-    let edges = InstancedModel::new_with_material(
-        &context,
-        &edge_transformations(&cpu_model.geometries[0]),
-        &cylinder,
+    let edges = Gm::new(
+        InstancedMesh::new(
+            &context,
+            &edge_transformations(&cpu_model.geometries[0]),
+            &cylinder,
+        )
+        .unwrap(),
         wireframe_material.clone(),
-    )
-    .unwrap();
+    );
 
     let mut sphere = CpuMesh::sphere(8);
     sphere.transform(&Mat4::from_scale(0.015)).unwrap();
-    let vertices = InstancedModel::new_with_material(
-        &context,
-        &vertex_transformations(&cpu_model.geometries[0]),
-        &sphere,
+    let vertices = Gm::new(
+        InstancedMesh::new(
+            &context,
+            &vertex_transformations(&cpu_model.geometries[0]),
+            &sphere,
+        )
+        .unwrap(),
         wireframe_material,
-    )
-    .unwrap();
+    );
 
     let ambient = AmbientLight::new(&context, 0.7, Color::WHITE).unwrap();
     let directional0 =

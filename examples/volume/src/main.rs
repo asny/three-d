@@ -35,9 +35,8 @@ pub async fn run() {
         .unwrap()
         .deserialize("")
         .unwrap();
-    let mut volume = Model::new_with_material(
-        &context,
-        &CpuMesh::cube(),
+    let mut volume = Gm::new(
+        Mesh::new(&context, &CpuMesh::cube()).unwrap(),
         IsourfaceMaterial {
             voxels: std::rc::Rc::new(Texture3D::new(&context, &cpu_volume.voxels).unwrap()),
             lighting_model: LightingModel::Blinn,
@@ -47,8 +46,7 @@ pub async fn run() {
             roughness: 1.0,
             metallic: 0.0,
         },
-    )
-    .unwrap();
+    );
     volume.set_transformation(Mat4::from_nonuniform_scale(
         0.5 * cpu_volume.size.x,
         0.5 * cpu_volume.size.y,

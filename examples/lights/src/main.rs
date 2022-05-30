@@ -221,7 +221,7 @@ struct Glow {
     light: PointLight,
     velocity: Vec3,
     aabb: AxisAlignedBoundingBox,
-    sphere: Model<PhysicalMaterial>,
+    sphere: Gm<Mesh, PhysicalMaterial>,
 }
 
 impl Glow {
@@ -241,11 +241,10 @@ impl Glow {
                 rng.gen::<f32>() * 2.0 - 1.0,
             )
             .normalize(),
-            sphere: Model::new_with_material(
-                context,
-                &CpuMesh::sphere(16),
+            sphere: Gm::new(
+                Mesh::new(context, &CpuMesh::sphere(16))?,
                 PhysicalMaterial::default(),
-            )?,
+            ),
         })
     }
 

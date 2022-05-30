@@ -51,22 +51,24 @@ pub fn main() {
     )
     .unwrap();
 
-    let mut mesh = Model::new_with_material(
-        &context,
-        &CpuMesh {
-            positions: Positions::F32(vec![
-                vec3(-2.0, -2.0, 0.0),
-                vec3(2.0, -2.0, 0.0),
-                vec3(2.0, 2.0, 0.0),
-                vec3(2.0, 2.0, 0.0),
-                vec3(-2.0, 2.0, 0.0),
-                vec3(-2.0, -2.0, 0.0),
-            ]),
-            ..Default::default()
-        },
+    let mut mesh = Gm::new(
+        Mesh::new(
+            &context,
+            &CpuMesh {
+                positions: Positions::F32(vec![
+                    vec3(-2.0, -2.0, 0.0),
+                    vec3(2.0, -2.0, 0.0),
+                    vec3(2.0, 2.0, 0.0),
+                    vec3(2.0, 2.0, 0.0),
+                    vec3(-2.0, 2.0, 0.0),
+                    vec3(-2.0, -2.0, 0.0),
+                ]),
+                ..Default::default()
+            },
+        )
+        .unwrap(),
         MandelbrotMaterial {},
-    )
-    .unwrap();
+    );
     mesh.set_transformation(Mat4::from_scale(10.0));
 
     // main loop

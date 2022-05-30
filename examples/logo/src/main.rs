@@ -60,7 +60,7 @@ pub async fn run() {
         },
     )
     .unwrap();
-    let mut model = Model::new_with_material(&context, &cpu_mesh, material).unwrap();
+    let mut model = Gm::new(Mesh::new(&context, &cpu_mesh).unwrap(), material);
     model.set_transformation(Mat4::from_angle_y(degrees(35.0)));
 
     let mut loaded = three_d_asset::io::load_async(
