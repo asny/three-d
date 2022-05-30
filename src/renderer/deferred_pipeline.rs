@@ -157,7 +157,7 @@ impl DeferredPipeline {
             ..Default::default()
         };
 
-        let mut fragment_shader = lights_fragment_shader_source(
+        let mut fragment_shader = lights_shader_source(
             lights,
             LightingModel::Cook(
                 NormalDistributionFunction::TrowbridgeReitzGGX,

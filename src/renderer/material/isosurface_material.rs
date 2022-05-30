@@ -26,7 +26,7 @@ pub struct IsosurfaceMaterial {
 
 impl Material for IsosurfaceMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
-        let mut output = lights_fragment_shader_source(lights, self.lighting_model);
+        let mut output = lights_shader_source(lights, self.lighting_model);
         output.push_str(include_str!("shaders/isosurface_material.frag"));
         output
     }

@@ -143,7 +143,7 @@ impl FromCpuMaterial for PhysicalMaterial {
 
 impl Material for PhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
-        let mut output = lights_fragment_shader_source(lights, self.lighting_model);
+        let mut output = lights_shader_source(lights, self.lighting_model);
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()

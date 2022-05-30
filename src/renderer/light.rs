@@ -105,10 +105,16 @@ impl<T: Light> Light for std::rc::Rc<std::cell::RefCell<T>> {
     }
 }
 
-pub(crate) fn lights_fragment_shader_source(
-    lights: &[&dyn Light],
-    lighting_model: LightingModel,
-) -> String {
+///
+/// Returns shader source code with the function `calculate_lighting` which calculate the lighting contribution for the given lights and the given [LightingModel].
+/// Use this if you want to implement a custom [Material](crate::renderer::Material) but use the default lighting calculations.
+///
+/// The shader function has the following signature:
+/// ```no_rust
+/// vec3 calculate_lighting(vec3 camera_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+/// ```
+///
+pub fn lights_shader_source(lights: &[&dyn Light], lighting_model: LightingModel) -> String {
     let mut shader_source = lighting_model_shader(lighting_model).to_string();
     shader_source.push_str(include_str!("../core/shared.frag"));
     shader_source.push_str(include_str!("light/shaders/light_shared.frag"));
