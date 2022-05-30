@@ -1,12 +1,6 @@
 
-layout (std140) uniform Camera
-{
-    mat4 viewProjection;
-    mat4 view;
-    mat4 projection;
-    vec3 position;
-    float padding;
-} camera;
+uniform mat4 view;
+uniform mat4 projection;
 
 in vec3 position;
 
@@ -15,5 +9,5 @@ out vec3 coords;
 void main()
 {
     coords = position;
-    gl_Position = (camera.projection * mat4(mat3(camera.view)) * vec4(position, 1.)).xyww;
+    gl_Position = (projection * mat4(mat3(view)) * vec4(position, 1.)).xyww;
 }

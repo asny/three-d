@@ -1,13 +1,5 @@
-
-layout (std140) uniform Camera
-{
-    mat4 viewProjection;
-    mat4 view;
-    mat4 projection;
-    vec3 position;
-    float padding;
-} camera;
-
+uniform mat4 viewProjection;
+uniform vec3 eye;
 uniform mat4 transformation;
 uniform vec3 direction;
 
@@ -22,7 +14,7 @@ void main()
 {
     uvs = uv_coordinate;
 
-    vec3 z = normalize(camera.position - center);
+    vec3 z = normalize(eye - center);
     vec3 y = direction;
     vec3 x;
     if (dot(y, y) < 0.01) {
@@ -40,5 +32,5 @@ void main()
                 y, 0.0,
                 z, 0.0,
                 center.x, center.y, center.z, 1.0);
-    gl_Position = camera.viewProjection * instanced_transform * transformation * vec4(position, 1.);
+    gl_Position = viewProjection * instanced_transform * transformation * vec4(position, 1.);
 }

@@ -1,13 +1,5 @@
 
-layout (std140) uniform Camera
-{
-    mat4 viewProjection;
-    mat4 view;
-    mat4 projection;
-    vec3 position;
-    float padding;
-} camera;
-
+uniform vec3 eye;
 uniform float minDistance;
 uniform float maxDistance;
 
@@ -17,6 +9,6 @@ layout (location = 0) out vec4 outColor;
 
 void main()
 {
-    float dist = (distance(pos, camera.position) - minDistance) / (maxDistance - minDistance);
+    float dist = (distance(pos, eye) - minDistance) / (maxDistance - minDistance);
     outColor = vec4(dist, dist, dist, 1.0);
 }
