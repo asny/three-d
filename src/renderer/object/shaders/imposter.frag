@@ -1,22 +1,14 @@
 uniform sampler2DArray tex;
 
+uniform mat4 view;
 uniform int no_views;
 in vec2 uvs;
-
-layout (std140) uniform Camera
-{
-    mat4 viewProjection;
-    mat4 view;
-    mat4 projection;
-    vec3 position;
-    float padding;
-} camera;
 
 layout (location = 0) out vec4 out_color;
 
 void main()
 {
-    vec3 dir = normalize(vec3(camera.view[0][2], 0.0, camera.view[2][2]));
+    vec3 dir = normalize(vec3(view[0][2], 0.0, view[2][2]));
     float a = acos(dir.x);
     float angle = (dir.z > 0.0 ? a : 2.0 * PI - a) / (2.0 * PI);
 

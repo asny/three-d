@@ -122,15 +122,8 @@ impl Particles {
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         format!("
-                layout (std140) uniform Camera
-                {{
-                    mat4 viewProjection;
-                    mat4 view;
-                    mat4 projection;
-                    vec3 position;
-                    float padding;
-                }} camera;
-
+                uniform mat4 view;
+                uniform mat4 projection;
                 uniform float time;
                 uniform vec3 acceleration;
 
@@ -147,7 +140,7 @@ impl Particles {
                 void main()
                 {{
                     vec3 p = start_position + start_velocity * time + 0.5 * acceleration * time * time;
-                    gl_Position = camera.projection * (camera.view * modelMatrix * vec4(p, 1.0) + vec4(position, 0.0));
+                    gl_Position = projection * (view * modelMatrix * vec4(p, 1.0) + vec4(position, 0.0));
                     {} // Position
                     {} // Normal
                     {} // UV coordinates
@@ -191,7 +184,8 @@ impl Geometry for Particles {
                 program.use_uniform("modelMatrix", &self.transformation)?;
                 program.use_uniform("acceleration", &self.acceleration)?;
                 program.use_uniform("time", &self.time)?;
-                program.use_uniform_block("Camera", camera.uniform_buffer())?;
+                program.use_uniform("projection", camera.projection())?;
+                program.use_uniform("view", camera.view())?;
 
                 program.use_instance_attribute("start_position", &self.start_position_buffer)?;
                 program.use_instance_attribute("start_velocity", &self.start_velocity_buffer)?;

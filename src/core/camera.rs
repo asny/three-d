@@ -380,6 +380,7 @@ impl Camera {
     /// } camera;
     /// ```
     ///
+    #[deprecated = "Send each uniform that you need to the shader or manually create a uniform buffer"]
     pub fn uniform_buffer(&self) -> &UniformBuffer {
         &self.uniform_buffer
     }

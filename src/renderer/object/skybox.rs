@@ -137,7 +137,8 @@ impl Geometry for Skybox {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                program.use_uniform_block("Camera", camera.uniform_buffer())?;
+                program.use_uniform("view", camera.view())?;
+                program.use_uniform("projection", camera.projection())?;
                 program.use_vertex_attribute("position", &self.vertex_buffer)?;
                 program.draw_arrays(material.render_states(), camera.viewport(), 36)?;
                 Ok(())

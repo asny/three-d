@@ -96,7 +96,8 @@ impl Geometry for Sprites {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                program.use_uniform_block("Camera", camera.uniform_buffer())?;
+                program.use_uniform("eye", camera.position())?;
+                program.use_uniform("viewProjection", camera.projection() * camera.view())?;
                 program.use_uniform("transformation", self.transformation)?;
                 program.use_vertex_attribute("position", &self.position_buffer)?;
                 program.use_vertex_attribute("uv_coordinate", &self.uv_buffer)?;
