@@ -2,12 +2,12 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// A material that renders the isosurface defined by the voxel data in the [IsourfaceMaterial::voxels] and the [IsourfaceMaterial::threshold].
+/// A material that renders the isosurface defined by the voxel data in the [IsosurfaceMaterial::voxels] and the [IsosurfaceMaterial::threshold].
 /// The surface is defined by all the points in the volume where the red channel of the voxel data is equal to the threshold.
 /// This material should be applied to a cube with center in origo, for example [CpuMesh::cube].
 ///
 #[derive(Clone)]
-pub struct IsourfaceMaterial {
+pub struct IsosurfaceMaterial {
     /// The voxel data that defines the isosurface.
     pub voxels: std::rc::Rc<Texture3D>,
     /// Threshold (in the range [0..1]) that defines the surface in the voxel data.
@@ -24,7 +24,7 @@ pub struct IsourfaceMaterial {
     pub lighting_model: LightingModel,
 }
 
-impl Material for IsourfaceMaterial {
+impl Material for IsosurfaceMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         let mut output = lights_fragment_shader_source(lights, self.lighting_model);
         output.push_str(include_str!("shaders/isosurface_material.frag"));

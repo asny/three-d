@@ -37,7 +37,7 @@ pub async fn run() {
         .unwrap();
     let mut volume = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()).unwrap(),
-        IsourfaceMaterial {
+        IsosurfaceMaterial {
             voxels: std::rc::Rc::new(Texture3D::new(&context, &cpu_volume.voxels).unwrap()),
             lighting_model: LightingModel::Blinn,
             size: cpu_volume.size,
