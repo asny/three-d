@@ -2,7 +2,6 @@ use crate::renderer::*;
 
 ///
 /// Similar to [Model], except it is possible to render many instances of the same model efficiently.
-/// Usually constructed from a [CpuModel] using [InstancedModel::new].
 ///
 pub struct InstancedModel<M: Material>(Vec<Gm<InstancedMesh, M>>);
 
@@ -45,7 +44,7 @@ impl<M: Material> InstancedModel<M> {
 impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModel<T> {
     ///
     /// Constructs an [InstancedModel] from a [CpuModel] and the given [Instances] attributes, ie. constructs a list of [Gm]s with a [InstancedMesh] as geometry (constructed from the [CpuMesh]es in the [CpuModel]) and
-    /// a [material] type specified by the generic parameter (constructed from the [CpuMaterial]s in the [CpuModel]).
+    /// a [material] type specified by the generic parameter which implement [FromCpuMaterial] (constructed from the [CpuMaterial]s in the [CpuModel]).
     ///
     pub fn new(
         context: &Context,

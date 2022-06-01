@@ -6,7 +6,7 @@
 #![allow(missing_docs)]
 #![deprecated = "use the `three-d-asset` crate instead"]
 
-use crate::{CpuMaterial, CpuMesh, CpuTexture, CpuVolume};
+use crate::{CpuMaterial, CpuMesh, CpuTexture, CpuVoxelGrid};
 use std::path::Path;
 use three_d_asset::Result;
 
@@ -61,7 +61,7 @@ impl Loaded {
         Ok((r.geometries, r.materials))
     }
 
-    pub fn vol<P: AsRef<Path>>(&mut self, path: P) -> Result<CpuVolume> {
+    pub fn vol<P: AsRef<Path>>(&mut self, path: P) -> Result<CpuVoxelGrid> {
         self.deserialize(path)
     }
 

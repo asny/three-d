@@ -4,7 +4,6 @@ pub use three_d_asset::Model as CpuModel;
 
 ///
 /// A 3D model consisting of a set of [Gm]s with [Mesh]es as the geometries and a [material] type specified by the generic parameter.
-/// Usually constructed from a [CpuModel] using [Model::new].
 ///
 pub struct Model<M: Material>(Vec<Gm<Mesh, M>>);
 
@@ -45,7 +44,7 @@ impl<M: Material> Model<M> {
 impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
     ///
     /// Constructs a [Model] from a [CpuModel], ie. constructs a list of [Gm]s with a [Mesh] as geometry (constructed from the [CpuMesh]es in the [CpuModel]) and
-    /// a [material] type specified by the generic parameter (constructed from the [CpuMaterial]s in the [CpuModel]).
+    /// a [material] type specified by the generic parameter which implement [FromCpuMaterial] (constructed from the [CpuMaterial]s in the [CpuModel]).
     ///
     pub fn new(context: &Context, cpu_model: &CpuModel) -> ThreeDResult<Model<M>> {
         let mut materials = std::collections::HashMap::new();

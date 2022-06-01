@@ -30,28 +30,12 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     // Source: https://web.cs.ucdavis.edu/~okreylos/PhDStudies/Spring2000/ECS277/DataSets.html
-    let cpu_volume: CpuVolume = three_d_asset::io::load_async(&["examples/assets/Skull.vol"])
+    let cpu_voxel_grid = three_d_asset::io::load_async(&["examples/assets/Skull.vol"])
         .await
         .unwrap()
         .deserialize("")
         .unwrap();
-    let mut volume = Gm::new(
-        Mesh::new(&context, &CpuMesh::cube()).unwrap(),
-        IsosurfaceMaterial {
-            voxels: std::rc::Rc::new(Texture3D::new(&context, &cpu_volume.voxels).unwrap()),
-            lighting_model: LightingModel::Blinn,
-            size: cpu_volume.size,
-            threshold: 0.15,
-            color: Color::WHITE,
-            roughness: 1.0,
-            metallic: 0.0,
-        },
-    );
-    volume.set_transformation(Mat4::from_nonuniform_scale(
-        0.5 * cpu_volume.size.x,
-        0.5 * cpu_volume.size.y,
-        0.5 * cpu_volume.size.z,
-    ));
+    let mut voxel_grid = VoxelGrid::<IsosurfaceMaterial>::new(&context, &cpu_voxel_grid).unwrap();
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional1 =
@@ -70,14 +54,15 @@ pub async fn run() {
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
                     ui.add(
-                        Slider::new(&mut volume.material.threshold, 0.0..=1.0).text("Threshold"),
+                        Slider::new(&mut voxel_grid.material.threshold, 0.0..=1.0)
+                            .text("Threshold"),
                     );
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
                 panel_width = gui_context.used_size().x as f64;
             })
             .unwrap();
-            volume.material.color = Color::from_rgba_slice(&color);
+            voxel_grid.material.color = Color::from_rgba_slice(&color);
 
             let viewport = Viewport {
                 x: (panel_width * frame_input.device_pixel_ratio) as i32,
@@ -98,7 +83,7 @@ pub async fn run() {
                 .unwrap()
                 .render(
                     &camera,
-                    &[&volume],
+                    &[&voxel_grid],
                     &[&ambient, &directional1, &directional2],
                 )
                 .unwrap()

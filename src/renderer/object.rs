@@ -15,6 +15,10 @@ mod instanced_model;
 #[doc(inline)]
 pub use instanced_model::*;
 
+mod voxel_grid;
+#[doc(inline)]
+pub use voxel_grid::*;
+
 mod line;
 #[doc(inline)]
 pub use line::*;

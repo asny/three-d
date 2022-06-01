@@ -90,6 +90,16 @@ pub trait FromCpuMaterial: std::marker::Sized {
     fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self>;
 }
 
+///
+/// Implement this for a [Material] that can be created from a [CpuVoxelGrid].
+///
+pub trait FromCpuVoxelGrid: std::marker::Sized {
+    ///
+    /// Creates a new material that can be used for rendering from a [CpuVoxelGrid].
+    ///
+    fn from_cpu_voxel_grid(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> ThreeDResult<Self>;
+}
+
 impl<T: Material + ?Sized> Material for &T {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
