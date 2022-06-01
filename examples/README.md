@@ -33,7 +33,7 @@ $ http-server
 
 All of the examples builds to both native (desktop, mobile or whatever target specified) and WebAssembly (wasm) that can be run in a browser. 
 Because they should run in a browser and to keep the same code for native and wasm, all loading happens async. 
-If your application is native only, you can avoid the async runtime (`tokio` or `async-std`) and use `Loader::load_blocking` instead of `Loader::load_async`.
+If your application is native only, you can avoid the async runtime (`tokio` or `async-std`) and use `three_d_asset::load` instead of `three_d_asset::load_async`.
 
 ## Triangle [[code](https://github.com/asny/three-d/tree/master/examples/triangle/src/main.rs)] [[demo](https://asny.github.io/three-d/0.12/triangle.html)]
 
