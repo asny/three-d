@@ -71,6 +71,13 @@ impl Loaded {
     pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CpuTexture> {
         self.deserialize(path)
     }
+
+    ///
+    /// Deserialize the .hdr image resource at the given path into a [CpuTexture].
+    ///
+    pub fn hdr_image<P: AsRef<Path>>(&mut self, path: P) -> Result<CpuTexture> {
+        self.deserialize(path)
+    }
 }
 
 impl std::ops::Deref for Loaded {
