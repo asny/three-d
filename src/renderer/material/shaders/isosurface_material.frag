@@ -1,4 +1,3 @@
-
 uniform vec3 cameraPosition;
 uniform vec4 surfaceColor;
 uniform float metallic;
@@ -21,24 +20,41 @@ vec3 estimate_normal(vec3 uvw) {
 
 void main() {
     int steps = 200;
-    float step_size = length(size) / float(steps);
-    vec3 step = step_size * normalize(pos - cameraPosition);
-    vec3 p = pos;
-    for(int i = 0; i < 200; i++) {
-        if(i == steps-1 || p.x < -0.501*size.x || p.y < -0.501*size.y || p.z < -0.501*size.z || p.x > 0.501*size.x || p.y > 0.501*size.y || p.z > 0.501*size.z) {
+    vec3 rayDir = normalize(pos - cameraPosition);
+    // Start the ray from the camera position by default
+    const float minDistFromCamera = 0.2;
+    vec3 rayPos = cameraPosition + minDistFromCamera * rayDir;
+    float stepSize = length(size) / float(steps);
+    vec3 step = rayDir * stepSize;
+    for (int i = 0; i < 200; i++) {
+        if (i == steps-1) {
+            // Out of steps: transparent
             outColor = vec4(0.0, 0.0, 0.0, 0.0);
             break;
         }
-        vec3 uvw = (p / size) + 0.5;
-        float value = texture(tex, uvw).r;
-        if(value >= threshold) {
+        if (rayPos.x < -0.501*size.x || rayPos.y < -0.501*size.y || rayPos.z < -0.501*size.z ||
+        rayPos.x > 0.501*size.x || rayPos.y > 0.501*size.y || rayPos.z > 0.501*size.z) {
+            // Out of bounds
+            if (i == 0) {
+                // Use the contact point on the box as the starting point
+                rayPos = pos;
+            } else {
+                // Debug the number of steps:
+                //outColor = vec4(0.0, float(i)/float(steps), 0.0, 1.0);
+                outColor = vec4(0.0, 0.0, 0.0, 0.0);
+                break;
+            }
+        }
+        vec3 uvw = (rayPos / size) + 0.5;
+        float surfaceDensity = texture(tex, uvw).r - threshold;
+        if (surfaceDensity >= 0) { // We hit the surface
             vec3 normal = estimate_normal(uvw);
-            outColor.rgb = calculate_lighting(cameraPosition, surfaceColor.rgb, p, normal, metallic, roughness, 1.0);
+            outColor.rgb = calculate_lighting(cameraPosition, surfaceColor.rgb, rayPos, normal, metallic, roughness, 1.0);
             outColor.rgb = reinhard_tone_mapping(outColor.rgb);
             outColor.rgb = srgb_from_rgb(outColor.rgb);
             outColor.a = surfaceColor.a;
             break;
         }
-        p += step;
+        rayPos += step;
     }
 }
