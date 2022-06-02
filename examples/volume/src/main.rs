@@ -1,5 +1,3 @@
-use three_d::*;
-
 // Entry point for non-wasm
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
@@ -7,13 +5,15 @@ async fn main() {
     run().await;
 }
 
+use three_d::*;
+
 pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "Volume!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
     })
-        .unwrap();
+    .unwrap();
     let context = window.gl().unwrap();
 
     let mut camera = Camera::new_perspective(
@@ -26,7 +26,7 @@ pub async fn run() {
         0.1,
         1000.0,
     )
-        .unwrap();
+    .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 0.25, 100.0);
 
     // Source: https://web.cs.ucdavis.edu/~okreylos/PhDStudies/Spring2000/ECS277/DataSets.html
@@ -61,7 +61,7 @@ pub async fn run() {
                 });
                 panel_width = gui_context.used_size().x as f64;
             })
-                .unwrap();
+            .unwrap();
             voxel_grid.material.color = Color::from_rgba_slice(&color);
 
             let viewport = Viewport {
