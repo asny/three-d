@@ -364,27 +364,6 @@ impl Camera {
         self.view_direction().cross(self.up)
     }
 
-    ///
-    /// Returns an uniform buffer containing camera information which makes it easy to transfer all necessary camera information to a shader.
-    ///
-    /// Use this buffer in your [Program] like this `program.use_uniform_block(camera.uniform_buffer(), "Camera");` and add the following to your shader code:
-    ///
-    /// ```notrust
-    /// layout (std140) uniform Camera
-    /// {
-    ///     mat4 viewProjection;
-    ///     mat4 view;
-    ///     mat4 projection;
-    ///     vec3 position;
-    ///     float padding;
-    /// } camera;
-    /// ```
-    ///
-    #[deprecated = "Send each uniform that you need to the shader or manually create a uniform buffer"]
-    pub fn uniform_buffer(&self) -> &UniformBuffer {
-        &self.uniform_buffer
-    }
-
     fn new(context: &Context, viewport: Viewport) -> ThreeDResult<Camera> {
         Ok(Camera {
             viewport,

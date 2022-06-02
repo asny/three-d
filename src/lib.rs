@@ -20,10 +20,6 @@ pub mod window;
 #[cfg(feature = "window")]
 pub use window::*;
 
-pub mod io;
-#[allow(deprecated)]
-pub use io::*;
-
 mod gui;
 #[doc(inline)]
 pub use gui::*;

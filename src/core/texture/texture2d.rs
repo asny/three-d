@@ -147,37 +147,6 @@ impl Texture2D {
         ColorTarget::new_texture2d(&self.context, self, mip_level)
     }
 
-    ///
-    /// Renders whatever rendered in the `render` closure into the texture.
-    /// Before writing, the texture is cleared based on the given clear state.
-    ///
-    /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
-    /// Use a [RenderTarget] to write to both color and depth.
-    ///
-    #[deprecated = "use as_color_target followed by clear and write"]
-    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
-        &mut self,
-        clear_state: ClearState,
-        render: F,
-    ) -> ThreeDResult<()> {
-        self.as_color_target(None)
-            .as_render_target()?
-            .clear(clear_state)?
-            .write(render)?;
-        Ok(())
-    }
-
-    ///
-    /// Returns the values of the pixels in this texture inside the given viewport.
-    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
-    ///
-    /// **Note:** On web, the data format needs to match the data format of this texture.
-    ///
-    #[deprecated = "use as_color_target followed by read"]
-    pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        self.as_color_target(None).read_partially(viewport.into())
-    }
-
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width

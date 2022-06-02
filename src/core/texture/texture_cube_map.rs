@@ -478,43 +478,6 @@ impl TextureCubeMap {
         ColorTarget::new_texture_cube_map(&self.context, self, side, mip_level)
     }
 
-    ///
-    /// Writes whatever rendered in the `render` closure into the color texture at the cube map side given by the input parameter `side`.
-    /// Before writing, the texture side is cleared based on the given clear state.
-    ///
-    #[deprecated = "use as_color_target followed by clear and write"]
-    pub fn write(
-        &mut self,
-        side: CubeMapSide,
-        clear_state: ClearState,
-        render: impl FnOnce() -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
-        self.as_color_target(side, None)
-            .as_render_target()?
-            .clear(clear_state)?
-            .write(render)?;
-        Ok(())
-    }
-
-    ///
-    /// Writes whatever rendered in the `render` closure into the given mip level of the color texture at the cube map side given by the input parameter `side`.
-    /// Before writing, the texture side is cleared based on the given clear state.
-    ///
-    #[deprecated = "use as_color_target followed by clear and write"]
-    pub fn write_to_mip_level(
-        &mut self,
-        side: CubeMapSide,
-        mip_level: u32,
-        clear_state: ClearState,
-        render: impl FnOnce() -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
-        self.as_color_target(side, Some(mip_level))
-            .as_render_target()?
-            .clear(clear_state)?
-            .write(render)?;
-        Ok(())
-    }
-
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width

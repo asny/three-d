@@ -10,14 +10,6 @@ mod render_target2d;
 #[doc(inline)]
 pub use render_target2d::*;
 
-mod render_target2d_array;
-#[doc(inline)]
-pub use render_target2d_array::*;
-
-mod render_target_cube_map;
-#[doc(inline)]
-pub use render_target_cube_map::*;
-
 use crate::core::*;
 
 ///

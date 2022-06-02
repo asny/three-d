@@ -86,28 +86,6 @@ impl Texture2DArray {
         ColorTarget::new_texture_2d_array(&self.context, self, layers, mip_level)
     }
 
-    ///
-    /// Renders whatever rendered in the `render` closure into the textures defined by the input parameters `layers`.
-    /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in `layers`.
-    /// Before writing, the textures are cleared based on the given clear state.
-    ///
-    /// **Note:** [DepthTest] is disabled if not also writing to a [DepthTarget].
-    /// Use a [RenderTarget] to write to both color and depth.
-    ///
-    #[deprecated = "use as_color_target followed by clear and write"]
-    pub fn write<'a, F: FnOnce() -> ThreeDResult<()>>(
-        &'a mut self,
-        layers: &'a [u32],
-        clear_state: ClearState,
-        render: F,
-    ) -> ThreeDResult<()> {
-        self.as_color_target(layers, None)
-            .as_render_target()?
-            .clear(clear_state)?
-            .write(render)?;
-        Ok(())
-    }
-
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width

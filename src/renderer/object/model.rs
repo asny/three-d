@@ -9,21 +9,6 @@ pub struct Model<M: Material>(Vec<Gm<Mesh, M>>);
 
 impl<M: Material> Model<M> {
     ///
-    /// Creates a new 3D model with a [Mesh] as geometry and the given material.
-    ///
-    #[deprecated = "Use Gm::new(Mesh::new(&context, &cpu_mesh)?, material);"]
-    pub fn new_with_material(
-        context: &Context,
-        cpu_mesh: &CpuMesh,
-        material: M,
-    ) -> ThreeDResult<Gm<Mesh, M>> {
-        Ok(Gm {
-            geometry: Mesh::new(context, cpu_mesh)?,
-            material,
-        })
-    }
-
-    ///
     /// Returns a list of references to the objects in this model which can be used as input to a render function, for example [render_pass].
     ///
     pub fn to_objects(&self) -> Vec<&dyn Object> {

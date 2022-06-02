@@ -7,23 +7,6 @@ pub struct InstancedModel<M: Material>(Vec<Gm<InstancedMesh, M>>);
 
 impl<M: Material> InstancedModel<M> {
     ///
-    /// Creates a new instanced 3D model with a triangle mesh as geometry and the given material.
-    /// The model is rendered in as many instances as there are data in the [Instances] given as input.
-    ///
-    #[deprecated = "Use Gm::new(InstancedMesh::new(&context, &instances, &cpu_mesh)?, material);"]
-    pub fn new_with_material(
-        context: &Context,
-        instances: &Instances,
-        cpu_mesh: &CpuMesh,
-        material: M,
-    ) -> ThreeDResult<Gm<InstancedMesh, M>> {
-        Ok(Gm {
-            geometry: InstancedMesh::new(context, instances, cpu_mesh)?,
-            material,
-        })
-    }
-
-    ///
     /// Returns a list of references to the objects in this instanced model which can be used as input to a render function, for example [render_pass].
     ///
     pub fn to_objects(&self) -> Vec<&dyn Object> {

@@ -3,10 +3,6 @@ use super::*;
 pub use three_d_asset::VoxelGrid as CpuVoxelGrid;
 
 ///
-#[deprecated = "renamed CpuVoxelGrid"]
-pub type CpuVolume = CpuVoxelGrid;
-
-///
 /// A voxel grid inside a cube with a [material] type specified by the generic parameter.
 ///
 pub struct VoxelGrid<M: Material>(Gm<Mesh, M>);

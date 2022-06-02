@@ -75,25 +75,6 @@ impl DepthTargetTexture2D {
         DepthTarget::new_texture2d(&self.context, self)
     }
 
-    ///
-    /// Write the depth of whatever rendered in the `render` closure into the texture.
-    /// Before writing, the texture is cleared based on the given clear state.
-    ///
-    #[deprecated = "use as_depth_target followed by clear and write"]
-    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
-        &mut self,
-        clear_state: Option<f32>,
-        render: F,
-    ) -> ThreeDResult<()> {
-        self.as_depth_target()
-            .clear(ClearState {
-                depth: clear_state,
-                ..ClearState::none()
-            })?
-            .write(render)?;
-        Ok(())
-    }
-
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width
