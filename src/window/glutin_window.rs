@@ -381,7 +381,7 @@ impl Window {
     }
 
     ///
-    /// Returns the current viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
+    /// Returns the current viewport of the window in physical pixels (the size of the screen [RenderTarget] which is returned from [FrameInput::screen]).
     ///
     pub fn viewport(&self) -> ThreeDResult<Viewport> {
         Ok(if let Some(ref windowed_context) = self.windowed_context {

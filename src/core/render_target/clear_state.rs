@@ -1,8 +1,7 @@
 use crate::core::*;
 
 ///
-/// Defines which channels (red, green, blue, alpha and depth) to clear when starting to write to a
-/// [RenderTarget] or the [Screen].
+/// Defines which channels (red, green, blue, alpha and depth) to clear when starting to write to a [RenderTarget].
 /// If `None` then the channel is not cleared and if `Some(value)` the channel is cleared to that value (the value must be between 0 and 1).
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]

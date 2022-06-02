@@ -231,7 +231,7 @@ pub struct FrameInput {
     /// Milliseconds accumulated time since start.
     pub accumulated_time: f64,
 
-    /// Viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
+    /// Viewport of the window in physical pixels (the size of the screen [RenderTarget] which is returned from [FrameInput::screen]).
     pub viewport: Viewport,
 
     /// Width of the window in logical pixels.
