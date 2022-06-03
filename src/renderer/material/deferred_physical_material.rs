@@ -217,7 +217,7 @@ impl Material for DeferredPhysicalMaterial {
     }
 
     fn material_type(&self) -> MaterialType {
-        MaterialType::Opaque
+        MaterialType::Deferred
     }
 }
 

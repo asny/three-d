@@ -10,7 +10,7 @@ use super::*;
 ///
 #[derive(Clone)]
 pub struct ColorTarget<'a> {
-    pub(super) context: Context,
+    pub(crate) context: Context,
     target: CT<'a>,
 }
 

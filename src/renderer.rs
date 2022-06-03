@@ -46,7 +46,7 @@ impl<'a> DepthTarget<'a> {
     pub fn render(
         &self,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -61,10 +61,12 @@ impl<'a> DepthTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
+        self.write_partially(scissor_box, || {
+            render_pass(&self.context, camera, objects, lights)
+        })?;
         Ok(self)
     }
 }
@@ -78,7 +80,7 @@ impl<'a> ColorTarget<'a> {
     pub fn render(
         &self,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -93,10 +95,12 @@ impl<'a> ColorTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
+        self.write_partially(scissor_box, || {
+            render_pass(&self.context, camera, objects, lights)
+        })?;
         Ok(self)
     }
 }
@@ -110,7 +114,7 @@ impl<'a> RenderTarget<'a> {
     pub fn render(
         &self,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -125,10 +129,12 @@ impl<'a> RenderTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
+        self.write_partially(scissor_box, || {
+            render_pass(&self.context, camera, objects, lights)
+        })?;
         Ok(self)
     }
 }
@@ -143,16 +149,27 @@ impl<'a> RenderTarget<'a> {
 /// If you are using one of these targets, it is preferred to use the [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods.
 ///
 pub fn render_pass(
+    context: &Context,
     camera: &Camera,
-    objects: &[&dyn Object],
+    objects: &[impl Object],
     lights: &[&dyn Light],
 ) -> ThreeDResult<()> {
-    let mut culled_objects = objects
-        .iter()
-        .filter(|o| camera.in_frustum(&o.aabb()))
-        .collect::<Vec<_>>();
-    culled_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
-    for object in culled_objects {
+    let mut deferred_objects = Vec::new();
+    let mut forward_objects = Vec::new();
+    for object in objects.iter().filter(|o| camera.in_frustum(&o.aabb())) {
+        if object.material_type() == MaterialType::Deferred {
+            deferred_objects.push(object);
+        } else {
+            forward_objects.push(object);
+        }
+    }
+
+    if deferred_objects.len() > 0 {
+        render_deferred(context, camera, deferred_objects, lights)?;
+    }
+
+    forward_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
+    for object in forward_objects {
         object.render(camera, lights)?;
     }
     Ok(())
@@ -185,6 +202,79 @@ pub fn cmp_render_order(
             std::cmp::Ordering::Less
         }
     }
+}
+
+fn render_deferred(
+    context: &Context,
+    camera: &Camera,
+    objects: impl std::iter::IntoIterator<Item = impl Object>,
+    lights: &[&dyn Light],
+) -> ThreeDResult<()> {
+    let mut camera = camera.clone();
+    let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
+    camera.set_viewport(viewport)?;
+    let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
+        context,
+        viewport.width,
+        viewport.height,
+        3,
+        Interpolation::Nearest,
+        Interpolation::Nearest,
+        None,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+    )?;
+    let mut geometry_pass_depth_texture = DepthTargetTexture2D::new(
+        context,
+        viewport.width,
+        viewport.height,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+        DepthFormat::Depth32F,
+    )?;
+    RenderTarget::new(
+        geometry_pass_texture.as_color_target(&[0, 1, 2], None),
+        geometry_pass_depth_texture.as_depth_target(),
+    )?
+    .clear(ClearState::default())?
+    .write(|| {
+        for object in objects {
+            object.render(&camera, &[])?;
+        }
+        Ok(())
+    })?;
+
+    let render_states = RenderStates {
+        depth_test: DepthTest::LessOrEqual,
+        ..Default::default()
+    };
+
+    let mut fragment_shader = lights_shader_source(
+        lights,
+        LightingModel::Cook(
+            NormalDistributionFunction::TrowbridgeReitzGGX,
+            GeometryFunction::SmithSchlickGGX,
+        ),
+    );
+    fragment_shader.push_str(include_str!(
+        "renderer/material/shaders/deferred_lighting.frag"
+    ));
+
+    context.effect(&fragment_shader, |effect| {
+        effect.use_uniform_if_required("cameraPosition", camera.position())?;
+        for (i, light) in lights.iter().enumerate() {
+            light.use_uniforms(effect, i as u32)?;
+        }
+        effect.use_texture_array("gbuffer", &geometry_pass_texture)?;
+        effect.use_depth_texture("depthMap", &geometry_pass_depth_texture)?;
+        effect.use_uniform_if_required(
+            "viewProjectionInverse",
+            (camera.projection() * camera.view()).invert().unwrap(),
+        )?;
+        effect.use_uniform("debug_type", DebugType::NONE as i32)?;
+        effect.apply(render_states, camera.viewport())?;
+        Ok(())
+    })
 }
 
 ///

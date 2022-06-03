@@ -8,7 +8,7 @@ use super::*;
 ///
 #[derive(Clone)]
 pub struct DepthTarget<'a> {
-    pub(super) context: Context,
+    pub(crate) context: Context,
     target: DT<'a>,
 }
 
