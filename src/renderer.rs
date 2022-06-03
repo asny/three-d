@@ -210,9 +210,9 @@ fn render_deferred(
     objects: impl std::iter::IntoIterator<Item = impl Object>,
     lights: &[&dyn Light],
 ) -> ThreeDResult<()> {
-    let mut camera = camera.clone();
+    let mut geometry_pass_camera = camera.clone();
     let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
-    camera.set_viewport(viewport)?;
+    geometry_pass_camera.set_viewport(viewport)?;
     let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
         context,
         viewport.width,
@@ -239,7 +239,7 @@ fn render_deferred(
     .clear(ClearState::default())?
     .write(|| {
         for object in objects {
-            object.render(&camera, &[])?;
+            object.render(&geometry_pass_camera, &[])?;
         }
         Ok(())
     })?;
