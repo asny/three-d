@@ -130,7 +130,7 @@ impl<'a> RenderTarget<'a> {
         objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        render_pass(&self, scissor_box, camera, objects, lights)?;
+        render_pass_all(&self, scissor_box, camera, objects, lights)?;
         Ok(self)
     }
 }
@@ -145,6 +145,22 @@ impl<'a> RenderTarget<'a> {
 /// If you are using one of these targets, it is preferred to use the [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods.
 ///
 pub fn render_pass(
+    camera: &Camera,
+    objects: &[impl Object],
+    lights: &[&dyn Light],
+) -> ThreeDResult<()> {
+    let mut objects = objects
+        .iter()
+        .filter(|o| camera.in_frustum(&o.aabb()))
+        .collect::<Vec<_>>();
+    objects.sort_by(|a, b| cmp_render_order(camera, a, b));
+    for object in objects {
+        object.render(camera, lights)?;
+    }
+    Ok(())
+}
+
+fn render_pass_all(
     target: &RenderTarget,
     scissor_box: ScissorBox,
     camera: &Camera,

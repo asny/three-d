@@ -29,7 +29,7 @@ impl ForwardPipeline {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        render_pass(&self.context, camera, objects, lights)
+        render_pass(camera, objects, lights)
     }
 
     ///
