@@ -64,9 +64,8 @@ impl<'a> DepthTarget<'a> {
         objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_partially(scissor_box, || {
-            render_pass(&self.context, camera, objects, lights)
-        })?;
+        self.as_render_target()?
+            .render_partially(scissor_box, camera, objects, lights)?;
         Ok(self)
     }
 }
@@ -98,9 +97,8 @@ impl<'a> ColorTarget<'a> {
         objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_partially(scissor_box, || {
-            render_pass(&self.context, camera, objects, lights)
-        })?;
+        self.as_render_target()?
+            .render_partially(scissor_box, camera, objects, lights)?;
         Ok(self)
     }
 }
@@ -132,9 +130,7 @@ impl<'a> RenderTarget<'a> {
         objects: &[impl Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_partially(scissor_box, || {
-            render_pass(&self.context, camera, objects, lights)
-        })?;
+        render_pass(&self, scissor_box, camera, objects, lights)?;
         Ok(self)
     }
 }
@@ -149,7 +145,8 @@ impl<'a> RenderTarget<'a> {
 /// If you are using one of these targets, it is preferred to use the [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods.
 ///
 pub fn render_pass(
-    context: &Context,
+    target: &RenderTarget,
+    scissor_box: ScissorBox,
     camera: &Camera,
     objects: &[impl Object],
     lights: &[&dyn Light],
@@ -165,13 +162,16 @@ pub fn render_pass(
     }
 
     if deferred_objects.len() > 0 {
-        render_deferred(context, camera, deferred_objects, lights)?;
+        render_deferred(target, scissor_box, camera, deferred_objects, lights)?;
     }
 
     forward_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
-    for object in forward_objects {
-        object.render(camera, lights)?;
-    }
+    target.write_partially(scissor_box, || {
+        for object in forward_objects {
+            object.render(camera, lights)?;
+        }
+        Ok(())
+    })?;
     Ok(())
 }
 
@@ -205,7 +205,8 @@ pub fn cmp_render_order(
 }
 
 fn render_deferred(
-    context: &Context,
+    target: &RenderTarget,
+    scissor_box: ScissorBox,
     camera: &Camera,
     objects: impl std::iter::IntoIterator<Item = impl Object>,
     lights: &[&dyn Light],
@@ -214,7 +215,7 @@ fn render_deferred(
     let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
     geometry_pass_camera.set_viewport(viewport)?;
     let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
-        context,
+        &target.context,
         viewport.width,
         viewport.height,
         3,
@@ -225,7 +226,7 @@ fn render_deferred(
         Wrapping::ClampToEdge,
     )?;
     let mut geometry_pass_depth_texture = DepthTargetTexture2D::new(
-        context,
+        &target.context,
         viewport.width,
         viewport.height,
         Wrapping::ClampToEdge,
@@ -260,21 +261,24 @@ fn render_deferred(
         "renderer/material/shaders/deferred_lighting.frag"
     ));
 
-    context.effect(&fragment_shader, |effect| {
-        effect.use_uniform_if_required("cameraPosition", camera.position())?;
-        for (i, light) in lights.iter().enumerate() {
-            light.use_uniforms(effect, i as u32)?;
-        }
-        effect.use_texture_array("gbuffer", &geometry_pass_texture)?;
-        effect.use_depth_texture("depthMap", &geometry_pass_depth_texture)?;
-        effect.use_uniform_if_required(
-            "viewProjectionInverse",
-            (camera.projection() * camera.view()).invert().unwrap(),
-        )?;
-        effect.use_uniform("debug_type", DebugType::NONE as i32)?;
-        effect.apply(render_states, camera.viewport())?;
-        Ok(())
-    })
+    target.write_partially(scissor_box, || {
+        target.context.effect(&fragment_shader, |effect| {
+            effect.use_uniform_if_required("cameraPosition", camera.position())?;
+            for (i, light) in lights.iter().enumerate() {
+                light.use_uniforms(effect, i as u32)?;
+            }
+            effect.use_texture_array("gbuffer", &geometry_pass_texture)?;
+            effect.use_depth_texture("depthMap", &geometry_pass_depth_texture)?;
+            effect.use_uniform_if_required(
+                "viewProjectionInverse",
+                (camera.projection() * camera.view()).invert().unwrap(),
+            )?;
+            effect.use_uniform("debug_type", DebugType::NONE as i32)?;
+            effect.apply(render_states, camera.viewport())?;
+            Ok(())
+        })
+    })?;
+    Ok(())
 }
 
 ///

@@ -183,7 +183,7 @@ impl<'a> ColorTarget<'a> {
         ScissorBox::new_at_origo(self.width(), self.height())
     }
 
-    pub(super) fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
+    pub(crate) fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
         RenderTarget::new_color(self.clone())
     }
 
