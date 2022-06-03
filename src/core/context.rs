@@ -105,7 +105,6 @@ impl Context {
     ) -> ThreeDResult<()> {
         if self.camera2d.borrow().is_none() {
             *self.camera2d.borrow_mut() = Some(Camera::new_orthographic(
-                self,
                 viewport,
                 vec3(0.0, 0.0, -1.0),
                 vec3(0.0, 0.0, 0.0),

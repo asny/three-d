@@ -69,7 +69,6 @@ pub async fn run() {
         .set_transformation(Mat4::from_translation(vec3(-1.4, -1.2, 0.0)));
 
     let mut camera = Camera::new_perspective(
-        &context,
         window.viewport().unwrap(),
         vec3(0.0, 0.0, 7.0),
         vec3(0.0, 0.0, 0.0),

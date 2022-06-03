@@ -25,7 +25,6 @@ pub async fn run() {
     let forward_pipeline = ForwardPipeline::new(&context).unwrap();
     let mut deferred_pipeline = DeferredPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(
-        &context,
         window.viewport().unwrap(),
         vec3(2.0, 2.0, 5.0),
         vec3(0.0, 0.0, 0.0),

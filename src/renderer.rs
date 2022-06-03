@@ -229,7 +229,6 @@ pub fn ray_intersect(
         direction.cross(vec3(1.0, 0.0, 0.0))
     };
     let camera = Camera::new_orthographic(
-        context,
         viewport,
         position,
         position + direction * max_depth,

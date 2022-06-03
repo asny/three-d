@@ -17,7 +17,6 @@ pub async fn run() {
     let context = window.gl().unwrap();
 
     let mut camera = Camera::new_perspective(
-        &context,
         window.viewport().unwrap(),
         vec3(4.0, 1.5, 4.0),
         vec3(0.0, 1.0, 0.0),

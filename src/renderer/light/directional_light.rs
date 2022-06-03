@@ -72,7 +72,6 @@ impl DirectionalLight {
         let z_near = aabb.distance(&position);
         let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
         let shadow_camera = Camera::new_orthographic(
-            &self.context,
             viewport,
             position,
             target,

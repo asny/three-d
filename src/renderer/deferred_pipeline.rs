@@ -41,7 +41,6 @@ impl DeferredPipeline {
         let renderer = Self {
             context: context.clone(),
             camera: Camera::new_perspective(
-                context,
                 Viewport::new_at_origo(1, 1),
                 vec3(0.0, 0.0, 1.0),
                 vec3(0.0, 0.0, 0.0),
