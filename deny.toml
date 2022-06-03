@@ -21,7 +21,6 @@ wildcards = "allow"        # at least until https://github.com/EmbarkStudios/car
 deny = []
 
 skip = [
-    { name = "base64" },              # gltf uses an old version
     { name = "cfg-if" },              # winit depends on an old version
     { name = "core-foundation" },     # winit depends on an old version
     { name = "core-foundation-sys" }, # winit depends on an old version
