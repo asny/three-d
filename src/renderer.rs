@@ -46,7 +46,7 @@ impl<'a> DepthTarget<'a> {
     pub fn render(
         &self,
         camera: &Camera,
-        objects: &[impl Object],
+        objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -61,7 +61,7 @@ impl<'a> DepthTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: &[impl Object],
+        objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
@@ -79,7 +79,7 @@ impl<'a> ColorTarget<'a> {
     pub fn render(
         &self,
         camera: &Camera,
-        objects: &[impl Object],
+        objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -94,7 +94,7 @@ impl<'a> ColorTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: &[impl Object],
+        objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         self.as_render_target()?
@@ -112,7 +112,7 @@ impl<'a> RenderTarget<'a> {
     pub fn render(
         &self,
         camera: &Camera,
-        objects: &[impl Object],
+        objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -127,7 +127,7 @@ impl<'a> RenderTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: &[impl Object],
+        objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         render_pass_all(&self, scissor_box, camera, objects, lights)?;
@@ -146,7 +146,7 @@ impl<'a> RenderTarget<'a> {
 ///
 pub fn render_pass(
     camera: &Camera,
-    objects: &[impl Object],
+    objects: &[&dyn Object],
     lights: &[&dyn Light],
 ) -> ThreeDResult<()> {
     let mut objects = objects
@@ -164,7 +164,7 @@ fn render_pass_all(
     target: &RenderTarget,
     scissor_box: ScissorBox,
     camera: &Camera,
-    objects: &[impl Object],
+    objects: &[&dyn Object],
     lights: &[&dyn Light],
 ) -> ThreeDResult<()> {
     let mut deferred_objects = Vec::new();
