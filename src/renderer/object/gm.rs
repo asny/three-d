@@ -41,8 +41,8 @@ impl<G: Geometry, M: Material> Object for Gm<G, M> {
         self.render_with_material(&self.material, camera, lights)
     }
 
-    fn is_transparent(&self) -> bool {
-        self.material.is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.material.material_type()
     }
 }
 

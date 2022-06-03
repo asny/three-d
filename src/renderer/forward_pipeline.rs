@@ -44,10 +44,9 @@ impl ForwardPipeline {
             },
             ..Default::default()
         };
-        for object in objects
-            .iter()
-            .filter(|o| !o.is_transparent() && camera.in_frustum(&o.aabb()))
-        {
+        for object in objects.iter().filter(|o| {
+            o.material_type() != MaterialType::Transparent && camera.in_frustum(&o.aabb())
+        }) {
             object.render_with_material(&depth_material, camera, &[])?;
         }
         Ok(())

@@ -33,7 +33,7 @@ impl Material for SkyboxMaterial {
         }
     }
 
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }

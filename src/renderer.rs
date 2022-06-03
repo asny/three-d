@@ -168,18 +168,18 @@ pub fn cmp_render_order(
     obj0: impl Object,
     obj1: impl Object,
 ) -> std::cmp::Ordering {
-    if obj0.is_transparent() == obj1.is_transparent() {
+    if obj0.material_type() == obj1.material_type() {
         let distance_a = camera.position().distance2(obj0.aabb().center());
         let distance_b = camera.position().distance2(obj1.aabb().center());
         if distance_a.is_nan() || distance_b.is_nan() {
             distance_a.is_nan().cmp(&distance_b.is_nan()) // whatever - just save us from panicing on unwrap below
-        } else if obj0.is_transparent() {
+        } else if obj0.material_type() == MaterialType::Transparent {
             distance_b.partial_cmp(&distance_a).unwrap()
         } else {
             distance_a.partial_cmp(&distance_b).unwrap()
         }
     } else {
-        if obj0.is_transparent() {
+        if obj0.material_type() == MaterialType::Transparent {
             std::cmp::Ordering::Greater
         } else {
             std::cmp::Ordering::Less

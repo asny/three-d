@@ -117,8 +117,8 @@ impl Material for ORMMaterial {
         self.render_states
     }
 
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }
 

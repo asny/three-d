@@ -61,8 +61,8 @@ impl Material for IsosurfaceMaterial {
             ..Default::default()
         }
     }
-    fn is_transparent(&self) -> bool {
-        true
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Transparent
     }
 }
 

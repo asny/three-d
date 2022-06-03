@@ -117,7 +117,7 @@ impl<M: Material> Object for BoundingBox<M> {
         self.model.render(camera, lights)
     }
 
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }

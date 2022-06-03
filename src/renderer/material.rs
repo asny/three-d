@@ -50,6 +50,13 @@ mod isosurface_material;
 #[doc(inline)]
 pub use isosurface_material::*;
 
+#[derive(Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Debug)]
+pub enum MaterialType {
+    Opaque,
+    Transparent,
+    Deferred,
+}
+
 ///
 /// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].
 /// Alternatively, a geometry and a material can be combined in a [Gm],
@@ -76,8 +83,7 @@ pub trait Material {
     ) -> ThreeDResult<()>;
     /// Returns the render states needed to render with this material.
     fn render_states(&self) -> RenderStates;
-    /// Returns whether or not this material is transparent.
-    fn is_transparent(&self) -> bool;
+    fn material_type(&self) -> MaterialType;
 }
 
 ///
@@ -115,8 +121,8 @@ impl<T: Material + ?Sized> Material for &T {
     fn render_states(&self) -> RenderStates {
         (*self).render_states()
     }
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
+    fn material_type(&self) -> MaterialType {
+        (*self).material_type()
     }
 }
 
@@ -135,8 +141,8 @@ impl<T: Material + ?Sized> Material for &mut T {
     fn render_states(&self) -> RenderStates {
         (**self).render_states()
     }
-    fn is_transparent(&self) -> bool {
-        (**self).is_transparent()
+    fn material_type(&self) -> MaterialType {
+        (**self).material_type()
     }
 }
 
@@ -156,8 +162,8 @@ impl<T: Material> Material for Box<T> {
     fn render_states(&self) -> RenderStates {
         self.as_ref().render_states()
     }
-    fn is_transparent(&self) -> bool {
-        self.as_ref().is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
     }
 }
 
@@ -177,8 +183,8 @@ impl<T: Material> Material for std::rc::Rc<T> {
     fn render_states(&self) -> RenderStates {
         self.as_ref().render_states()
     }
-    fn is_transparent(&self) -> bool {
-        self.as_ref().is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
     }
 }
 
@@ -198,8 +204,8 @@ impl<T: Material> Material for std::rc::Rc<std::cell::RefCell<T>> {
     fn render_states(&self) -> RenderStates {
         self.borrow().render_states()
     }
-    fn is_transparent(&self) -> bool {
-        self.borrow().is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.borrow().material_type()
     }
 }
 

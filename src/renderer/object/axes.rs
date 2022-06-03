@@ -123,7 +123,7 @@ impl Object for Axes {
         Ok(())
     }
 
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }

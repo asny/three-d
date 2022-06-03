@@ -32,7 +32,7 @@ impl Material for PositionMaterial {
     fn render_states(&self) -> RenderStates {
         self.render_states
     }
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }

@@ -216,8 +216,8 @@ impl Material for DeferredPhysicalMaterial {
         self.render_states
     }
 
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }
 

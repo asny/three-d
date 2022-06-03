@@ -222,8 +222,12 @@ impl Material for PhysicalMaterial {
     fn render_states(&self) -> RenderStates {
         self.render_states
     }
-    fn is_transparent(&self) -> bool {
-        self.is_transparent
+    fn material_type(&self) -> MaterialType {
+        if self.is_transparent {
+            MaterialType::Transparent
+        } else {
+            MaterialType::Opaque
+        }
     }
 }
 
