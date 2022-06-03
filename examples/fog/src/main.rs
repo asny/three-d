@@ -18,7 +18,6 @@ pub async fn run() {
 
     let pipeline = ForwardPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(
-        &context,
         window.viewport().unwrap(),
         vec3(4.0, 4.0, 5.0),
         vec3(0.0, 0.0, 0.0),

@@ -8,7 +8,6 @@ fn main() {
 
     // Create a camera
     let camera = Camera::new_perspective(
-        &context,
         viewport,
         vec3(0.0, 0.0, 2.0),
         vec3(0.0, 0.0, 0.0),

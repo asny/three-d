@@ -40,7 +40,6 @@ pub fn main() {
 
     // Renderer
     let mut camera = Camera::new_orthographic(
-        &context,
         window.viewport().unwrap(),
         vec3(0.0, 0.0, 1.0),
         vec3(0.0, 0.0, 0.0),

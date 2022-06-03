@@ -21,7 +21,6 @@ pub async fn run() {
     let mut pipeline = DeferredPipeline::new(&context).unwrap();
 
     let mut camera = Camera::new_perspective(
-        &context,
         window.viewport().unwrap(),
         vec3(10.0, 1.0, 0.0),
         vec3(0.0, 1.0, 0.0),

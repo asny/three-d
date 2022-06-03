@@ -64,7 +64,6 @@ pub fn run() {
     let context = window.gl().unwrap();
 
     let mut camera = Camera::new_perspective(
-        &context,
         window.viewport().unwrap(),
         vec3(0.0, 30.0, 150.0),
         vec3(0.0, 30.0, 0.0),

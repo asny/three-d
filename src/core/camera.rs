@@ -3,6 +3,7 @@ use crate::core::*;
 ///
 /// The type of projection used by a camera (orthographic or perspective) including parameters.
 ///
+#[derive(Clone, Debug)]
 pub enum ProjectionType {
     /// Orthographic projection
     Orthographic {
@@ -19,6 +20,7 @@ pub enum ProjectionType {
 ///
 /// Used in a render call to define how to view the 3D world.
 ///
+#[derive(Clone, Debug)]
 pub struct Camera {
     viewport: Viewport,
     projection_type: ProjectionType,
@@ -30,7 +32,6 @@ pub struct Camera {
     view: Mat4,
     projection: Mat4,
     screen2ray: Mat4,
-    uniform_buffer: UniformBuffer,
     frustrum: [Vec4; 6],
 }
 
@@ -41,7 +42,6 @@ impl Camera {
     /// [set_orthographic_projection](Self::set_orthographic_projection).
     ///
     pub fn new_orthographic(
-        context: &Context,
         viewport: Viewport,
         position: Vec3,
         target: Vec3,
@@ -50,7 +50,7 @@ impl Camera {
         z_near: f32,
         z_far: f32,
     ) -> ThreeDResult<Camera> {
-        let mut camera = Camera::new(context, viewport)?;
+        let mut camera = Camera::new(viewport)?;
         camera.set_view(position, target, up)?;
         camera.set_orthographic_projection(height, z_near, z_far)?;
         Ok(camera)
@@ -60,7 +60,6 @@ impl Camera {
     /// New camera which projects the world with a perspective projection.
     ///
     pub fn new_perspective(
-        context: &Context,
         viewport: Viewport,
         position: Vec3,
         target: Vec3,
@@ -69,7 +68,7 @@ impl Camera {
         z_near: f32,
         z_far: f32,
     ) -> ThreeDResult<Camera> {
-        let mut camera = Camera::new(context, viewport)?;
+        let mut camera = Camera::new(viewport)?;
         camera.set_view(position, target, up)?;
         camera.set_perspective_projection(field_of_view_y, z_near, z_far)?;
         Ok(camera)
@@ -94,7 +93,6 @@ impl Camera {
         self.projection =
             cgmath::perspective(field_of_view_y, self.viewport.aspect(), z_near, z_far);
         self.update_screen2ray();
-        self.update_uniform_buffer()?;
         self.update_frustrum();
         Ok(())
     }
@@ -127,7 +125,6 @@ impl Camera {
             z_far,
         );
         self.update_screen2ray();
-        self.update_uniform_buffer()?;
         self.update_frustrum();
         Ok(())
     }
@@ -167,7 +164,6 @@ impl Camera {
             self.up,
         );
         self.update_screen2ray();
-        self.update_uniform_buffer()?;
         self.update_frustrum();
         Ok(())
     }
@@ -180,7 +176,6 @@ impl Camera {
         self.view[1][1] = -self.view[1][1];
         self.view[1][2] = -self.view[1][2];
         self.update_screen2ray();
-        self.update_uniform_buffer()?;
         self.update_frustrum();
         Ok(())
     }
@@ -364,13 +359,12 @@ impl Camera {
         self.view_direction().cross(self.up)
     }
 
-    fn new(context: &Context, viewport: Viewport) -> ThreeDResult<Camera> {
+    fn new(viewport: Viewport) -> ThreeDResult<Camera> {
         Ok(Camera {
             viewport,
             projection_type: ProjectionType::Orthographic { height: 1.0 },
             z_near: 0.0,
             z_far: 0.0,
-            uniform_buffer: UniformBuffer::new(context, &[16, 16, 16, 3, 1])?,
             frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6],
             position: vec3(0.0, 0.0, 5.0),
             target: vec3(0.0, 0.0, 0.0),
@@ -385,23 +379,6 @@ impl Camera {
         let mut v = self.view;
         v[3] = vec4(0.0, 0.0, 0.0, 1.0);
         self.screen2ray = (self.projection * v).invert().unwrap();
-    }
-
-    fn update_uniform_buffer(&mut self) -> ThreeDResult<()> {
-        let as_array = |m: Mat4| {
-            [
-                m.x.x, m.x.y, m.x.z, m.x.w, m.y.x, m.y.y, m.y.z, m.y.w, m.z.x, m.z.y, m.z.z, m.z.w,
-                m.w.x, m.w.y, m.w.z, m.w.w,
-            ]
-        };
-
-        self.uniform_buffer
-            .update(0, &as_array(self.projection * self.view))?;
-        self.uniform_buffer.update(1, &as_array(self.view))?;
-        self.uniform_buffer.update(2, &as_array(self.projection))?;
-        self.uniform_buffer
-            .update(3, &[self.position.x, self.position.y, self.position.z])?;
-        Ok(())
     }
 
     fn update_frustrum(&mut self) {

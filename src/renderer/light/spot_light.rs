@@ -84,7 +84,6 @@ impl SpotLight {
         }
 
         let shadow_camera = Camera::new_perspective(
-            &self.context,
             viewport,
             position,
             position + direction,

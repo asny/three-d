@@ -23,7 +23,6 @@ pub async fn run() {
     let context = window.gl().unwrap();
 
     let mut primary_camera = Camera::new_perspective(
-        &context,
         window.viewport().unwrap(),
         vec3(-300.0, 250.0, 200.0),
         vec3(0.0, 100.0, 0.0),
@@ -35,7 +34,6 @@ pub async fn run() {
     .unwrap();
     // Static camera to view frustum culling in effect
     let mut secondary_camera = Camera::new_perspective(
-        &context,
         window.viewport().unwrap(),
         vec3(-600.0, 600.0, 600.0),
         vec3(0.0, 0.0, 0.0),

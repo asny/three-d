@@ -150,7 +150,6 @@ impl ImpostersMaterial {
             let viewport = Viewport::new_at_origo(texture_width, texture_height);
             let center = 0.5 * min + 0.5 * max;
             let mut camera = Camera::new_orthographic(
-                &self.context,
                 viewport,
                 center + vec3(0.0, 0.0, -1.0),
                 center,
