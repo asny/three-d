@@ -149,12 +149,12 @@ pub fn render_pass(
     objects: &[&dyn Object],
     lights: &[&dyn Light],
 ) -> ThreeDResult<()> {
-    let mut objects = objects
+    let mut culled_objects = objects
         .iter()
         .filter(|o| camera.in_frustum(&o.aabb()))
         .collect::<Vec<_>>();
-    objects.sort_by(|a, b| cmp_render_order(camera, a, b));
-    for object in objects {
+    culled_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
+    for object in culled_objects {
         object.render(camera, lights)?;
     }
     Ok(())
