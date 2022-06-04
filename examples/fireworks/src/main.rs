@@ -44,8 +44,8 @@ impl Material for FireworksMaterial {
             write_mask: WriteMask::COLOR,
         }
     }
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Transparent
     }
 }
 // Entry point for non-wasm

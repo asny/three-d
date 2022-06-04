@@ -24,8 +24,8 @@ impl Material for MandelbrotMaterial {
             ..Default::default()
         }
     }
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }
 
