@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use crate::core::*;
 use crate::renderer::*;
 
@@ -22,6 +24,7 @@ pub enum DebugType {
 /// For now only supports a cook-torrance [LightingModel].
 /// **Note:** Deferred rendering does not support blending and therefore does not support transparency!
 ///
+#[deprecated]
 pub struct DeferredPipeline {
     context: Context,
     ///

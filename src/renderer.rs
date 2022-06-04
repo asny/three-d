@@ -266,6 +266,7 @@ impl<'a> RenderTarget<'a> {
 /// Must be called when a render target is bound, for example in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
 /// If you are using one of these targets, it is preferred to use the [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods.
 ///
+#[deprecated = "use RenderTarget::render, ColorTarget::render or DepthTarget::render or render each object by using the Object::render method"]
 pub fn render_pass(
     camera: &Camera,
     objects: &[&dyn Object],
