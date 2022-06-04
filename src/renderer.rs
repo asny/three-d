@@ -200,7 +200,25 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        render_pass_all(&self, scissor_box, camera, objects, lights)?;
+        let mut deferred_objects = Vec::new();
+        let mut forward_objects = Vec::new();
+        for object in objects.iter().filter(|o| camera.in_frustum(&o.aabb())) {
+            if object.material_type() == MaterialType::Deferred {
+                deferred_objects.push(object);
+            } else {
+                forward_objects.push(object);
+            }
+        }
+        if deferred_objects.len() > 0 {
+            render_deferred(self, scissor_box, camera, deferred_objects, lights)?;
+        }
+        forward_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
+        self.write_partially(scissor_box, || {
+            for object in forward_objects {
+                object.render(camera, lights)?;
+            }
+            Ok(())
+        })?;
         Ok(self)
     }
 
@@ -261,37 +279,6 @@ pub fn render_pass(
     for object in culled_objects {
         object.render(camera, lights)?;
     }
-    Ok(())
-}
-
-fn render_pass_all(
-    target: &RenderTarget,
-    scissor_box: ScissorBox,
-    camera: &Camera,
-    objects: &[&dyn Object],
-    lights: &[&dyn Light],
-) -> ThreeDResult<()> {
-    let mut deferred_objects = Vec::new();
-    let mut forward_objects = Vec::new();
-    for object in objects.iter().filter(|o| camera.in_frustum(&o.aabb())) {
-        if object.material_type() == MaterialType::Deferred {
-            deferred_objects.push(object);
-        } else {
-            forward_objects.push(object);
-        }
-    }
-
-    if deferred_objects.len() > 0 {
-        render_deferred(target, scissor_box, camera, deferred_objects, lights)?;
-    }
-
-    forward_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
-    target.write_partially(scissor_box, || {
-        for object in forward_objects {
-            object.render(camera, lights)?;
-        }
-        Ok(())
-    })?;
     Ok(())
 }
 
