@@ -68,6 +68,41 @@ impl<'a> DepthTarget<'a> {
             .render_partially(scissor_box, camera, objects, lights)?;
         Ok(self)
     }
+
+    pub fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_partially_with_material(
+            self.scissor_box(),
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
+        Ok(self)
+    }
+
+    pub fn render_partially_with_material(
+        &self,
+        scissor_box: ScissorBox,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.as_render_target()?.render_partially_with_material(
+            scissor_box,
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
+        Ok(self)
+    }
 }
 
 impl<'a> ColorTarget<'a> {
@@ -101,6 +136,41 @@ impl<'a> ColorTarget<'a> {
             .render_partially(scissor_box, camera, objects, lights)?;
         Ok(self)
     }
+
+    pub fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_partially_with_material(
+            self.scissor_box(),
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
+        Ok(self)
+    }
+
+    pub fn render_partially_with_material(
+        &self,
+        scissor_box: ScissorBox,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.as_render_target()?.render_partially_with_material(
+            scissor_box,
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
+        Ok(self)
+    }
 }
 
 impl<'a> RenderTarget<'a> {
@@ -131,6 +201,40 @@ impl<'a> RenderTarget<'a> {
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
         render_pass_all(&self, scissor_box, camera, objects, lights)?;
+        Ok(self)
+    }
+
+    pub fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_partially_with_material(
+            self.scissor_box(),
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
+        Ok(self)
+    }
+
+    pub fn render_partially_with_material(
+        &self,
+        scissor_box: ScissorBox,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.write_partially(scissor_box, || {
+            for object in geometries.iter().filter(|o| camera.in_frustum(&o.aabb())) {
+                object.render_with_material(material, camera, lights)?;
+            }
+            Ok(())
+        })?;
         Ok(self)
     }
 }
