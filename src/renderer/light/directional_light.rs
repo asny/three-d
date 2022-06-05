@@ -79,7 +79,7 @@ impl DirectionalLight {
             frustum_height,
             z_near,
             z_far,
-        )?;
+        );
         let mut shadow_texture = DepthTargetTexture2D::new(
             &self.context,
             texture_size,

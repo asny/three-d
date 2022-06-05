@@ -49,11 +49,11 @@ impl Camera {
         height: f32,
         z_near: f32,
         z_far: f32,
-    ) -> ThreeDResult<Camera> {
-        let mut camera = Camera::new(viewport)?;
-        camera.set_view(position, target, up)?;
-        camera.set_orthographic_projection(height, z_near, z_far)?;
-        Ok(camera)
+    ) -> Self {
+        let mut camera = Camera::new(viewport);
+        camera.set_view(position, target, up);
+        camera.set_orthographic_projection(height, z_near, z_far);
+        camera
     }
 
     ///
@@ -67,11 +67,11 @@ impl Camera {
         field_of_view_y: impl Into<Radians>,
         z_near: f32,
         z_far: f32,
-    ) -> ThreeDResult<Camera> {
-        let mut camera = Camera::new(viewport)?;
-        camera.set_view(position, target, up)?;
-        camera.set_perspective_projection(field_of_view_y, z_near, z_far)?;
-        Ok(camera)
+    ) -> Self {
+        let mut camera = Camera::new(viewport);
+        camera.set_view(position, target, up);
+        camera.set_perspective_projection(field_of_view_y, z_near, z_far);
+        camera
     }
 
     ///
@@ -82,10 +82,11 @@ impl Camera {
         field_of_view_y: impl Into<Radians>,
         z_near: f32,
         z_far: f32,
-    ) -> ThreeDResult<()> {
-        if z_near < 0.0 || z_near > z_far {
-            panic!("Wrong perspective camera parameters")
-        };
+    ) {
+        assert!(
+            z_near >= 0.0 || z_near < z_far,
+            "Wrong perspective camera parameters"
+        );
         self.z_near = z_near;
         self.z_far = z_far;
         let field_of_view_y = field_of_view_y.into();
@@ -94,7 +95,6 @@ impl Camera {
             cgmath::perspective(field_of_view_y, self.viewport.aspect(), z_near, z_far);
         self.update_screen2ray();
         self.update_frustrum();
-        Ok(())
     }
 
     ///
@@ -103,15 +103,8 @@ impl Camera {
     /// The view frustum width is calculated as height * viewport.width / viewport.height.
     /// The view frustum depth is z_near to z_far.
     ///
-    pub fn set_orthographic_projection(
-        &mut self,
-        height: f32,
-        z_near: f32,
-        z_far: f32,
-    ) -> ThreeDResult<()> {
-        if z_near > z_far {
-            panic!("Wrong orthographic camera parameters")
-        };
+    pub fn set_orthographic_projection(&mut self, height: f32, z_near: f32, z_far: f32) {
+        assert!(z_near < z_far, "Wrong orthographic camera parameters");
         self.z_near = z_near;
         self.z_far = z_far;
         let width = height * self.viewport.aspect();
@@ -126,27 +119,26 @@ impl Camera {
         );
         self.update_screen2ray();
         self.update_frustrum();
-        Ok(())
     }
 
     ///
     /// Set the current viewport.
     /// Returns whether or not the viewport actually changed.
     ///
-    pub fn set_viewport(&mut self, viewport: Viewport) -> ThreeDResult<bool> {
+    pub fn set_viewport(&mut self, viewport: Viewport) -> bool {
         if self.viewport != viewport {
             self.viewport = viewport;
             match self.projection_type {
                 ProjectionType::Orthographic { height } => {
-                    self.set_orthographic_projection(height, self.z_near, self.z_far)?;
+                    self.set_orthographic_projection(height, self.z_near, self.z_far);
                 }
                 ProjectionType::Perspective { field_of_view_y } => {
-                    self.set_perspective_projection(field_of_view_y, self.z_near, self.z_far)?;
+                    self.set_perspective_projection(field_of_view_y, self.z_near, self.z_far);
                 }
             }
-            Ok(true)
+            true
         } else {
-            Ok(false)
+            false
         }
     }
 
@@ -154,7 +146,7 @@ impl Camera {
     /// Change the view of the camera.
     /// The camera is placed at the given position, looking at the given target and with the given up direction.
     ///
-    pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3) -> ThreeDResult<()> {
+    pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3) {
         self.position = position;
         self.target = target;
         self.up = up;
@@ -165,19 +157,17 @@ impl Camera {
         );
         self.update_screen2ray();
         self.update_frustrum();
-        Ok(())
     }
 
     ///
     /// Change the camera view such that it is mirrored in the xz-plane.
     ///
-    pub fn mirror_in_xz_plane(&mut self) -> ThreeDResult<()> {
+    pub fn mirror_in_xz_plane(&mut self) {
         self.view[1][0] = -self.view[1][0];
         self.view[1][1] = -self.view[1][1];
         self.view[1][2] = -self.view[1][2];
         self.update_screen2ray();
         self.update_frustrum();
-        Ok(())
     }
 
     ///
@@ -359,8 +349,8 @@ impl Camera {
         self.view_direction().cross(self.up)
     }
 
-    fn new(viewport: Viewport) -> ThreeDResult<Camera> {
-        Ok(Camera {
+    fn new(viewport: Viewport) -> Camera {
+        Camera {
             viewport,
             projection_type: ProjectionType::Orthographic { height: 1.0 },
             z_near: 0.0,
@@ -372,7 +362,7 @@ impl Camera {
             view: Mat4::identity(),
             projection: Mat4::identity(),
             screen2ray: Mat4::identity(),
-        })
+        }
     }
 
     fn update_screen2ray(&mut self) {
@@ -396,51 +386,47 @@ impl Camera {
     ///
     /// Translate the camera by the given change while keeping the same view and up directions.
     ///
-    pub fn translate(&mut self, change: &Vec3) -> ThreeDResult<()> {
-        self.set_view(self.position + change, self.target + change, self.up)?;
-        Ok(())
+    pub fn translate(&mut self, change: &Vec3) {
+        self.set_view(self.position + change, self.target + change, self.up);
     }
 
     ///
     /// Rotates the camera by the angle delta around the 'right' direction.
     ///
-    pub fn pitch(&mut self, delta: impl Into<Radians>) -> ThreeDResult<()> {
+    pub fn pitch(&mut self, delta: impl Into<Radians>) {
         let target = (self.view.invert().unwrap()
             * Mat4::from_angle_x(delta)
             * self.view
             * self.target.extend(1.0))
         .truncate();
         if (target - self.position).normalize().dot(self.up).abs() < 0.999 {
-            self.set_view(self.position, target, self.up)?;
+            self.set_view(self.position, target, self.up);
         }
-        Ok(())
     }
 
     ///
     /// Rotates the camera by the angle delta around the 'up' direction.
     ///
-    pub fn yaw(&mut self, delta: impl Into<Radians>) -> ThreeDResult<()> {
+    pub fn yaw(&mut self, delta: impl Into<Radians>) {
         let target = (self.view.invert().unwrap()
             * Mat4::from_angle_y(delta)
             * self.view
             * self.target.extend(1.0))
         .truncate();
-        self.set_view(self.position, target, self.up)?;
-        Ok(())
+        self.set_view(self.position, target, self.up);
     }
 
     ///
     /// Rotates the camera by the angle delta around the 'view' direction.
     ///
-    pub fn roll(&mut self, delta: impl Into<Radians>) -> ThreeDResult<()> {
+    pub fn roll(&mut self, delta: impl Into<Radians>) {
         let up = (self.view.invert().unwrap()
             * Mat4::from_angle_z(delta)
             * self.view
             * (self.up + self.position).extend(1.0))
         .truncate()
             - self.position;
-        self.set_view(self.position, self.target, up.normalize())?;
-        Ok(())
+        self.set_view(self.position, self.target, up.normalize());
     }
 
     ///
@@ -448,7 +434,7 @@ impl Camera {
     /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
     /// If you want the camera up direction to stay fixed, use the [rotate_around_with_fixed_up](Camera::rotate_around_with_fixed_up) function instead.
     ///
-    pub fn rotate_around(&mut self, point: &Vec3, x: f32, y: f32) -> ThreeDResult<()> {
+    pub fn rotate_around(&mut self, point: &Vec3, x: f32, y: f32) {
         let dir = (point - self.position()).normalize();
         let right = dir.cross(*self.up());
         let up = right.cross(dir);
@@ -456,20 +442,14 @@ impl Camera {
         let rotation = rotation_matrix_from_dir_to_dir(dir, new_dir);
         let new_position = (rotation * (self.position() - point).extend(1.0)).truncate() + point;
         let new_target = (rotation * (self.target() - point).extend(1.0)).truncate() + point;
-        self.set_view(new_position, new_target, up)?;
-        Ok(())
+        self.set_view(new_position, new_target, up);
     }
 
     ///
     /// Rotate the camera around the given point while keeping the same distance to the point and the same up direction.
     /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
     ///
-    pub fn rotate_around_with_fixed_up(
-        &mut self,
-        point: &Vec3,
-        x: f32,
-        y: f32,
-    ) -> ThreeDResult<()> {
+    pub fn rotate_around_with_fixed_up(&mut self, point: &Vec3, x: f32, y: f32) {
         let dir = (point - self.position()).normalize();
         let right = dir.cross(*self.up());
         let mut up = right.cross(dir);
@@ -480,9 +460,8 @@ impl Camera {
             let new_position =
                 (rotation * (self.position() - point).extend(1.0)).truncate() + point;
             let new_target = (rotation * (self.target() - point).extend(1.0)).truncate() + point;
-            self.set_view(new_position, new_target, up)?;
+            self.set_view(new_position, new_target, up);
         }
-        Ok(())
     }
 
     ///
@@ -494,13 +473,13 @@ impl Camera {
         delta: f32,
         minimum_distance: f32,
         maximum_distance: f32,
-    ) -> ThreeDResult<()> {
-        if minimum_distance <= 0.0 {
-            Err(CoreError::NegativeDistance)?;
-        }
-        if maximum_distance < minimum_distance {
-            Err(CoreError::MinimumLargerThanMaximum)?;
-        }
+    ) {
+        let minimum_distance = minimum_distance.max(0.0);
+        assert!(
+            minimum_distance < maximum_distance,
+            "minimum_distance larger than maximum_distance"
+        );
+
         let position = *self.position();
         let distance = point.distance(position);
         let direction = (point - position).normalize();
@@ -510,16 +489,15 @@ impl Camera {
             .max(minimum_distance)
             .min(maximum_distance);
         let new_position = point - direction * new_distance;
-        self.set_view(new_position, new_position + (target - position), up)?;
+        self.set_view(new_position, new_position + (target - position), up);
         match self.projection_type() {
             ProjectionType::Orthographic { height } => {
                 let h = new_distance * height / distance;
                 let z_near = self.z_near();
                 let z_far = self.z_far();
-                self.set_orthographic_projection(h, z_near, z_far)?;
+                self.set_orthographic_projection(h, z_near, z_far);
             }
             _ => {}
         }
-        Ok(())
     }
 }

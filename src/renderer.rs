@@ -236,7 +236,7 @@ pub fn ray_intersect(
         0.01,
         0.0,
         max_depth,
-    )?;
+    );
     let mut texture = Texture2D::new_empty::<f32>(
         context,
         viewport.width,

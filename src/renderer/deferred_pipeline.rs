@@ -48,7 +48,7 @@ impl DeferredPipeline {
                 degrees(75.0),
                 0.01,
                 10.0,
-            )?,
+            ),
             debug_type: DebugType::NONE,
             geometry_pass_texture: Some(Texture2DArray::new_empty::<[u8; 4]>(
                 context,
@@ -90,19 +90,19 @@ impl DeferredPipeline {
                     *field_of_view_y,
                     camera.z_near(),
                     camera.z_far(),
-                )?;
+                );
             }
             ProjectionType::Orthographic { height, .. } => {
                 self.camera.set_orthographic_projection(
                     *height,
                     camera.z_near(),
                     camera.z_far(),
-                )?;
+                );
             }
         };
-        self.camera.set_viewport(viewport)?;
+        self.camera.set_viewport(viewport);
         self.camera
-            .set_view(*camera.position(), *camera.target(), *camera.up())?;
+            .set_view(*camera.position(), *camera.target(), *camera.up());
         self.geometry_pass_texture = Some(Texture2DArray::new_empty::<[u8; 4]>(
             &self.context,
             viewport.width,
