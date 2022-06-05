@@ -21,8 +21,7 @@ pub fn main() {
         degrees(45.0),
         0.1,
         10.0,
-    )
-    .unwrap();
+    );
 
     // Create a CPU-side mesh consisting of a single colored triangle
     let positions = vec![
@@ -51,7 +50,7 @@ pub fn main() {
     window.render_loop(move |frame_input: FrameInput| // Begin a new frame with an updated frame input
     {
         // Ensure the viewport matches the current window viewport which changes if the window is resized
-        camera.set_viewport(frame_input.viewport).unwrap();
+        camera.set_viewport(frame_input.viewport);
 
         // Set the current transformation of the triangle
         model.set_transformation(Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32)));

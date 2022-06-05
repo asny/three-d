@@ -76,8 +76,7 @@ pub async fn run() {
         degrees(45.0),
         0.1,
         1000.0,
-    )
-    .unwrap();
+    );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
@@ -87,7 +86,7 @@ pub async fn run() {
     // main loop
     window
         .render_loop(move |mut frame_input| {
-            camera.set_viewport(frame_input.viewport).unwrap();
+            camera.set_viewport(frame_input.viewport);
             control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();

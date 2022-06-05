@@ -47,8 +47,7 @@ pub fn main() {
         2.5,
         0.0,
         10.0,
-    )
-    .unwrap();
+    );
 
     let mut mesh = Gm::new(
         Mesh::new(
@@ -74,7 +73,7 @@ pub fn main() {
     window
         .render_loop(move |frame_input| {
             let mut redraw = frame_input.first_frame;
-            redraw |= camera.set_viewport(frame_input.viewport).unwrap();
+            redraw |= camera.set_viewport(frame_input.viewport);
 
             for event in frame_input.events.iter() {
                 match event {
@@ -85,7 +84,7 @@ pub fn main() {
                             let up = right.cross(camera.view_direction());
                             let delta =
                                 -right * speed * delta.0 as f32 + up * speed * delta.1 as f32;
-                            camera.translate(&delta).unwrap();
+                            camera.translate(&delta);
                             redraw = true;
                         }
                     }
@@ -102,8 +101,7 @@ pub fn main() {
                         let mut target = camera.position_at_pixel(pixel);
                         target.z = 0.0;
                         camera
-                            .zoom_towards(&target, distance * 0.05 * delta.1 as f32, 0.00001, 10.0)
-                            .unwrap();
+                            .zoom_towards(&target, distance * 0.05 * delta.1 as f32, 0.00001, 10.0);
                         redraw = true;
                     }
                     _ => {}

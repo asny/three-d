@@ -24,8 +24,7 @@ pub async fn run() {
         degrees(60.0),
         0.1,
         10.0,
-    )
-    .unwrap();
+    );
 
     let mut cpu_mesh = CpuMesh::sphere(37);
     let mut colors = Vec::new();
@@ -77,7 +76,7 @@ pub async fn run() {
 
     window
         .render_loop(move |frame_input: FrameInput| {
-            camera.set_viewport(frame_input.viewport).unwrap();
+            camera.set_viewport(frame_input.viewport);
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))

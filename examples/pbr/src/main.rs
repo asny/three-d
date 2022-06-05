@@ -25,8 +25,7 @@ pub async fn run() {
         degrees(45.0),
         0.1,
         1000.0,
-    )
-    .unwrap();
+    );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
@@ -82,7 +81,7 @@ pub async fn run() {
                     - (panel_width * frame_input.device_pixel_ratio) as u32,
                 height: frame_input.viewport.height,
             };
-            camera.set_viewport(viewport).unwrap();
+            camera.set_viewport(viewport);
             control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
