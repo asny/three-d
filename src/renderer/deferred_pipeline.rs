@@ -93,11 +93,8 @@ impl DeferredPipeline {
                 );
             }
             ProjectionType::Orthographic { height, .. } => {
-                self.camera.set_orthographic_projection(
-                    *height,
-                    camera.z_near(),
-                    camera.z_far(),
-                );
+                self.camera
+                    .set_orthographic_projection(*height, camera.z_near(), camera.z_far());
             }
         };
         self.camera.set_viewport(viewport);

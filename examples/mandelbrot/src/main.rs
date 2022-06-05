@@ -100,8 +100,12 @@ pub fn main() {
                         );
                         let mut target = camera.position_at_pixel(pixel);
                         target.z = 0.0;
-                        camera
-                            .zoom_towards(&target, distance * 0.05 * delta.1 as f32, 0.00001, 10.0);
+                        camera.zoom_towards(
+                            &target,
+                            distance * 0.05 * delta.1 as f32,
+                            0.00001,
+                            10.0,
+                        );
                         redraw = true;
                     }
                     _ => {}
