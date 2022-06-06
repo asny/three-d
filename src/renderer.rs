@@ -353,38 +353,14 @@ fn render_deferred(
         Ok(())
     })?;
 
-    let render_states = RenderStates {
-        depth_test: DepthTest::LessOrEqual,
-        ..Default::default()
-    };
-
-    let mut fragment_shader = lights_shader_source(
-        lights,
-        LightingModel::Cook(
-            NormalDistributionFunction::TrowbridgeReitzGGX,
-            GeometryFunction::SmithSchlickGGX,
-        ),
-    );
-    fragment_shader.push_str(include_str!(
-        "renderer/material/shaders/deferred_lighting.frag"
-    ));
-
     target.write_partially(scissor_box, || {
-        target.context.effect(&fragment_shader, |effect| {
-            effect.use_uniform_if_required("cameraPosition", camera.position())?;
-            for (i, light) in lights.iter().enumerate() {
-                light.use_uniforms(effect, i as u32)?;
-            }
-            effect.use_texture_array("gbuffer", &geometry_pass_texture)?;
-            effect.use_depth_texture("depthMap", &geometry_pass_depth_texture)?;
-            effect.use_uniform_if_required(
-                "viewProjectionInverse",
-                (camera.projection() * camera.view()).invert().unwrap(),
-            )?;
-            effect.use_uniform("debug_type", DebugType::NONE as i32)?;
-            effect.apply(render_states, camera.viewport())?;
-            Ok(())
-        })
+        DeferredPhysicalMaterial::lighting_pass(
+            &target.context,
+            camera,
+            &geometry_pass_texture,
+            &geometry_pass_depth_texture,
+            lights,
+        )
     })?;
     Ok(())
 }

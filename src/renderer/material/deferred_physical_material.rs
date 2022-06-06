@@ -4,7 +4,6 @@ use std::rc::Rc;
 
 ///
 /// The deferred part of a physically-based material that renders a [Geometry] in an approximate correct physical manner based on Physically Based Rendering (PBR).
-/// Must be used together with a [DeferredPipeline].
 /// This material is affected by lights.
 ///
 #[derive(Clone)]
@@ -128,6 +127,45 @@ impl DeferredPhysicalMaterial {
                 None
             },
         }
+    }
+
+    pub fn lighting_pass(
+        context: &Context,
+        camera: &Camera,
+        geometry_pass_texture: &Texture2DArray,
+        geometry_pass_depth_texture: &DepthTargetTexture2D,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        let mut fragment_shader = lights_shader_source(
+            lights,
+            LightingModel::Cook(
+                NormalDistributionFunction::TrowbridgeReitzGGX,
+                GeometryFunction::SmithSchlickGGX,
+            ),
+        );
+        fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
+
+        context.effect(&fragment_shader, |effect| {
+            effect.use_uniform_if_required("cameraPosition", camera.position())?;
+            for (i, light) in lights.iter().enumerate() {
+                light.use_uniforms(effect, i as u32)?;
+            }
+            effect.use_texture_array("gbuffer", geometry_pass_texture)?;
+            effect.use_depth_texture("depthMap", geometry_pass_depth_texture)?;
+            effect.use_uniform_if_required(
+                "viewProjectionInverse",
+                (camera.projection() * camera.view()).invert().unwrap(),
+            )?;
+            effect.use_uniform("debug_type", DebugType::NONE as i32)?;
+            effect.apply(
+                RenderStates {
+                    depth_test: DepthTest::LessOrEqual,
+                    ..Default::default()
+                },
+                camera.viewport(),
+            )?;
+            Ok(())
+        })
     }
 }
 
