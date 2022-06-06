@@ -24,8 +24,7 @@ pub async fn run() {
         degrees(45.0),
         0.1,
         1000.0,
-    )
-    .unwrap();
+    );
     let mut control = OrbitControl::new(*camera.target(), 0.25, 100.0);
 
     // Source: https://web.cs.ucdavis.edu/~okreylos/PhDStudies/Spring2000/ECS277/DataSets.html
@@ -70,7 +69,7 @@ pub async fn run() {
                     - (panel_width * frame_input.device_pixel_ratio) as u32,
                 height: frame_input.viewport.height,
             };
-            camera.set_viewport(viewport).unwrap();
+            camera.set_viewport(viewport);
             control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();

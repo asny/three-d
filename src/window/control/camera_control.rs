@@ -156,33 +156,33 @@ impl CameraControl {
     ) -> ThreeDResult<bool> {
         match control_type {
             CameraAction::Pitch { speed } => {
-                camera.pitch(radians(speed * x as f32))?;
+                camera.pitch(radians(speed * x as f32));
             }
             CameraAction::OrbitUp { speed, target } => {
-                camera.rotate_around_with_fixed_up(&target, 0.0, speed * x as f32)?;
+                camera.rotate_around_with_fixed_up(&target, 0.0, speed * x as f32);
             }
             CameraAction::Yaw { speed } => {
-                camera.yaw(radians(speed * x as f32))?;
+                camera.yaw(radians(speed * x as f32));
             }
             CameraAction::OrbitLeft { speed, target } => {
-                camera.rotate_around_with_fixed_up(&target, speed * x as f32, 0.0)?;
+                camera.rotate_around_with_fixed_up(&target, speed * x as f32, 0.0);
             }
             CameraAction::Roll { speed } => {
-                camera.roll(radians(speed * x as f32))?;
+                camera.roll(radians(speed * x as f32));
             }
             CameraAction::Left { speed } => {
                 let change = -camera.right_direction() * x as f32 * speed;
-                camera.translate(&change)?;
+                camera.translate(&change);
             }
             CameraAction::Up { speed } => {
                 let right = camera.right_direction();
                 let up = right.cross(camera.view_direction());
                 let change = up * x as f32 * speed;
-                camera.translate(&change)?;
+                camera.translate(&change);
             }
             CameraAction::Forward { speed } => {
                 let change = camera.view_direction() * speed * x as f32;
-                camera.translate(&change)?;
+                camera.translate(&change);
             }
             CameraAction::Zoom {
                 target,
@@ -190,7 +190,7 @@ impl CameraControl {
                 min,
                 max,
             } => {
-                camera.zoom_towards(&target, speed * x as f32, min, max)?;
+                camera.zoom_towards(&target, speed * x as f32, min, max);
             }
             CameraAction::None => {}
         }

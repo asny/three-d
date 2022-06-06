@@ -17,8 +17,7 @@ pub fn main() {
         degrees(45.0),
         0.1,
         10.0,
-    )
-    .unwrap();
+    );
 
     let cpu_mesh = CpuMesh {
         positions: Positions::F32(vec![
@@ -73,7 +72,7 @@ pub fn main() {
             let viewport_zoomed = zoom(viewport_zoom, viewport);
             let scissor_box_zoomed = zoom(scissor_zoom, viewport).into();
 
-            camera.set_viewport(viewport_zoomed).unwrap();
+            camera.set_viewport(viewport_zoomed);
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
@@ -108,7 +107,7 @@ pub fn main() {
                 width: 200,
                 height: 200,
             };
-            camera.set_viewport(secondary_viewport).unwrap();
+            camera.set_viewport(secondary_viewport);
             frame_input
                 .screen()
                 .clear_partially(

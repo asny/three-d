@@ -24,8 +24,7 @@ pub async fn run() {
         degrees(60.0),
         0.1,
         1000.0,
-    )
-    .unwrap();
+    );
     let mut control = FlyControl::new(0.1);
 
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
@@ -78,7 +77,7 @@ pub async fn run() {
 
     window
         .render_loop(move |mut frame_input: FrameInput| {
-            camera.set_viewport(frame_input.viewport).unwrap();
+            camera.set_viewport(frame_input.viewport);
             control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
