@@ -210,7 +210,7 @@ impl<'a> RenderTarget<'a> {
             let mut geometry_pass_camera = camera.clone();
             let viewport =
                 Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
-            geometry_pass_camera.set_viewport(viewport)?;
+            geometry_pass_camera.set_viewport(viewport);
             let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
                 &self.context,
                 viewport.width,
