@@ -152,7 +152,7 @@ impl Object for Skybox {
         self.render_with_material(&self.material, camera, lights)
     }
 
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }

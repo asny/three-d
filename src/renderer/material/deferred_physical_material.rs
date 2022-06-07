@@ -3,13 +3,18 @@ use crate::renderer::*;
 use std::rc::Rc;
 
 ///
-/// The deferred part of a physically-based material that renders a [Geometry] in an approximate correct physical manner based on Physically Based Rendering (PBR).
-/// Must be used together with a [DeferredPipeline].
-/// This material is affected by lights.
+/// Similar to [PhysicalMaterial] except that rendering happens in two stages which produces the same result, but is more efficient for complex scenes.
+/// This material does not support transparency but does support [alpha cutout](DeferredPhysicalMaterial::alpha_cutout).
+///
+/// The first stage renders geometry information to a [RenderTarget] and the second stage uses this render target to apply lighting based on the geometry information which means the expensive lighting calculations are only done once per pixel.
+/// The [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods all support the two stages required by this material, so just pass the [Object] with this material applied into one of these methods.
+/// However, it is not possible to use the a [Object::render] method to render a [Geometry] with this material directly to the screen.
+/// Instead render the object into a [RenderTarget] consisting of a [Texture2DArray] with three RGBA u8 layers as color target and a [DepthTargetTexture2D] as depth target.
+/// Then call the [DeferredPhysicalMaterial::lighting_pass] method with these textures to render the screen.
 ///
 #[derive(Clone)]
 pub struct DeferredPhysicalMaterial {
-    /// Name. Used for matching geometry and material.
+    /// Name.
     pub name: String,
     /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
     pub albedo: Color,
@@ -37,7 +42,9 @@ pub struct DeferredPhysicalMaterial {
     pub emissive: Color,
     /// Texture with color of light shining from an object.
     pub emissive_texture: Option<Rc<Texture2D>>,
-    /// Alpha cutout value for transparency in deferred rendering pipeline.
+    /// A threshold on the alpha value of the color as a workaround for transparency.
+    /// If the alpha value of a pixel touched by an object with this material is less than the threshold, then that object is not contributing to the color of that pixel.
+    /// On the other hand, if the alpha value is more than the threshold, then it is contributing fully to that pixel and thereby blocks out everything behind.
     pub alpha_cutout: Option<f32>,
 }
 
@@ -129,6 +136,50 @@ impl DeferredPhysicalMaterial {
             },
         }
     }
+
+    ///
+    /// The second stage of a deferred render call.
+    /// Use the [Object::render] method to render the objects with this material into a [RenderTarget] and then call this method with these textures to render to the screen.
+    /// See [DeferredPhysicalMaterial] for more information.
+    ///
+    pub fn lighting_pass(
+        context: &Context,
+        camera: &Camera,
+        geometry_pass_texture: &Texture2DArray,
+        geometry_pass_depth_texture: &DepthTargetTexture2D,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        let mut fragment_shader = lights_shader_source(
+            lights,
+            LightingModel::Cook(
+                NormalDistributionFunction::TrowbridgeReitzGGX,
+                GeometryFunction::SmithSchlickGGX,
+            ),
+        );
+        fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
+
+        context.effect(&fragment_shader, |effect| {
+            effect.use_uniform_if_required("cameraPosition", camera.position())?;
+            for (i, light) in lights.iter().enumerate() {
+                light.use_uniforms(effect, i as u32)?;
+            }
+            effect.use_texture_array("gbuffer", geometry_pass_texture)?;
+            effect.use_depth_texture("depthMap", geometry_pass_depth_texture)?;
+            effect.use_uniform_if_required(
+                "viewProjectionInverse",
+                (camera.projection() * camera.view()).invert().unwrap(),
+            )?;
+            effect.use_uniform("debug_type", DebugType::NONE as i32)?;
+            effect.apply(
+                RenderStates {
+                    depth_test: DepthTest::LessOrEqual,
+                    ..Default::default()
+                },
+                camera.viewport(),
+            )?;
+            Ok(())
+        })
+    }
 }
 
 impl FromCpuMaterial for DeferredPhysicalMaterial {
@@ -216,8 +267,8 @@ impl Material for DeferredPhysicalMaterial {
         self.render_states
     }
 
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Deferred
     }
 }
 

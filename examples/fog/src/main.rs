@@ -16,7 +16,6 @@ pub async fn run() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let pipeline = ForwardPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(
         window.viewport().unwrap(),
         vec3(4.0, 4.0, 5.0),
@@ -76,10 +75,28 @@ pub async fn run() {
             // draw
             if change && fog_enabled {
                 depth_texture = Some(
-                    pipeline
-                        .depth_pass_texture(&camera, &monkey.to_objects())
-                        .unwrap(),
+                    DepthTargetTexture2D::new(
+                        &context,
+                        frame_input.viewport.width,
+                        frame_input.viewport.height,
+                        Wrapping::ClampToEdge,
+                        Wrapping::ClampToEdge,
+                        DepthFormat::Depth32F,
+                    )
+                    .unwrap(),
                 );
+                depth_texture.as_mut().map(|dt| {
+                    dt.as_depth_target()
+                        .clear(ClearState::default())
+                        .unwrap()
+                        .render_with_material(
+                            &DepthMaterial::default(),
+                            &camera,
+                            &monkey.to_geometries(),
+                            &[],
+                        )
+                        .unwrap();
+                });
             }
 
             frame_input

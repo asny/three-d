@@ -78,7 +78,7 @@ impl<M: Material> Object2D for Circle<M> {
             .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
     }
 
-    fn is_transparent(&self) -> bool {
-        self.model.is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.model.material_type()
     }
 }

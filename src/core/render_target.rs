@@ -27,7 +27,7 @@ pub struct RenderTarget<'a> {
     id: Option<Framebuffer>,
     color: Option<ColorTarget<'a>>,
     depth: Option<DepthTarget<'a>>,
-    context: Context,
+    pub(crate) context: Context,
     width: u32,
     height: u32,
 }

@@ -1,6 +1,6 @@
 //!
 //! A collection of common materials implementing the [Material] trait.
-//! A material together with a [geometry] can be rendered directly, or combined into an [object] (see [Gm]) that can be used in a render call, for example [render_pass].
+//! A material together with a [geometry] can be rendered directly, or combined into an [object] (see [Gm]) that can be used in a render call, for example [RenderTarget::render].
 //!
 
 use crate::core::*;
@@ -51,9 +51,23 @@ mod isosurface_material;
 pub use isosurface_material::*;
 
 ///
+/// Defines the material type which is needed to render the objects in the correct order.
+/// For example, transparent objects need to be rendered back to front, whereas opaque objects need to be rendered front to back.
+///
+#[derive(Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Debug)]
+pub enum MaterialType {
+    /// Forward opaque
+    Opaque,
+    /// Forward transparent
+    Transparent,
+    /// Deferred opaque
+    Deferred,
+}
+
+///
 /// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].
 /// Alternatively, a geometry and a material can be combined in a [Gm],
-/// thereby creating an [Object] which can be used in a render call, for example [render_pass].
+/// thereby creating an [Object] which can be used in a render call, for example [RenderTarget::render].
 ///
 /// The material can use an attribute by adding the folowing to the fragment shader source code.
 /// - position (in world space): `in vec3 pos;`
@@ -65,19 +79,30 @@ pub use isosurface_material::*;
 /// The rendering will fail if the material requires one of these attributes and the [geometry] does not provide it.
 ///
 pub trait Material {
+    ///
     /// Returns the fragment shader source for this material. Should output the final fragment color.
+    ///
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String;
+
+    ///
     /// Sends the uniform data needed for this material to the fragment shader.
+    ///
     fn use_uniforms(
         &self,
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
     ) -> ThreeDResult<()>;
+
+    ///
     /// Returns the render states needed to render with this material.
+    ///
     fn render_states(&self) -> RenderStates;
-    /// Returns whether or not this material is transparent.
-    fn is_transparent(&self) -> bool;
+
+    ///
+    /// Returns the type of material.
+    ///
+    fn material_type(&self) -> MaterialType;
 }
 
 ///
@@ -115,8 +140,8 @@ impl<T: Material + ?Sized> Material for &T {
     fn render_states(&self) -> RenderStates {
         (*self).render_states()
     }
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
+    fn material_type(&self) -> MaterialType {
+        (*self).material_type()
     }
 }
 
@@ -135,8 +160,8 @@ impl<T: Material + ?Sized> Material for &mut T {
     fn render_states(&self) -> RenderStates {
         (**self).render_states()
     }
-    fn is_transparent(&self) -> bool {
-        (**self).is_transparent()
+    fn material_type(&self) -> MaterialType {
+        (**self).material_type()
     }
 }
 
@@ -156,8 +181,8 @@ impl<T: Material> Material for Box<T> {
     fn render_states(&self) -> RenderStates {
         self.as_ref().render_states()
     }
-    fn is_transparent(&self) -> bool {
-        self.as_ref().is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
     }
 }
 
@@ -177,8 +202,8 @@ impl<T: Material> Material for std::rc::Rc<T> {
     fn render_states(&self) -> RenderStates {
         self.as_ref().render_states()
     }
-    fn is_transparent(&self) -> bool {
-        self.as_ref().is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
     }
 }
 
@@ -198,8 +223,8 @@ impl<T: Material> Material for std::rc::Rc<std::cell::RefCell<T>> {
     fn render_states(&self) -> RenderStates {
         self.borrow().render_states()
     }
-    fn is_transparent(&self) -> bool {
-        self.borrow().is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.borrow().material_type()
     }
 }
 

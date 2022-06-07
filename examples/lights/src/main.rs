@@ -18,8 +18,6 @@ pub async fn run() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let mut pipeline = DeferredPipeline::new(&context).unwrap();
-
     let mut camera = Camera::new_perspective(
         window.viewport().unwrap(),
         vec3(10.0, 1.0, 0.0),
@@ -183,28 +181,23 @@ pub async fn run() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            pipeline
-                .render_pass(
-                    &camera,
-                    &model.iter().map(|m| (m, &m.material)).collect::<Vec<_>>(),
-                )
-                .unwrap();
+            let mut objects = lights.iter().map(|l| l.object()).collect::<Vec<_>>();
+            objects.extend(model.iter().map(|m| m as &dyn Object));
 
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0))
                 .unwrap()
+                .render(
+                    &camera,
+                    &objects,
+                    &lights
+                        .iter()
+                        .map(|l| &l.light as &dyn Light)
+                        .collect::<Vec<_>>(),
+                )
+                .unwrap()
                 .write(|| {
-                    for light in lights.iter() {
-                        light.render(&camera)?;
-                    }
-                    pipeline.lighting_pass(
-                        &camera,
-                        &lights
-                            .iter()
-                            .map(|l| &l.light as &dyn Light)
-                            .collect::<Vec<_>>(),
-                    )?;
                     gui.render()?;
                     Ok(())
                 })
@@ -272,7 +265,7 @@ impl Glow {
         );
     }
 
-    pub fn render(&self, camera: &Camera) -> ThreeDResult<()> {
-        self.sphere.render(camera, &[])
+    pub fn object(&self) -> &dyn Object {
+        &self.sphere
     }
 }

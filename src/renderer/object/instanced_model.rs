@@ -7,14 +7,14 @@ pub struct InstancedModel<M: Material>(Vec<Gm<InstancedMesh, M>>);
 
 impl<M: Material> InstancedModel<M> {
     ///
-    /// Returns a list of references to the objects in this instanced model which can be used as input to a render function, for example [render_pass].
+    /// Returns a list of references to the objects in this instanced model which can be used as input to a render function, for example [RenderTarget::render].
     ///
     pub fn to_objects(&self) -> Vec<&dyn Object> {
         self.0.iter().map(|m| m as &dyn Object).collect::<Vec<_>>()
     }
 
     ///
-    /// Returns a list of references to the geometries in this instanced which can be used as input to for example [pick] or [DirectionalLight::generate_shadow_map].
+    /// Returns a list of references to the geometries in this instanced which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
     ///
     pub fn to_geometries(&self) -> Vec<&dyn Geometry> {
         self.0

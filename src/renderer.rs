@@ -64,7 +64,53 @@ impl<'a> DepthTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
+        self.as_render_target()?
+            .render_partially(scissor_box, camera, objects, lights)?;
+        Ok(self)
+    }
+
+    ///
+    /// Render the geometries with the given material using the given camera and lights into this depth target.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_partially_with_material(
+            self.scissor_box(),
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
+        Ok(self)
+    }
+
+    ///
+    /// Render the geometries with the given material using the given camera and lights into the part of this depth target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render_partially_with_material(
+        &self,
+        scissor_box: ScissorBox,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.as_render_target()?.render_partially_with_material(
+            scissor_box,
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
         Ok(self)
     }
 }
@@ -96,7 +142,53 @@ impl<'a> ColorTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
+        self.as_render_target()?
+            .render_partially(scissor_box, camera, objects, lights)?;
+        Ok(self)
+    }
+
+    ///
+    /// Render the geometries with the given material using the given camera and lights into this color target.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_partially_with_material(
+            self.scissor_box(),
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
+        Ok(self)
+    }
+
+    ///
+    /// Render the geometries with the given material using the given camera and lights into the part of this color target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render_partially_with_material(
+        &self,
+        scissor_box: ScissorBox,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.as_render_target()?.render_partially_with_material(
+            scissor_box,
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
         Ok(self)
     }
 }
@@ -128,7 +220,104 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.write_partially(scissor_box, || render_pass(camera, objects, lights))?;
+        #![allow(deprecated)]
+        let (deferred_objects, forward_objects): (Vec<_>, Vec<_>) = objects
+            .iter()
+            .partition(|o| o.material_type() == MaterialType::Deferred);
+
+        // Deferred
+        if deferred_objects.len() > 0 {
+            // Geometry pass
+            let mut geometry_pass_camera = camera.clone();
+            let viewport =
+                Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
+            geometry_pass_camera.set_viewport(viewport);
+            let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
+                &self.context,
+                viewport.width,
+                viewport.height,
+                3,
+                Interpolation::Nearest,
+                Interpolation::Nearest,
+                None,
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+            )?;
+            let mut geometry_pass_depth_texture = DepthTargetTexture2D::new(
+                &self.context,
+                viewport.width,
+                viewport.height,
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+                DepthFormat::Depth32F,
+            )?;
+            RenderTarget::new(
+                geometry_pass_texture.as_color_target(&[0, 1, 2], None),
+                geometry_pass_depth_texture.as_depth_target(),
+            )?
+            .clear(ClearState::default())?
+            .write(|| render_pass(&geometry_pass_camera, &deferred_objects, lights))?;
+
+            // Lighting pass
+            self.write_partially(scissor_box, || {
+                DeferredPhysicalMaterial::lighting_pass(
+                    &self.context,
+                    camera,
+                    &geometry_pass_texture,
+                    &geometry_pass_depth_texture,
+                    lights,
+                )
+            })?;
+        }
+
+        // Forward
+        self.write_partially(scissor_box, || {
+            render_pass(camera, &forward_objects, lights)
+        })?;
+        Ok(self)
+    }
+
+    ///
+    /// Render the geometries with the given material using the given camera and lights into this render target.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.render_partially_with_material(
+            self.scissor_box(),
+            material,
+            camera,
+            geometries,
+            lights,
+        )?;
+        Ok(self)
+    }
+
+    ///
+    /// Render the geometries with the given material using the given camera and lights into the part of this render target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
+    pub fn render_partially_with_material(
+        &self,
+        scissor_box: ScissorBox,
+        material: &dyn Material,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<&Self> {
+        self.write_partially(scissor_box, || {
+            for object in geometries.iter().filter(|o| camera.in_frustum(&o.aabb())) {
+                object.render_with_material(material, camera, lights)?;
+            }
+            Ok(())
+        })?;
         Ok(self)
     }
 }
@@ -139,9 +328,11 @@ impl<'a> RenderTarget<'a> {
 /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
 ///
 /// **Note:**
+/// Objects with a [DeferredPhysicalMaterial] applied is not supported.
 /// Must be called when a render target is bound, for example in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
 /// If you are using one of these targets, it is preferred to use the [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods.
 ///
+#[deprecated = "use RenderTarget::render, ColorTarget::render or DepthTarget::render or render each object by using the Object::render method"]
 pub fn render_pass(
     camera: &Camera,
     objects: &[&dyn Object],
@@ -168,21 +359,23 @@ pub fn cmp_render_order(
     obj0: impl Object,
     obj1: impl Object,
 ) -> std::cmp::Ordering {
-    if obj0.is_transparent() == obj1.is_transparent() {
+    if obj0.material_type() == MaterialType::Transparent
+        && obj1.material_type() != MaterialType::Transparent
+    {
+        std::cmp::Ordering::Greater
+    } else if obj0.material_type() != MaterialType::Transparent
+        && obj1.material_type() == MaterialType::Transparent
+    {
+        std::cmp::Ordering::Less
+    } else {
         let distance_a = camera.position().distance2(obj0.aabb().center());
         let distance_b = camera.position().distance2(obj1.aabb().center());
         if distance_a.is_nan() || distance_b.is_nan() {
             distance_a.is_nan().cmp(&distance_b.is_nan()) // whatever - just save us from panicing on unwrap below
-        } else if obj0.is_transparent() {
+        } else if obj0.material_type() == MaterialType::Transparent {
             distance_b.partial_cmp(&distance_a).unwrap()
         } else {
             distance_a.partial_cmp(&distance_b).unwrap()
-        }
-    } else {
-        if obj0.is_transparent() {
-            std::cmp::Ordering::Greater
-        } else {
-            std::cmp::Ordering::Less
         }
     }
 }

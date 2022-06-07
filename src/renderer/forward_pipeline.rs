@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use crate::core::*;
 use crate::renderer::*;
 
@@ -5,6 +7,7 @@ use crate::renderer::*;
 /// Forward render pipeline which can render objects (implementing the [Object] trait).
 /// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [Object::render] directly.
 ///
+#[deprecated]
 pub struct ForwardPipeline {
     context: Context,
 }
@@ -44,10 +47,9 @@ impl ForwardPipeline {
             },
             ..Default::default()
         };
-        for object in objects
-            .iter()
-            .filter(|o| !o.is_transparent() && camera.in_frustum(&o.aabb()))
-        {
+        for object in objects.iter().filter(|o| {
+            o.material_type() != MaterialType::Transparent && camera.in_frustum(&o.aabb())
+        }) {
             object.render_with_material(&depth_material, camera, &[])?;
         }
         Ok(())

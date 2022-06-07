@@ -60,7 +60,7 @@ impl<M: Material> Object for VoxelGrid<M> {
         self.0.render(camera, lights)
     }
 
-    fn is_transparent(&self) -> bool {
-        self.0.is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.0.material_type()
     }
 }
