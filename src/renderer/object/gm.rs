@@ -2,7 +2,7 @@ use crate::renderer::*;
 
 ///
 /// A combination of a [Geometry] and a [Material] which implements [Object].
-/// Use this to combine any [geometry] and [material] into an object that can be used in a render function for example [render_pass].
+/// Use this to combine any [geometry] and [material] into an object that can be used in a render function for example [RenderTarget::render].
 /// The only requirement is that the geometry provides all the per vertex information (normals, uv coordinates, etc.) that the material requires.
 ///
 pub struct Gm<G: Geometry, M: Material> {

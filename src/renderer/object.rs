@@ -1,5 +1,5 @@
 //!
-//! A collection of objects (implementing the [Object] trait) that can be rendered directly or used in a render call, for example [render_pass].
+//! A collection of objects (implementing the [Object] trait) that can be rendered directly or used in a render call, for example [RenderTarget::render].
 //! Can be a combination of any [geometry] and [material] by using the [Gm] struct.
 //!
 
@@ -51,7 +51,7 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// Represents a 3D object which can be rendered directly or used in a render call, for example [render_pass].
+/// Represents a 3D object which can be rendered directly or used in a render call, for example [RenderTarget::render].
 ///
 pub trait Object: Geometry {
     ///
@@ -61,6 +61,9 @@ pub trait Object: Geometry {
     ///
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()>;
 
+    ///
+    /// Returns the type of material applied to this object.
+    ///
     fn material_type(&self) -> MaterialType;
 }
 
@@ -126,6 +129,9 @@ pub trait Object2D: Geometry2D {
     ///
     fn render(&self, viewport: Viewport) -> ThreeDResult<()>;
 
+    ///
+    /// Returns the type of material applied to this object.
+    ///
     fn material_type(&self) -> MaterialType;
 }
 

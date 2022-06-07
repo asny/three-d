@@ -69,6 +69,11 @@ impl<'a> DepthTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Render the geometries with the given material using the given camera and lights into this depth target.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render_with_material(
         &self,
         material: &dyn Material,
@@ -86,6 +91,11 @@ impl<'a> DepthTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Render the geometries with the given material using the given camera and lights into the part of this depth target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render_partially_with_material(
         &self,
         scissor_box: ScissorBox,
@@ -137,6 +147,11 @@ impl<'a> ColorTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Render the geometries with the given material using the given camera and lights into this color target.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render_with_material(
         &self,
         material: &dyn Material,
@@ -154,6 +169,11 @@ impl<'a> ColorTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Render the geometries with the given material using the given camera and lights into the part of this color target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render_partially_with_material(
         &self,
         scissor_box: ScissorBox,
@@ -200,6 +220,7 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
+        #![allow(deprecated)]
         let (deferred_objects, forward_objects): (Vec<_>, Vec<_>) = objects
             .iter()
             .partition(|o| o.material_type() == MaterialType::Deferred);
@@ -256,6 +277,11 @@ impl<'a> RenderTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Render the geometries with the given material using the given camera and lights into this render target.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render_with_material(
         &self,
         material: &dyn Material,
@@ -273,6 +299,11 @@ impl<'a> RenderTarget<'a> {
         Ok(self)
     }
 
+    ///
+    /// Render the geometries with the given material using the given camera and lights into the part of this render target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
+    ///
     pub fn render_partially_with_material(
         &self,
         scissor_box: ScissorBox,
@@ -297,6 +328,7 @@ impl<'a> RenderTarget<'a> {
 /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
 ///
 /// **Note:**
+/// Objects with a [DeferredPhysicalMaterial] applied is not supported.
 /// Must be called when a render target is bound, for example in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
 /// If you are using one of these targets, it is preferred to use the [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods.
 ///
