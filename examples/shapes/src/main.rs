@@ -22,42 +22,54 @@ pub fn main() {
 
     let mut sphere = Gm::new(
         Mesh::new(&context, &CpuMesh::sphere(16)).unwrap(),
-        PhysicalMaterial {
-            albedo: Color {
-                r: 255,
-                g: 0,
-                b: 0,
-                a: 200,
+        PhysicalMaterial::new_transparent(
+            &context,
+            &CpuMaterial {
+                albedo: Color {
+                    r: 255,
+                    g: 0,
+                    b: 0,
+                    a: 200,
+                },
+                ..Default::default()
             },
-            ..Default::default()
-        },
+        )
+        .unwrap(),
     );
     sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
     let mut cylinder = Gm::new(
         Mesh::new(&context, &CpuMesh::cylinder(16)).unwrap(),
-        PhysicalMaterial {
-            albedo: Color {
-                r: 0,
-                g: 255,
-                b: 0,
-                a: 200,
+        PhysicalMaterial::new_transparent(
+            &context,
+            &CpuMaterial {
+                albedo: Color {
+                    r: 0,
+                    g: 255,
+                    b: 0,
+                    a: 200,
+                },
+                ..Default::default()
             },
-            ..Default::default()
-        },
+        )
+        .unwrap(),
     );
     cylinder
         .set_transformation(Mat4::from_translation(vec3(1.3, 0.0, 0.0)) * Mat4::from_scale(0.2));
     let mut cube = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()).unwrap(),
-        PhysicalMaterial {
-            albedo: Color {
-                r: 0,
-                g: 0,
-                b: 255,
-                a: 100,
+        PhysicalMaterial::new_transparent(
+            &context,
+            &CpuMaterial {
+                albedo: Color {
+                    r: 0,
+                    g: 0,
+                    b: 255,
+                    a: 100,
+                },
+                ..Default::default()
             },
-            ..Default::default()
-        },
+        )
+        .unwrap(),
     );
     cube.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 1.3)) * Mat4::from_scale(0.2));
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
