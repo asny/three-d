@@ -71,8 +71,7 @@ pub fn run() {
         degrees(45.0),
         0.1,
         1000.0,
-    )
-    .unwrap();
+    );
     let mut control = FlyControl::new(0.1);
 
     let mut rng = rand::thread_rng();
@@ -102,7 +101,7 @@ pub fn run() {
     let mut color_index = 0;
     window
         .render_loop(move |mut frame_input| {
-            camera.set_viewport(frame_input.viewport).unwrap();
+            camera.set_viewport(frame_input.viewport);
 
             control
                 .handle_events(&mut camera, &mut frame_input.events)

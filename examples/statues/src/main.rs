@@ -30,8 +30,7 @@ pub async fn run() {
         degrees(45.0),
         0.1,
         10000.0,
-    )
-    .unwrap();
+    );
     // Static camera to view frustum culling in effect
     let mut secondary_camera = Camera::new_perspective(
         window.viewport().unwrap(),
@@ -41,8 +40,7 @@ pub async fn run() {
         degrees(45.0),
         0.1,
         10000.0,
-    )
-    .unwrap();
+    );
     let mut control = OrbitControl::new(
         *primary_camera.target(),
         0.5 * primary_camera.target().distance(*primary_camera.position()),
@@ -167,8 +165,8 @@ pub async fn run() {
                     - (panel_width * frame_input.device_pixel_ratio) as u32,
                 height: frame_input.viewport.height,
             };
-            primary_camera.set_viewport(viewport).unwrap();
-            secondary_camera.set_viewport(viewport).unwrap();
+            primary_camera.set_viewport(viewport);
+            secondary_camera.set_viewport(viewport);
             control
                 .handle_events(&mut primary_camera, &mut frame_input.events)
                 .unwrap();

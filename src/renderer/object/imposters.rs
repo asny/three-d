@@ -157,7 +157,7 @@ impl ImpostersMaterial {
                 height,
                 0.0,
                 4.0 * (width + height),
-            )?;
+            );
             self.texture = Texture2DArray::new_empty::<[f16; 4]>(
                 &self.context,
                 texture_width,
@@ -184,7 +184,7 @@ impl ImpostersMaterial {
                     center + width * vec3(f32::cos(angle), 0.0, f32::sin(angle)),
                     center,
                     vec3(0.0, 1.0, 0.0),
-                )?;
+                );
                 RenderTarget::new(
                     self.texture.as_color_target(&layers, None),
                     depth_texture.as_depth_target(),

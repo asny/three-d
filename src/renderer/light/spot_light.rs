@@ -91,7 +91,7 @@ impl SpotLight {
             self.cutoff,
             z_near.max(0.01),
             z_far,
-        )?;
+        );
         self.shadow_matrix = shadow_matrix(&shadow_camera);
 
         let mut shadow_texture = DepthTargetTexture2D::new(

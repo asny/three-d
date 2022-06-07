@@ -112,15 +112,14 @@ impl Context {
                 1.0,
                 0.0,
                 10.0,
-            )?)
+            ));
         }
         let mut camera2d = self.camera2d.borrow_mut();
-        camera2d.as_mut().unwrap().set_viewport(viewport)?;
-        camera2d.as_mut().unwrap().set_orthographic_projection(
-            viewport.height as f32,
-            0.0,
-            10.0,
-        )?;
+        camera2d.as_mut().unwrap().set_viewport(viewport);
+        camera2d
+            .as_mut()
+            .unwrap()
+            .set_orthographic_projection(viewport.height as f32, 0.0, 10.0);
         camera2d.as_mut().unwrap().set_view(
             vec3(
                 viewport.width as f32 * 0.5,
@@ -133,7 +132,7 @@ impl Context {
                 0.0,
             ),
             vec3(0.0, -1.0, 0.0),
-        )?;
+        );
         callback(camera2d.as_ref().unwrap())
     }
 

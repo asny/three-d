@@ -15,8 +15,7 @@ fn main() {
         degrees(60.0),
         0.1,
         10.0,
-    )
-    .unwrap();
+    );
 
     // Create the scene - a single colored triangle
     let mut model = Gm::new(

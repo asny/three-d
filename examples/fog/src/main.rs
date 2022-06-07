@@ -24,8 +24,7 @@ pub async fn run() {
         degrees(45.0),
         0.1,
         1000.0,
-    )
-    .unwrap();
+    );
     let mut control = FlyControl::new(0.05);
 
     let mut loaded = three_d_asset::io::load_async(&[
@@ -55,7 +54,7 @@ pub async fn run() {
     window
         .render_loop(move |mut frame_input| {
             let mut change = frame_input.first_frame;
-            change |= camera.set_viewport(frame_input.viewport).unwrap();
+            change |= camera.set_viewport(frame_input.viewport);
             change |= control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();

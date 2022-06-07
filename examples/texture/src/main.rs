@@ -24,8 +24,7 @@ pub async fn run() {
         degrees(45.0),
         0.1,
         1000.0,
-    )
-    .unwrap();
+    );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     let mut loaded = three_d_asset::io::load_async(&[
@@ -78,7 +77,7 @@ pub async fn run() {
     window
         .render_loop(move |mut frame_input| {
             let mut redraw = frame_input.first_frame;
-            redraw |= camera.set_viewport(frame_input.viewport).unwrap();
+            redraw |= camera.set_viewport(frame_input.viewport);
             redraw |= control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();

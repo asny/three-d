@@ -24,8 +24,7 @@ pub async fn run() {
         degrees(45.0),
         0.1,
         1000.0,
-    )
-    .unwrap();
+    );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     let mut sphere = CpuMesh::sphere(8);
@@ -59,7 +58,7 @@ pub async fn run() {
     window
         .render_loop(move |mut frame_input| {
             let mut change = frame_input.first_frame;
-            change |= camera.set_viewport(frame_input.viewport).unwrap();
+            change |= camera.set_viewport(frame_input.viewport);
 
             for event in frame_input.events.iter() {
                 match event {
