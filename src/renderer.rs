@@ -200,24 +200,58 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        let mut deferred_objects = Vec::new();
-        let mut forward_objects = Vec::new();
-        for object in objects.iter().filter(|o| camera.in_frustum(&o.aabb())) {
-            if object.material_type() == MaterialType::Deferred {
-                deferred_objects.push(object);
-            } else {
-                forward_objects.push(object);
-            }
-        }
+        let (deferred_objects, forward_objects): (Vec<_>, Vec<_>) = objects
+            .iter()
+            .partition(|o| o.material_type() == MaterialType::Deferred);
+
+        // Deferred
         if deferred_objects.len() > 0 {
-            render_deferred(self, scissor_box, camera, deferred_objects, lights)?;
+            // Geometry pass
+            let mut geometry_pass_camera = camera.clone();
+            let viewport =
+                Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
+            geometry_pass_camera.set_viewport(viewport)?;
+            let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
+                &self.context,
+                viewport.width,
+                viewport.height,
+                3,
+                Interpolation::Nearest,
+                Interpolation::Nearest,
+                None,
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+            )?;
+            let mut geometry_pass_depth_texture = DepthTargetTexture2D::new(
+                &self.context,
+                viewport.width,
+                viewport.height,
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+                DepthFormat::Depth32F,
+            )?;
+            RenderTarget::new(
+                geometry_pass_texture.as_color_target(&[0, 1, 2], None),
+                geometry_pass_depth_texture.as_depth_target(),
+            )?
+            .clear(ClearState::default())?
+            .write(|| render_pass(&geometry_pass_camera, &deferred_objects, lights))?;
+
+            // Lighting pass
+            self.write_partially(scissor_box, || {
+                DeferredPhysicalMaterial::lighting_pass(
+                    &self.context,
+                    camera,
+                    &geometry_pass_texture,
+                    &geometry_pass_depth_texture,
+                    lights,
+                )
+            })?;
         }
-        forward_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
+
+        // Forward
         self.write_partially(scissor_box, || {
-            for object in forward_objects {
-                object.render(camera, lights)?;
-            }
-            Ok(())
+            render_pass(camera, &forward_objects, lights)
         })?;
         Ok(self)
     }
@@ -310,59 +344,6 @@ pub fn cmp_render_order(
             std::cmp::Ordering::Less
         }
     }
-}
-
-fn render_deferred(
-    target: &RenderTarget,
-    scissor_box: ScissorBox,
-    camera: &Camera,
-    objects: impl std::iter::IntoIterator<Item = impl Object>,
-    lights: &[&dyn Light],
-) -> ThreeDResult<()> {
-    let mut geometry_pass_camera = camera.clone();
-    let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
-    geometry_pass_camera.set_viewport(viewport)?;
-    let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
-        &target.context,
-        viewport.width,
-        viewport.height,
-        3,
-        Interpolation::Nearest,
-        Interpolation::Nearest,
-        None,
-        Wrapping::ClampToEdge,
-        Wrapping::ClampToEdge,
-    )?;
-    let mut geometry_pass_depth_texture = DepthTargetTexture2D::new(
-        &target.context,
-        viewport.width,
-        viewport.height,
-        Wrapping::ClampToEdge,
-        Wrapping::ClampToEdge,
-        DepthFormat::Depth32F,
-    )?;
-    RenderTarget::new(
-        geometry_pass_texture.as_color_target(&[0, 1, 2], None),
-        geometry_pass_depth_texture.as_depth_target(),
-    )?
-    .clear(ClearState::default())?
-    .write(|| {
-        for object in objects {
-            object.render(&geometry_pass_camera, &[])?;
-        }
-        Ok(())
-    })?;
-
-    target.write_partially(scissor_box, || {
-        DeferredPhysicalMaterial::lighting_pass(
-            &target.context,
-            camera,
-            &geometry_pass_texture,
-            &geometry_pass_depth_texture,
-            lights,
-        )
-    })?;
-    Ok(())
 }
 
 ///
