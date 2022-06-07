@@ -327,7 +327,15 @@ pub fn cmp_render_order(
     obj0: impl Object,
     obj1: impl Object,
 ) -> std::cmp::Ordering {
-    if obj0.material_type() == obj1.material_type() {
+    if obj0.material_type() == MaterialType::Transparent
+        && obj1.material_type() != MaterialType::Transparent
+    {
+        std::cmp::Ordering::Greater
+    } else if obj0.material_type() != MaterialType::Transparent
+        && obj1.material_type() == MaterialType::Transparent
+    {
+        std::cmp::Ordering::Less
+    } else {
         let distance_a = camera.position().distance2(obj0.aabb().center());
         let distance_b = camera.position().distance2(obj1.aabb().center());
         if distance_a.is_nan() || distance_b.is_nan() {
@@ -336,12 +344,6 @@ pub fn cmp_render_order(
             distance_b.partial_cmp(&distance_a).unwrap()
         } else {
             distance_a.partial_cmp(&distance_b).unwrap()
-        }
-    } else {
-        if obj0.material_type() == MaterialType::Transparent {
-            std::cmp::Ordering::Greater
-        } else {
-            std::cmp::Ordering::Less
         }
     }
 }
