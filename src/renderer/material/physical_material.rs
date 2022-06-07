@@ -8,7 +8,7 @@ use std::rc::Rc;
 ///
 #[derive(Clone)]
 pub struct PhysicalMaterial {
-    /// Name. Used for matching geometry and material.
+    /// Name.
     pub name: String,
     /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
     pub albedo: Color,
