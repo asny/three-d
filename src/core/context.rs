@@ -308,10 +308,10 @@ impl Context {
     pub fn set_render_states(&self, render_states: RenderStates) -> ThreeDResult<()> {
         self.set_cull(render_states.cull);
         self.set_write_mask(render_states.write_mask);
-        if render_states.write_mask.depth {
-            self.set_depth_test(render_states.depth_test);
-        } else {
+        if !render_states.write_mask.depth && render_states.depth_test == DepthTest::Always {
             unsafe { self.disable(crate::context::DEPTH_TEST) }
+        } else {
+            self.set_depth_test(render_states.depth_test);
         }
         self.set_blend(render_states.blend);
         self.error_check()
