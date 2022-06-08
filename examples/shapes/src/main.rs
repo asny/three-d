@@ -72,7 +72,7 @@ pub fn main() {
         .unwrap(),
     );
     cube.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 1.3)) * Mat4::from_scale(0.2));
-    let axes = Axes::new(&context, 0.1, 1.0).unwrap();
+    let axes = Axes::new(&context, 0.1, 2.0).unwrap();
     let bounding_box_sphere = BoundingBox::new_with_material(
         &context,
         sphere.aabb(),
