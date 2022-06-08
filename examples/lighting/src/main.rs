@@ -68,10 +68,14 @@ pub async fn run() {
         .unwrap();
     let mut plane = Gm::new(
         Mesh::new(&context, &cpu_plane).unwrap(),
-        PhysicalMaterial {
-            albedo: Color::new_opaque(128, 200, 70),
-            ..Default::default()
-        },
+        PhysicalMaterial::new_opaque(
+            &context,
+            &CpuMaterial {
+                albedo: Color::new_opaque(128, 200, 70),
+                ..Default::default()
+            },
+        )
+        .unwrap(),
     );
     let deferred_plane = Gm::new(
         Mesh::new(&context, &cpu_plane).unwrap(),

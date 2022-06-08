@@ -31,10 +31,14 @@ pub async fn run() {
     sphere.transform(&Mat4::from_scale(0.05)).unwrap();
     let mut pick_mesh = Gm::new(
         Mesh::new(&context, &sphere).unwrap(),
-        PhysicalMaterial {
-            albedo: Color::RED,
-            ..Default::default()
-        },
+        PhysicalMaterial::new_opaque(
+            &context,
+            &CpuMaterial {
+                albedo: Color::RED,
+                ..Default::default()
+            },
+        )
+        .unwrap(),
     );
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();

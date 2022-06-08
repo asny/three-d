@@ -44,17 +44,17 @@ pub async fn run() {
         .unwrap()
         .remove(0);
     model.material.render_states.cull = Cull::Back;
-    let wireframe_material = PhysicalMaterial {
-        name: "wireframe".to_string(),
-        albedo: Color::new_opaque(220, 50, 50),
-        roughness: 0.7,
-        metallic: 0.8,
-        render_states: RenderStates {
-            cull: Cull::Back,
+    let mut wireframe_material = PhysicalMaterial::new_opaque(
+        &context,
+        &CpuMaterial {
+            albedo: Color::new_opaque(220, 50, 50),
+            roughness: 0.7,
+            metallic: 0.8,
             ..Default::default()
         },
-        ..Default::default()
-    };
+    )
+    .unwrap();
+    wireframe_material.render_states.cull = Cull::Back;
     let mut cylinder = CpuMesh::cylinder(10);
     cylinder
         .transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007))

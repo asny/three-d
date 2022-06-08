@@ -43,11 +43,15 @@ pub async fn run() {
 
     let mut model = Gm::new(
         Mesh::new(&context, &CpuMesh::sphere(32)).unwrap(),
-        PhysicalMaterial {
-            roughness: 0.2,
-            metallic: 0.8,
-            ..Default::default()
-        },
+        PhysicalMaterial::new_opaque(
+            &context,
+            &CpuMaterial {
+                roughness: 0.2,
+                metallic: 0.8,
+                ..Default::default()
+            },
+        )
+        .unwrap(),
     );
     let mut gui = three_d::GUI::new(&context).unwrap();
 

@@ -99,12 +99,16 @@ pub async fn run() {
             },
         )
         .unwrap(),
-        PhysicalMaterial {
-            albedo: Color::new_opaque(128, 200, 70),
-            metallic: 0.0,
-            roughness: 1.0,
-            ..Default::default()
-        },
+        PhysicalMaterial::new_opaque(
+            &context,
+            &CpuMaterial {
+                albedo: Color::new_opaque(128, 200, 70),
+                metallic: 0.0,
+                roughness: 1.0,
+                ..Default::default()
+            },
+        )
+        .unwrap(),
     );
     plane.material.render_states.cull = Cull::Back;
 
