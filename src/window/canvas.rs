@@ -106,9 +106,10 @@ impl Window {
     ///
     pub fn size(&self) -> ThreeDResult<(u32, u32)> {
         let canvas = self.canvas.as_ref().ok_or(CanvasError::CanvasMissing)?;
+        let device_pixel_ratio = self.pixels_per_point() as f64;
         Ok((
-            canvas.width() / device_pixel_ratio,
-            canvas.height() / device_pixel_ratio,
+            (canvas.width() as f64 / device_pixel_ratio) as u32,
+            (canvas.height() as f64 / device_pixel_ratio) as u32,
         ))
     }
 
