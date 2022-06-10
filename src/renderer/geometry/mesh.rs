@@ -86,13 +86,13 @@ impl Mesh {
         self.texture_transform = texture_transform;
     }
 
-    fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
+    fn vertex_shader_source(fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
-        Ok(format!(
+        format!(
             "{}{}{}{}{}{}{}",
             if use_positions {
                 "#define USE_POSITIONS\n"
@@ -106,7 +106,7 @@ impl Mesh {
             },
             if use_tangents {
                 if fragment_shader_source.find("in vec3 bitang;").is_none() {
-                    Err(CoreError::MissingBitangent)?;
+                    panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
                 }
                 "#define USE_TANGENTS\n"
             } else {
@@ -120,7 +120,7 @@ impl Mesh {
             },
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
-        ))
+        )
     }
 }
 
@@ -138,7 +138,7 @@ impl Geometry for Mesh {
         let fragment_shader_source =
             material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
         self.context.program(
-            &Self::vertex_shader_source(&fragment_shader_source)?,
+            &Self::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
@@ -155,8 +155,7 @@ impl Geometry for Mesh {
                         program.use_vertex_attribute(
                             attribute_name,
                             self.vertex_buffers
-                                .get(attribute_name)
-                                .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
+                                .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
                         )?;
                     }
                 }

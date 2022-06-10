@@ -114,7 +114,7 @@ impl Texture2D {
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
-        check_data_length(self.width, self.height, 1, self.data_byte_size, data)?;
+        check_data_length(self.width, self.height, 1, self.data_byte_size, data);
         self.bind();
         let mut data = data.to_owned();
         flip_y(&mut data, self.width as usize, self.height as usize);

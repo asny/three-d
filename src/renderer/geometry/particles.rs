@@ -195,15 +195,13 @@ impl Geometry for Particles {
                 if program.requires_attribute("uv_coordinates") {
                     let uv_buffer = self
                         .uv_buffer
-                        .as_ref()
-                        .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
+                        .as_ref().expect(&format!("the render call requires the uv_coordinates vertex buffer which is missing on the given geometry"));
                     program.use_vertex_attribute("uv_coordinates", uv_buffer)?;
                 }
                 if program.requires_attribute("normal") {
                     let normal_buffer = self
                         .normal_buffer
-                        .as_ref()
-                        .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
+                        .as_ref().expect(&format!("the render call requires the normal vertex buffer which is missing on the given geometry"));
                     program.use_uniform("normalMatrix", &self.normal_transformation)?;
                     program.use_vertex_attribute("normal", normal_buffer)?;
                 }

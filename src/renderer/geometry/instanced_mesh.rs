@@ -200,13 +200,13 @@ impl InstancedMesh {
         self.aabb = aabb;
     }
 
-    fn vertex_shader_source(&self, fragment_shader_source: &str) -> ThreeDResult<String> {
+    fn vertex_shader_source(&self, fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
-        Ok(format!(
+        format!(
             "{}{}{}{}{}{}{}{}{}",
             if self.instance_buffers.contains_key("instance_translation") {
                 "#define USE_INSTANCE_TRANSLATIONS\n"
@@ -225,7 +225,7 @@ impl InstancedMesh {
             },
             if use_tangents {
                 if fragment_shader_source.find("in vec3 bitang;").is_none() {
-                    Err(CoreError::MissingBitangent)?;
+                    panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
                 }
                 "#define USE_TANGENTS\n"
             } else {
@@ -252,7 +252,7 @@ impl InstancedMesh {
             },
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
-        ))
+        )
     }
 }
 
@@ -273,7 +273,7 @@ impl Geometry for InstancedMesh {
             lights,
         );
         self.context.program(
-            &self.vertex_shader_source(&fragment_shader_source)?,
+            &self.vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
@@ -290,8 +290,7 @@ impl Geometry for InstancedMesh {
                         program.use_vertex_attribute(
                             attribute_name,
                             self.vertex_buffers
-                                .get(attribute_name)
-                                .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
+                                .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
                         )?;
                     }
                 }
@@ -309,8 +308,7 @@ impl Geometry for InstancedMesh {
                         program.use_instance_attribute(
                             attribute_name,
                             self.instance_buffers
-                                .get(attribute_name)
-                                .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
+                            .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
                         )?;
                     }
                 }
