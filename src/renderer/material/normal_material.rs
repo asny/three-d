@@ -61,17 +61,11 @@ impl Material for NormalMaterial {
         shader.push_str(include_str!("shaders/normal_material.frag"));
         shader
     }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        _camera: &Camera,
-        _lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         if let Some(ref tex) = self.normal_texture {
             program.use_uniform("normalScale", &self.normal_scale);
             program.use_texture("normalTexture", tex);
         }
-        Ok(())
     }
     fn render_states(&self) -> RenderStates {
         self.render_states

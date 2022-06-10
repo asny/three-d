@@ -8,14 +8,7 @@ impl Material for MandelbrotMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         include_str!("mandelbrot.frag").to_string()
     }
-    fn use_uniforms(
-        &self,
-        _program: &Program,
-        _camera: &Camera,
-        _lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
-        Ok(())
-    }
+    fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
     fn render_states(&self) -> RenderStates {
         RenderStates {
             depth_test: DepthTest::Always,

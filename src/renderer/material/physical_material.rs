@@ -173,16 +173,11 @@ impl Material for PhysicalMaterial {
         output.push_str(include_str!("shaders/physical_material.frag"));
         output
     }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         if lights.len() > 0 {
             program.use_uniform_if_required("cameraPosition", camera.position());
             for (i, light) in lights.iter().enumerate() {
-                light.use_uniforms(program, i as u32)?;
+                light.use_uniforms(program, i as u32);
             }
             program.use_uniform("metallic", self.metallic);
             program.use_uniform_if_required("roughness", self.roughness);
@@ -216,7 +211,6 @@ impl Material for PhysicalMaterial {
                 program.use_texture("emissiveTexture", texture);
             }
         }
-        Ok(())
     }
 
     fn render_states(&self) -> RenderStates {

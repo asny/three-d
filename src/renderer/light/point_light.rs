@@ -53,7 +53,7 @@ impl Light for PointLight {
         
         ", i, i, i, i, i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         program.use_uniform(
             &format!("color{}", i),
             &(self.color.to_vec3() * self.intensity),
@@ -67,6 +67,5 @@ impl Light for PointLight {
             ),
         );
         program.use_uniform(&format!("position{}", i), &self.position);
-        Ok(())
     }
 }

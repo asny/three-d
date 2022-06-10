@@ -161,7 +161,7 @@ impl DeferredPhysicalMaterial {
         context.effect(&fragment_shader, |effect| {
             effect.use_uniform_if_required("cameraPosition", camera.position());
             for (i, light) in lights.iter().enumerate() {
-                light.use_uniforms(effect, i as u32)?;
+                light.use_uniforms(effect, i as u32);
             }
             effect.use_texture_array("gbuffer", geometry_pass_texture);
             effect.use_depth_texture("depthMap", geometry_pass_depth_texture);
@@ -231,12 +231,7 @@ impl Material for DeferredPhysicalMaterial {
         output
     }
 
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        _camera: &Camera,
-        _lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);
         program.use_uniform("albedo", self.albedo);
@@ -260,7 +255,6 @@ impl Material for DeferredPhysicalMaterial {
                 program.use_texture("emissiveTexture", texture);
             }
         }
-        Ok(())
     }
 
     fn render_states(&self) -> RenderStates {

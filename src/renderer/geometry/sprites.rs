@@ -95,7 +95,7 @@ impl Geometry for Sprites {
             &include_str!("shaders/sprites.vert"),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, lights)?;
+                material.use_uniforms(program, camera, lights);
                 program.use_uniform("eye", camera.position());
                 program.use_uniform("viewProjection", camera.projection() * camera.view());
                 program.use_uniform("transformation", self.transformation);

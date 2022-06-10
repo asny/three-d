@@ -136,7 +136,7 @@ impl Geometry for Skybox {
             &include_str!("shaders/skybox.vert"),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, lights)?;
+                material.use_uniforms(program, camera, lights);
                 program.use_uniform("view", camera.view());
                 program.use_uniform("projection", camera.projection());
                 program.use_vertex_attribute("position", &self.vertex_buffer)?;

@@ -57,14 +57,14 @@ pub trait Light {
     /// This function should return the color contribution for this light on the surface with the given surface parameters.
     fn shader_source(&self, i: u32) -> String;
     /// Should bind the uniforms that is needed for calculating this lights contribution to the color in [Light::shader_source].
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()>;
+    fn use_uniforms(&self, program: &Program, i: u32);
 }
 
 impl<T: Light + ?Sized> Light for &T {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         (*self).use_uniforms(program, i)
     }
 }
@@ -73,7 +73,7 @@ impl<T: Light + ?Sized> Light for &mut T {
     fn shader_source(&self, i: u32) -> String {
         (**self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         (**self).use_uniforms(program, i)
     }
 }
@@ -82,7 +82,7 @@ impl<T: Light> Light for Box<T> {
     fn shader_source(&self, i: u32) -> String {
         self.as_ref().shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         self.as_ref().use_uniforms(program, i)
     }
 }
@@ -91,7 +91,7 @@ impl<T: Light> Light for std::rc::Rc<T> {
     fn shader_source(&self, i: u32) -> String {
         self.as_ref().shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         self.as_ref().use_uniforms(program, i)
     }
 }
@@ -100,7 +100,7 @@ impl<T: Light> Light for std::rc::Rc<std::cell::RefCell<T>> {
     fn shader_source(&self, i: u32) -> String {
         self.borrow().shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         self.borrow().use_uniforms(program, i)
     }
 }
