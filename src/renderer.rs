@@ -29,13 +29,6 @@ pub mod object;
 pub use object::*;
 
 pub use crate::ThreeDResult;
-use thiserror::Error;
-///
-/// Error in the [renderer](crate::renderer) module.
-///
-#[derive(Debug, Error)]
-#[allow(missing_docs)]
-pub enum RendererError {}
 
 impl<'a> DepthTarget<'a> {
     ///
