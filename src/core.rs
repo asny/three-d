@@ -103,20 +103,6 @@ pub enum CoreError {
     MissingBitangent,
     #[error("{0} buffer length must be {1}, actual length is {2}")]
     InvalidBufferLength(String, usize, usize),
-    #[error("mesh must have both normals and uv coordinates to be able to compute tangents")]
-    FailedComputingTangents,
-    #[error("the number of vertices must be divisable by 3, actual count is {0}")]
-    InvalidNumberOfVertices(usize),
-    #[error("data for element at index {0} has length {1} but a length of {2} was expected")]
-    InvalidUniformBufferElementLength(u32, usize, usize),
-    #[error("the index {0} is outside the expected range [0, {1}]")]
-    IndexOutOfRange(usize, usize),
-    #[error("cannot take as input a negative minimum distance")]
-    NegativeDistance,
-    #[error("a minimum must be smaller than a maximum")]
-    MinimumLargerThanMaximum,
-    #[error("the transformation matrix cannot be inverted and is therefore invalid")]
-    FailedInvertingTransformationMatrix,
     #[error("the material {0} is required by the geometry {1} but could not be found")]
     MissingMaterial(String, String),
 }
