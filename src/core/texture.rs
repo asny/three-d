@@ -180,14 +180,13 @@ fn check_data_length<T: TextureDataType>(
     depth: u32,
     data_byte_size: usize,
     data: &[T],
-) -> ThreeDResult<()> {
+) {
     let expected_bytes = width as usize * height as usize * depth as usize * data_byte_size;
     let actual_bytes = data.len() * std::mem::size_of::<T>();
     if expected_bytes != actual_bytes {
-        Err(CoreError::InvalidTextureLength(
-            actual_bytes,
-            expected_bytes,
-        ))?;
+        panic!(
+            "invalid size of texture data (got {} bytes but expected {} bytes)",
+            expected_bytes, actual_bytes
+        )
     }
-    Ok(())
 }

@@ -91,16 +91,8 @@ pub enum CoreError {
     ReadWrongFormat,
     #[error("failed creating a new texture: {0}")]
     TextureCreation(String),
-    #[error("invalid size of texture data (got {0} bytes but expected {1} bytes)")]
-    InvalidTextureLength(usize, usize),
     #[error("all of the images used for cube map sides must have the same texture data type")]
     InvalidCubeMapTextureDataType,
-    #[error("the render call requires the {0} vertex buffer which is missing on the given mesh")]
-    MissingMeshBuffer(String),
-    #[error(
-        "if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'"
-    )]
-    MissingBitangent,
     #[error("{0} buffer length must be {1}, actual length is {2}")]
     InvalidBufferLength(String, usize, usize),
     #[error("the material {0} is required by the geometry {1} but could not be found")]

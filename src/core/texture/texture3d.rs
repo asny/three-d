@@ -125,7 +125,7 @@ impl Texture3D {
             self.depth,
             self.data_byte_size,
             data,
-        )?;
+        );
         self.bind();
         unsafe {
             self.context.tex_sub_image_3d(

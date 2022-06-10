@@ -372,12 +372,12 @@ impl TextureCubeMap {
         front_data: &[T],
         back_data: &[T],
     ) -> ThreeDResult<()> {
-        check_data_length(self.width, self.height, 1, self.data_byte_size, right_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, left_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, top_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, bottom_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, front_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, back_data)?;
+        check_data_length(self.width, self.height, 1, self.data_byte_size, right_data);
+        check_data_length(self.width, self.height, 1, self.data_byte_size, left_data);
+        check_data_length(self.width, self.height, 1, self.data_byte_size, top_data);
+        check_data_length(self.width, self.height, 1, self.data_byte_size, bottom_data);
+        check_data_length(self.width, self.height, 1, self.data_byte_size, front_data);
+        check_data_length(self.width, self.height, 1, self.data_byte_size, back_data);
         self.bind();
         for i in 0..6 {
             let data = match i {
