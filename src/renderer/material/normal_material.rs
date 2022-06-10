@@ -68,7 +68,7 @@ impl Material for NormalMaterial {
         _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         if let Some(ref tex) = self.normal_texture {
-            program.use_uniform("normalScale", &self.normal_scale)?;
+            program.use_uniform("normalScale", &self.normal_scale);
             program.use_texture("normalTexture", tex)?;
         }
         Ok(())

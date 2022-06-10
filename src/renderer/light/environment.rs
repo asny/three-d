@@ -96,8 +96,8 @@ impl Environment {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
                 for side in CubeMapSide::iter() {
                     effect.use_texture_cube("environmentMap", environment_map)?;
-                    effect.use_uniform("roughness", &roughness)?;
-                    effect.use_uniform("resolution", &(environment_map.width() as f32))?;
+                    effect.use_uniform("roughness", &roughness);
+                    effect.use_uniform("resolution", &(environment_map.width() as f32));
                     let color_target = prefilter_map.as_color_target(side, Some(mip));
                     color_target.clear(ClearState::default())?.write(|| {
                         effect.render(

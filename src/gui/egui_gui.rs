@@ -203,7 +203,7 @@ impl GUI {
 
         self.program.use_texture("u_sampler", texture)?;
         self.program
-            .use_uniform("u_screen_size", vec2(width as f32, height as f32))?;
+            .use_uniform("u_screen_size", vec2(width as f32, height as f32));
 
         self.program
             .use_vertex_attribute("a_pos", &position_buffer)?;

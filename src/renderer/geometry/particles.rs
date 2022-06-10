@@ -181,11 +181,11 @@ impl Geometry for Particles {
             |program| {
                 material.use_uniforms(program, camera, lights)?;
 
-                program.use_uniform("modelMatrix", &self.transformation)?;
-                program.use_uniform("acceleration", &self.acceleration)?;
-                program.use_uniform("time", &self.time)?;
-                program.use_uniform("projection", camera.projection())?;
-                program.use_uniform("view", camera.view())?;
+                program.use_uniform("modelMatrix", &self.transformation);
+                program.use_uniform("acceleration", &self.acceleration);
+                program.use_uniform("time", &self.time);
+                program.use_uniform("projection", camera.projection());
+                program.use_uniform("view", camera.view());
 
                 program.use_instance_attribute("start_position", &self.start_position_buffer)?;
                 program.use_instance_attribute("start_velocity", &self.start_velocity_buffer)?;
@@ -202,7 +202,7 @@ impl Geometry for Particles {
                     let normal_buffer = self
                         .normal_buffer
                         .as_ref().expect(&format!("the render call requires the normal vertex buffer which is missing on the given geometry"));
-                    program.use_uniform("normalMatrix", &self.normal_transformation)?;
+                    program.use_uniform("normalMatrix", &self.normal_transformation);
                     program.use_vertex_attribute("normal", normal_buffer)?;
                 }
 

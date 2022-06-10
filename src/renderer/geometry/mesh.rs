@@ -142,13 +142,13 @@ impl Geometry for Mesh {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                program.use_uniform("viewProjection", camera.projection() * camera.view())?;
-                program.use_uniform("modelMatrix", &self.transformation)?;
-                program.use_uniform_if_required("textureTransform", &self.texture_transform)?;
+                program.use_uniform("viewProjection", camera.projection() * camera.view());
+                program.use_uniform("modelMatrix", &self.transformation);
+                program.use_uniform_if_required("textureTransform", &self.texture_transform);
                 program.use_uniform_if_required(
                     "normalMatrix",
                     &self.transformation.invert().unwrap().transpose(),
-                )?;
+                );
 
                 for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
                     if program.requires_attribute(attribute_name) {

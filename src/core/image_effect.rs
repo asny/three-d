@@ -73,7 +73,7 @@ impl ImageEffect {
         self.program
             .use_vertex_attribute("uv_coordinates", &self.uvs)?;
         self.program
-            .use_uniform("textureTransform", &self.texture_transform)?;
+            .use_uniform("textureTransform", &self.texture_transform);
         self.program.draw_arrays(render_states, viewport, 3)?;
         Ok(())
     }

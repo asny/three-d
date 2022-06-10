@@ -39,12 +39,12 @@ impl Material for IsosurfaceMaterial {
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32)?;
         }
-        program.use_uniform("cameraPosition", camera.position())?;
-        program.use_uniform("surfaceColor", self.color)?;
-        program.use_uniform("metallic", self.metallic)?;
-        program.use_uniform_if_required("roughness", self.roughness)?;
-        program.use_uniform("size", self.size)?;
-        program.use_uniform("threshold", self.threshold)?;
+        program.use_uniform("cameraPosition", camera.position());
+        program.use_uniform("surfaceColor", self.color);
+        program.use_uniform("metallic", self.metallic);
+        program.use_uniform_if_required("roughness", self.roughness);
+        program.use_uniform("size", self.size);
+        program.use_uniform("threshold", self.threshold);
         program.use_uniform(
             "h",
             vec3(
@@ -52,7 +52,7 @@ impl Material for IsosurfaceMaterial {
                 1.0 / self.voxels.height() as f32,
                 1.0 / self.voxels.depth() as f32,
             ),
-        )?;
+        );
         program.use_texture_3d("tex", &self.voxels)
     }
     fn render_states(&self) -> RenderStates {

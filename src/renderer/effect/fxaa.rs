@@ -34,7 +34,7 @@ impl FXAAEffect {
         self.image_effect.use_uniform(
             "resolution",
             vec2(texture.width() as f32, texture.height() as f32),
-        )?;
+        );
 
         self.image_effect.apply(render_states, viewport)?;
         Ok(())
