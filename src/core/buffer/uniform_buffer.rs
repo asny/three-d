@@ -52,48 +52,53 @@ impl UniformBuffer {
     ///
     /// Update the values of the variable at the given index with the given data.
     ///
-    /// # Errors
-    /// Will return an error if the index is not in the range `[0-max]` where `max` is the length of the `sizes` argument given at construction.
-    /// Will return an error if the data length does not match the element count of the variable (defined at construction) at the given index.
+    /// # Panic
+    /// Will panic if the index is not in the range `[0-max]` where `max` is the length of the `sizes` argument given at construction.
+    /// Will panic if the data length does not match the element count of the variable (defined at construction) at the given index.
     ///
-    pub fn update(&mut self, index: u32, data: &[f32]) -> ThreeDResult<()> {
-        let (offset, length) = self.offset_length(index as usize)?;
-        if data.len() != length {
-            Err(CoreError::InvalidUniformBufferElementLength(
-                index,
-                data.len(),
-                length,
-            ))?;
-        }
-        self.data
-            .splice(offset..offset + length, data.iter().cloned());
-        self.send();
-        //TODO: Send to GPU (contextBufferSubData)
-        self.context.error_check()
-    }
-
-    ///
-    /// Returns the values of the variable at the given index.
-    ///
-    /// # Errors
-    /// Will return an error if the index is not in the range `[0-max]` where `max` is the length of the `sizes` argument given at construction.
-    ///
-    pub fn get(&self, index: u32) -> ThreeDResult<&[f32]> {
-        let (offset, length) = self.offset_length(index as usize)?;
-        Ok(&self.data[offset..offset + length])
-    }
-
-    fn offset_length(&self, index: usize) -> ThreeDResult<(usize, usize)> {
-        if index >= self.offsets.len() {
-            Err(CoreError::IndexOutOfRange(index, self.offsets.len() - 1))?;
-        }
-        let offset = self.offsets[index];
-        let length = if index + 1 == self.offsets.len() {
-            self.data.len()
+    pub fn update(&mut self, index: u32, data: &[f32]) {
+        if let Some((offset, length)) = self.offset_length(index as usize) {
+            if data.len() != length {
+                panic!(
+                    "data for element at index {0} has length {1} but a length of {2} was expected",
+                    index,
+                    data.len(),
+                    length,
+                );
+            }
+            self.data
+                .splice(offset..offset + length, data.iter().cloned());
+            self.send();
         } else {
-            self.offsets[index + 1]
-        } - offset;
-        Ok((offset, length))
+            panic!(
+                "the index {} is outside the expected range [0, {}]",
+                index,
+                self.offsets.len() - 1
+            );
+        }
+        //TODO: Send to GPU (contextBufferSubData)
+    }
+
+    ///
+    /// Returns the values of the variable at the given index if inside the range of variables, otherwise `None`.
+    ///
+    pub fn get(&self, index: u32) -> Option<&[f32]> {
+        self.offset_length(index as usize)
+            .map(|(offset, length)| &self.data[offset..offset + length])
+    }
+
+    fn offset_length(&self, index: usize) -> Option<(usize, usize)> {
+        if index >= self.offsets.len() {
+            None
+        } else {
+            let offset = self.offsets[index];
+            let length = if index + 1 == self.offsets.len() {
+                self.data.len()
+            } else {
+                self.offsets[index + 1]
+            } - offset;
+            Some((offset, length))
+        }
     }
 
     fn send(&self) {
