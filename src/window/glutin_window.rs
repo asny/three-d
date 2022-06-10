@@ -152,19 +152,21 @@ impl Window {
                         first_frame = false;
                         events.clear();
                         let mut frame_output = callback(frame_input);
-                        #[cfg(feature = "image")]
                         if let Ok(ref v) = std::env::var("THREE_D_SCREENSHOT") {
-                            let mut pixels =
+                            let pixels =
                                 RenderTarget::screen(&context, physical_width, physical_height)
                                     .read_color::<[u8; 4]>()
                                     .unwrap();
-                            image::save_buffer(
-                                &std::path::Path::new(v),
-                                &pixels.drain(..).flatten().collect::<Vec<_>>(),
-                                physical_width as u32,
-                                physical_height as u32,
-                                image::ColorType::Rgba8,
-                            )
+                            use three_d_asset::io::Serialize;
+                            CpuTexture {
+                                data: TextureData::RgbaU8(pixels),
+                                width: physical_width,
+                                height: physical_height,
+                                ..Default::default()
+                            }
+                            .serialize(v)
+                            .unwrap()
+                            .save()
                             .unwrap();
                         }
                         if let Ok(v) = std::env::var("THREE_D_EXIT") {
