@@ -298,7 +298,7 @@ impl TextureCubeMap {
             bottom_data,
             front_data,
             back_data,
-        )?;
+        );
         Ok(texture)
     }
 
@@ -371,7 +371,7 @@ impl TextureCubeMap {
         bottom_data: &[T],
         front_data: &[T],
         back_data: &[T],
-    ) -> ThreeDResult<()> {
+    ) {
         check_data_length(self.width, self.height, 1, self.data_byte_size, right_data);
         check_data_length(self.width, self.height, 1, self.data_byte_size, left_data);
         check_data_length(self.width, self.height, 1, self.data_byte_size, top_data);
@@ -404,7 +404,6 @@ impl TextureCubeMap {
             }
         }
         self.generate_mip_maps();
-        self.context.error_check()
     }
 
     ///
