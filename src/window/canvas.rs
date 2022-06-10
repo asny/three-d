@@ -106,15 +106,18 @@ impl Window {
     ///
     pub fn size(&self) -> ThreeDResult<(u32, u32)> {
         let canvas = self.canvas.as_ref().ok_or(CanvasError::CanvasMissing)?;
-        Ok((canvas.width(), canvas.height()))
+        Ok((
+            canvas.width() / device_pixel_ratio,
+            canvas.height() / device_pixel_ratio,
+        ))
     }
 
     ///
     /// Returns the current viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
     ///
     pub fn viewport(&self) -> ThreeDResult<Viewport> {
-        let (w, h) = self.size()?;
-        Ok(Viewport::new_at_origo(w, h))
+        let canvas = self.canvas.as_ref().ok_or(CanvasError::CanvasMissing)?;
+        Ok(Viewport::new_at_origo(canvas.width(), canvas.height()))
     }
 
     ///
