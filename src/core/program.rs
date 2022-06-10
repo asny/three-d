@@ -310,113 +310,94 @@ impl Program {
     /// Use the given [Texture2D] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture(&self, name: &str, texture: &Texture2D) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_texture(&self, name: &str, texture: &Texture2D) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given [DepthTargetTexture2D] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_depth_texture(
-        &self,
-        name: &str,
-        texture: &DepthTargetTexture2D,
-    ) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_depth_texture(&self, name: &str, texture: &DepthTargetTexture2D) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given texture array in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture_array(&self, name: &str, texture: &Texture2DArray) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_texture_array(&self, name: &str, texture: &Texture2DArray) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given texture array in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_depth_texture_array(
-        &self,
-        name: &str,
-        texture: &DepthTargetTexture2DArray,
-    ) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_depth_texture_array(&self, name: &str, texture: &DepthTargetTexture2DArray) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given texture cube map in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture_cube(&self, name: &str, texture: &TextureCubeMap) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_texture_cube(&self, name: &str, texture: &TextureCubeMap) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given texture cube map in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_depth_texture_cube(
-        &self,
-        name: &str,
-        texture: &DepthTargetTextureCubeMap,
-    ) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_depth_texture_cube(&self, name: &str, texture: &DepthTargetTextureCubeMap) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given 3D texture in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler3D` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture_3d(&self, name: &str, texture: &Texture3D) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_texture_3d(&self, name: &str, texture: &Texture3D) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
-    fn use_texture_internal(&self, name: &str) -> ThreeDResult<u32> {
+    fn use_texture_internal(&self, name: &str) -> u32 {
         if !self.textures.borrow().contains_key(name) {
             let mut map = self.textures.borrow_mut();
             let index = map.len() as u32;
@@ -428,7 +409,7 @@ impl Program {
             self.context
                 .active_texture(crate::context::TEXTURE0 + index);
         }
-        Ok(index)
+        index
     }
 
     ///

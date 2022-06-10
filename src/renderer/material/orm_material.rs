@@ -104,11 +104,11 @@ impl Material for ORMMaterial {
         program.use_uniform("metallic", &self.metallic);
         program.use_uniform("roughness", &self.roughness);
         if let Some(ref texture) = self.metallic_roughness_texture {
-            program.use_texture("metallicRoughnessTexture", texture)?;
+            program.use_texture("metallicRoughnessTexture", texture);
         }
         if let Some(ref texture) = self.occlusion_texture {
             program.use_uniform("occlusionStrength", &self.occlusion_strength);
-            program.use_texture("occlusionTexture", texture)?;
+            program.use_texture("occlusionTexture", texture);
         }
         Ok(())
     }

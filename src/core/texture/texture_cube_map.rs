@@ -450,7 +450,7 @@ impl TextureCubeMap {
             let effect = ImageCubeEffect::new(context, fragment_shader_source)?;
 
             for side in CubeMapSide::iter() {
-                effect.use_texture("equirectangularMap", &map)?;
+                effect.use_texture("equirectangularMap", &map);
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
                     .as_color_target(side, None)

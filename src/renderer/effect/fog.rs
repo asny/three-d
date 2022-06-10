@@ -56,7 +56,7 @@ impl FogEffect {
         };
 
         self.image_effect
-            .use_depth_texture("depthMap", depth_texture)?;
+            .use_depth_texture("depthMap", depth_texture);
         self.image_effect.use_uniform(
             "viewProjectionInverse",
             (camera.projection() * camera.view()).invert().unwrap(),

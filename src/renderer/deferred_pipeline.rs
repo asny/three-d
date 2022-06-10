@@ -170,8 +170,8 @@ impl DeferredPipeline {
             for (i, light) in lights.iter().enumerate() {
                 light.use_uniforms(effect, i as u32)?;
             }
-            effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
-            effect.use_depth_texture("depthMap", self.geometry_pass_depth_texture())?;
+            effect.use_texture_array("gbuffer", self.geometry_pass_texture());
+            effect.use_depth_texture("depthMap", self.geometry_pass_depth_texture());
             effect.use_uniform_if_required(
                 "viewProjectionInverse",
                 (camera.projection() * camera.view()).invert().unwrap(),
