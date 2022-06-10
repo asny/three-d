@@ -179,7 +179,7 @@ impl Geometry for Particles {
             &Self::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, lights)?;
+                material.use_uniforms(program, camera, lights);
 
                 program.use_uniform("modelMatrix", &self.transformation);
                 program.use_uniform("acceleration", &self.acceleration);

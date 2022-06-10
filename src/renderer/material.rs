@@ -87,12 +87,7 @@ pub trait Material {
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
     ///
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()>;
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]);
 
     ///
     /// Returns the render states needed to render with this material.
@@ -129,12 +124,7 @@ impl<T: Material + ?Sized> Material for &T {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         (*self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {
@@ -149,12 +139,7 @@ impl<T: Material + ?Sized> Material for &mut T {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         (**self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         (**self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {
@@ -170,12 +155,7 @@ impl<T: Material> Material for Box<T> {
         self.as_ref()
             .fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {
@@ -191,12 +171,7 @@ impl<T: Material> Material for std::rc::Rc<T> {
         self.as_ref()
             .fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {
@@ -212,12 +187,7 @@ impl<T: Material> Material for std::rc::Rc<std::cell::RefCell<T>> {
         self.borrow()
             .fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.borrow().use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {

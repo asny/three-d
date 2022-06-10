@@ -95,12 +95,7 @@ impl Material for ORMMaterial {
         output
     }
 
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        _camera: &Camera,
-        _lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", &self.metallic);
         program.use_uniform("roughness", &self.roughness);
         if let Some(ref texture) = self.metallic_roughness_texture {
@@ -110,7 +105,6 @@ impl Material for ORMMaterial {
             program.use_uniform("occlusionStrength", &self.occlusion_strength);
             program.use_texture("occlusionTexture", texture);
         }
-        Ok(())
     }
 
     fn render_states(&self) -> RenderStates {

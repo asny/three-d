@@ -14,15 +14,9 @@ impl Material for SkyboxMaterial {
         )
     }
 
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        _camera: &Camera,
-        _lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("isHDR", if self.texture.is_hdr() { 1 } else { 0 });
         program.use_texture_cube("texture0", &self.texture);
-        Ok(())
     }
 
     fn render_states(&self) -> RenderStates {

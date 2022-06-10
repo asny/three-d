@@ -152,7 +152,7 @@ impl Light for DirectionalLight {
                 ", i, i, i, i, i)
         }
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         if let Some(ref tex) = self.shadow_texture {
             program.use_depth_texture(&format!("shadowMap{}", i), tex);
             program.use_uniform(&format!("shadowMVP{}", i), &self.shadow_matrix);
@@ -162,6 +162,5 @@ impl Light for DirectionalLight {
             &(self.color.to_vec3() * self.intensity),
         );
         program.use_uniform(&format!("direction{}", i), &self.direction.normalize());
-        Ok(())
     }
 }

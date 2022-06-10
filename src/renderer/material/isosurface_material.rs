@@ -30,14 +30,9 @@ impl Material for IsosurfaceMaterial {
         output.push_str(include_str!("shaders/isosurface_material.frag"));
         output
     }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         for (i, light) in lights.iter().enumerate() {
-            light.use_uniforms(program, i as u32)?;
+            light.use_uniforms(program, i as u32);
         }
         program.use_uniform("cameraPosition", camera.position());
         program.use_uniform("surfaceColor", self.color);
@@ -54,7 +49,6 @@ impl Material for IsosurfaceMaterial {
             ),
         );
         program.use_texture_3d("tex", &self.voxels);
-        Ok(())
     }
     fn render_states(&self) -> RenderStates {
         RenderStates {
