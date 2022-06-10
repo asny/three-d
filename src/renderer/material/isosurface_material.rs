@@ -53,7 +53,8 @@ impl Material for IsosurfaceMaterial {
                 1.0 / self.voxels.depth() as f32,
             ),
         );
-        program.use_texture_3d("tex", &self.voxels)
+        program.use_texture_3d("tex", &self.voxels);
+        Ok(())
     }
     fn render_states(&self) -> RenderStates {
         RenderStates {

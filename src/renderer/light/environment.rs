@@ -60,7 +60,7 @@ impl Environment {
             );
             let effect = ImageCubeEffect::new(context, &fragment_shader_source)?;
             for side in CubeMapSide::iter() {
-                effect.use_texture_cube("environmentMap", environment_map)?;
+                effect.use_texture_cube("environmentMap", environment_map);
                 let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
                 irradiance_map
                     .as_color_target(side, None)
@@ -95,7 +95,7 @@ impl Environment {
             for mip in 0..max_mip_levels {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
                 for side in CubeMapSide::iter() {
-                    effect.use_texture_cube("environmentMap", environment_map)?;
+                    effect.use_texture_cube("environmentMap", environment_map);
                     effect.use_uniform("roughness", &roughness);
                     effect.use_uniform("resolution", &(environment_map.width() as f32));
                     let color_target = prefilter_map.as_color_target(side, Some(mip));

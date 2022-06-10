@@ -201,7 +201,7 @@ impl GUI {
             ..Default::default()
         };
 
-        self.program.use_texture("u_sampler", texture)?;
+        self.program.use_texture("u_sampler", texture);
         self.program
             .use_uniform("u_screen_size", vec2(width as f32, height as f32));
 

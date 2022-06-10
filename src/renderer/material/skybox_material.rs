@@ -21,7 +21,7 @@ impl Material for SkyboxMaterial {
         _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         program.use_uniform("isHDR", if self.texture.is_hdr() { 1 } else { 0 });
-        program.use_texture_cube("texture0", &self.texture)?;
+        program.use_texture_cube("texture0", &self.texture);
         Ok(())
     }
 

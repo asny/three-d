@@ -163,8 +163,8 @@ impl DeferredPhysicalMaterial {
             for (i, light) in lights.iter().enumerate() {
                 light.use_uniforms(effect, i as u32)?;
             }
-            effect.use_texture_array("gbuffer", geometry_pass_texture)?;
-            effect.use_depth_texture("depthMap", geometry_pass_depth_texture)?;
+            effect.use_texture_array("gbuffer", geometry_pass_texture);
+            effect.use_depth_texture("depthMap", geometry_pass_depth_texture);
             effect.use_uniform_if_required(
                 "viewProjectionInverse",
                 (camera.projection() * camera.view()).invert().unwrap(),
@@ -242,22 +242,22 @@ impl Material for DeferredPhysicalMaterial {
         program.use_uniform("albedo", self.albedo);
         program.use_uniform("emissive", self.emissive);
         if let Some(ref texture) = self.albedo_texture {
-            program.use_texture("albedoTexture", texture)?;
+            program.use_texture("albedoTexture", texture);
         }
         if let Some(ref texture) = self.metallic_roughness_texture {
-            program.use_texture("metallicRoughnessTexture", texture)?;
+            program.use_texture("metallicRoughnessTexture", texture);
         }
         if let Some(ref texture) = self.occlusion_texture {
             program.use_uniform("occlusionStrength", self.occlusion_strength);
-            program.use_texture("occlusionTexture", texture)?;
+            program.use_texture("occlusionTexture", texture);
         }
         if let Some(ref texture) = self.normal_texture {
             program.use_uniform("normalScale", self.normal_scale);
-            program.use_texture("normalTexture", texture)?;
+            program.use_texture("normalTexture", texture);
         }
         if program.requires_uniform("emissiveTexture") {
             if let Some(ref texture) = self.emissive_texture {
-                program.use_texture("emissiveTexture", texture)?;
+                program.use_texture("emissiveTexture", texture);
             }
         }
         Ok(())

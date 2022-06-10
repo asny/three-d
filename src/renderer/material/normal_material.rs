@@ -69,7 +69,7 @@ impl Material for NormalMaterial {
     ) -> ThreeDResult<()> {
         if let Some(ref tex) = self.normal_texture {
             program.use_uniform("normalScale", &self.normal_scale);
-            program.use_texture("normalTexture", tex)?;
+            program.use_texture("normalTexture", tex);
         }
         Ok(())
     }

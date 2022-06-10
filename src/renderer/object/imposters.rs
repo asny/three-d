@@ -214,7 +214,7 @@ impl Material for ImpostersMaterial {
     ) -> ThreeDResult<()> {
         program.use_uniform("no_views", &(NO_VIEW_ANGLES as i32));
         program.use_uniform("view", camera.view());
-        program.use_texture_array("tex", &self.texture)?;
+        program.use_texture_array("tex", &self.texture);
         Ok(())
     }
 

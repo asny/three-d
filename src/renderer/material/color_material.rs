@@ -104,7 +104,7 @@ impl Material for ColorMaterial {
     ) -> ThreeDResult<()> {
         program.use_uniform("surfaceColor", self.color);
         if let Some(ref tex) = self.texture {
-            program.use_texture("tex", tex)?
+            program.use_texture("tex", tex);
         }
         Ok(())
     }
