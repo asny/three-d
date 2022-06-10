@@ -27,7 +27,8 @@ impl Material for FireworksMaterial {
                 self.color.z * self.fade,
                 1.0,
             ),
-        )
+        );
+        Ok(())
     }
     fn render_states(&self) -> RenderStates {
         RenderStates {

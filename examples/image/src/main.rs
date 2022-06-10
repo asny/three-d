@@ -76,7 +76,7 @@ pub async fn run() {
                 .unwrap()
                 .write(|| {
                     image_effect.use_texture("image", &image)?;
-                    image_effect.use_uniform("parameter", tone_mapping)?;
+                    image_effect.use_uniform("parameter", tone_mapping);
                     image_effect.apply(RenderStates::default(), viewport)?;
                     gui.render()?;
                     Ok(())

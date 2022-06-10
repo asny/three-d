@@ -138,29 +138,23 @@ impl Program {
     /// The glsl shader variable must be of type `uniform int` if the data is an integer, `uniform vec2` if it is of type [Vec2] etc.
     /// The uniform variable is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined or not used in the shader code.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
+    pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) {
+        let location = self.get_uniform_location(name);
         T::send_uniform(&self.context, location, &[data]);
         self.unuse_program();
-        self.context.error_check()
     }
 
     ///
     /// Calls [Self::use_uniform] if [Self::requires_uniform] returns true.
     ///
-    pub fn use_uniform_if_required<T: UniformDataType>(
-        &self,
-        name: &str,
-        data: T,
-    ) -> ThreeDResult<()> {
+    pub fn use_uniform_if_required<T: UniformDataType>(&self, name: &str, data: T) {
         if self.requires_uniform(name) {
-            self.use_uniform(name, data)?;
+            self.use_uniform(name, data);
         }
-        Ok(())
     }
 
     ///
@@ -172,15 +166,10 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_uniform_array<T: UniformDataType>(
-        &self,
-        name: &str,
-        data: &[T],
-    ) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
+    pub fn use_uniform_array<T: UniformDataType>(&self, name: &str, data: &[T]) {
+        let location = self.get_uniform_location(name);
         T::send_uniform(&self.context, location, data);
         self.unuse_program();
-        self.context.error_check()
     }
 
     ///
@@ -191,8 +180,10 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_uniform"]
     pub fn use_uniform_int(&self, name: &str, data: &i32) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
+        self.use_uniform(name, data);
+        Ok(())
     }
 
     ///
@@ -203,8 +194,10 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_uniform"]
     pub fn use_uniform_float(&self, name: &str, data: &f32) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
+        self.use_uniform(name, data);
+        Ok(())
     }
 
     ///
@@ -215,8 +208,10 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_uniform"]
     pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
+        self.use_uniform(name, data);
+        Ok(())
     }
 
     ///
@@ -227,8 +222,10 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_uniform"]
     pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
+        self.use_uniform(name, data);
+        Ok(())
     }
 
     ///
@@ -239,8 +236,10 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_uniform"]
     pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
+        self.use_uniform(name, data);
+        Ok(())
     }
 
     ///
@@ -251,8 +250,10 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_uniform"]
     pub fn use_uniform_quat(&self, name: &str, data: &Quat) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
+        self.use_uniform(name, data);
+        Ok(())
     }
 
     ///
@@ -263,8 +264,10 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_uniform"]
     pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
+        self.use_uniform(name, data);
+        Ok(())
     }
 
     ///
@@ -275,8 +278,10 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_uniform"]
     pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
+        self.use_uniform(name, data);
+        Ok(())
     }
 
     ///
@@ -287,17 +292,18 @@ impl Program {
     /// Will return an error if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
+    #[deprecated = "use use_uniform"]
     pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
+        self.use_uniform(name, data);
+        Ok(())
     }
 
-    fn get_uniform_location(&self, name: &str) -> ThreeDResult<&crate::context::UniformLocation> {
+    fn get_uniform_location(&self, name: &str) -> &crate::context::UniformLocation {
         self.use_program();
-        let loc = self
-            .uniforms
-            .get(name)
-            .ok_or_else(|| CoreError::UnusedUniform(name.to_string()))?;
-        Ok(loc)
+        self.uniforms.get(name).expect(&format!(
+            "the uniform {} is sent to the shader but not defined or never used",
+            name
+        ))
     }
 
     ///
@@ -417,7 +423,7 @@ impl Program {
             map.insert(name.to_owned(), index);
         };
         let index = self.textures.borrow().get(name).unwrap().clone();
-        self.use_uniform(name, index as i32)?;
+        self.use_uniform(name, index as i32);
         unsafe {
             self.context
                 .active_texture(crate::context::TEXTURE0 + index);
@@ -428,13 +434,16 @@ impl Program {
     ///
     /// Use the given [UniformBuffer] in this shader program and associate it with the given named variable.
     ///
-    pub fn use_uniform_block(&self, name: &str, buffer: &UniformBuffer) -> ThreeDResult<()> {
+    pub fn use_uniform_block(&self, name: &str, buffer: &UniformBuffer) {
         if !self.uniform_blocks.borrow().contains_key(name) {
             let mut map = self.uniform_blocks.borrow_mut();
             let location = unsafe {
                 self.context
                     .get_uniform_block_index(self.id, name)
-                    .ok_or(CoreError::UnusedUniform(name.to_string()))?
+                    .expect(&format!(
+                        "the uniform block {} is sent to the shader but not defined or never used",
+                        name
+                    ))
             };
             let index = map.len() as u32;
             map.insert(name.to_owned(), (location, index));
@@ -446,7 +455,6 @@ impl Program {
             self.context
                 .bind_buffer(crate::context::UNIFORM_BUFFER, None);
         }
-        self.context.error_check()
     }
 
     ///

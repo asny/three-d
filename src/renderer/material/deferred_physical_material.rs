@@ -159,7 +159,7 @@ impl DeferredPhysicalMaterial {
         fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
 
         context.effect(&fragment_shader, |effect| {
-            effect.use_uniform_if_required("cameraPosition", camera.position())?;
+            effect.use_uniform_if_required("cameraPosition", camera.position());
             for (i, light) in lights.iter().enumerate() {
                 light.use_uniforms(effect, i as u32)?;
             }
@@ -168,8 +168,8 @@ impl DeferredPhysicalMaterial {
             effect.use_uniform_if_required(
                 "viewProjectionInverse",
                 (camera.projection() * camera.view()).invert().unwrap(),
-            )?;
-            effect.use_uniform("debug_type", DebugType::NONE as i32)?;
+            );
+            effect.use_uniform("debug_type", DebugType::NONE as i32);
             effect.apply(
                 RenderStates {
                     depth_test: DepthTest::LessOrEqual,
@@ -237,10 +237,10 @@ impl Material for DeferredPhysicalMaterial {
         _camera: &Camera,
         _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        program.use_uniform("metallic", self.metallic)?;
-        program.use_uniform("roughness", self.roughness)?;
-        program.use_uniform("albedo", self.albedo)?;
-        program.use_uniform("emissive", self.emissive)?;
+        program.use_uniform("metallic", self.metallic);
+        program.use_uniform("roughness", self.roughness);
+        program.use_uniform("albedo", self.albedo);
+        program.use_uniform("emissive", self.emissive);
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture)?;
         }
@@ -248,11 +248,11 @@ impl Material for DeferredPhysicalMaterial {
             program.use_texture("metallicRoughnessTexture", texture)?;
         }
         if let Some(ref texture) = self.occlusion_texture {
-            program.use_uniform("occlusionStrength", self.occlusion_strength)?;
+            program.use_uniform("occlusionStrength", self.occlusion_strength);
             program.use_texture("occlusionTexture", texture)?;
         }
         if let Some(ref texture) = self.normal_texture {
-            program.use_uniform("normalScale", self.normal_scale)?;
+            program.use_uniform("normalScale", self.normal_scale);
             program.use_texture("normalTexture", texture)?;
         }
         if program.requires_uniform("emissiveTexture") {
