@@ -447,10 +447,10 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_vertex_attribute(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
+    pub fn use_vertex_attribute(&self, name: &str, buffer: &VertexBuffer) {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(name)?;
+            let loc = self.location(name);
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
@@ -467,7 +467,6 @@ impl Program {
             }
             self.unuse_program();
         }
-        self.context.error_check()
     }
 
     ///
@@ -479,10 +478,10 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_instance_attribute(&self, name: &str, buffer: &InstanceBuffer) -> ThreeDResult<()> {
+    pub fn use_instance_attribute(&self, name: &str, buffer: &InstanceBuffer) {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(name)?;
+            let loc = self.location(name);
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
@@ -499,7 +498,6 @@ impl Program {
             }
             self.unuse_program();
         }
-        self.context.error_check()
     }
 
     ///
@@ -688,13 +686,12 @@ impl Program {
         self.attributes.contains_key(name)
     }
 
-    fn location(&self, name: &str) -> ThreeDResult<u32> {
+    fn location(&self, name: &str) -> u32 {
         self.use_program();
-        let location = self
-            .attributes
-            .get(name)
-            .ok_or_else(|| CoreError::UnusedAttribute(name.to_string()))?;
-        Ok(*location)
+        *self.attributes.get(name).expect(&format!(
+            "the attribute {} is sent to the shader but not defined or never used",
+            name
+        ))
     }
 
     fn use_program(&self) {

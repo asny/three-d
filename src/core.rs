@@ -81,8 +81,6 @@ pub enum CoreError {
     ShaderLink(String),
     #[error("the uniform {0} is sent to the shader but not defined or never used")]
     UnusedUniform(String),
-    #[error("the attribute {0} is sent to the shader but not defined or never used")]
-    UnusedAttribute(String),
     #[error("failed creating a new render target: {0}")]
     RenderTargetCreation(String),
     #[error("cannot read color from anything else but an RGBA texture")]

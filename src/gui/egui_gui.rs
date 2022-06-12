@@ -205,11 +205,9 @@ impl GUI {
         self.program
             .use_uniform("u_screen_size", vec2(width as f32, height as f32));
 
-        self.program
-            .use_vertex_attribute("a_pos", &position_buffer)?;
-        self.program
-            .use_vertex_attribute("a_srgba", &color_buffer)?;
-        self.program.use_vertex_attribute("a_tc", &uv_buffer)?;
+        self.program.use_vertex_attribute("a_pos", &position_buffer);
+        self.program.use_vertex_attribute("a_srgba", &color_buffer);
+        self.program.use_vertex_attribute("a_tc", &uv_buffer);
 
         self.program
             .draw_elements(render_states, viewport, &index_buffer)
