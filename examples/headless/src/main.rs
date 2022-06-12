@@ -75,16 +75,13 @@ fn main() {
             texture.as_color_target(None),
             depth_texture.as_depth_target(),
         )
-        .unwrap()
         // Clear color and depth of the render target
         .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-        .unwrap()
         // Render the triangle with the per vertex colors defined at construction
         .render(&camera, &[&model], &[])
         .unwrap()
         // Read out the colors from the render target
-        .read_color()
-        .unwrap();
+        .read_color();
 
         // Save the rendered image
         use three_d_asset::io::Serialize;

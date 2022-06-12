@@ -88,7 +88,6 @@ pub async fn run() {
                 depth_texture.as_mut().map(|dt| {
                     dt.as_depth_target()
                         .clear(ClearState::default())
-                        .unwrap()
                         .render_with_material(
                             &DepthMaterial::default(),
                             &camera,
@@ -102,7 +101,6 @@ pub async fn run() {
             frame_input
                 .screen()
                 .clear(ClearState::default())
-                .unwrap()
                 .render(&camera, &monkey.to_objects(), &[&ambient, &directional])
                 .unwrap()
                 .write(|| {

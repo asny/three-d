@@ -90,7 +90,6 @@ pub async fn run() {
                 frame_input
                     .screen()
                     .clear(ClearState::default())
-                    .unwrap()
                     .render(&camera, &objects, &[&ambient, &directional])
                     .unwrap();
             }

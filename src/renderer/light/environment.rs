@@ -64,7 +64,7 @@ impl Environment {
                 let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
                 irradiance_map
                     .as_color_target(side, None)
-                    .clear(ClearState::default())?
+                    .clear(ClearState::default())
                     .write(|| effect.render(side, RenderStates::default(), viewport))?;
             }
         }
@@ -99,7 +99,7 @@ impl Environment {
                     effect.use_uniform("roughness", &roughness);
                     effect.use_uniform("resolution", &(environment_map.width() as f32));
                     let color_target = prefilter_map.as_color_target(side, Some(mip));
-                    color_target.clear(ClearState::default())?.write(|| {
+                    color_target.clear(ClearState::default()).write(|| {
                         effect.render(
                             side,
                             RenderStates::default(),
@@ -134,7 +134,7 @@ impl Environment {
         let viewport = Viewport::new_at_origo(brdf_map.width(), brdf_map.height());
         brdf_map
             .as_color_target(None)
-            .clear(ClearState::default())?
+            .clear(ClearState::default())
             .write(|| effect.apply(RenderStates::default(), viewport))?;
 
         Ok(Self {

@@ -187,7 +187,6 @@ pub async fn run() {
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0))
-                .unwrap()
                 .render(
                     &camera,
                     &objects,
