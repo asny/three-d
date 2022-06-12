@@ -69,7 +69,7 @@ impl ImageCubeEffect {
                 vec3(-1.0, 1.0, 1.0),
                 vec3(-1.0, -1.0, -1.0),
             ],
-        )?;
+        );
         Ok(Self { program, positions })
     }
 

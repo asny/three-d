@@ -85,7 +85,7 @@ pub fn run() {
     ];
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
-    let mut particles = Particles::new(&context, &square).unwrap();
+    let mut particles = Particles::new(&context, &square);
     let mut fireworks_material = FireworksMaterial {
         color: vec3(0.0, 0.0, 0.0),
         fade: 0.0,
@@ -127,7 +127,7 @@ pub fn run() {
                             * explosion_direction,
                     });
                 }
-                particles.update(&data).unwrap();
+                particles.update(&data);
             }
 
             frame_input

@@ -64,8 +64,7 @@ pub async fn run() {
             &context,
             &edge_transformations(&cpu_model.geometries[0]),
             &cylinder,
-        )
-        .unwrap(),
+        ),
         wireframe_material.clone(),
     );
 
@@ -76,8 +75,7 @@ pub async fn run() {
             &context,
             &vertex_transformations(&cpu_model.geometries[0]),
             &sphere,
-        )
-        .unwrap(),
+        ),
         wireframe_material,
     );
 

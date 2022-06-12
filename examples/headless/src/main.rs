@@ -34,8 +34,7 @@ fn main() {
                 ]),
                 ..Default::default()
             },
-        )
-        .unwrap(),
+        ),
         ColorMaterial::default(),
     );
 

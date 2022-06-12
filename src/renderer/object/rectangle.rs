@@ -27,7 +27,7 @@ impl<M: Material> Rectangle<M> {
         let mut mesh = CpuMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5)))?;
         let mut rectangle = Self {
-            model: Gm::new(Mesh::new(context, &mesh)?, material),
+            model: Gm::new(Mesh::new(context, &mesh), material),
             context: context.clone(),
             width,
             height,

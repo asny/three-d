@@ -197,25 +197,25 @@ use std::collections::HashMap;
 fn vertex_buffers_from_mesh(
     context: &Context,
     cpu_mesh: &CpuMesh,
-) -> ThreeDResult<HashMap<String, VertexBuffer>> {
+) -> HashMap<String, VertexBuffer> {
     #[cfg(debug_assertions)]
-    cpu_mesh.validate()?;
+    cpu_mesh.validate().expect("invalid cpu mesh");
 
     let mut buffers = HashMap::new();
     buffers.insert(
         "position".to_string(),
-        VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32())?,
+        VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
     );
     if let Some(ref normals) = cpu_mesh.normals {
         buffers.insert(
             "normal".to_string(),
-            VertexBuffer::new_with_data(context, normals)?,
+            VertexBuffer::new_with_data(context, normals),
         );
     };
     if let Some(ref tangents) = cpu_mesh.tangents {
         buffers.insert(
             "tangent".to_string(),
-            VertexBuffer::new_with_data(context, tangents)?,
+            VertexBuffer::new_with_data(context, tangents),
         );
     };
     if let Some(ref uvs) = cpu_mesh.uvs {
@@ -226,29 +226,26 @@ fn vertex_buffers_from_mesh(
                 &uvs.iter()
                     .map(|uv| vec2(uv.x, 1.0 - uv.y))
                     .collect::<Vec<_>>(),
-            )?,
+            ),
         );
     };
     if let Some(ref colors) = cpu_mesh.colors {
         buffers.insert(
             "color".to_string(),
-            VertexBuffer::new_with_data(context, colors)?,
+            VertexBuffer::new_with_data(context, colors),
         );
     };
-    Ok(buffers)
+    buffers
 }
 
-fn index_buffer_from_mesh(
-    context: &Context,
-    cpu_mesh: &CpuMesh,
-) -> ThreeDResult<Option<ElementBuffer>> {
-    Ok(if let Some(ref indices) = cpu_mesh.indices {
+fn index_buffer_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Option<ElementBuffer> {
+    if let Some(ref indices) = cpu_mesh.indices {
         Some(match indices {
-            Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
-            Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
-            Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
+            Indices::U8(ind) => ElementBuffer::new_with_data(context, ind),
+            Indices::U16(ind) => ElementBuffer::new_with_data(context, ind),
+            Indices::U32(ind) => ElementBuffer::new_with_data(context, ind),
         })
     } else {
         None
-    })
+    }
 }

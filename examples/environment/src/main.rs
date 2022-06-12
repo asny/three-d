@@ -42,7 +42,7 @@ pub async fn run() {
         AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture()).unwrap();
 
     let mut model = Gm::new(
-        Mesh::new(&context, &CpuMesh::sphere(32)).unwrap(),
+        Mesh::new(&context, &CpuMesh::sphere(32)),
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {

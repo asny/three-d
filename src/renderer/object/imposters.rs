@@ -31,7 +31,7 @@ impl Imposters {
         objects
             .iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
-        let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)))?;
+        let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)));
         sprites.set_transformation(get_sprite_transform(aabb));
         Ok(Imposters {
             sprites,
@@ -42,8 +42,8 @@ impl Imposters {
     ///
     /// Set the positions of the imposters.
     ///
-    pub fn set_positions(&mut self, positions: &[Vec3]) -> ThreeDResult<()> {
-        self.sprites.set_centers(positions)
+    pub fn set_positions(&mut self, positions: &[Vec3]) {
+        self.sprites.set_centers(positions);
     }
 
     ///

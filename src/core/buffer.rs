@@ -52,29 +52,25 @@ struct Buffer {
 }
 
 impl Buffer {
-    pub fn new(context: &Context) -> ThreeDResult<Self> {
-        Ok(Self {
+    pub fn new(context: &Context) -> Self {
+        Self {
             context: context.clone(),
-            id: unsafe {
-                context
-                    .create_buffer()
-                    .map_err(|e| CoreError::BufferCreation(e))?
-            },
+            id: unsafe { context.create_buffer().expect("Failed creating buffer") },
             attribute_count: 0,
             data_type: 0,
             data_size: 0,
-        })
-    }
-
-    pub fn new_with_data<T: BufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
-        let mut buffer = Self::new(context)?;
-        if data.len() > 0 {
-            buffer.fill(data)?;
         }
-        Ok(buffer)
     }
 
-    pub fn fill<T: BufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
+    pub fn new_with_data<T: BufferDataType>(context: &Context, data: &[T]) -> Self {
+        let mut buffer = Self::new(context);
+        if data.len() > 0 {
+            buffer.fill(data);
+        }
+        buffer
+    }
+
+    pub fn fill<T: BufferDataType>(&mut self, data: &[T]) {
         self.bind();
         unsafe {
             self.context.buffer_data_u8_slice(
@@ -91,7 +87,6 @@ impl Buffer {
         self.attribute_count = data.len() as u32;
         self.data_type = T::data_type();
         self.data_size = T::size();
-        self.context.error_check()
     }
 
     pub fn attribute_count(&self) -> u32 {

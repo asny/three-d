@@ -21,17 +21,17 @@ impl Mesh {
     /// Creates a new 3D mesh from the given [CpuMesh].
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     ///
-    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
         let aabb = cpu_mesh.compute_aabb();
-        Ok(Self {
+        Self {
             context: context.clone(),
-            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh)?,
-            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
+            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
+            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
-        })
+        }
     }
 
     pub(in crate::renderer) fn set_transformation_2d(&mut self, transformation: Mat3) {

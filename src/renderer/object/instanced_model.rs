@@ -42,7 +42,7 @@ impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModel<T> {
         for g in cpu_model.geometries.iter() {
             gms.push(if let Some(material_name) = &g.material_name {
                 Gm {
-                    geometry: InstancedMesh::new(context, instances, g)?,
+                    geometry: InstancedMesh::new(context, instances, g),
                     material: materials
                         .get(material_name)
                         .ok_or(CoreError::MissingMaterial(
@@ -53,7 +53,7 @@ impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModel<T> {
                 }
             } else {
                 Gm {
-                    geometry: InstancedMesh::new(context, instances, g)?,
+                    geometry: InstancedMesh::new(context, instances, g),
                     material: T::default(),
                 }
             });

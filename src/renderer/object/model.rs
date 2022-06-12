@@ -40,7 +40,7 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
         for g in cpu_model.geometries.iter() {
             gms.push(if let Some(material_name) = &g.material_name {
                 Gm {
-                    geometry: Mesh::new(context, g)?,
+                    geometry: Mesh::new(context, g),
                     material: materials
                         .get(material_name)
                         .ok_or(CoreError::MissingMaterial(
@@ -51,7 +51,7 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
                 }
             } else {
                 Gm {
-                    geometry: Mesh::new(context, g)?,
+                    geometry: Mesh::new(context, g),
                     material: M::default(),
                 }
             });

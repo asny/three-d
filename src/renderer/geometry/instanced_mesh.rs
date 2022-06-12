@@ -24,12 +24,12 @@ impl InstancedMesh {
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     /// The model is rendered in as many instances as there are attributes in [Instances] given as input.
     ///
-    pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> Self {
         let aabb = cpu_mesh.compute_aabb();
         let mut model = Self {
             context: context.clone(),
-            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh)?,
-            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
+            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
+            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
             instance_buffers: HashMap::new(),
             aabb,
             aabb_local: aabb.clone(),
@@ -38,8 +38,8 @@ impl InstancedMesh {
             instance_transforms: Vec::new(),
             texture_transform: Mat3::identity(),
         };
-        model.set_instances(instances)?;
-        Ok(model)
+        model.set_instances(instances);
+        model
     }
 
     ///
@@ -89,9 +89,9 @@ impl InstancedMesh {
     ///
     /// Update the instances.
     ///
-    pub fn set_instances(&mut self, instances: &Instances) -> ThreeDResult<()> {
+    pub fn set_instances(&mut self, instances: &Instances) {
         #[cfg(debug_assertions)]
-        instances.validate()?;
+        instances.validate().expect("invalid instances");
         self.instance_count = instances.count();
         self.instance_buffers.clear();
         self.instance_transforms = (0..self.instance_count as usize)
@@ -113,7 +113,7 @@ impl InstancedMesh {
         if instances.rotations.is_none() && instances.scales.is_none() {
             self.instance_buffers.insert(
                 "instance_translation".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instances.translations)?,
+                InstanceBuffer::new_with_data(&self.context, &instances.translations),
             );
         } else {
             let mut row1 = Vec::new();
@@ -144,15 +144,15 @@ impl InstancedMesh {
 
             self.instance_buffers.insert(
                 "row1".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &row1)?,
+                InstanceBuffer::new_with_data(&self.context, &row1),
             );
             self.instance_buffers.insert(
                 "row2".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &row2)?,
+                InstanceBuffer::new_with_data(&self.context, &row2),
             );
             self.instance_buffers.insert(
                 "row3".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &row3)?,
+                InstanceBuffer::new_with_data(&self.context, &row3),
             );
         }
 
@@ -173,21 +173,20 @@ impl InstancedMesh {
             }
             self.instance_buffers.insert(
                 "tex_transform_row1".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1)?,
+                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1),
             );
             self.instance_buffers.insert(
                 "tex_transform_row2".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2)?,
+                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2),
             );
         }
         if let Some(instance_colors) = &instances.colors {
             self.instance_buffers.insert(
                 "instance_color".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_colors)?,
+                InstanceBuffer::new_with_data(&self.context, &instance_colors),
             );
         }
         self.update_aabb();
-        Ok(())
     }
 
     fn update_aabb(&mut self) {

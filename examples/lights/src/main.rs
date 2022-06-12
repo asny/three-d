@@ -232,7 +232,7 @@ impl Glow {
             )
             .normalize(),
             sphere: Gm::new(
-                Mesh::new(context, &CpuMesh::sphere(16))?,
+                Mesh::new(context, &CpuMesh::sphere(16)),
                 PhysicalMaterial::default(),
             ),
         })

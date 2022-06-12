@@ -97,8 +97,7 @@ pub async fn run() {
                 ]),
                 ..Default::default()
             },
-        )
-        .unwrap(),
+        ),
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {

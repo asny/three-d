@@ -29,8 +29,7 @@ pub fn main() {
             color: Color::BLUE,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     let mut line = Line::new_with_material(
         &context,
         vec2(0.0, 0.0),
@@ -43,8 +42,7 @@ pub fn main() {
             color: Color::GREEN,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
 
     window
         .render_loop(move |frame_input: FrameInput| {
