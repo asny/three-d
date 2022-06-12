@@ -19,17 +19,17 @@ pub struct NormalMaterial {
 
 impl NormalMaterial {
     /// Constructs a new normal material from a [CpuMaterial] where only relevant information is used.
-    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
-        Ok(Self {
+        Self {
             normal_scale: cpu_material.normal_scale,
             normal_texture: normal_texture,
             render_states: RenderStates::default(),
-        })
+        }
     }
 
     /// Creates a normal material from a [PhysicalMaterial].
@@ -47,7 +47,7 @@ impl NormalMaterial {
 }
 
 impl FromCpuMaterial for NormalMaterial {
-    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> Self {
         Self::new(context, cpu_material)
     }
 }

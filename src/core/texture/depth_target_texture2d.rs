@@ -35,8 +35,8 @@ impl DepthTargetTexture2D {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: DepthFormat,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let texture = Self {
             context: context.clone(),
             id,
@@ -53,7 +53,7 @@ impl DepthTargetTexture2D {
             wrap_s,
             wrap_t,
             None,
-        )?;
+        );
         unsafe {
             context.tex_storage_2d(
                 crate::context::TEXTURE_2D,
@@ -63,8 +63,7 @@ impl DepthTargetTexture2D {
                 height as i32,
             );
         }
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///

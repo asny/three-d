@@ -87,7 +87,7 @@ impl DirectionalLight {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
-        )?;
+        );
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,

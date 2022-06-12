@@ -106,8 +106,7 @@ pub async fn run() {
                 roughness: 1.0,
                 ..Default::default()
             },
-        )
-        .unwrap(),
+        ),
     );
     plane.material.render_states.cull = Cull::Back;
 

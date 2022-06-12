@@ -70,7 +70,7 @@ impl ForwardPipeline {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
-        )?;
+        );
         depth_texture
             .as_depth_target()
             .clear(ClearState::default())

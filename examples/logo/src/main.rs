@@ -56,8 +56,7 @@ pub async fn run() {
             ),
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), material);
     model.set_transformation(Mat4::from_angle_y(degrees(35.0)));
 

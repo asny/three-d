@@ -12,18 +12,19 @@ impl<M: Material + FromCpuVoxelGrid> VoxelGrid<M> {
     /// Constructs a [VoxelGrid] from a [CpuVoxelGrid], ie. constructs a [Gm] with a cube [Mesh] as geometry and
     /// a [material] type specified by the generic parameter which implement [FromCpuVoxelGrid].
     ///
-    pub fn new(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> Self {
         let mut cube = CpuMesh::cube();
         cube.transform(&Mat4::from_nonuniform_scale(
             0.5 * cpu_voxel_grid.size.x,
             0.5 * cpu_voxel_grid.size.y,
             0.5 * cpu_voxel_grid.size.z,
-        ))?;
+        ))
+        .expect("Invalid size for VoxelGrid");
         let gm = Gm::new(
             Mesh::new(&context, &cube),
-            M::from_cpu_voxel_grid(context, cpu_voxel_grid)?,
+            M::from_cpu_voxel_grid(context, cpu_voxel_grid),
         );
-        Ok(Self(gm))
+        Self(gm)
     }
 }
 

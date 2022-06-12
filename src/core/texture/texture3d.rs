@@ -16,7 +16,7 @@ impl Texture3D {
     ///
     /// Construcs a new 3D texture with the given data.
     ///
-    pub fn new(context: &Context, cpu_texture: &CpuTexture3D) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_texture: &CpuTexture3D) -> Self {
         match cpu_texture.data {
             TextureData::RU8(ref data) => Self::new_with_data(context, cpu_texture, data),
             TextureData::RgU8(ref data) => Self::new_with_data(context, cpu_texture, data),
@@ -37,7 +37,7 @@ impl Texture3D {
         context: &Context,
         cpu_texture: &CpuTexture3D,
         data: &[T],
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
@@ -49,9 +49,9 @@ impl Texture3D {
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
             cpu_texture.wrap_r,
-        )?;
+        );
         texture.fill(data);
-        Ok(texture)
+        texture
     }
 
     ///
@@ -68,8 +68,8 @@ impl Texture3D {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         wrap_r: Wrapping,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let number_of_mip_maps =
             calculate_number_of_mip_maps(mip_map_filter, width, height, Some(depth));
         let texture = Self {
@@ -95,7 +95,7 @@ impl Texture3D {
             wrap_s,
             wrap_t,
             Some(wrap_r),
-        )?;
+        );
         unsafe {
             context.tex_storage_3d(
                 crate::context::TEXTURE_3D,
@@ -107,8 +107,7 @@ impl Texture3D {
             );
         }
         texture.generate_mip_maps();
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///

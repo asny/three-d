@@ -26,13 +26,13 @@ pub struct ORMMaterial {
 
 impl ORMMaterial {
     /// Constructs a new ORM material from a [CpuMaterial] where only relevant information is used.
-    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                Some(Rc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 if let Some(ref cpu_texture) = cpu_material.metallic_roughness_texture {
-                    Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                    Some(Rc::new(Texture2D::new(&context, cpu_texture)))
                 } else {
                     None
                 }
@@ -41,19 +41,19 @@ impl ORMMaterial {
             metallic_roughness_texture.clone()
         } else {
             if let Some(ref cpu_texture) = cpu_material.occlusion_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                Some(Rc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 None
             }
         };
-        Ok(Self {
+        Self {
             metallic: cpu_material.metallic,
             roughness: cpu_material.roughness,
             metallic_roughness_texture,
             occlusion_texture,
             occlusion_strength: cpu_material.occlusion_strength,
             render_states: RenderStates::default(),
-        })
+        }
     }
 
     /// Creates a ORM material from a [PhysicalMaterial].
@@ -74,7 +74,7 @@ impl ORMMaterial {
 }
 
 impl FromCpuMaterial for ORMMaterial {
-    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> Self {
         Self::new(context, cpu_material)
     }
 }

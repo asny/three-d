@@ -62,15 +62,15 @@ impl Material for IsosurfaceMaterial {
 }
 
 impl FromCpuVoxelGrid for IsosurfaceMaterial {
-    fn from_cpu_voxel_grid(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> ThreeDResult<Self> {
-        Ok(Self {
-            voxels: std::rc::Rc::new(Texture3D::new(&context, &cpu_voxel_grid.voxels)?),
+    fn from_cpu_voxel_grid(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> Self {
+        Self {
+            voxels: std::rc::Rc::new(Texture3D::new(&context, &cpu_voxel_grid.voxels)),
             lighting_model: LightingModel::Blinn,
             size: cpu_voxel_grid.size,
             threshold: 0.15,
             color: Color::WHITE,
             roughness: 1.0,
             metallic: 0.0,
-        })
+        }
     }
 }

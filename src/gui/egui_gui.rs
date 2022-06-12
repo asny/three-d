@@ -136,7 +136,7 @@ impl GUI {
                     wrap_t: Wrapping::ClampToEdge,
                     ..Default::default()
                 },
-            )?);
+            ));
             self.texture_version = egui_texture.version;
         };
 

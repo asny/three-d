@@ -33,7 +33,7 @@ pub async fn run() {
         .unwrap()
         .deserialize("")
         .unwrap();
-    let mut voxel_grid = VoxelGrid::<IsosurfaceMaterial>::new(&context, &cpu_voxel_grid).unwrap();
+    let mut voxel_grid = VoxelGrid::<IsosurfaceMaterial>::new(&context, &cpu_voxel_grid);
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional1 =

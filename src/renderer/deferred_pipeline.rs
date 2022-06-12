@@ -63,7 +63,7 @@ impl DeferredPipeline {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-            )?),
+            )),
             geometry_pass_depth_texture: Some(DepthTargetTexture2D::new(
                 context,
                 1,
@@ -71,7 +71,7 @@ impl DeferredPipeline {
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
                 DepthFormat::Depth32F,
-            )?),
+            )),
         };
         Ok(renderer)
     }
@@ -113,7 +113,7 @@ impl DeferredPipeline {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-        )?);
+        ));
         self.geometry_pass_depth_texture = Some(DepthTargetTexture2D::new(
             &self.context,
             viewport.width,
@@ -121,7 +121,7 @@ impl DeferredPipeline {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
-        )?);
+        ));
         RenderTarget::new(
             self.geometry_pass_texture
                 .as_mut()

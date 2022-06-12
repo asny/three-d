@@ -74,17 +74,14 @@ pub async fn run() {
 
             // draw
             if change && fog_enabled {
-                depth_texture = Some(
-                    DepthTargetTexture2D::new(
-                        &context,
-                        frame_input.viewport.width,
-                        frame_input.viewport.height,
-                        Wrapping::ClampToEdge,
-                        Wrapping::ClampToEdge,
-                        DepthFormat::Depth32F,
-                    )
-                    .unwrap(),
-                );
+                depth_texture = Some(DepthTargetTexture2D::new(
+                    &context,
+                    frame_input.viewport.width,
+                    frame_input.viewport.height,
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                    DepthFormat::Depth32F,
+                ));
                 depth_texture.as_mut().map(|dt| {
                     dt.as_depth_target()
                         .clear(ClearState::default())

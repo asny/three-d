@@ -346,43 +346,33 @@ impl Context {
         unsafe {
             match self.check_framebuffer_status(crate::context::FRAMEBUFFER) {
                 crate::context::FRAMEBUFFER_COMPLETE => Ok(()),
-                crate::context::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_ATTACHMENT".to_string(),
-                    ))
-                }
-                crate::context::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER".to_string(),
-                    ))
-                }
+                crate::context::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => Err(CoreError::ContextError(
+                    "FRAMEBUFFER_INCOMPLETE_ATTACHMENT".to_string(),
+                )),
+                crate::context::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => Err(CoreError::ContextError(
+                    "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER".to_string(),
+                )),
                 crate::context::FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT => {
-                    Err(CoreError::RenderTargetCreation(
+                    Err(CoreError::ContextError(
                         "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT".to_string(),
                     ))
                 }
-                crate::context::FRAMEBUFFER_UNSUPPORTED => Err(CoreError::RenderTargetCreation(
+                crate::context::FRAMEBUFFER_UNSUPPORTED => Err(CoreError::ContextError(
                     "FRAMEBUFFER_UNSUPPORTED".to_string(),
                 )),
-                crate::context::FRAMEBUFFER_UNDEFINED => Err(CoreError::RenderTargetCreation(
-                    "FRAMEBUFFER_UNDEFINED".to_string(),
+                crate::context::FRAMEBUFFER_UNDEFINED => {
+                    Err(CoreError::ContextError("FRAMEBUFFER_UNDEFINED".to_string()))
+                }
+                crate::context::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => Err(CoreError::ContextError(
+                    "FRAMEBUFFER_INCOMPLETE_READ_BUFFER".to_string(),
                 )),
-                crate::context::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_READ_BUFFER".to_string(),
-                    ))
-                }
-                crate::context::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE".to_string(),
-                    ))
-                }
-                crate::context::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS".to_string(),
-                    ))
-                }
-                _ => Err(CoreError::RenderTargetCreation(
+                crate::context::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => Err(CoreError::ContextError(
+                    "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE".to_string(),
+                )),
+                crate::context::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => Err(
+                    CoreError::ContextError("FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS".to_string()),
+                ),
+                _ => Err(CoreError::ContextError(
                     "Unknown framebuffer error".to_string(),
                 )),
             }?;

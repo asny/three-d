@@ -107,7 +107,7 @@ pub trait FromCpuMaterial: std::marker::Sized {
     ///
     /// Creates a new material that can be used for rendering from a [CpuMaterial].
     ///
-    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self>;
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> Self;
 }
 
 ///
@@ -117,7 +117,7 @@ pub trait FromCpuVoxelGrid: std::marker::Sized {
     ///
     /// Creates a new material that can be used for rendering from a [CpuVoxelGrid].
     ///
-    fn from_cpu_voxel_grid(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> ThreeDResult<Self>;
+    fn from_cpu_voxel_grid(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> Self;
 }
 
 impl<T: Material + ?Sized> Material for &T {

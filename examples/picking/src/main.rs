@@ -37,8 +37,7 @@ pub async fn run() {
                 albedo: Color::RED,
                 ..Default::default()
             },
-        )
-        .unwrap(),
+        ),
     );
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();

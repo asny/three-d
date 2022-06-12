@@ -23,8 +23,8 @@ impl Skybox {
         bottom: &CpuTexture,
         front: &CpuTexture,
         back: &CpuTexture,
-    ) -> ThreeDResult<Self> {
-        let texture = TextureCubeMap::new(&context, right, left, top, bottom, front, back)?;
+    ) -> Self {
+        let texture = TextureCubeMap::new(&context, right, left, top, bottom, front, back);
         Self::new_with_texture(context, texture)
     }
 
@@ -56,13 +56,13 @@ impl Skybox {
             }
         };
 
-        Self::new_with_texture(context, texture)
+        Ok(Self::new_with_texture(context, texture))
     }
 
     ///
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
-    pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> ThreeDResult<Self> {
+    pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> Self {
         let vertex_buffer = VertexBuffer::new_with_data(
             context,
             &[
@@ -105,11 +105,11 @@ impl Skybox {
             ],
         );
 
-        Ok(Skybox {
+        Skybox {
             context: context.clone(),
             vertex_buffer,
             material: SkyboxMaterial { texture },
-        })
+        }
     }
 
     ///

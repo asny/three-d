@@ -16,7 +16,7 @@ impl Texture2D {
     ///
     /// Construcs a new texture with the given data.
     ///
-    pub fn new(context: &Context, cpu_texture: &CpuTexture) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_texture: &CpuTexture) -> Self {
         match cpu_texture.data {
             TextureData::RU8(ref data) => Self::new_with_data(context, cpu_texture, data),
             TextureData::RgU8(ref data) => Self::new_with_data(context, cpu_texture, data),
@@ -37,7 +37,7 @@ impl Texture2D {
         context: &Context,
         cpu_texture: &CpuTexture,
         data: &[T],
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
@@ -47,9 +47,9 @@ impl Texture2D {
             cpu_texture.mip_map_filter,
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
-        )?;
+        );
         texture.fill(data);
-        Ok(texture)
+        texture
     }
 
     ///
@@ -66,8 +66,8 @@ impl Texture2D {
         mip_map_filter: Option<Interpolation>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
         let texture = Self {
             context: context.clone(),
@@ -91,7 +91,7 @@ impl Texture2D {
             wrap_s,
             wrap_t,
             None,
-        )?;
+        );
         unsafe {
             context.tex_storage_2d(
                 crate::context::TEXTURE_2D,
@@ -102,8 +102,7 @@ impl Texture2D {
             );
         }
         texture.generate_mip_maps();
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///

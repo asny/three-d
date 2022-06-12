@@ -29,8 +29,8 @@ impl Texture2DArray {
         mip_map_filter: Option<Interpolation>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
         let texture = Self {
             context: context.clone(),
@@ -54,7 +54,7 @@ impl Texture2DArray {
             wrap_s,
             wrap_t,
             None,
-        )?;
+        );
         unsafe {
             context.tex_storage_3d(
                 crate::context::TEXTURE_2D_ARRAY,
@@ -66,8 +66,7 @@ impl Texture2DArray {
             );
         }
         texture.generate_mip_maps();
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///

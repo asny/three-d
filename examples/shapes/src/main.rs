@@ -33,8 +33,7 @@ pub fn main() {
                 },
                 ..Default::default()
             },
-        )
-        .unwrap(),
+        ),
     );
     sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
     let mut cylinder = Gm::new(
@@ -50,8 +49,7 @@ pub fn main() {
                 },
                 ..Default::default()
             },
-        )
-        .unwrap(),
+        ),
     );
     cylinder
         .set_transformation(Mat4::from_translation(vec3(1.3, 0.0, 0.0)) * Mat4::from_scale(0.2));
@@ -68,8 +66,7 @@ pub fn main() {
                 },
                 ..Default::default()
             },
-        )
-        .unwrap(),
+        ),
     );
     cube.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 1.3)) * Mat4::from_scale(0.2));
     let axes = Axes::new(&context, 0.1, 2.0);

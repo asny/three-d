@@ -36,7 +36,7 @@ impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModel<T> {
     ) -> ThreeDResult<Self> {
         let mut materials = std::collections::HashMap::new();
         for m in cpu_model.materials.iter() {
-            materials.insert(m.name.clone(), T::from_cpu_material(context, m)?);
+            materials.insert(m.name.clone(), T::from_cpu_material(context, m));
         }
         let mut gms: Vec<Gm<InstancedMesh, T>> = Vec::new();
         for g in cpu_model.geometries.iter() {

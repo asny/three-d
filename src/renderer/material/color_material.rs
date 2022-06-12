@@ -24,7 +24,7 @@ impl ColorMaterial {
     /// Tries to infer whether this material is transparent or opaque from the alpha value of the albedo color and the alpha values in the albedo texture.
     /// Since this is not always correct, it is preferred to use [ColorMaterial::new_opaque] or [ColorMaterial::new_transparent].
     ///
-    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
         if super::is_transparent(cpu_material) {
             Self::new_transparent(context, cpu_material)
         } else {
@@ -33,28 +33,28 @@ impl ColorMaterial {
     }
 
     /// Constructs a new opaque color material from a [CpuMaterial].
-    pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
-        Ok(Self {
+        Self {
             color: cpu_material.albedo,
             texture,
             is_transparent: false,
             render_states: RenderStates::default(),
-        })
+        }
     }
 
     /// Constructs a new transparent color material from a [CpuMaterial].
-    pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
-        Ok(Self {
+        Self {
             color: cpu_material.albedo,
             texture,
             is_transparent: true,
@@ -63,7 +63,7 @@ impl ColorMaterial {
                 blend: Blend::TRANSPARENCY,
                 ..Default::default()
             },
-        })
+        }
     }
 
     /// Creates a color material from a [PhysicalMaterial].
@@ -78,7 +78,7 @@ impl ColorMaterial {
 }
 
 impl FromCpuMaterial for ColorMaterial {
-    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> Self {
         Self::new(context, cpu_material)
     }
 }
