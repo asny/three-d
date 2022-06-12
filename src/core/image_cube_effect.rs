@@ -77,19 +77,13 @@ impl ImageCubeEffect {
     /// Applies the effect defined in the fragment shader source given at construction to the given side of a cube map.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn render(
-        &self,
-        side: CubeMapSide,
-        render_states: RenderStates,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    pub fn render(&self, side: CubeMapSide, render_states: RenderStates, viewport: Viewport) {
         let projection = cgmath::perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
         self.program
             .use_uniform("viewProjection", projection * side.view());
         self.program
             .use_vertex_attribute("position", &self.positions);
-        self.program.draw_arrays(render_states, viewport, 36)?;
-        Ok(())
+        self.program.draw_arrays(render_states, viewport, 36);
     }
 }
 

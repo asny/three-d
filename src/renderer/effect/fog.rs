@@ -42,12 +42,7 @@ impl FogEffect {
     /// Apply the fog effect on the current render target based on the given depth map.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn apply(
-        &self,
-        camera: &Camera,
-        depth_texture: &DepthTargetTexture2D,
-        time: f32,
-    ) -> ThreeDResult<()> {
+    pub fn apply(&self, camera: &Camera, depth_texture: &DepthTargetTexture2D, time: f32) {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
             blend: Blend::TRANSPARENCY,
@@ -68,7 +63,6 @@ impl FogEffect {
         self.image_effect
             .use_uniform("eyePosition", camera.position());
 
-        self.image_effect.apply(render_states, camera.viewport())?;
-        Ok(())
+        self.image_effect.apply(render_states, camera.viewport());
     }
 }

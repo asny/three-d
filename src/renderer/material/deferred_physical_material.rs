@@ -176,8 +176,7 @@ impl DeferredPhysicalMaterial {
                     ..Default::default()
                 },
                 camera.viewport(),
-            )?;
-            Ok(())
+            );
         })
     }
 }

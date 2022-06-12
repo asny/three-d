@@ -18,7 +18,7 @@ impl UniformBuffer {
     /// The first with 3 elements (a [Vec3]), the second with 1 element (a `f32`), the third with four elements (a [Vec4]) and the last with 16 elements (a [Mat4]).
     /// The variables are initialized to 0.
     ///
-    pub fn new(context: &Context, sizes: &[u32]) -> ThreeDResult<UniformBuffer> {
+    pub fn new(context: &Context, sizes: &[u32]) -> UniformBuffer {
         let id = unsafe { context.create_buffer().expect("Failed creating buffer") };
 
         let mut offsets = Vec::new();
@@ -34,8 +34,7 @@ impl UniformBuffer {
             data: vec![0.0; length as usize],
         };
         buffer.send();
-        context.error_check()?;
-        Ok(buffer)
+        buffer
     }
 
     pub(crate) fn bind(&self, id: u32) {

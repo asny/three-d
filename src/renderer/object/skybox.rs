@@ -140,8 +140,7 @@ impl Geometry for Skybox {
                 program.use_uniform("view", camera.view());
                 program.use_uniform("projection", camera.projection());
                 program.use_vertex_attribute("position", &self.vertex_buffer);
-                program.draw_arrays(material.render_states(), camera.viewport(), 36)?;
-                Ok(())
+                program.draw_arrays(material.render_states(), camera.viewport(), 36);
             },
         )
     }

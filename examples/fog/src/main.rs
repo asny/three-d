@@ -107,7 +107,7 @@ pub async fn run() {
                                 &camera,
                                 depth_texture,
                                 frame_input.accumulated_time as f32,
-                            )?;
+                            );
                         }
                     }
                     Ok(())

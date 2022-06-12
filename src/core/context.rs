@@ -65,7 +65,7 @@ impl Context {
         &self,
         vertex_shader_source: &str,
         fragment_shader_source: &str,
-        callback: impl FnOnce(&Program) -> ThreeDResult<()>,
+        callback: impl FnOnce(&Program),
     ) -> ThreeDResult<()> {
         let key = format!("{}{}", vertex_shader_source, fragment_shader_source);
         if !self.programs.borrow().contains_key(&key) {
@@ -74,7 +74,8 @@ impl Context {
                 Program::from_source(self, vertex_shader_source, fragment_shader_source)?,
             );
         };
-        callback(self.programs.borrow().get(&key).unwrap())
+        callback(self.programs.borrow().get(&key).unwrap());
+        Ok(())
     }
 
     ///
@@ -84,7 +85,7 @@ impl Context {
     pub fn effect(
         &self,
         fragment_shader_source: &str,
-        callback: impl FnOnce(&ImageEffect) -> ThreeDResult<()>,
+        callback: impl FnOnce(&ImageEffect),
     ) -> ThreeDResult<()> {
         if !self.effects.borrow().contains_key(fragment_shader_source) {
             self.effects.borrow_mut().insert(
@@ -92,7 +93,8 @@ impl Context {
                 ImageEffect::new(self, fragment_shader_source)?,
             );
         };
-        callback(self.effects.borrow().get(fragment_shader_source).unwrap())
+        callback(self.effects.borrow().get(fragment_shader_source).unwrap());
+        Ok(())
     }
 
     ///
@@ -303,7 +305,7 @@ impl Context {
     ///
     /// Set the render states for this context (see [RenderStates]).
     ///
-    pub fn set_render_states(&self, render_states: RenderStates) -> ThreeDResult<()> {
+    pub fn set_render_states(&self, render_states: RenderStates) {
         self.set_cull(render_states.cull);
         self.set_write_mask(render_states.write_mask);
         if !render_states.write_mask.depth && render_states.depth_test == DepthTest::Always {
@@ -312,12 +314,10 @@ impl Context {
             self.set_depth_test(render_states.depth_test);
         }
         self.set_blend(render_states.blend);
-        self.error_check()
     }
 
-    pub(super) fn error_check(&self) -> ThreeDResult<()> {
+    pub fn error_check(&self) -> ThreeDResult<()> {
         self.framebuffer_check()?;
-        #[cfg(debug_assertions)]
         unsafe {
             let e = self.get_error();
             if e != crate::context::NO_ERROR {
@@ -341,8 +341,7 @@ impl Context {
         Ok(())
     }
 
-    pub(super) fn framebuffer_check(&self) -> ThreeDResult<()> {
-        #[cfg(debug_assertions)]
+    fn framebuffer_check(&self) -> ThreeDResult<()> {
         unsafe {
             match self.check_framebuffer_status(crate::context::FRAMEBUFFER) {
                 crate::context::FRAMEBUFFER_COMPLETE => Ok(()),
