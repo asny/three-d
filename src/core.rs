@@ -77,14 +77,6 @@ pub enum CoreError {
     ShaderCompilation(String, String),
     #[error("failed to link shader program: {0}")]
     ShaderLink(String),
-    #[error("the uniform {0} is sent to the shader but not defined or never used")]
-    UnusedUniform(String),
-    #[error("failed creating a new render target: {0}")]
-    RenderTargetCreation(String),
-    #[error("cannot read color from anything else but an RGBA texture")]
-    ReadWrongFormat,
-    #[error("failed creating a new texture: {0}")]
-    TextureCreation(String),
     #[error("all of the images used for cube map sides must have the same texture data type")]
     InvalidCubeMapTextureDataType,
     #[error("{0} buffer length must be {1}, actual length is {2}")]

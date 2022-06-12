@@ -132,139 +132,139 @@ impl TextureCubeMap {
         bottom: &CpuTexture,
         front: &CpuTexture,
         back: &CpuTexture,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         match &front.data {
             TextureData::RU8(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                ru8_data(right)?,
-                ru8_data(left)?,
-                ru8_data(top)?,
-                ru8_data(bottom)?,
+                ru8_data(right),
+                ru8_data(left),
+                ru8_data(top),
+                ru8_data(bottom),
                 front_data,
-                ru8_data(back)?,
+                ru8_data(back),
             ),
             TextureData::RgU8(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rgu8_data(right)?,
-                rgu8_data(left)?,
-                rgu8_data(top)?,
-                rgu8_data(bottom)?,
+                rgu8_data(right),
+                rgu8_data(left),
+                rgu8_data(top),
+                rgu8_data(bottom),
                 front_data,
-                rgu8_data(back)?,
+                rgu8_data(back),
             ),
             TextureData::RgbU8(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rgbu8_data(right)?,
-                rgbu8_data(left)?,
-                rgbu8_data(top)?,
-                rgbu8_data(bottom)?,
+                rgbu8_data(right),
+                rgbu8_data(left),
+                rgbu8_data(top),
+                rgbu8_data(bottom),
                 front_data,
-                rgbu8_data(back)?,
+                rgbu8_data(back),
             ),
             TextureData::RgbaU8(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rgbau8_data(right)?,
-                rgbau8_data(left)?,
-                rgbau8_data(top)?,
-                rgbau8_data(bottom)?,
+                rgbau8_data(right),
+                rgbau8_data(left),
+                rgbau8_data(top),
+                rgbau8_data(bottom),
                 front_data,
-                rgbau8_data(back)?,
+                rgbau8_data(back),
             ),
             TextureData::RF16(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rf16_data(right)?,
-                rf16_data(left)?,
-                rf16_data(top)?,
-                rf16_data(bottom)?,
+                rf16_data(right),
+                rf16_data(left),
+                rf16_data(top),
+                rf16_data(bottom),
                 front_data,
-                rf16_data(back)?,
+                rf16_data(back),
             ),
             TextureData::RgF16(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rgf16_data(right)?,
-                rgf16_data(left)?,
-                rgf16_data(top)?,
-                rgf16_data(bottom)?,
+                rgf16_data(right),
+                rgf16_data(left),
+                rgf16_data(top),
+                rgf16_data(bottom),
                 front_data,
-                rgf16_data(back)?,
+                rgf16_data(back),
             ),
             TextureData::RgbF16(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rgbf16_data(right)?,
-                rgbf16_data(left)?,
-                rgbf16_data(top)?,
-                rgbf16_data(bottom)?,
+                rgbf16_data(right),
+                rgbf16_data(left),
+                rgbf16_data(top),
+                rgbf16_data(bottom),
                 front_data,
-                rgbf16_data(back)?,
+                rgbf16_data(back),
             ),
             TextureData::RgbaF16(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rgbaf16_data(right)?,
-                rgbaf16_data(left)?,
-                rgbaf16_data(top)?,
-                rgbaf16_data(bottom)?,
+                rgbaf16_data(right),
+                rgbaf16_data(left),
+                rgbaf16_data(top),
+                rgbaf16_data(bottom),
                 front_data,
-                rgbaf16_data(back)?,
+                rgbaf16_data(back),
             ),
             TextureData::RF32(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rf32_data(right)?,
-                rf32_data(left)?,
-                rf32_data(top)?,
-                rf32_data(bottom)?,
+                rf32_data(right),
+                rf32_data(left),
+                rf32_data(top),
+                rf32_data(bottom),
                 front_data,
-                rf32_data(back)?,
+                rf32_data(back),
             ),
             TextureData::RgF32(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rgf32_data(right)?,
-                rgf32_data(left)?,
-                rgf32_data(top)?,
-                rgf32_data(bottom)?,
+                rgf32_data(right),
+                rgf32_data(left),
+                rgf32_data(top),
+                rgf32_data(bottom),
                 front_data,
-                rgf32_data(back)?,
+                rgf32_data(back),
             ),
             TextureData::RgbF32(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rgbf32_data(right)?,
-                rgbf32_data(left)?,
-                rgbf32_data(top)?,
-                rgbf32_data(bottom)?,
+                rgbf32_data(right),
+                rgbf32_data(left),
+                rgbf32_data(top),
+                rgbf32_data(bottom),
                 front_data,
-                rgbf32_data(back)?,
+                rgbf32_data(back),
             ),
             TextureData::RgbaF32(front_data) => Self::new_with_data(
                 context,
                 front,
                 right.wrap_s,
-                rgbaf32_data(right)?,
-                rgbaf32_data(left)?,
-                rgbaf32_data(top)?,
-                rgbaf32_data(bottom)?,
+                rgbaf32_data(right),
+                rgbaf32_data(left),
+                rgbaf32_data(top),
+                rgbaf32_data(bottom),
                 front_data,
-                rgbaf32_data(back)?,
+                rgbaf32_data(back),
             ),
         }
     }
@@ -279,7 +279,7 @@ impl TextureCubeMap {
         bottom_data: &[T],
         front_data: &[T],
         back_data: &[T],
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
@@ -290,7 +290,7 @@ impl TextureCubeMap {
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
             wrap_r,
-        )?;
+        );
         texture.fill(
             right_data,
             left_data,
@@ -299,7 +299,7 @@ impl TextureCubeMap {
             front_data,
             back_data,
         );
-        Ok(texture)
+        texture
     }
 
     ///
@@ -315,8 +315,8 @@ impl TextureCubeMap {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         wrap_r: Wrapping,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
         let texture = Self {
             context: context.clone(),
@@ -341,7 +341,7 @@ impl TextureCubeMap {
             wrap_s,
             wrap_t,
             Some(wrap_r),
-        )?;
+        );
         unsafe {
             context.tex_storage_2d(
                 crate::context::TEXTURE_CUBE_MAP,
@@ -352,8 +352,7 @@ impl TextureCubeMap {
             );
         }
         texture.generate_mip_maps();
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///
@@ -424,10 +423,10 @@ impl TextureCubeMap {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-        )?;
+        );
 
         {
-            let map = Texture2D::new(context, cpu_texture)?;
+            let map = Texture2D::new(context, cpu_texture);
             let fragment_shader_source = "uniform sampler2D equirectangularMap;
             const vec2 invAtan = vec2(0.1591, 0.3183);
             
@@ -535,98 +534,98 @@ impl Drop for TextureCubeMap {
     }
 }
 
-fn ru8_data(t: &CpuTexture) -> Result<&[u8], CoreError> {
+fn ru8_data(t: &CpuTexture) -> &[u8] {
     if let TextureData::RU8(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rgu8_data(t: &CpuTexture) -> Result<&[[u8; 2]], CoreError> {
+fn rgu8_data(t: &CpuTexture) -> &[[u8; 2]] {
     if let TextureData::RgU8(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rgbu8_data(t: &CpuTexture) -> Result<&[[u8; 3]], CoreError> {
+fn rgbu8_data(t: &CpuTexture) -> &[[u8; 3]] {
     if let TextureData::RgbU8(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rgbau8_data(t: &CpuTexture) -> Result<&[[u8; 4]], CoreError> {
+fn rgbau8_data(t: &CpuTexture) -> &[[u8; 4]] {
     if let TextureData::RgbaU8(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rf16_data(t: &CpuTexture) -> Result<&[f16], CoreError> {
+fn rf16_data(t: &CpuTexture) -> &[f16] {
     if let TextureData::RF16(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rgf16_data(t: &CpuTexture) -> Result<&[[f16; 2]], CoreError> {
+fn rgf16_data(t: &CpuTexture) -> &[[f16; 2]] {
     if let TextureData::RgF16(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rgbf16_data(t: &CpuTexture) -> Result<&[[f16; 3]], CoreError> {
+fn rgbf16_data(t: &CpuTexture) -> &[[f16; 3]] {
     if let TextureData::RgbF16(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rgbaf16_data(t: &CpuTexture) -> Result<&[[f16; 4]], CoreError> {
+fn rgbaf16_data(t: &CpuTexture) -> &[[f16; 4]] {
     if let TextureData::RgbaF16(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rf32_data(t: &CpuTexture) -> Result<&[f32], CoreError> {
+fn rf32_data(t: &CpuTexture) -> &[f32] {
     if let TextureData::RF32(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rgf32_data(t: &CpuTexture) -> Result<&[[f32; 2]], CoreError> {
+fn rgf32_data(t: &CpuTexture) -> &[[f32; 2]] {
     if let TextureData::RgF32(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rgbf32_data(t: &CpuTexture) -> Result<&[[f32; 3]], CoreError> {
+fn rgbf32_data(t: &CpuTexture) -> &[[f32; 3]] {
     if let TextureData::RgbF32(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
 
-fn rgbaf32_data(t: &CpuTexture) -> Result<&[[f32; 4]], CoreError> {
+fn rgbaf32_data(t: &CpuTexture) -> &[[f32; 4]] {
     if let TextureData::RgbaF32(data) = &t.data {
-        Ok(data)
+        data
     } else {
-        Err(CoreError::InvalidCubeMapTextureDataType)
+        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }

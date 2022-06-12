@@ -129,7 +129,7 @@ impl ImpostersMaterial {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-            )?,
+            ),
         };
         m.update(aabb, objects, lights, max_texture_size)?;
         Ok(m)
@@ -168,7 +168,7 @@ impl ImpostersMaterial {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-            )?;
+            );
             let mut depth_texture = DepthTargetTexture2D::new(
                 &self.context,
                 texture_width,
@@ -176,7 +176,7 @@ impl ImpostersMaterial {
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
                 DepthFormat::Depth32F,
-            )?;
+            );
             for i in 0..NO_VIEW_ANGLES {
                 let layers = [i];
                 let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;

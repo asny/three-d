@@ -50,40 +50,36 @@ impl PhysicalMaterial {
     /// Tries to infer whether this material is transparent or opaque from the alpha value of the albedo color and the alpha values in the albedo texture.
     /// Since this is not always correct, it is preferred to use [PhysicalMaterial::new_opaque] or [PhysicalMaterial::new_transparent].
     ///
-    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
         Self::new_internal(context, cpu_material, super::is_transparent(cpu_material))
     }
 
     /// Constructs a new opaque physical material from a [CpuMaterial].
     /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
     /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
-    pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> Self {
         Self::new_internal(context, cpu_material, false)
     }
 
     /// Constructs a new transparent physical material from a [CpuMaterial].
     /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
     /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
-    pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> Self {
         Self::new_internal(context, cpu_material, true)
     }
 
-    fn new_internal(
-        context: &Context,
-        cpu_material: &CpuMaterial,
-        is_transparent: bool,
-    ) -> ThreeDResult<Self> {
+    fn new_internal(context: &Context, cpu_material: &CpuMaterial, is_transparent: bool) -> Self {
         let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                Some(Rc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 if let Some(ref cpu_texture) = cpu_material.metallic_roughness_texture {
-                    Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                    Some(Rc::new(Texture2D::new(&context, cpu_texture)))
                 } else {
                     None
                 }
@@ -92,22 +88,22 @@ impl PhysicalMaterial {
             metallic_roughness_texture.clone()
         } else {
             if let Some(ref cpu_texture) = cpu_material.occlusion_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                Some(Rc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 None
             }
         };
         let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
         let emissive_texture = if let Some(ref cpu_texture) = cpu_material.emissive_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
-        Ok(Self {
+        Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
             albedo_texture,
@@ -131,12 +127,12 @@ impl PhysicalMaterial {
             emissive: cpu_material.emissive,
             emissive_texture,
             lighting_model: cpu_material.lighting_model,
-        })
+        }
     }
 }
 
 impl FromCpuMaterial for PhysicalMaterial {
-    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> Self {
         Self::new(context, cpu_material)
     }
 }

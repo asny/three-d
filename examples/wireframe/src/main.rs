@@ -52,8 +52,7 @@ pub async fn run() {
             metallic: 0.8,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     wireframe_material.render_states.cull = Cull::Back;
     let mut cylinder = CpuMesh::cylinder(10);
     cylinder

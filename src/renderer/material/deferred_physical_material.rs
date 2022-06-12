@@ -54,18 +54,18 @@ impl DeferredPhysicalMaterial {
     /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
     /// [DeferredPhysicalMaterial::metallic_roughness_texture] and [DeferredPhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
     ///
-    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                Some(Rc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 if let Some(ref cpu_texture) = cpu_material.metallic_roughness_texture {
-                    Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                    Some(Rc::new(Texture2D::new(&context, cpu_texture)))
                 } else {
                     None
                 }
@@ -74,22 +74,22 @@ impl DeferredPhysicalMaterial {
             metallic_roughness_texture.clone()
         } else {
             if let Some(ref cpu_texture) = cpu_material.occlusion_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                Some(Rc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 None
             }
         };
         let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
         let emissive_texture = if let Some(ref cpu_texture) = cpu_material.emissive_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
-        Ok(Self {
+        Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
             albedo_texture,
@@ -104,7 +104,7 @@ impl DeferredPhysicalMaterial {
             alpha_cutout: cpu_material.alpha_cutout,
             emissive: cpu_material.emissive,
             emissive_texture,
-        })
+        }
     }
 
     ///
@@ -183,7 +183,7 @@ impl DeferredPhysicalMaterial {
 }
 
 impl FromCpuMaterial for DeferredPhysicalMaterial {
-    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> Self {
         Self::new(context, cpu_material)
     }
 }

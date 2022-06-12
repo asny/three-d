@@ -34,7 +34,7 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
     pub fn new(context: &Context, cpu_model: &CpuModel) -> ThreeDResult<Model<M>> {
         let mut materials = std::collections::HashMap::new();
         for m in cpu_model.materials.iter() {
-            materials.insert(m.name.clone(), M::from_cpu_material(context, m)?);
+            materials.insert(m.name.clone(), M::from_cpu_material(context, m));
         }
         let mut gms = Vec::new();
         for g in cpu_model.geometries.iter() {

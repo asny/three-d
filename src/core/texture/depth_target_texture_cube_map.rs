@@ -22,8 +22,8 @@ impl DepthTargetTextureCubeMap {
         wrap_t: Wrapping,
         wrap_r: Wrapping,
         format: DepthFormat,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let texture = Self {
             context: context.clone(),
             id,
@@ -40,7 +40,7 @@ impl DepthTargetTextureCubeMap {
             wrap_s,
             wrap_t,
             Some(wrap_r),
-        )?;
+        );
         unsafe {
             context.tex_storage_2d(
                 crate::context::TEXTURE_CUBE_MAP,
@@ -50,8 +50,7 @@ impl DepthTargetTextureCubeMap {
                 height as i32,
             );
         }
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///

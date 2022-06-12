@@ -23,8 +23,8 @@ impl DepthTargetTexture2DArray {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: DepthFormat,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let texture = Self {
             context: context.clone(),
             id,
@@ -42,7 +42,7 @@ impl DepthTargetTexture2DArray {
             wrap_s,
             wrap_t,
             None,
-        )?;
+        );
         unsafe {
             context.tex_storage_3d(
                 crate::context::TEXTURE_2D_ARRAY,
@@ -53,8 +53,7 @@ impl DepthTargetTexture2DArray {
                 depth as i32,
             );
         }
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///

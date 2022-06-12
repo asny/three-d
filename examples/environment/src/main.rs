@@ -50,8 +50,7 @@ pub async fn run() {
                 metallic: 0.8,
                 ..Default::default()
             },
-        )
-        .unwrap(),
+        ),
     );
     let mut gui = three_d::GUI::new(&context).unwrap();
 

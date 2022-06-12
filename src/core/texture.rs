@@ -56,12 +56,8 @@ use crate::core::*;
 
 // COMMON TEXTURE FUNCTIONS
 
-fn generate(context: &Context) -> ThreeDResult<crate::context::Texture> {
-    unsafe {
-        Ok(context
-            .create_texture()
-            .map_err(|e| CoreError::TextureCreation(e))?)
-    }
+fn generate(context: &Context) -> crate::context::Texture {
+    unsafe { context.create_texture().expect("Failed creating texture") }
 }
 
 fn set_parameters(
@@ -73,7 +69,7 @@ fn set_parameters(
     wrap_s: Wrapping,
     wrap_t: Wrapping,
     wrap_r: Option<Wrapping>,
-) -> ThreeDResult<()> {
+) {
     unsafe {
         match mip_map_filter {
             None => context.tex_parameter_i32(
@@ -131,7 +127,6 @@ fn set_parameters(
             context.tex_parameter_i32(target, crate::context::TEXTURE_WRAP_R, wrapping_from(r));
         }
     }
-    context.error_check()
 }
 
 fn calculate_number_of_mip_maps(

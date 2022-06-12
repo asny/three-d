@@ -51,7 +51,7 @@ impl Environment {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-        )?;
+        );
         {
             let fragment_shader_source = format!(
                 "{}{}",
@@ -81,7 +81,7 @@ impl Environment {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-        )?;
+        );
         {
             let fragment_shader_source = format!(
                 "{}{}{}{}",
@@ -120,7 +120,7 @@ impl Environment {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-        )?;
+        );
         let effect = ImageEffect::new(
             context,
             &format!(

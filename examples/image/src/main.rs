@@ -23,7 +23,7 @@ pub async fn run() {
     )
     .await
     .unwrap();
-    let image = Texture2D::new(&context, &loaded.deserialize("").unwrap()).unwrap();
+    let image = Texture2D::new(&context, &loaded.deserialize("").unwrap());
 
     let mut gui = GUI::new(&context).unwrap();
 

@@ -50,14 +50,14 @@ pub async fn run() {
         &top_tex,
         &loaded.deserialize("front").unwrap(),
         &loaded.deserialize("back").unwrap(),
-    )
-    .unwrap();
+    );
     let mut box_object = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()),
         ColorMaterial {
-            texture: Some(std::rc::Rc::new(
-                Texture2D::new(&context, &loaded.deserialize("test_texture").unwrap()).unwrap(),
-            )),
+            texture: Some(std::rc::Rc::new(Texture2D::new(
+                &context,
+                &loaded.deserialize("test_texture").unwrap(),
+            ))),
             ..Default::default()
         },
     );

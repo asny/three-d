@@ -48,8 +48,7 @@ fn main() {
         None,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
-    )
-    .unwrap();
+    );
 
     // Also create a depth texture to support depth testing
     let mut depth_texture = DepthTargetTexture2D::new(
@@ -59,8 +58,7 @@ fn main() {
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
         DepthFormat::Depth32F,
-    )
-    .unwrap();
+    );
 
     // Render three frames
     for frame_index in 0..3 {
