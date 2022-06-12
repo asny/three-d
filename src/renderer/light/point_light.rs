@@ -23,13 +23,13 @@ impl PointLight {
         color: Color,
         position: &Vec3,
         attenuation: Attenuation,
-    ) -> ThreeDResult<PointLight> {
-        Ok(PointLight {
+    ) -> PointLight {
+        PointLight {
             intensity,
             color,
             position: *position,
             attenuation,
-        })
+        }
     }
 }
 

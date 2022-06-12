@@ -84,21 +84,16 @@ impl<'a> DepthTarget<'a> {
     ///
     /// Writes whatever rendered in the `render` closure into this depth target.
     ///
-    pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
+    pub fn write(&self, render: impl FnOnce()) -> &Self {
         self.write_partially(self.scissor_box(), render)
     }
 
     ///
     /// Writes whatever rendered in the `render` closure into the part of this depth target defined by the scissor box.
     ///
-    pub fn write_partially(
-        &self,
-        scissor_box: ScissorBox,
-        render: impl FnOnce() -> ThreeDResult<()>,
-    ) -> ThreeDResult<&Self> {
-        self.as_render_target()
-            .write_partially(scissor_box, render)?;
-        Ok(self)
+    pub fn write_partially(&self, scissor_box: ScissorBox, render: impl FnOnce()) -> &Self {
+        self.as_render_target().write_partially(scissor_box, render);
+        self
     }
 
     ///

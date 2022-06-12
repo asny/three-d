@@ -31,32 +31,29 @@ impl Skybox {
     ///
     /// Creates a new skybox with a cube texture generated from the equirectangular texture given as input.
     ///
-    pub fn new_from_equirectangular(
-        context: &Context,
-        cpu_texture: &CpuTexture,
-    ) -> ThreeDResult<Self> {
+    pub fn new_from_equirectangular(context: &Context, cpu_texture: &CpuTexture) -> Self {
         let texture = match cpu_texture.data {
             TextureData::RgbaU8(_)
             | TextureData::RgbU8(_)
             | TextureData::RgU8(_)
             | TextureData::RU8(_) => {
-                TextureCubeMap::new_from_equirectangular::<u8>(context, cpu_texture)?
+                TextureCubeMap::new_from_equirectangular::<u8>(context, cpu_texture)
             }
             TextureData::RgbaF16(_)
             | TextureData::RgbF16(_)
             | TextureData::RgF16(_)
             | TextureData::RF16(_) => {
-                TextureCubeMap::new_from_equirectangular::<f16>(context, cpu_texture)?
+                TextureCubeMap::new_from_equirectangular::<f16>(context, cpu_texture)
             }
             TextureData::RgbaF32(_)
             | TextureData::RgbF32(_)
             | TextureData::RgF32(_)
             | TextureData::RF32(_) => {
-                TextureCubeMap::new_from_equirectangular::<f32>(context, cpu_texture)?
+                TextureCubeMap::new_from_equirectangular::<f32>(context, cpu_texture)
             }
         };
 
-        Ok(Self::new_with_texture(context, texture))
+        Self::new_with_texture(context, texture)
     }
 
     ///
@@ -130,24 +127,26 @@ impl Geometry for Skybox {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         let fragment_shader_source = material.fragment_shader_source(false, lights);
-        self.context.program(
-            &include_str!("shaders/skybox.vert"),
-            &fragment_shader_source,
-            |program| {
-                material.use_uniforms(program, camera, lights);
-                program.use_uniform("view", camera.view());
-                program.use_uniform("projection", camera.projection());
-                program.use_vertex_attribute("position", &self.vertex_buffer);
-                program.draw_arrays(material.render_states(), camera.viewport(), 36);
-            },
-        )
+        self.context
+            .program(
+                &include_str!("shaders/skybox.vert"),
+                &fragment_shader_source,
+                |program| {
+                    material.use_uniforms(program, camera, lights);
+                    program.use_uniform("view", camera.view());
+                    program.use_uniform("projection", camera.projection());
+                    program.use_vertex_attribute("position", &self.vertex_buffer);
+                    program.draw_arrays(material.render_states(), camera.viewport(), 36);
+                },
+            )
+            .unwrap();
     }
 }
 
 impl Object for Skybox {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.render_with_material(&self.material, camera, lights)
     }
 

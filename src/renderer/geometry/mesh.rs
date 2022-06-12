@@ -134,7 +134,7 @@ impl Geometry for Mesh {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         let fragment_shader_source =
             material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
         self.context.program(
@@ -170,6 +170,6 @@ impl Geometry for Mesh {
                     )
                 }
             },
-        )
+        ).expect("Failed compiling shader")
     }
 }

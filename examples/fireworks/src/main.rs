@@ -137,10 +137,8 @@ pub fn run() {
                     let f = particles.time / explosion_time.max(0.0);
                     fireworks_material.fade = 1.0 - f * f * f * f;
                     fireworks_material.color = colors[color_index];
-                    particles.render_with_material(&fireworks_material, &camera, &[])?;
-                    Ok(())
-                })
-                .unwrap();
+                    particles.render_with_material(&fireworks_material, &camera, &[]);
+                });
 
             FrameOutput::default()
         })

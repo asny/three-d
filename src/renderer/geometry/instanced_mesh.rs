@@ -265,7 +265,7 @@ impl Geometry for InstancedMesh {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         let fragment_shader_source = material.fragment_shader_source(
             self.vertex_buffers.contains_key("color")
                 || self.instance_buffers.contains_key("instance_color"),
@@ -328,7 +328,7 @@ impl Geometry for InstancedMesh {
                     )
                 }
             },
-        )
+        ).expect("Failed compiling shader")
     }
 }
 

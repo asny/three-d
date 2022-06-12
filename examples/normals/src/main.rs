@@ -79,9 +79,8 @@ pub async fn run() {
     );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
-    let directional =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0)).unwrap();
+    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
+    let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0));
 
     // main loop
     window
@@ -104,8 +103,7 @@ pub async fn run() {
                         &instanced_model_with_loaded_tangents,
                     ],
                     &[&ambient, &directional],
-                )
-                .unwrap();
+                );
             FrameOutput::default()
         })
         .unwrap();

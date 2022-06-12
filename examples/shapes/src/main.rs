@@ -95,9 +95,8 @@ pub fn main() {
         },
     );
 
-    let light0 =
-        DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5)).unwrap();
-    let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5)).unwrap();
+    let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
+    let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5));
 
     window
         .render_loop(move |mut frame_input: FrameInput| {
@@ -121,8 +120,7 @@ pub fn main() {
                         &bounding_box_cylinder,
                     ],
                     &[&light0, &light1],
-                )
-                .unwrap();
+                );
 
             FrameOutput::default()
         })

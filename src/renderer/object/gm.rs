@@ -31,13 +31,13 @@ impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.geometry.render_with_material(material, camera, lights)
     }
 }
 
 impl<G: Geometry, M: Material> Object for Gm<G, M> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.render_with_material(&self.material, camera, lights)
     }
 

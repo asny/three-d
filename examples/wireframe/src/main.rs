@@ -78,11 +78,9 @@ pub async fn run() {
         wireframe_material,
     );
 
-    let ambient = AmbientLight::new(&context, 0.7, Color::WHITE).unwrap();
-    let directional0 =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
-    let directional1 =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap();
+    let ambient = AmbientLight::new(&context, 0.7, Color::WHITE);
+    let directional0 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
+    let directional1 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0));
 
     // main loop
     window
@@ -101,8 +99,7 @@ pub async fn run() {
                         &camera,
                         &[&model, &vertices, &edges],
                         &[&ambient, &directional0, &directional1],
-                    )
-                    .unwrap();
+                    );
             }
 
             FrameOutput {

@@ -56,11 +56,7 @@ impl<M: Material> Circle<M> {
 }
 
 impl<M: Material> Geometry2D for Circle<M> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render_with_material(material, camera2d, &[])
         })
@@ -68,7 +64,7 @@ impl<M: Material> Geometry2D for Circle<M> {
 }
 
 impl<M: Material> Object2D for Circle<M> {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+    fn render(&self, viewport: Viewport) {
         self.context
             .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
     }

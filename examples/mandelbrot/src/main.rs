@@ -108,8 +108,7 @@ pub fn main() {
                 frame_input
                     .screen()
                     .clear(ClearState::color(0.0, 1.0, 1.0, 1.0))
-                    .render(&camera, &[&mesh], &[])
-                    .unwrap();
+                    .render(&camera, &[&mesh], &[]);
             }
 
             FrameOutput {

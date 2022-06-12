@@ -41,12 +41,11 @@ pub async fn run() {
         .iter_mut()
         .for_each(|m| m.material.render_states.cull = Cull::Back);
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
-    let directional =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
+    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
+    let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Fog
-    let fog_effect = FogEffect::new(&context, Color::new_opaque(200, 200, 200), 0.2, 0.1).unwrap();
+    let fog_effect = FogEffect::new(&context, Color::new_opaque(200, 200, 200), 0.2, 0.1);
     let mut fog_enabled = true;
 
     // main loop
@@ -90,8 +89,7 @@ pub async fn run() {
                             &camera,
                             &monkey.to_geometries(),
                             &[],
-                        )
-                        .unwrap();
+                        );
                 });
             }
 
@@ -99,7 +97,6 @@ pub async fn run() {
                 .screen()
                 .clear(ClearState::default())
                 .render(&camera, &monkey.to_objects(), &[&ambient, &directional])
-                .unwrap()
                 .write(|| {
                     if fog_enabled {
                         if let Some(ref depth_texture) = depth_texture {
@@ -110,9 +107,7 @@ pub async fn run() {
                             );
                         }
                     }
-                    Ok(())
-                })
-                .unwrap();
+                });
 
             FrameOutput::default()
         })

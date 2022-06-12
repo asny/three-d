@@ -20,7 +20,7 @@ impl Environment {
     /// Computes the maps needed for physically based rendering with lighting from an environment from the given environment map.
     /// A default Cook-Torrance lighting model is used.
     ///
-    pub fn new(context: &Context, environment_map: &TextureCubeMap) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, environment_map: &TextureCubeMap) -> Self {
         Self::new_with_lighting_model(
             context,
             environment_map,
@@ -38,7 +38,7 @@ impl Environment {
         context: &Context,
         environment_map: &TextureCubeMap,
         lighting_model: LightingModel,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         // Diffuse
         let irradiance_size = 32;
         let mut irradiance_map = TextureCubeMap::new_empty::<[f16; 4]>(
@@ -58,7 +58,7 @@ impl Environment {
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/irradiance.frag")
             );
-            let effect = ImageCubeEffect::new(context, &fragment_shader_source)?;
+            let effect = ImageCubeEffect::new(context, &fragment_shader_source).unwrap();
             for side in CubeMapSide::iter() {
                 effect.use_texture_cube("environmentMap", environment_map);
                 let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
@@ -67,8 +67,7 @@ impl Environment {
                     .clear(ClearState::default())
                     .write(|| {
                         effect.render(side, RenderStates::default(), viewport);
-                        Ok(())
-                    })?;
+                    });
             }
         }
 
@@ -93,7 +92,7 @@ impl Environment {
                 include_str!("shaders/light_shared.frag"),
                 include_str!("shaders/prefilter.frag")
             );
-            let effect = ImageCubeEffect::new(context, &fragment_shader_source)?;
+            let effect = ImageCubeEffect::new(context, &fragment_shader_source).unwrap();
             let max_mip_levels = 5;
             for mip in 0..max_mip_levels {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
@@ -108,8 +107,7 @@ impl Environment {
                             RenderStates::default(),
                             Viewport::new_at_origo(color_target.width(), color_target.height()),
                         );
-                        Ok(())
-                    })?;
+                    });
                 }
             }
         }
@@ -134,20 +132,20 @@ impl Environment {
                 include_str!("shaders/light_shared.frag"),
                 include_str!("shaders/brdf.frag")
             ),
-        )?;
+        )
+        .unwrap();
         let viewport = Viewport::new_at_origo(brdf_map.width(), brdf_map.height());
         brdf_map
             .as_color_target(None)
             .clear(ClearState::default())
             .write(|| {
                 effect.apply(RenderStates::default(), viewport);
-                Ok(())
-            })?;
+            });
 
-        Ok(Self {
+        Self {
             irradiance_map,
             prefilter_map,
             brdf_map,
-        })
+        }
     }
 }

@@ -51,9 +51,8 @@ pub async fn run() {
         .for_each(|m| m.material.render_states.cull = Cull::Back);
 
     // Lights
-    let ambient = AmbientLight::new(&context, 0.3, Color::WHITE).unwrap();
-    let directional =
-        DirectionalLight::new(&context, 4.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
+    let ambient = AmbientLight::new(&context, 0.3, Color::WHITE);
+    let directional = DirectionalLight::new(&context, 4.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Imposters
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
@@ -77,8 +76,7 @@ pub async fn run() {
         &model.to_objects(),
         &[&ambient, &directional],
         256,
-    )
-    .unwrap();
+    );
 
     // Plane
     let mut plane = Gm::new(
@@ -127,8 +125,7 @@ pub async fn run() {
                 frame_input
                     .screen()
                     .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-                    .render(&camera, &objects, &[&ambient, &directional])
-                    .unwrap();
+                    .render(&camera, &objects, &[&ambient, &directional]);
             }
 
             FrameOutput {

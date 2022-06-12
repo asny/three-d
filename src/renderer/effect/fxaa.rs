@@ -12,10 +12,10 @@ impl FXAAEffect {
     ///
     /// Creates a new FXAA effect.
     ///
-    pub fn new(context: &Context) -> ThreeDResult<Self> {
-        Ok(Self {
-            image_effect: ImageEffect::new(context, include_str!("shaders/fxaa.frag"))?,
-        })
+    pub fn new(context: &Context) -> Self {
+        Self {
+            image_effect: ImageEffect::new(context, include_str!("shaders/fxaa.frag")).unwrap(),
+        }
     }
 
     ///

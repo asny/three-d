@@ -84,25 +84,21 @@ impl<'a> RenderTarget<'a> {
     ///
     /// Writes whatever rendered in the `render` closure into this render target.
     ///
-    pub fn write(&self, render: impl FnOnce() -> ThreeDResult<()>) -> ThreeDResult<&Self> {
+    pub fn write(&self, render: impl FnOnce()) -> &Self {
         self.write_partially(self.scissor_box(), render)
     }
 
     ///
     /// Writes whatever rendered in the `render` closure into the part of this render target defined by the scissor box.
     ///
-    pub fn write_partially(
-        &self,
-        scissor_box: ScissorBox,
-        render: impl FnOnce() -> ThreeDResult<()>,
-    ) -> ThreeDResult<&Self> {
+    pub fn write_partially(&self, scissor_box: ScissorBox, render: impl FnOnce()) -> &Self {
         self.context.set_scissor(scissor_box);
         self.bind(crate::context::DRAW_FRAMEBUFFER);
-        render()?;
+        render();
         if let Some(ref color) = self.color {
             color.generate_mip_maps();
         }
-        Ok(self)
+        self
     }
 
     ///
@@ -197,7 +193,7 @@ impl<'a> RenderTarget<'a> {
         depth_texture: Option<&DepthTargetTexture2D>,
         scissor_box: ScissorBox,
         write_mask: WriteMask,
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.write(|| {
             copy_from(
                 &self.context,
@@ -219,7 +215,7 @@ impl<'a> RenderTarget<'a> {
         depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
         scissor_box: ScissorBox,
         write_mask: WriteMask,
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.write(|| {
             copy_from_array(
                 &self.context,
@@ -309,7 +305,7 @@ fn copy_from(
     depth_texture: Option<&DepthTargetTexture2D>,
     viewport: Viewport,
     write_mask: WriteMask,
-) -> ThreeDResult<()> {
+) {
     if color_texture.is_some() || depth_texture.is_some() {
         let fragment_shader_source = if color_texture.is_some() && depth_texture.is_some() {
             "
@@ -341,30 +337,30 @@ fn copy_from(
                 gl_FragDepth = texture(depthMap, uv).r;
             }"
         };
-        context.effect(fragment_shader_source, |effect| {
-            if let Some(tex) = color_texture {
-                effect.use_texture("colorMap", tex);
-            }
-            if let Some(tex) = depth_texture {
-                effect.use_depth_texture("depthMap", tex);
-            }
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTest::Always,
-                    write_mask: WriteMask {
-                        red: color_texture.is_some() && write_mask.red,
-                        green: color_texture.is_some() && write_mask.green,
-                        blue: color_texture.is_some() && write_mask.blue,
-                        alpha: color_texture.is_some() && write_mask.alpha,
-                        depth: depth_texture.is_some() && write_mask.depth,
+        context
+            .effect(fragment_shader_source, |effect| {
+                if let Some(tex) = color_texture {
+                    effect.use_texture("colorMap", tex);
+                }
+                if let Some(tex) = depth_texture {
+                    effect.use_depth_texture("depthMap", tex);
+                }
+                effect.apply(
+                    RenderStates {
+                        depth_test: DepthTest::Always,
+                        write_mask: WriteMask {
+                            red: color_texture.is_some() && write_mask.red,
+                            green: color_texture.is_some() && write_mask.green,
+                            blue: color_texture.is_some() && write_mask.blue,
+                            alpha: color_texture.is_some() && write_mask.alpha,
+                            depth: depth_texture.is_some() && write_mask.depth,
+                        },
+                        ..Default::default()
                     },
-                    ..Default::default()
-                },
-                viewport,
-            )
-        })
-    } else {
-        Ok(())
+                    viewport,
+                )
+            })
+            .unwrap();
     }
 }
 
@@ -374,7 +370,7 @@ fn copy_from_array(
     depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
     viewport: Viewport,
     write_mask: WriteMask,
-) -> ThreeDResult<()> {
+) {
     if color_texture.is_some() || depth_texture.is_some() {
         let fragment_shader_source = if color_texture.is_some() && depth_texture.is_some() {
             "
@@ -410,31 +406,31 @@ fn copy_from_array(
                 gl_FragDepth = texture(depthMap, vec3(uv, depthLayer)).r;
             }"
         };
-        context.effect(fragment_shader_source, |effect| {
-            if let Some((tex, layer)) = color_texture {
-                effect.use_texture_array("colorMap", tex);
-                effect.use_uniform("colorLayer", layer as i32);
-            }
-            if let Some((tex, layer)) = depth_texture {
-                effect.use_depth_texture_array("depthMap", tex);
-                effect.use_uniform("depthLayer", layer as i32);
-            }
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTest::Always,
-                    write_mask: WriteMask {
-                        red: color_texture.is_some() && write_mask.red,
-                        green: color_texture.is_some() && write_mask.green,
-                        blue: color_texture.is_some() && write_mask.blue,
-                        alpha: color_texture.is_some() && write_mask.alpha,
-                        depth: depth_texture.is_some() && write_mask.depth,
+        context
+            .effect(fragment_shader_source, |effect| {
+                if let Some((tex, layer)) = color_texture {
+                    effect.use_texture_array("colorMap", tex);
+                    effect.use_uniform("colorLayer", layer as i32);
+                }
+                if let Some((tex, layer)) = depth_texture {
+                    effect.use_depth_texture_array("depthMap", tex);
+                    effect.use_uniform("depthLayer", layer as i32);
+                }
+                effect.apply(
+                    RenderStates {
+                        depth_test: DepthTest::Always,
+                        write_mask: WriteMask {
+                            red: color_texture.is_some() && write_mask.red,
+                            green: color_texture.is_some() && write_mask.green,
+                            blue: color_texture.is_some() && write_mask.blue,
+                            alpha: color_texture.is_some() && write_mask.alpha,
+                            depth: depth_texture.is_some() && write_mask.depth,
+                        },
+                        ..Default::default()
                     },
-                    ..Default::default()
-                },
-                viewport,
-            )
-        })
-    } else {
-        Ok(())
+                    viewport,
+                );
+            })
+            .unwrap()
     }
 }

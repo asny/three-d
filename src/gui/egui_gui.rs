@@ -114,7 +114,7 @@ impl GUI {
     /// Render the GUI defined in the [update](Self::update) function.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn render(&mut self) -> ThreeDResult<()> {
+    pub fn render(&mut self) {
         let (_, shapes) = self.egui_context.end_frame();
         let clipped_meshes = self.egui_context.tessellate(shapes);
 
@@ -155,7 +155,6 @@ impl GUI {
                 self.texture.as_ref().unwrap(),
             );
         }
-        Ok(())
     }
 
     fn paint_mesh(

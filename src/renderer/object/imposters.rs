@@ -26,17 +26,17 @@ impl Imposters {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         objects
             .iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
         let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)));
         sprites.set_transformation(get_sprite_transform(aabb));
-        Ok(Imposters {
+        Imposters {
             sprites,
-            material: ImpostersMaterial::new(context, aabb, objects, lights, max_texture_size)?,
-        })
+            material: ImpostersMaterial::new(context, aabb, objects, lights, max_texture_size),
+        }
     }
 
     ///
@@ -55,15 +55,14 @@ impl Imposters {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         objects
             .iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
         self.sprites.set_transformation(get_sprite_transform(aabb));
         self.material
-            .update(aabb, objects, lights, max_texture_size)?;
-        Ok(())
+            .update(aabb, objects, lights, max_texture_size);
     }
 }
 
@@ -85,7 +84,7 @@ impl Geometry for Imposters {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.sprites.render_with_material(material, camera, lights)
     }
 
@@ -95,7 +94,7 @@ impl Geometry for Imposters {
 }
 
 impl Object for Imposters {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.render_with_material(&self.material, camera, lights)
     }
 
@@ -116,7 +115,7 @@ impl ImpostersMaterial {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut m = Self {
             context: context.clone(),
             texture: Texture2DArray::new_empty::<[u8; 4]>(
@@ -131,8 +130,8 @@ impl ImpostersMaterial {
                 Wrapping::ClampToEdge,
             ),
         };
-        m.update(aabb, objects, lights, max_texture_size)?;
-        Ok(m)
+        m.update(aabb, objects, lights, max_texture_size);
+        m
     }
     pub fn update(
         &mut self,
@@ -140,7 +139,7 @@ impl ImpostersMaterial {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         if !aabb.is_empty() {
             let (min, max) = (aabb.min(), aabb.max());
             let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
@@ -190,10 +189,9 @@ impl ImpostersMaterial {
                     depth_texture.as_depth_target(),
                 )
                 .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))
-                .render(&camera, objects, lights)?;
+                .render(&camera, objects, lights);
             }
         }
-        Ok(())
     }
 }
 

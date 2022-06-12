@@ -36,12 +36,7 @@ impl<'a> DepthTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render(
-        &self,
-        camera: &Camera,
-        objects: &[&dyn Object],
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    pub fn render(&self, camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
@@ -56,10 +51,10 @@ impl<'a> DepthTarget<'a> {
         camera: &Camera,
         objects: &[&dyn Object],
         lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.as_render_target()
-            .render_partially(scissor_box, camera, objects, lights)?;
-        Ok(self)
+            .render_partially(scissor_box, camera, objects, lights);
+        self
     }
 
     ///
@@ -73,15 +68,15 @@ impl<'a> DepthTarget<'a> {
         camera: &Camera,
         geometries: &[&dyn Geometry],
         lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.render_partially_with_material(
             self.scissor_box(),
             material,
             camera,
             geometries,
             lights,
-        )?;
-        Ok(self)
+        );
+        self
     }
 
     ///
@@ -96,15 +91,15 @@ impl<'a> DepthTarget<'a> {
         camera: &Camera,
         geometries: &[&dyn Geometry],
         lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.as_render_target().render_partially_with_material(
             scissor_box,
             material,
             camera,
             geometries,
             lights,
-        )?;
-        Ok(self)
+        );
+        self
     }
 }
 
@@ -114,12 +109,7 @@ impl<'a> ColorTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render(
-        &self,
-        camera: &Camera,
-        objects: &[&dyn Object],
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    pub fn render(&self, camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
@@ -134,10 +124,10 @@ impl<'a> ColorTarget<'a> {
         camera: &Camera,
         objects: &[&dyn Object],
         lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.as_render_target()
-            .render_partially(scissor_box, camera, objects, lights)?;
-        Ok(self)
+            .render_partially(scissor_box, camera, objects, lights);
+        self
     }
 
     ///
@@ -151,15 +141,15 @@ impl<'a> ColorTarget<'a> {
         camera: &Camera,
         geometries: &[&dyn Geometry],
         lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.render_partially_with_material(
             self.scissor_box(),
             material,
             camera,
             geometries,
             lights,
-        )?;
-        Ok(self)
+        );
+        self
     }
 
     ///
@@ -174,15 +164,15 @@ impl<'a> ColorTarget<'a> {
         camera: &Camera,
         geometries: &[&dyn Geometry],
         lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.as_render_target().render_partially_with_material(
             scissor_box,
             material,
             camera,
             geometries,
             lights,
-        )?;
-        Ok(self)
+        );
+        self
     }
 }
 
@@ -192,12 +182,7 @@ impl<'a> RenderTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render(
-        &self,
-        camera: &Camera,
-        objects: &[&dyn Object],
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    pub fn render(&self, camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
@@ -212,7 +197,7 @@ impl<'a> RenderTarget<'a> {
         camera: &Camera,
         objects: &[&dyn Object],
         lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         #![allow(deprecated)]
         let (deferred_objects, forward_objects): (Vec<_>, Vec<_>) = objects
             .iter()
@@ -249,7 +234,7 @@ impl<'a> RenderTarget<'a> {
                 geometry_pass_depth_texture.as_depth_target(),
             )
             .clear(ClearState::default())
-            .write(|| render_pass(&geometry_pass_camera, &deferred_objects, lights))?;
+            .write(|| render_pass(&geometry_pass_camera, &deferred_objects, lights));
 
             // Lighting pass
             self.write_partially(scissor_box, || {
@@ -260,14 +245,14 @@ impl<'a> RenderTarget<'a> {
                     &geometry_pass_depth_texture,
                     lights,
                 )
-            })?;
+            });
         }
 
         // Forward
         self.write_partially(scissor_box, || {
             render_pass(camera, &forward_objects, lights)
-        })?;
-        Ok(self)
+        });
+        self
     }
 
     ///
@@ -281,15 +266,14 @@ impl<'a> RenderTarget<'a> {
         camera: &Camera,
         geometries: &[&dyn Geometry],
         lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.render_partially_with_material(
             self.scissor_box(),
             material,
             camera,
             geometries,
             lights,
-        )?;
-        Ok(self)
+        )
     }
 
     ///
@@ -304,14 +288,13 @@ impl<'a> RenderTarget<'a> {
         camera: &Camera,
         geometries: &[&dyn Geometry],
         lights: &[&dyn Light],
-    ) -> ThreeDResult<&Self> {
+    ) -> &Self {
         self.write_partially(scissor_box, || {
             for object in geometries.iter().filter(|o| camera.in_frustum(&o.aabb())) {
-                object.render_with_material(material, camera, lights)?;
+                object.render_with_material(material, camera, lights);
             }
-            Ok(())
-        })?;
-        Ok(self)
+        });
+        self
     }
 }
 
@@ -326,20 +309,15 @@ impl<'a> RenderTarget<'a> {
 /// If you are using one of these targets, it is preferred to use the [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods.
 ///
 #[deprecated = "use RenderTarget::render, ColorTarget::render or DepthTarget::render or render each object by using the Object::render method"]
-pub fn render_pass(
-    camera: &Camera,
-    objects: &[&dyn Object],
-    lights: &[&dyn Light],
-) -> ThreeDResult<()> {
+pub fn render_pass(camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]) {
     let mut culled_objects = objects
         .iter()
         .filter(|o| camera.in_frustum(&o.aabb()))
         .collect::<Vec<_>>();
     culled_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
     for object in culled_objects {
-        object.render(camera, lights)?;
+        object.render(camera, lights);
     }
-    Ok(())
 }
 
 ///
@@ -384,7 +362,7 @@ pub fn pick(
     camera: &Camera,
     pixel: (f32, f32),
     geometries: &[&dyn Geometry],
-) -> ThreeDResult<Option<Vec3>> {
+) -> Option<Vec3> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
     ray_intersect(
@@ -406,7 +384,7 @@ pub fn ray_intersect(
     direction: Vec3,
     max_depth: f32,
     geometries: &[&dyn Geometry],
-) -> ThreeDResult<Option<Vec3>> {
+) -> Option<Vec3> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
     let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
@@ -458,14 +436,13 @@ pub fn ray_intersect(
     .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
     .write(|| {
         for geometry in geometries {
-            geometry.render_with_material(&depth_material, &camera, &[])?;
+            geometry.render_with_material(&depth_material, &camera, &[]);
         }
-        Ok(())
-    })?
+    })
     .read_color()[0];
-    Ok(if depth < 1.0 {
+    if depth < 1.0 {
         Some(position + direction * depth * max_depth)
     } else {
         None
-    })
+    }
 }

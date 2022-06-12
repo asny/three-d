@@ -37,7 +37,7 @@ pub async fn run() {
     .unwrap();
 
     let environment_map = loaded.deserialize("chinese").unwrap();
-    let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
+    let skybox = Skybox::new_from_equirectangular(&context, &environment_map);
 
     let mut cpu_model: CpuModel = loaded.deserialize("DamagedHelmet").unwrap();
     cpu_model
@@ -48,8 +48,7 @@ pub async fn run() {
         .unwrap()
         .remove(0);
 
-    let light =
-        AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture()).unwrap();
+    let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
 
     // main loop
     let mut normal_map_enabled = true;
@@ -90,7 +89,6 @@ pub async fn run() {
                 .screen()
                 .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
                 .render(&camera, &[&skybox], &[])
-                .unwrap()
                 .write(|| {
                     let material = PhysicalMaterial {
                         name: model.material.name.clone(),
@@ -136,11 +134,9 @@ pub async fn run() {
                             GeometryFunction::SmithSchlickGGX,
                         ),
                     };
-                    model.render_with_material(&material, &camera, &[&light])?;
-                    gui.render()?;
-                    Ok(())
-                })
-                .unwrap();
+                    model.render_with_material(&material, &camera, &[&light]);
+                    gui.render();
+                });
 
             FrameOutput::default()
         })

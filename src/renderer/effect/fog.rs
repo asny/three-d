@@ -17,13 +17,8 @@ impl FogEffect {
     ///
     /// Constructs a new fog effect.
     ///
-    pub fn new(
-        context: &Context,
-        color: Color,
-        density: f32,
-        animation: f32,
-    ) -> ThreeDResult<FogEffect> {
-        Ok(FogEffect {
+    pub fn new(context: &Context, color: Color, density: f32, animation: f32) -> FogEffect {
+        FogEffect {
             color,
             density,
             animation,
@@ -34,8 +29,9 @@ impl FogEffect {
                     include_str!("../../core/shared.frag"),
                     include_str!("shaders/fog.frag")
                 ),
-            )?,
-        })
+            )
+            .unwrap(),
+        }
     }
 
     ///

@@ -59,7 +59,7 @@ pub fn main() {
             // Render the triangle with the color material which uses the per vertex colors defined at construction
             .render(
                 &camera, &[&model], &[]
-            ).unwrap();
+            );
 
         // Returns default frame output to end the frame
         FrameOutput::default()

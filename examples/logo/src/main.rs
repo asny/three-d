@@ -66,10 +66,9 @@ pub async fn run() {
     .await
     .unwrap();
     let environment_map =
-        TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.deserialize("").unwrap())
-            .unwrap();
+        TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.deserialize("").unwrap());
     let light = AmbientLight {
-        environment: Some(Environment::new(&context, &environment_map).unwrap()),
+        environment: Some(Environment::new(&context, &environment_map)),
         ..Default::default()
     };
 
@@ -79,8 +78,7 @@ pub async fn run() {
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-                .render(&camera, &[&model], &[&light])
-                .unwrap();
+                .render(&camera, &[&model], &[&light]);
 
             FrameOutput::default()
         })

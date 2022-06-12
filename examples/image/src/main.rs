@@ -70,17 +70,12 @@ pub async fn run() {
                 height: frame_input.viewport.height,
             };
 
-            frame_input
-                .screen()
-                .clear(ClearState::default())
-                .write(|| {
-                    image_effect.use_texture("image", &image);
-                    image_effect.use_uniform("parameter", tone_mapping);
-                    image_effect.apply(RenderStates::default(), viewport);
-                    gui.render()?;
-                    Ok(())
-                })
-                .unwrap();
+            frame_input.screen().clear(ClearState::default()).write(|| {
+                image_effect.use_texture("image", &image);
+                image_effect.use_uniform("parameter", tone_mapping);
+                image_effect.apply(RenderStates::default(), viewport);
+                gui.render();
+            });
 
             FrameOutput::default()
         })

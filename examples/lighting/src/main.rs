@@ -81,11 +81,10 @@ pub async fn run() {
         DeferredPhysicalMaterial::from_physical_material(&plane.material),
     );
 
-    let mut ambient = AmbientLight::new(&context, 0.2, Color::WHITE).unwrap();
-    let mut directional0 =
-        DirectionalLight::new(&context, 1.0, Color::RED, &vec3(0.0, -1.0, 0.0)).unwrap();
+    let mut ambient = AmbientLight::new(&context, 0.2, Color::WHITE);
+    let mut directional0 = DirectionalLight::new(&context, 1.0, Color::RED, &vec3(0.0, -1.0, 0.0));
     let mut directional1 =
-        DirectionalLight::new(&context, 1.0, Color::GREEN, &vec3(0.0, -1.0, 0.0)).unwrap();
+        DirectionalLight::new(&context, 1.0, Color::GREEN, &vec3(0.0, -1.0, 0.0));
     let mut spot0 = SpotLight::new(
         &context,
         2.0,
@@ -98,8 +97,7 @@ pub async fn run() {
             linear: 0.001,
             quadratic: 0.0001,
         },
-    )
-    .unwrap();
+    );
     let mut point0 = PointLight::new(
         &context,
         1.0,
@@ -110,8 +108,7 @@ pub async fn run() {
             linear: 0.05,
             quadratic: 0.005,
         },
-    )
-    .unwrap();
+    );
     let mut point1 = PointLight::new(
         &context,
         1.0,
@@ -122,8 +119,7 @@ pub async fn run() {
             linear: 0.05,
             quadratic: 0.005,
         },
-    )
-    .unwrap();
+    );
 
     // main loop
     let mut shadows_enabled = true;
@@ -246,9 +242,9 @@ pub async fn run() {
 
             // Draw
             if shadows_enabled {
-                directional0.generate_shadow_map(1024, &[&model]).unwrap();
-                directional1.generate_shadow_map(1024, &[&model]).unwrap();
-                spot0.generate_shadow_map(1024, &[&model]).unwrap();
+                directional0.generate_shadow_map(1024, &[&model]);
+                directional1.generate_shadow_map(1024, &[&model]);
+                spot0.generate_shadow_map(1024, &[&model]);
             }
 
             let lights = [
@@ -264,93 +260,79 @@ pub async fn run() {
             screen.clear(ClearState::default());
             match material_type {
                 MaterialType::Normal => {
-                    screen
-                        .write(|| {
-                            model.render_with_material(
-                                &NormalMaterial::from_physical_material(&model.material),
-                                &camera,
-                                &lights,
-                            )?;
-                            plane.render_with_material(
-                                &NormalMaterial::from_physical_material(&plane.material),
-                                &camera,
-                                &lights,
-                            )
-                        })
-                        .unwrap();
+                    screen.write(|| {
+                        model.render_with_material(
+                            &NormalMaterial::from_physical_material(&model.material),
+                            &camera,
+                            &lights,
+                        );
+                        plane.render_with_material(
+                            &NormalMaterial::from_physical_material(&plane.material),
+                            &camera,
+                            &lights,
+                        )
+                    });
                 }
                 MaterialType::Depth => {
-                    screen
-                        .render_with_material(
-                            &DepthMaterial::default(),
-                            &camera,
-                            &[&model, &plane],
-                            &lights,
-                        )
-                        .unwrap();
+                    screen.render_with_material(
+                        &DepthMaterial::default(),
+                        &camera,
+                        &[&model, &plane],
+                        &lights,
+                    );
                 }
                 MaterialType::Orm => {
-                    screen
-                        .write(|| {
-                            model.render_with_material(
-                                &ORMMaterial::from_physical_material(&model.material),
-                                &camera,
-                                &lights,
-                            )?;
-                            plane.render_with_material(
-                                &ORMMaterial::from_physical_material(&plane.material),
-                                &camera,
-                                &lights,
-                            )
-                        })
-                        .unwrap();
+                    screen.write(|| {
+                        model.render_with_material(
+                            &ORMMaterial::from_physical_material(&model.material),
+                            &camera,
+                            &lights,
+                        );
+                        plane.render_with_material(
+                            &ORMMaterial::from_physical_material(&plane.material),
+                            &camera,
+                            &lights,
+                        )
+                    });
                 }
                 MaterialType::Position => {
-                    screen
-                        .render_with_material(
-                            &PositionMaterial::default(),
-                            &camera,
-                            &[&model, &plane],
-                            &lights,
-                        )
-                        .unwrap();
+                    screen.render_with_material(
+                        &PositionMaterial::default(),
+                        &camera,
+                        &[&model, &plane],
+                        &lights,
+                    );
                 }
                 MaterialType::Uv => {
-                    screen
-                        .render_with_material(
-                            &UVMaterial::default(),
-                            &camera,
-                            &[&model, &plane],
-                            &lights,
-                        )
-                        .unwrap();
+                    screen.render_with_material(
+                        &UVMaterial::default(),
+                        &camera,
+                        &[&model, &plane],
+                        &lights,
+                    );
                 }
                 MaterialType::Color => {
-                    screen
-                        .write(|| {
-                            model.render_with_material(
-                                &ColorMaterial::from_physical_material(&model.material),
-                                &camera,
-                                &lights,
-                            )?;
-                            plane.render_with_material(
-                                &ColorMaterial::from_physical_material(&plane.material),
-                                &camera,
-                                &lights,
-                            )
-                        })
-                        .unwrap();
+                    screen.write(|| {
+                        model.render_with_material(
+                            &ColorMaterial::from_physical_material(&model.material),
+                            &camera,
+                            &lights,
+                        );
+                        plane.render_with_material(
+                            &ColorMaterial::from_physical_material(&plane.material),
+                            &camera,
+                            &lights,
+                        )
+                    });
                 }
                 MaterialType::Forward => {
-                    screen.render(&camera, &[&model, &plane], &lights).unwrap();
+                    screen.render(&camera, &[&model, &plane], &lights);
                 }
                 MaterialType::Deferred => {
-                    screen
-                        .render(&camera, &[&deferred_model, &deferred_plane], &lights)
-                        .unwrap();
+                    screen.render(&camera, &[&deferred_model, &deferred_plane], &lights);
                 }
             }
-            screen.write(|| gui.render()).unwrap();
+            screen.write(|| gui.render());
 
             FrameOutput::default()
         })
