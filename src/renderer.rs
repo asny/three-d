@@ -57,7 +57,7 @@ impl<'a> DepthTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?
+        self.as_render_target()
             .render_partially(scissor_box, camera, objects, lights)?;
         Ok(self)
     }
@@ -97,7 +97,7 @@ impl<'a> DepthTarget<'a> {
         geometries: &[&dyn Geometry],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?.render_partially_with_material(
+        self.as_render_target().render_partially_with_material(
             scissor_box,
             material,
             camera,
@@ -135,7 +135,7 @@ impl<'a> ColorTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?
+        self.as_render_target()
             .render_partially(scissor_box, camera, objects, lights)?;
         Ok(self)
     }
@@ -175,7 +175,7 @@ impl<'a> ColorTarget<'a> {
         geometries: &[&dyn Geometry],
         lights: &[&dyn Light],
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?.render_partially_with_material(
+        self.as_render_target().render_partially_with_material(
             scissor_box,
             material,
             camera,
@@ -247,8 +247,8 @@ impl<'a> RenderTarget<'a> {
             RenderTarget::new(
                 geometry_pass_texture.as_color_target(&[0, 1, 2], None),
                 geometry_pass_depth_texture.as_depth_target(),
-            )?
-            .clear(ClearState::default())?
+            )
+            .clear(ClearState::default())
             .write(|| render_pass(&geometry_pass_camera, &deferred_objects, lights))?;
 
             // Lighting pass
@@ -454,15 +454,15 @@ pub fn ray_intersect(
     let depth = RenderTarget::new(
         texture.as_color_target(None),
         depth_texture.as_depth_target(),
-    )?
-    .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))?
+    )
+    .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
     .write(|| {
         for geometry in geometries {
             geometry.render_with_material(&depth_material, &camera, &[])?;
         }
         Ok(())
     })?
-    .read_color()?[0];
+    .read_color()[0];
     Ok(if depth < 1.0 {
         Some(position + direction * depth * max_depth)
     } else {

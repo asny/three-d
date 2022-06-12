@@ -131,8 +131,8 @@ impl DeferredPipeline {
                 .as_mut()
                 .unwrap()
                 .as_depth_target(),
-        )?
-        .clear(ClearState::default())?
+        )
+        .clear(ClearState::default())
         .write(|| {
             for (geometry, material) in objects
                 .iter()

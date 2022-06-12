@@ -262,7 +262,7 @@ pub async fn run() {
             ];
 
             let screen = frame_input.screen();
-            screen.clear(ClearState::default()).unwrap();
+            screen.clear(ClearState::default());
             match material_type {
                 MaterialType::Normal => {
                     screen

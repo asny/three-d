@@ -79,26 +79,22 @@ impl<'a> ColorTarget<'a> {
     ///
     /// Clears the color of this color target as defined by the given clear state.
     ///
-    pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
+    pub fn clear(&self, clear_state: ClearState) -> &Self {
         self.clear_partially(self.scissor_box(), clear_state)
     }
 
     ///
     /// Clears the color of the part of this color target that is inside the given scissor box.
     ///
-    pub fn clear_partially(
-        &self,
-        scissor_box: ScissorBox,
-        clear_state: ClearState,
-    ) -> ThreeDResult<&Self> {
-        self.as_render_target()?.clear_partially(
+    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState) -> &Self {
+        self.as_render_target().clear_partially(
             scissor_box,
             ClearState {
                 depth: None,
                 ..clear_state
             },
-        )?;
-        Ok(self)
+        );
+        self
     }
 
     ///
@@ -116,7 +112,7 @@ impl<'a> ColorTarget<'a> {
         scissor_box: ScissorBox,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?
+        self.as_render_target()
             .write_partially(scissor_box, render)?;
         Ok(self)
     }
@@ -127,7 +123,7 @@ impl<'a> ColorTarget<'a> {
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
-    pub fn read<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
+    pub fn read<T: TextureDataType>(&self) -> Vec<T> {
         self.read_partially(self.scissor_box())
     }
 
@@ -137,11 +133,8 @@ impl<'a> ColorTarget<'a> {
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
-    pub fn read_partially<T: TextureDataType>(
-        &self,
-        scissor_box: ScissorBox,
-    ) -> ThreeDResult<Vec<T>> {
-        self.as_render_target()?.read_color_partially(scissor_box)
+    pub fn read_partially<T: TextureDataType>(&self, scissor_box: ScissorBox) -> Vec<T> {
+        self.as_render_target().read_color_partially(scissor_box)
     }
 
     ///
@@ -183,7 +176,7 @@ impl<'a> ColorTarget<'a> {
         ScissorBox::new_at_origo(self.width(), self.height())
     }
 
-    pub(crate) fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
+    pub(crate) fn as_render_target(&self) -> RenderTarget<'a> {
         RenderTarget::new_color(self.clone())
     }
 

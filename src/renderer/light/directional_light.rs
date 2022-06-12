@@ -97,7 +97,7 @@ impl DirectionalLight {
         };
         shadow_texture
             .as_depth_target()
-            .clear(ClearState::default())?
+            .clear(ClearState::default())
             .write(|| {
                 for geometry in geometries
                     .iter()

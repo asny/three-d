@@ -73,7 +73,6 @@ pub async fn run() {
             frame_input
                 .screen()
                 .clear(ClearState::default())
-                .unwrap()
                 .write(|| {
                     image_effect.use_texture("image", &image);
                     image_effect.use_uniform("parameter", tone_mapping);

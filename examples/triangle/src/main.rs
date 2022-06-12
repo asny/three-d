@@ -58,7 +58,7 @@ pub fn main() {
         // Get the screen render target to be able to render something on the screen
         frame_input.screen()
             // Clear the color and depth of the screen render target
-            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0)).unwrap()
+            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             // Write to the screen render target
             .write(|| {
                 // Render the triangle with the color material which uses the per vertex colors defined at construction

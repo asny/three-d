@@ -51,39 +51,34 @@ impl<'a> RenderTarget<'a> {
     ///
     /// Constructs a new render target that enables rendering into the given [ColorTarget] and [DepthTarget].
     ///
-    pub fn new(color: ColorTarget<'a>, depth: DepthTarget<'a>) -> ThreeDResult<Self> {
+    pub fn new(color: ColorTarget<'a>, depth: DepthTarget<'a>) -> Self {
         let width = color.width();
         let height = color.height();
-        Ok(Self {
+        Self {
             context: color.context.clone(),
-            id: Some(new_framebuffer(&color.context)?),
+            id: Some(new_framebuffer(&color.context)),
             color: Some(color),
             depth: Some(depth),
             width,
             height,
-        })
+        }
     }
 
     ///
     /// Clears the color and depth of this render target as defined by the given clear state.
     ///
-    pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
+    pub fn clear(&self, clear_state: ClearState) -> &Self {
         self.clear_partially(self.scissor_box(), clear_state)
     }
 
     ///
     /// Clears the color and depth of the part of this render target that is inside the given scissor box.
     ///
-    pub fn clear_partially(
-        &self,
-        scissor_box: ScissorBox,
-        clear_state: ClearState,
-    ) -> ThreeDResult<&Self> {
+    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState) -> &Self {
         self.context.set_scissor(scissor_box);
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
+        self.bind(crate::context::DRAW_FRAMEBUFFER);
         clear_state.apply(&self.context);
-        self.context.error_check()?;
-        Ok(self)
+        self
     }
 
     ///
@@ -102,12 +97,11 @@ impl<'a> RenderTarget<'a> {
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
         self.context.set_scissor(scissor_box);
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
+        self.bind(crate::context::DRAW_FRAMEBUFFER);
         render()?;
         if let Some(ref color) = self.color {
             color.generate_mip_maps();
         }
-        self.context.error_check()?;
         Ok(self)
     }
 
@@ -117,7 +111,7 @@ impl<'a> RenderTarget<'a> {
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
-    pub fn read_color<T: TextureDataType>(&self) -> ThreeDResult<Vec<T>> {
+    pub fn read_color<T: TextureDataType>(&self) -> Vec<T> {
         self.read_color_partially(self.scissor_box())
     }
 
@@ -127,15 +121,12 @@ impl<'a> RenderTarget<'a> {
     ///
     /// **Note:** On web, the data format needs to match the data format of the color texture.
     ///
-    pub fn read_color_partially<T: TextureDataType>(
-        &self,
-        scissor_box: ScissorBox,
-    ) -> ThreeDResult<Vec<T>> {
+    pub fn read_color_partially<T: TextureDataType>(&self, scissor_box: ScissorBox) -> Vec<T> {
         if self.id.is_some() && self.color.is_none() {
-            Err(CoreError::RenderTargetRead("color".to_string()))?;
+            panic!("cannot read color from a render target without a color target");
         }
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        self.bind(crate::context::READ_FRAMEBUFFER)?;
+        self.bind(crate::context::DRAW_FRAMEBUFFER);
+        self.bind(crate::context::READ_FRAMEBUFFER);
         let mut data_size = std::mem::size_of::<T>();
         // On web, the format needs to be RGBA if the data type is byte.
         if data_size / T::size() as usize == 1 {
@@ -153,7 +144,6 @@ impl<'a> RenderTarget<'a> {
                 T::data_type(),
                 crate::context::PixelPackData::Slice(&mut bytes),
             );
-            self.context.error_check()?;
         }
         let mut pixels = from_byte_slice(&bytes).to_vec();
         flip_y(
@@ -161,14 +151,14 @@ impl<'a> RenderTarget<'a> {
             scissor_box.width as usize,
             scissor_box.height as usize,
         );
-        Ok(pixels)
+        pixels
     }
 
     ///
     /// Returns the depth values in this render target.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth(&self) -> ThreeDResult<Vec<f32>> {
+    pub fn read_depth(&self) -> Vec<f32> {
         self.read_depth_partially(self.scissor_box())
     }
 
@@ -176,12 +166,12 @@ impl<'a> RenderTarget<'a> {
     /// Returns the depth values in this render target inside the given scissor box.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth_partially(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
+    pub fn read_depth_partially(&self, scissor_box: ScissorBox) -> Vec<f32> {
         if self.id.is_some() && self.depth.is_none() {
-            Err(CoreError::RenderTargetRead("depth".to_string()))?;
+            panic!("cannot read depth from a render target without a depth target");
         }
-        self.bind(crate::context::DRAW_FRAMEBUFFER)?;
-        self.bind(crate::context::READ_FRAMEBUFFER)?;
+        self.bind(crate::context::DRAW_FRAMEBUFFER);
+        self.bind(crate::context::READ_FRAMEBUFFER);
         let mut pixels = vec![0u8; scissor_box.width as usize * scissor_box.height as usize * 4];
         unsafe {
             self.context.read_pixels(
@@ -194,8 +184,7 @@ impl<'a> RenderTarget<'a> {
                 crate::context::PixelPackData::Slice(&mut pixels),
             );
         }
-        self.context.error_check()?;
-        Ok(from_byte_slice(&pixels).to_vec())
+        from_byte_slice(&pixels).to_vec()
     }
 
     ///
@@ -249,33 +238,33 @@ impl<'a> RenderTarget<'a> {
         ScissorBox::new_at_origo(self.width, self.height)
     }
 
-    fn new_color(color: ColorTarget<'a>) -> ThreeDResult<Self> {
+    fn new_color(color: ColorTarget<'a>) -> Self {
         let width = color.width();
         let height = color.height();
-        Ok(Self {
+        Self {
             context: color.context.clone(),
-            id: Some(new_framebuffer(&color.context)?),
+            id: Some(new_framebuffer(&color.context)),
             color: Some(color),
             depth: None,
             width,
             height,
-        })
+        }
     }
 
-    fn new_depth(depth: DepthTarget<'a>) -> ThreeDResult<Self> {
+    fn new_depth(depth: DepthTarget<'a>) -> Self {
         let width = depth.width();
         let height = depth.height();
-        Ok(Self {
+        Self {
             context: depth.context.clone(),
-            id: Some(new_framebuffer(&depth.context)?),
+            id: Some(new_framebuffer(&depth.context)),
             depth: Some(depth),
             color: None,
             width,
             height,
-        })
+        }
     }
 
-    fn bind(&self, target: u32) -> ThreeDResult<()> {
+    fn bind(&self, target: u32) {
         unsafe {
             self.context.bind_framebuffer(target, self.id);
         }
@@ -285,8 +274,6 @@ impl<'a> RenderTarget<'a> {
         if let Some(ref depth) = self.depth {
             depth.bind();
         }
-        self.context.framebuffer_check()?;
-        self.context.error_check()
     }
 }
 
@@ -308,11 +295,11 @@ fn size_with_mip(size: u32, mip: Option<u32>) -> u32 {
     }
 }
 
-fn new_framebuffer(context: &Context) -> ThreeDResult<crate::context::Framebuffer> {
+fn new_framebuffer(context: &Context) -> crate::context::Framebuffer {
     unsafe {
-        Ok(context
+        context
             .create_framebuffer()
-            .map_err(|e| CoreError::RenderTargetCreation(e))?)
+            .unwrap_or_else(|e| panic!("failed creating a new render target: {}", e))
     }
 }
 

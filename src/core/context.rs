@@ -316,6 +316,7 @@ impl Context {
     }
 
     pub(super) fn error_check(&self) -> ThreeDResult<()> {
+        self.framebuffer_check()?;
         #[cfg(debug_assertions)]
         unsafe {
             let e = self.get_error();

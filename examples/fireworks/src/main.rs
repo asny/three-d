@@ -133,7 +133,6 @@ pub fn run() {
             frame_input
                 .screen()
                 .clear(ClearState::color(0.0, 0.0, 0.0, 1.0))
-                .unwrap()
                 .write(|| {
                     let f = particles.time / explosion_time.max(0.0);
                     fireworks_material.fade = 1.0 - f * f * f * f;

@@ -175,7 +175,6 @@ pub async fn run() {
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0))
-                .unwrap()
                 .write(|| {
                     let camera = match camera_type {
                         CameraType::Primary => &primary_camera,

@@ -76,7 +76,6 @@ pub fn main() {
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-                .unwrap()
                 .clear_partially(
                     if viewport_zoom < scissor_zoom {
                         scissor_box_zoomed
@@ -85,7 +84,6 @@ pub fn main() {
                     },
                     ClearState::color(0.8, 0.8, 0.8, 1.0),
                 )
-                .unwrap()
                 .clear_partially(
                     if viewport_zoom > scissor_zoom {
                         scissor_box_zoomed
@@ -94,7 +92,6 @@ pub fn main() {
                     },
                     ClearState::color(0.5, 0.5, 0.5, 1.0),
                 )
-                .unwrap()
                 .render_partially(scissor_box_zoomed, &camera, &[&model], &[])
                 .unwrap()
                 .write(|| gui.render())
@@ -114,7 +111,6 @@ pub fn main() {
                     secondary_viewport.into(),
                     ClearState::color(0.3, 0.3, 0.3, 1.0),
                 )
-                .unwrap()
                 .render_partially(secondary_viewport.into(), &camera, &[&model], &[])
                 .unwrap();
 

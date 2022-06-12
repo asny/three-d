@@ -63,26 +63,22 @@ impl<'a> DepthTarget<'a> {
     ///
     /// Clears the depth of this depth target as defined by the given clear state.
     ///
-    pub fn clear(&self, clear_state: ClearState) -> ThreeDResult<&Self> {
+    pub fn clear(&self, clear_state: ClearState) -> &Self {
         self.clear_partially(self.scissor_box(), clear_state)
     }
 
     ///
     /// Clears the depth of the part of this depth target that is inside the given scissor box.
     ///
-    pub fn clear_partially(
-        &self,
-        scissor_box: ScissorBox,
-        clear_state: ClearState,
-    ) -> ThreeDResult<&Self> {
-        self.as_render_target()?.clear_partially(
+    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState) -> &Self {
+        self.as_render_target().clear_partially(
             scissor_box,
             ClearState {
                 depth: clear_state.depth,
                 ..ClearState::none()
             },
-        )?;
-        Ok(self)
+        );
+        self
     }
 
     ///
@@ -100,7 +96,7 @@ impl<'a> DepthTarget<'a> {
         scissor_box: ScissorBox,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<&Self> {
-        self.as_render_target()?
+        self.as_render_target()
             .write_partially(scissor_box, render)?;
         Ok(self)
     }
@@ -109,7 +105,7 @@ impl<'a> DepthTarget<'a> {
     /// Returns the depth values in this depth target.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read(&self) -> ThreeDResult<Vec<f32>> {
+    pub fn read(&self) -> Vec<f32> {
         self.read_partially(self.scissor_box())
     }
 
@@ -117,11 +113,11 @@ impl<'a> DepthTarget<'a> {
     /// Returns the depth values in this depth target inside the given scissor box.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_partially(&self, scissor_box: ScissorBox) -> ThreeDResult<Vec<f32>> {
-        self.as_render_target()?.read_depth_partially(scissor_box)
+    pub fn read_partially(&self, scissor_box: ScissorBox) -> Vec<f32> {
+        self.as_render_target().read_depth_partially(scissor_box)
     }
 
-    pub(crate) fn as_render_target(&self) -> ThreeDResult<RenderTarget<'a>> {
+    pub(crate) fn as_render_target(&self) -> RenderTarget<'a> {
         RenderTarget::new_depth(self.clone())
     }
 

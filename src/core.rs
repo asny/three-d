@@ -85,8 +85,6 @@ pub enum CoreError {
     UnusedAttribute(String),
     #[error("failed creating a new render target: {0}")]
     RenderTargetCreation(String),
-    #[error("cannot read {0} from a render target without {0}")]
-    RenderTargetRead(String),
     #[error("cannot read color from anything else but an RGBA texture")]
     ReadWrongFormat,
     #[error("failed creating a new texture: {0}")]

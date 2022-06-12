@@ -155,8 +155,7 @@ impl Window {
                         if let Ok(ref v) = std::env::var("THREE_D_SCREENSHOT") {
                             let pixels =
                                 RenderTarget::screen(&context, physical_width, physical_height)
-                                    .read_color::<[u8; 4]>()
-                                    .unwrap();
+                                    .read_color::<[u8; 4]>();
                             use three_d_asset::io::Serialize;
                             CpuTexture {
                                 data: TextureData::RgbaU8(pixels),
