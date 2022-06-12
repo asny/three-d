@@ -51,13 +51,13 @@ impl<M: Material> Geometry for VoxelGrid<M> {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.0.render_with_material(material, camera, lights)
     }
 }
 
 impl<M: Material> Object for VoxelGrid<M> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.0.render(camera, lights)
     }
 

@@ -40,9 +40,8 @@ pub async fn run() {
         ),
     );
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
-    let directional =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
+    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
+    let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/suzanne.obj",
@@ -76,7 +75,7 @@ pub async fn run() {
                                     as f32,
                             );
                             if let Some(pick) =
-                                pick(&context, &camera, pixel, &monkey.to_geometries()).unwrap()
+                                pick(&context, &camera, pixel, &monkey.to_geometries())
                             {
                                 pick_mesh.set_transformation(Mat4::from_translation(pick));
                                 change = true;
@@ -98,8 +97,7 @@ pub async fn run() {
                 frame_input
                     .screen()
                     .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-                    .render(&camera, &objects, &[&ambient, &directional])
-                    .unwrap();
+                    .render(&camera, &objects, &[&ambient, &directional]);
             }
 
             FrameOutput {

@@ -69,9 +69,8 @@ pub async fn run() {
         m.material.render_states.cull = Cull::Back;
     });
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
-    let directional =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0)).unwrap();
+    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
+    let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0));
 
     // main loop
     window
@@ -87,11 +86,11 @@ pub async fn run() {
             objects.push(&skybox);
             // draw
             if redraw {
-                frame_input
-                    .screen()
-                    .clear(ClearState::default())
-                    .render(&camera, &objects, &[&ambient, &directional])
-                    .unwrap();
+                frame_input.screen().clear(ClearState::default()).render(
+                    &camera,
+                    &objects,
+                    &[&ambient, &directional],
+                );
             }
 
             FrameOutput {

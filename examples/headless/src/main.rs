@@ -76,7 +76,6 @@ fn main() {
         .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
         // Render the triangle with the per vertex colors defined at construction
         .render(&camera, &[&model], &[])
-        .unwrap()
         // Read out the colors from the render target
         .read_color();
 

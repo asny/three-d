@@ -100,11 +100,7 @@ impl Context {
     ///
     /// Returns a camera for viewing 2D content.
     ///
-    pub fn camera2d(
-        &self,
-        viewport: Viewport,
-        callback: impl FnOnce(&Camera) -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
+    pub fn camera2d(&self, viewport: Viewport, callback: impl FnOnce(&Camera)) {
         if self.camera2d.borrow().is_none() {
             *self.camera2d.borrow_mut() = Some(Camera::new_orthographic(
                 viewport,
@@ -135,7 +131,7 @@ impl Context {
             ),
             vec3(0.0, -1.0, 0.0),
         );
-        callback(camera2d.as_ref().unwrap())
+        callback(camera2d.as_ref().unwrap());
     }
 
     ///

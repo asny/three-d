@@ -70,7 +70,7 @@ pub async fn run() {
         Some(vec3(1.0, 1.0, 0.0).normalize()),
     );
 
-    let ambient = AmbientLight::new(&context, 1.0, Color::WHITE).unwrap();
+    let ambient = AmbientLight::new(&context, 1.0, Color::WHITE);
 
     window
         .render_loop(move |mut frame_input: FrameInput| {
@@ -100,8 +100,7 @@ pub async fn run() {
                         },
                     ],
                     &[&ambient],
-                )
-                .unwrap();
+                );
 
             FrameOutput::default()
         })

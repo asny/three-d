@@ -138,10 +138,9 @@ impl DeferredPipeline {
                 .iter()
                 .filter(|(g, _)| self.camera.in_frustum(&g.aabb()))
             {
-                geometry.render_with_material(material, &self.camera, &[])?;
+                geometry.render_with_material(material, &self.camera, &[]);
             }
-            Ok(())
-        })?;
+        });
         Ok(())
     }
 

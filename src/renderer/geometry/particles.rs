@@ -172,7 +172,7 @@ impl Geometry for Particles {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context.program(
             &Self::vertex_shader_source(&fragment_shader_source),
@@ -221,6 +221,6 @@ impl Geometry for Particles {
                     )
                 }
             },
-        )
+        ).expect("Failed compiling shader")
     }
 }

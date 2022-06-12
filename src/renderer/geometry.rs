@@ -43,12 +43,7 @@ pub trait Geometry {
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     ///
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()>;
+    fn render_with_material(&self, material: &dyn Material, camera: &Camera, lights: &[&dyn Light]);
 
     ///
     /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
@@ -62,7 +57,7 @@ impl<T: Geometry + ?Sized> Geometry for &T {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         (*self).render_with_material(material, camera, lights)
     }
 
@@ -77,7 +72,7 @@ impl<T: Geometry + ?Sized> Geometry for &mut T {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         (**self).render_with_material(material, camera, lights)
     }
 
@@ -92,7 +87,7 @@ impl<T: Geometry> Geometry for Box<T> {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.as_ref().render_with_material(material, camera, lights)
     }
 
@@ -107,7 +102,7 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.as_ref().render_with_material(material, camera, lights)
     }
 
@@ -122,7 +117,7 @@ impl<T: Geometry> Geometry for std::rc::Rc<std::cell::RefCell<T>> {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.borrow().render_with_material(material, camera, lights)
     }
 
@@ -139,56 +134,35 @@ pub trait Geometry2D {
     /// Render the object with the given material.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport)
-        -> ThreeDResult<()>;
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport);
 }
 
 impl<T: Geometry2D + ?Sized> Geometry2D for &T {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         (*self).render_with_material(material, viewport)
     }
 }
 
 impl<T: Geometry2D + ?Sized> Geometry2D for &mut T {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         (**self).render_with_material(material, viewport)
     }
 }
 
 impl<T: Geometry2D> Geometry2D for Box<T> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         self.as_ref().render_with_material(material, viewport)
     }
 }
 
 impl<T: Geometry2D> Geometry2D for std::rc::Rc<T> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         self.as_ref().render_with_material(material, viewport)
     }
 }
 
 impl<T: Geometry2D> Geometry2D for std::rc::Rc<std::cell::RefCell<T>> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         self.borrow().render_with_material(material, viewport)
     }
 }

@@ -16,12 +16,12 @@ pub struct AmbientLight {
 
 impl AmbientLight {
     /// Constructs an ambient light that shines equally on all surfaces.
-    pub fn new(_context: &Context, intensity: f32, color: Color) -> ThreeDResult<Self> {
-        Ok(Self {
+    pub fn new(_context: &Context, intensity: f32, color: Color) -> Self {
+        Self {
             intensity,
             color,
             environment: None,
-        })
+        }
     }
 
     /// Constructs an ambient light that shines based on the given environment map.
@@ -30,12 +30,12 @@ impl AmbientLight {
         intensity: f32,
         color: Color,
         environment_map: &TextureCubeMap,
-    ) -> ThreeDResult<Self> {
-        Ok(Self {
+    ) -> Self {
+        Self {
             intensity,
             color,
-            environment: Some(Environment::new(context, environment_map)?),
-        })
+            environment: Some(Environment::new(context, environment_map)),
+        }
     }
 }
 

@@ -25,15 +25,15 @@ impl DirectionalLight {
         intensity: f32,
         color: Color,
         direction: &Vec3,
-    ) -> ThreeDResult<DirectionalLight> {
-        Ok(DirectionalLight {
+    ) -> DirectionalLight {
+        DirectionalLight {
             context: context.clone(),
             shadow_matrix: Mat4::identity(),
             shadow_texture: None,
             intensity,
             color,
             direction: *direction,
-        })
+        }
     }
 
     ///
@@ -51,11 +51,7 @@ impl DirectionalLight {
     /// If the shadows are too low resolution (the edges between shadow and non-shadow are pixelated) try to increase the texture size
     /// and/or split the scene by creating another light source with same parameters and let the two light sources shines on different parts of the scene.
     ///
-    pub fn generate_shadow_map(
-        &mut self,
-        texture_size: u32,
-        geometries: &[&dyn Geometry],
-    ) -> ThreeDResult<()> {
+    pub fn generate_shadow_map(&mut self, texture_size: u32, geometries: &[&dyn Geometry]) {
         let up = compute_up_direction(self.direction);
 
         let viewport = Viewport::new_at_origo(texture_size, texture_size);
@@ -64,7 +60,7 @@ impl DirectionalLight {
             aabb.expand_with_aabb(&geometry.aabb());
         }
         if aabb.is_empty() {
-            return Ok(());
+            return;
         }
         let target = aabb.center();
         let position = target - aabb.max().distance(aabb.min()) * self.direction;
@@ -103,13 +99,11 @@ impl DirectionalLight {
                     .iter()
                     .filter(|g| shadow_camera.in_frustum(&g.aabb()))
                 {
-                    geometry.render_with_material(&depth_material, &shadow_camera, &[])?;
+                    geometry.render_with_material(&depth_material, &shadow_camera, &[]);
                 }
-                Ok(())
-            })?;
+            });
         self.shadow_texture = Some(shadow_texture);
         self.shadow_matrix = shadow_matrix(&shadow_camera);
-        Ok(())
     }
 
     ///

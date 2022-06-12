@@ -59,7 +59,7 @@ pub trait Object: Geometry {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()>;
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]);
 
     ///
     /// Returns the type of material applied to this object.
@@ -68,7 +68,7 @@ pub trait Object: Geometry {
 }
 
 impl<T: Object + ?Sized> Object for &T {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         (*self).render(camera, lights)
     }
 
@@ -78,7 +78,7 @@ impl<T: Object + ?Sized> Object for &T {
 }
 
 impl<T: Object + ?Sized> Object for &mut T {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         (**self).render(camera, lights)
     }
 
@@ -88,7 +88,7 @@ impl<T: Object + ?Sized> Object for &mut T {
 }
 
 impl<T: Object> Object for Box<T> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().render(camera, lights)
     }
 
@@ -98,7 +98,7 @@ impl<T: Object> Object for Box<T> {
 }
 
 impl<T: Object> Object for std::rc::Rc<T> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().render(camera, lights)
     }
 
@@ -108,7 +108,7 @@ impl<T: Object> Object for std::rc::Rc<T> {
 }
 
 impl<T: Object> Object for std::rc::Rc<std::cell::RefCell<T>> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.borrow().render(camera, lights)
     }
 
@@ -127,7 +127,7 @@ pub trait Object2D: Geometry2D {
     /// Render the object.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()>;
+    fn render(&self, viewport: Viewport);
 
     ///
     /// Returns the type of material applied to this object.
@@ -136,7 +136,7 @@ pub trait Object2D: Geometry2D {
 }
 
 impl<T: Object2D + ?Sized> Object2D for &T {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+    fn render(&self, viewport: Viewport) {
         (*self).render(viewport)
     }
 
@@ -146,7 +146,7 @@ impl<T: Object2D + ?Sized> Object2D for &T {
 }
 
 impl<T: Object2D + ?Sized> Object2D for &mut T {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+    fn render(&self, viewport: Viewport) {
         (**self).render(viewport)
     }
 
@@ -156,7 +156,7 @@ impl<T: Object2D + ?Sized> Object2D for &mut T {
 }
 
 impl<T: Object2D> Object2D for Box<T> {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+    fn render(&self, viewport: Viewport) {
         self.as_ref().render(viewport)
     }
 
@@ -166,7 +166,7 @@ impl<T: Object2D> Object2D for Box<T> {
 }
 
 impl<T: Object2D> Object2D for std::rc::Rc<T> {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+    fn render(&self, viewport: Viewport) {
         self.as_ref().render(viewport)
     }
 
@@ -176,7 +176,7 @@ impl<T: Object2D> Object2D for std::rc::Rc<T> {
 }
 
 impl<T: Object2D> Object2D for std::rc::Rc<std::cell::RefCell<T>> {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+    fn render(&self, viewport: Viewport) {
         self.borrow().render(viewport)
     }
 

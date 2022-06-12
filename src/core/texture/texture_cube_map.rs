@@ -411,7 +411,7 @@ impl TextureCubeMap {
     pub fn new_from_equirectangular<T: PrimitiveDataType + TextureDataType>(
         context: &Context,
         cpu_texture: &CpuTexture,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let texture_size = cpu_texture.width / 4;
         let mut texture = Self::new_empty::<[T; 4]>(
             &context,
@@ -446,7 +446,7 @@ impl TextureCubeMap {
                 vec2 uv = sample_spherical_map(normalize(pos));
                 outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
             }";
-            let effect = ImageCubeEffect::new(context, fragment_shader_source)?;
+            let effect = ImageCubeEffect::new(context, fragment_shader_source).unwrap();
 
             for side in CubeMapSide::iter() {
                 effect.use_texture("equirectangularMap", &map);
@@ -456,11 +456,10 @@ impl TextureCubeMap {
                     .clear(ClearState::default())
                     .write(|| {
                         effect.render(side, RenderStates::default(), viewport);
-                        Ok(())
-                    })?;
+                    });
             }
         }
-        Ok(texture)
+        texture
     }
 
     ///

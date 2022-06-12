@@ -91,23 +91,20 @@ pub async fn run() {
     });
     models.extend(fountain.drain(..));
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
+    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
     let mut directional = DirectionalLight::new(
         &context,
         10.0,
         Color::new_opaque(204, 178, 127),
         &vec3(0.0, -1.0, -1.0),
-    )
-    .unwrap();
-    directional
-        .generate_shadow_map(
-            1024,
-            &models
-                .iter()
-                .map(|m| m as &dyn Geometry)
-                .collect::<Vec<_>>(),
-        )
-        .unwrap();
+    );
+    directional.generate_shadow_map(
+        1024,
+        &models
+            .iter()
+            .map(|m| m as &dyn Geometry)
+            .collect::<Vec<_>>(),
+    );
     // Bounding boxes
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     let mut bounding_boxes = Vec::new();
@@ -178,17 +175,15 @@ pub async fn run() {
                         .iter()
                         .filter(|o| primary_camera.in_frustum(&o.aabb()))
                     {
-                        model.render(camera, &[&ambient, &directional])?;
+                        model.render(camera, &[&ambient, &directional]);
                     }
                     if bounding_box_enabled {
                         for bounding_box in bounding_boxes.iter() {
-                            bounding_box.render(camera, &[])?;
+                            bounding_box.render(camera, &[]);
                         }
                     }
-                    gui.render()?;
-                    Ok(())
-                })
-                .unwrap();
+                    gui.render();
+                });
 
             FrameOutput::default()
         })

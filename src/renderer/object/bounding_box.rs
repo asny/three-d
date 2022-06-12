@@ -103,13 +103,13 @@ impl<M: Material> Geometry for BoundingBox<M> {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.model.render_with_material(material, camera, lights)
     }
 }
 
 impl<M: Material> Object for BoundingBox<M> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.model.render(camera, lights)
     }
 

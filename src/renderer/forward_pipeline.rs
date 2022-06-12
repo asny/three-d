@@ -32,7 +32,8 @@ impl ForwardPipeline {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        render_pass(camera, objects, lights)
+        render_pass(camera, objects, lights);
+        Ok(())
     }
 
     ///
@@ -50,7 +51,7 @@ impl ForwardPipeline {
         for object in objects.iter().filter(|o| {
             o.material_type() != MaterialType::Transparent && camera.in_frustum(&o.aabb())
         }) {
-            object.render_with_material(&depth_material, camera, &[])?;
+            object.render_with_material(&depth_material, camera, &[]);
         }
         Ok(())
     }
@@ -74,7 +75,7 @@ impl ForwardPipeline {
         depth_texture
             .as_depth_target()
             .clear(ClearState::default())
-            .write(|| self.depth_pass(&camera, objects))?;
+            .write(|| self.depth_pass(&camera, objects).unwrap());
         Ok(depth_texture)
     }
 }

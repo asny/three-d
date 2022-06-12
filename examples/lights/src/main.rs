@@ -150,7 +150,7 @@ pub async fn run() {
             })
             .unwrap();
             while lights.len() < light_count {
-                lights.push(Glow::new(&context, light_box).unwrap());
+                lights.push(Glow::new(&context, light_box));
             }
             while lights.len() > light_count {
                 lights.pop();
@@ -195,12 +195,9 @@ pub async fn run() {
                         .map(|l| &l.light as &dyn Light)
                         .collect::<Vec<_>>(),
                 )
-                .unwrap()
                 .write(|| {
-                    gui.render()?;
-                    Ok(())
-                })
-                .unwrap();
+                    gui.render();
+                });
 
             FrameOutput::default()
         })
@@ -215,16 +212,16 @@ struct Glow {
 }
 
 impl Glow {
-    pub fn new(context: &Context, aabb: AxisAlignedBoundingBox) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, aabb: AxisAlignedBoundingBox) -> Self {
         let mut rng = rand::thread_rng();
         let pos = vec3(
             aabb.min().x + rng.gen::<f32>() * aabb.size().x,
             aabb.min().y + rng.gen::<f32>() * aabb.size().y,
             aabb.min().z + rng.gen::<f32>() * aabb.size().z,
         );
-        Ok(Self {
+        Self {
             aabb,
-            light: PointLight::new(&context, 1.0, Color::WHITE, &pos, Attenuation::default())?,
+            light: PointLight::new(&context, 1.0, Color::WHITE, &pos, Attenuation::default()),
             velocity: vec3(
                 rng.gen::<f32>() * 2.0 - 1.0,
                 rng.gen::<f32>() * 2.0 - 1.0,
@@ -235,7 +232,7 @@ impl Glow {
                 Mesh::new(context, &CpuMesh::sphere(16)),
                 PhysicalMaterial::default(),
             ),
-        })
+        }
     }
 
     pub fn set_light(&mut self, intensity: f32, color: Color, attenuation: Attenuation) {

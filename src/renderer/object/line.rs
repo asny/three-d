@@ -79,11 +79,7 @@ impl<M: Material> Line<M> {
 }
 
 impl<M: Material> Geometry2D for Line<M> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render_with_material(material, camera2d, &[])
         })
@@ -91,7 +87,7 @@ impl<M: Material> Geometry2D for Line<M> {
 }
 
 impl<M: Material> Object2D for Line<M> {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+    fn render(&self, viewport: Viewport) {
         self.context
             .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
     }

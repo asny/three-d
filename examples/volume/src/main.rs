@@ -35,11 +35,9 @@ pub async fn run() {
         .unwrap();
     let mut voxel_grid = VoxelGrid::<IsosurfaceMaterial>::new(&context, &cpu_voxel_grid);
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
-    let directional1 =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
-    let directional2 =
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap();
+    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
+    let directional1 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
+    let directional2 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0));
 
     // main loop
     let mut gui = three_d::GUI::new(&context).unwrap();
@@ -83,9 +81,7 @@ pub async fn run() {
                     &[&voxel_grid],
                     &[&ambient, &directional1, &directional2],
                 )
-                .unwrap()
-                .write(|| gui.render())
-                .unwrap();
+                .write(|| gui.render());
 
             FrameOutput::default()
         })

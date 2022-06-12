@@ -36,10 +36,8 @@ pub async fn run() {
     let skybox = Skybox::new_from_equirectangular(
         &context,
         &loaded.deserialize("chinese_garden_4k").unwrap(),
-    )
-    .unwrap();
-    let light =
-        AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture()).unwrap();
+    );
+    let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
 
     let mut model = Gm::new(
         Mesh::new(&context, &CpuMesh::sphere(32)),
@@ -88,9 +86,7 @@ pub async fn run() {
                 .screen()
                 .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
                 .render(&camera, &[&skybox, &model], &[&light])
-                .unwrap()
-                .write(|| gui.render())
-                .unwrap();
+                .write(|| gui.render());
 
             FrameOutput::default()
         })

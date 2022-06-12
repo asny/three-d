@@ -64,30 +64,30 @@ impl Geometry for Axes {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.model
             .borrow_mut()
             .set_transformation(self.transformation);
         self.model
             .borrow()
-            .render_with_material(&material, camera, lights)?;
+            .render_with_material(&material, camera, lights);
         self.model
             .borrow_mut()
             .set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
         self.model
             .borrow()
-            .render_with_material(&material, camera, lights)?;
+            .render_with_material(&material, camera, lights);
         self.model
             .borrow_mut()
             .set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         self.model
             .borrow()
-            .render_with_material(material, camera, lights)
+            .render_with_material(material, camera, lights);
     }
 }
 
 impl Object for Axes {
-    fn render(&self, camera: &Camera, _lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, _lights: &[&dyn Light]) {
         self.model
             .borrow_mut()
             .set_transformation(self.transformation);
@@ -98,7 +98,7 @@ impl Object for Axes {
             },
             camera,
             &[],
-        )?;
+        );
         self.model
             .borrow_mut()
             .set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
@@ -109,7 +109,7 @@ impl Object for Axes {
             },
             camera,
             &[],
-        )?;
+        );
         self.model
             .borrow_mut()
             .set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
@@ -120,8 +120,7 @@ impl Object for Axes {
             },
             camera,
             &[],
-        )?;
-        Ok(())
+        );
     }
 
     fn material_type(&self) -> MaterialType {
