@@ -59,11 +59,10 @@ pub fn main() {
         frame_input.screen()
             // Clear the color and depth of the screen render target
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            // Write to the screen render target
-            .write(|| {
-                // Render the triangle with the color material which uses the per vertex colors defined at construction
-                model.render(&camera, &[])
-            }).unwrap();
+            // Render the triangle with the color material which uses the per vertex colors defined at construction
+            .render(
+                &camera, &[&model], &[]
+            ).unwrap();
 
         // Returns default frame output to end the frame
         FrameOutput::default()
