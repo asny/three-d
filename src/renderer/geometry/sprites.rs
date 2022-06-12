@@ -99,9 +99,9 @@ impl Geometry for Sprites {
                 program.use_uniform("eye", camera.position());
                 program.use_uniform("viewProjection", camera.projection() * camera.view());
                 program.use_uniform("transformation", self.transformation);
-                program.use_vertex_attribute("position", &self.position_buffer)?;
-                program.use_vertex_attribute("uv_coordinate", &self.uv_buffer)?;
-                program.use_instance_attribute("center", &self.center_buffer)?;
+                program.use_vertex_attribute("position", &self.position_buffer);
+                program.use_vertex_attribute("uv_coordinate", &self.uv_buffer);
+                program.use_instance_attribute("center", &self.center_buffer);
                 program.use_uniform("direction", self.direction.unwrap_or(vec3(0.0, 0.0, 0.0)));
                 program.draw_arrays_instanced(
                     material.render_states(),

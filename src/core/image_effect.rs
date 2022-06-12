@@ -69,9 +69,9 @@ impl ImageEffect {
     ///
     pub fn render(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
         self.program
-            .use_vertex_attribute("position", &self.positions)?;
+            .use_vertex_attribute("position", &self.positions);
         self.program
-            .use_vertex_attribute("uv_coordinates", &self.uvs)?;
+            .use_vertex_attribute("uv_coordinates", &self.uvs);
         self.program
             .use_uniform("textureTransform", &self.texture_transform);
         self.program.draw_arrays(render_states, viewport, 3)?;

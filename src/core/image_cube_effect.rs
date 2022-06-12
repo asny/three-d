@@ -87,7 +87,7 @@ impl ImageCubeEffect {
         self.program
             .use_uniform("viewProjection", projection * side.view());
         self.program
-            .use_vertex_attribute("position", &self.positions)?;
+            .use_vertex_attribute("position", &self.positions);
         self.program.draw_arrays(render_states, viewport, 36)?;
         Ok(())
     }

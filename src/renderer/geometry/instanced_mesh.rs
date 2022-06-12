@@ -291,7 +291,7 @@ impl Geometry for InstancedMesh {
                             attribute_name,
                             self.vertex_buffers
                                 .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                        )?;
+                        );
                     }
                 }
 
@@ -309,7 +309,7 @@ impl Geometry for InstancedMesh {
                             attribute_name,
                             self.instance_buffers
                             .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
-                        )?;
+                        );
                     }
                 }
 

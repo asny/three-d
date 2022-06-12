@@ -156,7 +156,7 @@ impl Geometry for Mesh {
                             attribute_name,
                             self.vertex_buffers
                                 .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                        )?;
+                        );
                     }
                 }
 

@@ -187,23 +187,23 @@ impl Geometry for Particles {
                 program.use_uniform("projection", camera.projection());
                 program.use_uniform("view", camera.view());
 
-                program.use_instance_attribute("start_position", &self.start_position_buffer)?;
-                program.use_instance_attribute("start_velocity", &self.start_velocity_buffer)?;
+                program.use_instance_attribute("start_position", &self.start_position_buffer);
+                program.use_instance_attribute("start_velocity", &self.start_velocity_buffer);
                 if program.requires_attribute("position") {
-                    program.use_vertex_attribute("position", &self.position_buffer)?;
+                    program.use_vertex_attribute("position", &self.position_buffer);
                 }
                 if program.requires_attribute("uv_coordinates") {
                     let uv_buffer = self
                         .uv_buffer
                         .as_ref().expect(&format!("the render call requires the uv_coordinates vertex buffer which is missing on the given geometry"));
-                    program.use_vertex_attribute("uv_coordinates", uv_buffer)?;
+                    program.use_vertex_attribute("uv_coordinates", uv_buffer);
                 }
                 if program.requires_attribute("normal") {
                     let normal_buffer = self
                         .normal_buffer
                         .as_ref().expect(&format!("the render call requires the normal vertex buffer which is missing on the given geometry"));
                     program.use_uniform("normalMatrix", &self.normal_transformation);
-                    program.use_vertex_attribute("normal", normal_buffer)?;
+                    program.use_vertex_attribute("normal", normal_buffer);
                 }
 
                 if let Some(ref index_buffer) = self.index_buffer {
