@@ -13,27 +13,27 @@ impl InstanceBuffer {
     ///
     /// Creates a new empty instance buffer.
     ///
-    pub fn new(context: &Context) -> ThreeDResult<Self> {
-        Ok(Self {
-            buffer: Buffer::new(context)?,
-        })
+    pub fn new(context: &Context) -> Self {
+        Self {
+            buffer: Buffer::new(context),
+        }
     }
 
     ///
     /// Creates a new instance buffer and fills it with the given data. The data should be in the same format as specified in the shader.
     /// As an example, if specified as `vec3` in the shader it needs to be specified as an array of `Vector3<T>` where `T` is a primitive type that implements [BufferDataType], for example can be f16 or f32.
     ///
-    pub fn new_with_data<T: BufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
-        Ok(Self {
-            buffer: Buffer::new_with_data(context, data)?,
-        })
+    pub fn new_with_data<T: BufferDataType>(context: &Context, data: &[T]) -> Self {
+        Self {
+            buffer: Buffer::new_with_data(context, data),
+        }
     }
 
     ///
     /// Fills the instance buffer with the given data. The data should be in the same format as specified in the shader.
     /// As an example, if specified as `vec3` in the shader it needs to be specified as an array of `Vector3<T>` where `T` is a primitive type that implements [BufferDataType], for example can be f16 or f32.
     ///
-    pub fn fill<T: BufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
+    pub fn fill<T: BufferDataType>(&mut self, data: &[T]) {
         self.buffer.fill(data)
     }
 

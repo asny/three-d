@@ -56,8 +56,7 @@ pub fn main() {
                 ]),
                 ..Default::default()
             },
-        )
-        .unwrap(),
+        ),
         MandelbrotMaterial {},
     );
     mesh.set_transformation(Mat4::from_scale(10.0));

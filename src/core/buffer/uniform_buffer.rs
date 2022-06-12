@@ -19,11 +19,7 @@ impl UniformBuffer {
     /// The variables are initialized to 0.
     ///
     pub fn new(context: &Context, sizes: &[u32]) -> ThreeDResult<UniformBuffer> {
-        let id = unsafe {
-            context
-                .create_buffer()
-                .map_err(|e| CoreError::BufferCreation(e))?
-        };
+        let id = unsafe { context.create_buffer().expect("Failed creating buffer") };
 
         let mut offsets = Vec::new();
         let mut length = 0;

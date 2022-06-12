@@ -112,32 +112,26 @@ pub async fn run() {
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     let mut bounding_boxes = Vec::new();
     for geometry in models.iter() {
-        bounding_boxes.push(
-            BoundingBox::new_with_material_and_thickness(
-                &context,
-                geometry.aabb(),
-                ColorMaterial {
-                    color: Color::RED,
-                    ..Default::default()
-                },
-                0.5,
-            )
-            .unwrap(),
-        );
-        aabb.expand_with_aabb(&geometry.aabb());
-    }
-    bounding_boxes.push(
-        BoundingBox::new_with_material_and_thickness(
+        bounding_boxes.push(BoundingBox::new_with_material_and_thickness(
             &context,
-            aabb,
+            geometry.aabb(),
             ColorMaterial {
-                color: Color::BLACK,
+                color: Color::RED,
                 ..Default::default()
             },
-            3.0,
-        )
-        .unwrap(),
-    );
+            0.5,
+        ));
+        aabb.expand_with_aabb(&geometry.aabb());
+    }
+    bounding_boxes.push(BoundingBox::new_with_material_and_thickness(
+        &context,
+        aabb,
+        ColorMaterial {
+            color: Color::BLACK,
+            ..Default::default()
+        },
+        3.0,
+    ));
 
     let mut gui = three_d::GUI::new(&context).unwrap();
     let mut camera_type = CameraType::Primary;

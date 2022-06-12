@@ -299,7 +299,7 @@ fn new_framebuffer(context: &Context) -> crate::context::Framebuffer {
     unsafe {
         context
             .create_framebuffer()
-            .unwrap_or_else(|e| panic!("failed creating a new render target: {}", e))
+            .expect("failed creating a new render target")
     }
 }
 

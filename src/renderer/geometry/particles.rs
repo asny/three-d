@@ -39,21 +39,21 @@ impl Particles {
     ///
     /// Creates a new set of particles with geometry defined by the given cpu mesh.
     ///
-    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
         #[cfg(debug_assertions)]
-        cpu_mesh.validate()?;
+        cpu_mesh.validate().expect("invalid cpu mesh");
 
-        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32())?;
+        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32());
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_data(context, normals)?)
+            Some(VertexBuffer::new_with_data(context, normals))
         } else {
             None
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
             Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
+                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind),
+                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind),
+                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind),
             })
         } else {
             None
@@ -64,25 +64,25 @@ impl Particles {
                 &uvs.iter()
                     .map(|uv| vec2(uv.x, 1.0 - uv.y))
                     .collect::<Vec<_>>(),
-            )?)
+            ))
         } else {
             None
         };
 
-        Ok(Self {
+        Self {
             context: context.clone(),
             position_buffer,
             index_buffer,
             normal_buffer,
             uv_buffer,
-            start_position_buffer: InstanceBuffer::new(context)?,
-            start_velocity_buffer: InstanceBuffer::new(context)?,
+            start_position_buffer: InstanceBuffer::new(context),
+            start_velocity_buffer: InstanceBuffer::new(context),
             acceleration: vec3(0.0, -9.82, 0.0),
             instance_count: 0,
             transformation: Mat4::identity(),
             normal_transformation: Mat4::identity(),
             time: 0.0,
-        })
+        }
     }
 
     ///
@@ -104,17 +104,16 @@ impl Particles {
     /// Updates the particles with the given initial data.
     /// The list contain one entry for each particle.
     ///
-    pub fn update(&mut self, data: &[ParticleData]) -> ThreeDResult<()> {
+    pub fn update(&mut self, data: &[ParticleData]) {
         let mut start_position = Vec::new();
         let mut start_velocity = Vec::new();
         for particle in data {
             start_position.push(particle.start_position);
             start_velocity.push(particle.start_velocity);
         }
-        self.start_position_buffer.fill(&start_position)?;
-        self.start_velocity_buffer.fill(&start_velocity)?;
+        self.start_position_buffer.fill(&start_position);
+        self.start_velocity_buffer.fill(&start_velocity);
         self.instance_count = data.len() as u32;
-        Ok(())
     }
 
     fn vertex_shader_source(fragment_shader_source: &str) -> String {

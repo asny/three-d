@@ -12,11 +12,7 @@ impl<M: Material> BoundingBox<M> {
     ///
     /// Creates a bounding box object from an axis aligned bounding box.
     ///
-    pub fn new_with_material(
-        context: &Context,
-        aabb: AxisAlignedBoundingBox,
-        material: M,
-    ) -> ThreeDResult<Self> {
+    pub fn new_with_material(context: &Context, aabb: AxisAlignedBoundingBox, material: M) -> Self {
         let size = aabb.size();
         let thickness = 0.02 * size.x.max(size.y).max(size.z);
 
@@ -32,7 +28,7 @@ impl<M: Material> BoundingBox<M> {
         aabb: AxisAlignedBoundingBox,
         material: M,
         thickness: f32,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let max = aabb.max();
         let min = aabb.min();
         let size = aabb.size();
@@ -90,10 +86,10 @@ impl<M: Material> BoundingBox<M> {
                     ..Default::default()
                 },
                 &CpuMesh::cylinder(16),
-            )?,
+            ),
             material,
         );
-        Ok(Self { model, aabb })
+        Self { model, aabb }
     }
 }
 

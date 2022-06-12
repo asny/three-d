@@ -103,7 +103,7 @@ impl Skybox {
                 vec3(-1.0, 1.0, 1.0),
                 vec3(-1.0, -1.0, -1.0),
             ],
-        )?;
+        );
 
         Ok(Skybox {
             context: context.clone(),

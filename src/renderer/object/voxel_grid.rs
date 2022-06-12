@@ -20,7 +20,7 @@ impl<M: Material + FromCpuVoxelGrid> VoxelGrid<M> {
             0.5 * cpu_voxel_grid.size.z,
         ))?;
         let gm = Gm::new(
-            Mesh::new(&context, &cube).unwrap(),
+            Mesh::new(&context, &cube),
             M::from_cpu_voxel_grid(context, cpu_voxel_grid)?,
         );
         Ok(Self(gm))

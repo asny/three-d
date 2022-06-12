@@ -21,7 +21,7 @@ pub fn main() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     let mut sphere = Gm::new(
-        Mesh::new(&context, &CpuMesh::sphere(16)).unwrap(),
+        Mesh::new(&context, &CpuMesh::sphere(16)),
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
@@ -38,7 +38,7 @@ pub fn main() {
     );
     sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
     let mut cylinder = Gm::new(
-        Mesh::new(&context, &CpuMesh::cylinder(16)).unwrap(),
+        Mesh::new(&context, &CpuMesh::cylinder(16)),
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
@@ -56,7 +56,7 @@ pub fn main() {
     cylinder
         .set_transformation(Mat4::from_translation(vec3(1.3, 0.0, 0.0)) * Mat4::from_scale(0.2));
     let mut cube = Gm::new(
-        Mesh::new(&context, &CpuMesh::cube()).unwrap(),
+        Mesh::new(&context, &CpuMesh::cube()),
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
@@ -72,7 +72,7 @@ pub fn main() {
         .unwrap(),
     );
     cube.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 1.3)) * Mat4::from_scale(0.2));
-    let axes = Axes::new(&context, 0.1, 2.0).unwrap();
+    let axes = Axes::new(&context, 0.1, 2.0);
     let bounding_box_sphere = BoundingBox::new_with_material(
         &context,
         sphere.aabb(),
@@ -80,8 +80,7 @@ pub fn main() {
             color: Color::BLACK,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     let bounding_box_cube = BoundingBox::new_with_material(
         &context,
         cube.aabb(),
@@ -89,8 +88,7 @@ pub fn main() {
             color: Color::BLACK,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     let bounding_box_cylinder = BoundingBox::new_with_material(
         &context,
         cylinder.aabb(),
@@ -98,8 +96,7 @@ pub fn main() {
             color: Color::BLACK,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
 
     let light0 =
         DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5)).unwrap();

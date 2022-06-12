@@ -67,7 +67,7 @@ pub async fn run() {
         )
         .unwrap();
     let mut plane = Gm::new(
-        Mesh::new(&context, &cpu_plane).unwrap(),
+        Mesh::new(&context, &cpu_plane),
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
@@ -78,7 +78,7 @@ pub async fn run() {
         .unwrap(),
     );
     let deferred_plane = Gm::new(
-        Mesh::new(&context, &cpu_plane).unwrap(),
+        Mesh::new(&context, &cpu_plane),
         DeferredPhysicalMaterial::from_physical_material(&plane.material),
     );
 

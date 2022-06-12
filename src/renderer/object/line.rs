@@ -21,18 +21,19 @@ impl<M: Material> Line<M> {
         pixel1: Vec2,
         thickness: f32,
         material: M,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut mesh = CpuMesh::square();
-        mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))?;
+        mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))
+            .unwrap();
         let mut line = Self {
             context: context.clone(),
-            model: Gm::new(Mesh::new(context, &mesh)?, material),
+            model: Gm::new(Mesh::new(context, &mesh), material),
             pixel0,
             pixel1,
             thickness,
         };
         line.update();
-        Ok(line)
+        line
     }
 
     /// Get one of the end points of the line.

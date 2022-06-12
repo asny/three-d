@@ -14,21 +14,16 @@ impl<M: Material> Circle<M> {
     ///
     /// Constructs a new circle object with the given material.
     ///
-    pub fn new_with_material(
-        context: &Context,
-        center: Vec2,
-        radius: f32,
-        material: M,
-    ) -> ThreeDResult<Self> {
+    pub fn new_with_material(context: &Context, center: Vec2, radius: f32, material: M) -> Self {
         let mesh = CpuMesh::circle(64);
         let mut circle = Self {
             context: context.clone(),
-            model: Gm::new(Mesh::new(context, &mesh)?, material),
+            model: Gm::new(Mesh::new(context, &mesh), material),
             center,
             radius,
         };
         circle.update();
-        Ok(circle)
+        circle
     }
 
     /// Set the radius of the circle.

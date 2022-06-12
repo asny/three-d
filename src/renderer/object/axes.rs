@@ -15,10 +15,11 @@ impl Axes {
     ///
     /// Creates a new axes object consisting of three arrows with the given radius and length.
     ///
-    pub fn new(context: &Context, radius: f32, length: f32) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, radius: f32, length: f32) -> Self {
         let mut mesh = CpuMesh::arrow(0.9, 0.6, 16);
-        mesh.transform(&Mat4::from_nonuniform_scale(length, radius, radius))?;
-        let model = Gm::new(Mesh::new(context, &mesh)?, ColorMaterial::default());
+        mesh.transform(&Mat4::from_nonuniform_scale(length, radius, radius))
+            .unwrap();
+        let model = Gm::new(Mesh::new(context, &mesh), ColorMaterial::default());
         let mut aabb = model.aabb();
         let mut aabb2 = aabb.clone();
         aabb2.transform(&Mat4::from_angle_z(degrees(90.0)));
@@ -26,12 +27,12 @@ impl Axes {
         let mut aabb3 = aabb.clone();
         aabb3.transform(&Mat4::from_angle_y(degrees(-90.0)));
         aabb.expand_with_aabb(&aabb3);
-        Ok(Self {
+        Self {
             model: std::cell::RefCell::new(model),
             aabb: aabb.clone(),
             aabb_local: aabb,
             transformation: Mat4::identity(),
-        })
+        }
     }
 
     ///

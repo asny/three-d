@@ -27,7 +27,7 @@ pub async fn run() {
     );
     let mut control = FlyControl::new(0.1);
 
-    let axes = Axes::new(&context, 0.1, 1.0).unwrap();
+    let axes = Axes::new(&context, 0.1, 1.0);
 
     let img = three_d_asset::io::load_async(&["examples/assets/test_texture.jpg"])
         .await
@@ -48,8 +48,7 @@ pub async fn run() {
             vec3(-10.0, 0.0, -5.0),
         ],
         None,
-    )
-    .unwrap();
+    );
 
     let sprites_up = Sprites::new(
         &context,
@@ -59,8 +58,7 @@ pub async fn run() {
             vec3(-5.0, 0.0, -5.0),
         ],
         Some(vec3(0.0, 1.0, 0.0)),
-    )
-    .unwrap();
+    );
 
     let sprites = Sprites::new(
         &context,
@@ -70,8 +68,7 @@ pub async fn run() {
             vec3(10.0, 0.0, -5.0),
         ],
         Some(vec3(1.0, 1.0, 0.0).normalize()),
-    )
-    .unwrap();
+    );
 
     let ambient = AmbientLight::new(&context, 1.0, Color::WHITE).unwrap();
 
