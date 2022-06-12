@@ -153,7 +153,7 @@ impl GUI {
                 self.height,
                 &mesh,
                 self.texture.as_ref().unwrap(),
-            )?;
+            );
         }
         Ok(())
     }
@@ -165,7 +165,7 @@ impl GUI {
         height: u32,
         mesh: &egui::paint::Mesh,
         texture: &Texture2D,
-    ) -> ThreeDResult<()> {
+    ) {
         debug_assert!(mesh.is_valid());
 
         let mut positions = Vec::new();

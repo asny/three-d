@@ -454,7 +454,10 @@ impl TextureCubeMap {
                 texture
                     .as_color_target(side, None)
                     .clear(ClearState::default())
-                    .write(|| effect.render(side, RenderStates::default(), viewport))?;
+                    .write(|| {
+                        effect.render(side, RenderStates::default(), viewport);
+                        Ok(())
+                    })?;
             }
         }
         Ok(texture)

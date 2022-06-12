@@ -181,8 +181,7 @@ impl DeferredPipeline {
                 effect.use_uniform("zNear", camera.z_near());
                 effect.use_uniform("zFar", camera.z_far());
             }
-            effect.apply(render_states, camera.viewport())?;
-            Ok(())
+            effect.apply(render_states, camera.viewport());
         })
     }
 

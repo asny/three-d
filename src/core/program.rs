@@ -121,7 +121,6 @@ impl Program {
                 }
             }
 
-            context.error_check()?;
             Ok(Program {
                 context: context.clone(),
                 id,
@@ -506,14 +505,9 @@ impl Program {
     /// Assumes that the data for the three vertices in a triangle is defined contiguous in each vertex buffer.
     /// If you want to use an [ElementBuffer], see [Program::draw_elements].
     ///
-    pub fn draw_arrays(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        count: u32,
-    ) -> ThreeDResult<()> {
+    pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32) {
         self.context.set_viewport(viewport);
-        self.context.set_render_states(render_states)?;
+        self.context.set_render_states(render_states);
         self.use_program();
         unsafe {
             self.context
@@ -524,7 +518,6 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
-        self.context.error_check()
     }
 
     ///
@@ -537,9 +530,9 @@ impl Program {
         viewport: Viewport,
         count: u32,
         instance_count: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         self.context.set_viewport(viewport);
-        self.context.set_render_states(render_states)?;
+        self.context.set_render_states(render_states);
         self.use_program();
         unsafe {
             self.context.draw_arrays_instanced(
@@ -556,7 +549,6 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
-        self.context.error_check()
     }
 
     ///
@@ -569,7 +561,7 @@ impl Program {
         render_states: RenderStates,
         viewport: Viewport,
         element_buffer: &ElementBuffer,
-    ) -> ThreeDResult<()> {
+    ) {
         self.draw_subset_of_elements(
             render_states,
             viewport,
@@ -591,9 +583,9 @@ impl Program {
         element_buffer: &ElementBuffer,
         first: u32,
         count: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         self.context.set_viewport(viewport);
-        self.context.set_render_states(render_states)?;
+        self.context.set_render_states(render_states);
         self.use_program();
         element_buffer.bind();
         unsafe {
@@ -612,7 +604,6 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
-        self.context.error_check()
     }
 
     ///
@@ -625,7 +616,7 @@ impl Program {
         viewport: Viewport,
         element_buffer: &ElementBuffer,
         instance_count: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         self.draw_subset_of_elements_instanced(
             render_states,
             viewport,
@@ -648,9 +639,9 @@ impl Program {
         first: u32,
         count: u32,
         instance_count: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         self.context.set_viewport(viewport);
-        self.context.set_render_states(render_states)?;
+        self.context.set_render_states(render_states);
         self.use_program();
         element_buffer.bind();
         unsafe {
@@ -669,7 +660,6 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
-        self.context.error_check()
     }
 
     ///

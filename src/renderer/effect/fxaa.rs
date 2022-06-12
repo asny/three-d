@@ -22,7 +22,7 @@ impl FXAAEffect {
     /// Applies the FXAA effect to the image in the given texture and writes the result to the given viewport of the current render target.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn apply(&self, viewport: Viewport, texture: &Texture2D) -> ThreeDResult<()> {
+    pub fn apply(&self, viewport: Viewport, texture: &Texture2D) {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
             depth_test: DepthTest::Always,
@@ -36,7 +36,6 @@ impl FXAAEffect {
             vec2(texture.width() as f32, texture.height() as f32),
         );
 
-        self.image_effect.apply(render_states, viewport)?;
-        Ok(())
+        self.image_effect.apply(render_states, viewport);
     }
 }

@@ -67,22 +67,21 @@ impl ImageEffect {
     /// Applies the calculations defined in the fragment shader given at construction and output it to the current screen/render target.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn render(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
+    pub fn render(&self, render_states: RenderStates, viewport: Viewport) {
         self.program
             .use_vertex_attribute("position", &self.positions);
         self.program
             .use_vertex_attribute("uv_coordinates", &self.uvs);
         self.program
             .use_uniform("textureTransform", &self.texture_transform);
-        self.program.draw_arrays(render_states, viewport, 3)?;
-        Ok(())
+        self.program.draw_arrays(render_states, viewport, 3);
     }
 
     ///
     /// Applies the calculations defined in the fragment shader given at construction and output it to the current screen/render target.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
+    pub fn apply(&self, render_states: RenderStates, viewport: Viewport) {
         self.render(render_states, viewport)
     }
 }
