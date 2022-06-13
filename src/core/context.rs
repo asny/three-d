@@ -312,6 +312,10 @@ impl Context {
         self.set_blend(render_states.blend);
     }
 
+    ///
+    /// Returns an error if an GPU-side error has happened while rendering which can be used to check for errors while developing.
+    /// Can also be used in production to handle unexpected rendering errors, but do not call it too often to avoid performance problems.
+    ///
     pub fn error_check(&self) -> Result<(), CoreError> {
         self.framebuffer_check()?;
         unsafe {
