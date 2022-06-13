@@ -29,10 +29,10 @@ impl Program {
         unsafe {
             let vert_shader = context
                 .create_shader(crate::context::VERTEX_SHADER)
-                .map_err(|e| CoreError::ShaderCreation(e))?;
+                .expect("Failed creating vertex shader");
             let frag_shader = context
                 .create_shader(crate::context::FRAGMENT_SHADER)
-                .map_err(|e| CoreError::ShaderCreation(e))?;
+                .expect("Failed creating fragment shader");
 
             let header: &str = if context.version().is_embedded {
                 "#version 300 es
@@ -59,9 +59,7 @@ impl Program {
             context.compile_shader(vert_shader);
             context.compile_shader(frag_shader);
 
-            let id = context
-                .create_program()
-                .map_err(|e| CoreError::ProgramCreation(e))?;
+            let id = context.create_program().expect("Failed creating program");
             context.attach_shader(id, vert_shader);
             context.attach_shader(id, frag_shader);
             context.link_program(id);
