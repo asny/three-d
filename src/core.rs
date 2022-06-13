@@ -73,10 +73,6 @@ pub enum CoreError {
     ShaderCompilation(String, String),
     #[error("failed to link shader program: {0}")]
     ShaderLink(String),
-    #[error("{0} buffer length must be {1}, actual length is {2}")]
-    InvalidBufferLength(String, usize, usize),
-    #[error("the material {0} is required by the geometry {1} but could not be found")]
-    MissingMaterial(String, String),
 }
 
 mod data_type;

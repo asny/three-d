@@ -33,7 +33,7 @@ impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModel<T> {
         context: &Context,
         instances: &Instances,
         cpu_model: &CpuModel,
-    ) -> Result<Self, CoreError> {
+    ) -> Result<Self, RendererError> {
         let mut materials = std::collections::HashMap::new();
         for m in cpu_model.materials.iter() {
             materials.insert(m.name.clone(), T::from_cpu_material(context, m));
@@ -45,7 +45,7 @@ impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModel<T> {
                     geometry: InstancedMesh::new(context, instances, g),
                     material: materials
                         .get(material_name)
-                        .ok_or(CoreError::MissingMaterial(
+                        .ok_or(RendererError::MissingMaterial(
                             material_name.clone(),
                             g.name.clone(),
                         ))?
