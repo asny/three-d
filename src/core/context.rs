@@ -30,7 +30,7 @@ impl Context {
     /// Since the content in the [context](crate::context) module is just a re-export of [glow](https://crates.io/crates/glow),
     /// you can also call this method with a reference counter to a glow context created using glow and not the re-export in [context](crate::context).
     ///
-    pub fn from_gl_context(context: Arc<crate::context::Context>) -> ThreeDResult<Self> {
+    pub fn from_gl_context(context: Arc<crate::context::Context>) -> Result<Self, CoreError> {
         #[cfg(not(target_arch = "wasm32"))]
         unsafe {
             // Enable seamless cube map textures
@@ -66,7 +66,7 @@ impl Context {
         vertex_shader_source: &str,
         fragment_shader_source: &str,
         callback: impl FnOnce(&Program),
-    ) -> ThreeDResult<()> {
+    ) -> Result<(), CoreError> {
         let key = format!("{}{}", vertex_shader_source, fragment_shader_source);
         if !self.programs.borrow().contains_key(&key) {
             self.programs.borrow_mut().insert(
@@ -86,7 +86,7 @@ impl Context {
         &self,
         fragment_shader_source: &str,
         callback: impl FnOnce(&ImageEffect),
-    ) -> ThreeDResult<()> {
+    ) -> Result<(), CoreError> {
         if !self.effects.borrow().contains_key(fragment_shader_source) {
             self.effects.borrow_mut().insert(
                 fragment_shader_source.to_string(),
@@ -312,7 +312,7 @@ impl Context {
         self.set_blend(render_states.blend);
     }
 
-    pub fn error_check(&self) -> ThreeDResult<()> {
+    pub fn error_check(&self) -> Result<(), CoreError> {
         self.framebuffer_check()?;
         unsafe {
             let e = self.get_error();
@@ -337,7 +337,7 @@ impl Context {
         Ok(())
     }
 
-    fn framebuffer_check(&self) -> ThreeDResult<()> {
+    fn framebuffer_check(&self) -> Result<(), CoreError> {
         unsafe {
             match self.check_framebuffer_status(crate::context::FRAMEBUFFER) {
                 crate::context::FRAMEBUFFER_COMPLETE => Ok(()),

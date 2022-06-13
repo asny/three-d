@@ -15,7 +15,7 @@ impl ImageEffect {
     ///
     /// Creates a new image effect which applies the calculations defined in the given fragment shader source when calling the [ImageEffect::apply] function.
     ///
-    pub fn new(context: &Context, fragment_shader: &str) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, fragment_shader: &str) -> Result<Self, CoreError> {
         let program = Program::from_source(
             &context,
             "

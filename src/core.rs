@@ -57,7 +57,6 @@ pub mod prelude {
 pub use prelude::*;
 
 /// A result for this crate.
-pub type ThreeDResult<T> = std::result::Result<T, CoreError>;
 use thiserror::Error;
 
 ///

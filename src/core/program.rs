@@ -25,7 +25,7 @@ impl Program {
         context: &Context,
         vertex_shader_source: &str,
         fragment_shader_source: &str,
-    ) -> ThreeDResult<Program> {
+    ) -> Result<Self, CoreError> {
         unsafe {
             let vert_shader = context
                 .create_shader(crate::context::VERTEX_SHADER)

@@ -33,7 +33,7 @@ impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModel<T> {
         context: &Context,
         instances: &Instances,
         cpu_model: &CpuModel,
-    ) -> ThreeDResult<Self> {
+    ) -> Result<Self, CoreError> {
         let mut materials = std::collections::HashMap::new();
         for m in cpu_model.materials.iter() {
             materials.insert(m.name.clone(), T::from_cpu_material(context, m));
