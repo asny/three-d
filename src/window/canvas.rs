@@ -20,8 +20,6 @@ pub enum CanvasError {
     WindowCreation,
     #[error("unable to get document from canvas")]
     DocumentMissing,
-    #[error("unable to get canvas")]
-    CanvasMissing,
     #[error("unable to convert canvas to html canvas: {0}")]
     CanvasConvertFailed(String),
     #[error("unable to get webgl2 context for the given canvas, maybe the browser doesn't support WebGL2{0}")]
@@ -30,16 +28,13 @@ pub enum CanvasError {
     ColorBufferFloatNotSupported(String),
     #[error("unable to get OES_texture_float extension for the given canvas, maybe the browser doesn't support OES_texture_float: {0}")]
     OESTextureFloatNotSupported(String),
-    #[error("performance (for timing) is not found on the window")]
-    PerformanceMissing,
-    #[error("unable to add {0} event listener: {1}")]
-    EventListenerFail(String, String),
 }
 
 ///
 /// Default window (canvas) and event handler for easy setup.
 ///
 pub struct Window {
+    context: Option<crate::Context>,
     canvas: Option<web_sys::HtmlCanvasElement>,
     window: Rc<web_sys::Window>,
     settings: WindowSettings,
@@ -62,6 +57,7 @@ impl Window {
             .ok_or(CanvasError::DocumentMissing)?;
 
         let mut window = Window {
+            context: None,
             canvas: None,
             window: Rc::new(websys_window),
             settings,
@@ -86,52 +82,22 @@ impl Window {
     /// Get the canvas which is rendered to when using [Screen](crate::Screen).
     /// If there is no canvas specified using the set_canvas function and no default canvas is found, this will return an error.
     ///
-    pub fn canvas(&self) -> ThreeDResult<&web_sys::HtmlCanvasElement> {
-        self.canvas
-            .as_ref()
-            .ok_or(Box::new(CanvasError::CanvasMissing))
+    pub fn canvas(&self) -> Option<&web_sys::HtmlCanvasElement> {
+        self.canvas.as_ref()
+    }
+
+    fn canvas_(&self) -> &web_sys::HtmlCanvasElement {
+        self.canvas.as_ref().expect("No canvas found")
     }
 
     ///
     /// Specifies the canvas to write to when using [Screen](crate::Screen). Will overwrite the default canvas if any has been found.
     ///
     pub fn set_canvas(&mut self, canvas: web_sys::HtmlCanvasElement) -> ThreeDResult<()> {
-        self.canvas = Some(canvas);
-        self.set_canvas_size()?;
-        Ok(())
-    }
-
-    ///
-    /// Return the current logical size of the window.
-    ///
-    pub fn size(&self) -> ThreeDResult<(u32, u32)> {
-        let canvas = self.canvas.as_ref().ok_or(CanvasError::CanvasMissing)?;
-        let device_pixel_ratio = self.pixels_per_point() as f64;
-        Ok((
-            (canvas.width() as f64 / device_pixel_ratio) as u32,
-            (canvas.height() as f64 / device_pixel_ratio) as u32,
-        ))
-    }
-
-    ///
-    /// Returns the current viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
-    ///
-    pub fn viewport(&self) -> ThreeDResult<Viewport> {
-        let canvas = self.canvas.as_ref().ok_or(CanvasError::CanvasMissing)?;
-        Ok(Viewport::new_at_origo(canvas.width(), canvas.height()))
-    }
-
-    ///
-    /// Returns the graphics context for this window.
-    ///
-    pub fn gl(&self) -> ThreeDResult<Context> {
         let context_options = ContextOptions {
             antialias: self.settings.multisamples > 0,
         };
-        let context = self
-            .canvas
-            .as_ref()
-            .ok_or(CanvasError::CanvasMissing)?
+        let context = canvas
             .get_context_with_context_options(
                 "webgl2",
                 &JsValue::from_serde(&context_options).unwrap(),
@@ -150,41 +116,70 @@ impl Window {
             .get_extension("OES_texture_float_linear")
             .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
 
-        crate::core::Context::from_gl_context(Arc::new(
+        self.context = Some(crate::core::Context::from_gl_context(Arc::new(
             crate::context::Context::from_webgl2_context(context),
-        ))
+        ))?);
+        self.canvas = Some(canvas);
+        self.set_canvas_size();
+        Ok(())
+    }
+
+    ///
+    /// Return the current logical size of the window.
+    ///
+    pub fn size(&self) -> (u32, u32) {
+        let canvas = self.canvas_();
+        let device_pixel_ratio = self.pixels_per_point() as f64;
+        (
+            (canvas.width() as f64 / device_pixel_ratio) as u32,
+            (canvas.height() as f64 / device_pixel_ratio) as u32,
+        )
+    }
+
+    ///
+    /// Returns the current viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
+    ///
+    pub fn viewport(&self) -> Viewport {
+        let canvas = self.canvas_();
+        Viewport::new_at_origo(canvas.width(), canvas.height())
+    }
+
+    ///
+    /// Returns the graphics context for this window.
+    ///
+    pub fn gl(&self) -> Context {
+        self.context
+            .clone()
+            .expect("No context found because no canvas can be found")
     }
 
     ///
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
-    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(
-        mut self,
-        mut callback: F,
-    ) -> ThreeDResult<()> {
+    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(mut self, mut callback: F) {
         let performance = self
             .window
             .performance()
-            .ok_or(CanvasError::PerformanceMissing)?;
+            .expect("performance (for timing) is not found on the window");
         let mut last_time = performance.now();
         let mut accumulated_time = 0.0;
         let mut first_frame = true;
-        let context = self.gl()?;
+        let context = self.gl();
 
         let input = Input::new(self.window.clone());
-        self.add_context_menu_event_listener()?;
-        self.add_resize_event_listener(input.clone())?;
-        self.add_mouseenter_event_listener(input.clone())?;
-        self.add_mouseleave_event_listener(input.clone())?;
-        self.add_mousedown_event_listener(input.clone())?;
-        self.add_mouseup_event_listener(input.clone())?;
-        self.add_mousemove_event_listener(input.clone())?;
-        self.add_mousewheel_event_listener(input.clone())?;
-        self.add_touchstart_event_listener(input.clone())?;
-        self.add_touchend_event_listener(input.clone())?;
-        self.add_touchmove_event_listener(input.clone())?;
-        self.add_key_down_event_listener(input.clone())?;
-        self.add_key_up_event_listener(input.clone())?;
+        self.add_context_menu_event_listener();
+        self.add_resize_event_listener(input.clone());
+        self.add_mouseenter_event_listener(input.clone());
+        self.add_mouseleave_event_listener(input.clone());
+        self.add_mousedown_event_listener(input.clone());
+        self.add_mouseup_event_listener(input.clone());
+        self.add_mousemove_event_listener(input.clone());
+        self.add_mousewheel_event_listener(input.clone());
+        self.add_touchstart_event_listener(input.clone());
+        self.add_touchend_event_listener(input.clone());
+        self.add_touchmove_event_listener(input.clone());
+        self.add_key_down_event_listener(input.clone());
+        self.add_key_up_event_listener(input.clone());
 
         let input_clone = input.clone();
         input.borrow_mut().render_loop_closure = Some(Closure::wrap(Box::new(move || {
@@ -193,9 +188,9 @@ impl Window {
             let elapsed_time = now - last_time;
             last_time = now;
             accumulated_time += elapsed_time;
-            self.set_canvas_size().unwrap();
+            self.set_canvas_size();
             let device_pixel_ratio = self.pixels_per_point();
-            let canvas = self.canvas.as_ref().unwrap();
+            let canvas = self.canvas_();
             let (width, height) = (canvas.width(), canvas.height());
             let frame_input = FrameInput {
                 context: context.clone(),
@@ -219,7 +214,6 @@ impl Window {
         })
             as Box<dyn FnMut()>));
         input.borrow_mut().request_animation_frame();
-        Ok(())
     }
 
     fn pixels_per_point(&self) -> f64 {
@@ -231,8 +225,8 @@ impl Window {
         }
     }
 
-    fn set_canvas_size(&self) -> ThreeDResult<()> {
-        let canvas = self.canvas.as_ref().ok_or(CanvasError::CanvasMissing)?;
+    fn set_canvas_size(&self) {
+        let canvas = self.canvas_();
         let (window_width, window_height) = (
             self.window.inner_width().unwrap().as_f64().unwrap() as u32,
             self.window.inner_height().unwrap().as_f64().unwrap() as u32,
@@ -287,38 +281,30 @@ impl Window {
         canvas.style().set_css_text(&style);
         canvas.set_width(width_px);
         canvas.set_height(height_px);
-
-        Ok(())
     }
 
-    fn add_context_menu_event_listener(&mut self) -> ThreeDResult<()> {
+    fn add_context_menu_event_listener(&mut self) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
             event.prevent_default();
             event.stop_propagation();
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("contextmenu", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("contextmenu".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_event.push(closure);
-        Ok(())
     }
 
-    fn add_resize_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_resize_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move || {
             input.borrow_mut().request_animation_frame();
         }) as Box<dyn FnMut()>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("resize".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures.push(closure);
-        Ok(())
     }
 
-    fn add_mouseleave_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_mouseleave_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -330,16 +316,13 @@ impl Window {
                 input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("mouseleave", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("mouseleave".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_mouseevent.push(closure);
-        Ok(())
     }
 
-    fn add_mouseenter_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_mouseenter_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -350,16 +333,13 @@ impl Window {
                 input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("mouseenter", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("mouseenter".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_mouseevent.push(closure);
-        Ok(())
     }
 
-    fn add_mousedown_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_mousedown_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -385,16 +365,13 @@ impl Window {
                 input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("mousedown".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_mouseevent.push(closure);
-        Ok(())
     }
 
-    fn add_mouseup_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_mouseup_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -420,16 +397,13 @@ impl Window {
                 input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("mouseup".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_mouseevent.push(closure);
-        Ok(())
     }
 
-    fn add_mousemove_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_mousemove_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -454,16 +428,13 @@ impl Window {
                 input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("mousemove".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_mouseevent.push(closure);
-        Ok(())
     }
 
-    fn add_mousewheel_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_mousewheel_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -479,14 +450,13 @@ impl Window {
                 input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref())
-            .map_err(|e| CanvasError::EventListenerFail("wheel".to_string(), format!("{:?}", e)))?;
+            .expect("Failed adding event listener");
         self.closures_with_wheelevent.push(closure);
-        Ok(())
     }
 
-    fn add_touchstart_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_touchstart_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -521,16 +491,13 @@ impl Window {
                 input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("touchstart".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_touchevent.push(closure);
-        Ok(())
     }
 
-    fn add_touchend_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_touchend_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -552,16 +519,13 @@ impl Window {
                 input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("touchend".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_touchevent.push(closure);
-        Ok(())
     }
 
-    fn add_touchmove_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_touchmove_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -611,16 +575,13 @@ impl Window {
                 input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        self.canvas_()
             .add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("touchmove".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_touchevent.push(closure);
-        Ok(())
     }
 
-    fn add_key_down_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_key_down_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -648,14 +609,11 @@ impl Window {
             .document()
             .unwrap()
             .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
-            .map_err(|e| {
-                CanvasError::EventListenerFail("keydown".to_string(), format!("{:?}", e))
-            })?;
+            .expect("Failed adding event listener");
         self.closures_with_keyboardevent.push(closure);
-        Ok(())
     }
 
-    fn add_key_up_event_listener(&mut self, input: Rc<RefCell<Input>>) -> ThreeDResult<()> {
+    fn add_key_up_event_listener(&mut self, input: Rc<RefCell<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -679,9 +637,8 @@ impl Window {
             .document()
             .unwrap()
             .add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref())
-            .map_err(|e| CanvasError::EventListenerFail("keyup".to_string(), format!("{:?}", e)))?;
+            .expect("Failed adding event listener");
         self.closures_with_keyboardevent.push(closure);
-        Ok(())
     }
 }
 

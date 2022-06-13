@@ -14,10 +14,10 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(0.0, 0.0, 2.2),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -72,15 +72,13 @@ pub async fn run() {
         ..Default::default()
     };
 
-    window
-        .render_loop(move |frame_input: FrameInput| {
-            camera.set_viewport(frame_input.viewport);
-            frame_input
-                .screen()
-                .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-                .render(&camera, &[&model], &[&light]);
+    window.render_loop(move |frame_input: FrameInput| {
+        camera.set_viewport(frame_input.viewport);
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
+            .render(&camera, &[&model], &[&light]);
 
-            FrameOutput::default()
-        })
-        .unwrap();
+        FrameOutput::default()
+    });
 }

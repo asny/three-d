@@ -16,10 +16,10 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(10.0, 1.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -127,81 +127,76 @@ pub async fn run() {
     let mut quadratic = 0.5;
     let mut light_count = 20;
     let mut color = [1.0; 4];
-    window
-        .render_loop(move |mut frame_input| {
-            let mut panel_width = 0.0;
-            gui.update(&mut frame_input, |gui_context| {
-                use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
-                    ui.heading("Debug Panel");
-                    ui.add(Slider::new::<usize>(&mut light_count, 0..=50).text("Light count"));
-                    ui.add(Slider::new::<f32>(&mut intensity, 0.0..=10.0).text("Light intensity"));
-                    ui.add(
-                        Slider::new::<f32>(&mut constant, 0.0..=10.0).text("Attenuation constant"),
-                    );
-                    ui.add(Slider::new::<f32>(&mut linear, 0.01..=1.0).text("Attenuation linear"));
-                    ui.add(
-                        Slider::new::<f32>(&mut quadratic, 0.0001..=1.0)
-                            .text("Attenuation quadratic"),
-                    );
-                    ui.color_edit_button_rgba_unmultiplied(&mut color);
-                });
-                panel_width = gui_context.used_size().x as f64;
-            })
-            .unwrap();
-            while lights.len() < light_count {
-                lights.push(Glow::new(&context, light_box));
-            }
-            while lights.len() > light_count {
-                lights.pop();
-            }
-
-            for light in lights.iter_mut() {
-                light.set_light(
-                    intensity,
-                    Color::from_rgba_slice(&color),
-                    Attenuation {
-                        constant,
-                        linear,
-                        quadratic,
-                    },
+    window.render_loop(move |mut frame_input| {
+        let mut panel_width = 0.0;
+        gui.update(&mut frame_input, |gui_context| {
+            use three_d::egui::*;
+            SidePanel::left("side_panel").show(gui_context, |ui| {
+                ui.heading("Debug Panel");
+                ui.add(Slider::new::<usize>(&mut light_count, 0..=50).text("Light count"));
+                ui.add(Slider::new::<f32>(&mut intensity, 0.0..=10.0).text("Light intensity"));
+                ui.add(Slider::new::<f32>(&mut constant, 0.0..=10.0).text("Attenuation constant"));
+                ui.add(Slider::new::<f32>(&mut linear, 0.01..=1.0).text("Attenuation linear"));
+                ui.add(
+                    Slider::new::<f32>(&mut quadratic, 0.0001..=1.0).text("Attenuation quadratic"),
                 );
-                light.update(0.00005 * size.magnitude() * frame_input.elapsed_time as f32);
-            }
-            let viewport = Viewport {
-                x: (panel_width * frame_input.device_pixel_ratio) as i32,
-                y: 0,
-                width: frame_input.viewport.width
-                    - (panel_width * frame_input.device_pixel_ratio) as u32,
-                height: frame_input.viewport.height,
-            };
-            camera.set_viewport(viewport);
-
-            control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
-
-            let mut objects = lights.iter().map(|l| l.object()).collect::<Vec<_>>();
-            objects.extend(model.iter().map(|m| m as &dyn Object));
-
-            frame_input
-                .screen()
-                .clear(ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0))
-                .render(
-                    &camera,
-                    &objects,
-                    &lights
-                        .iter()
-                        .map(|l| &l.light as &dyn Light)
-                        .collect::<Vec<_>>(),
-                )
-                .write(|| {
-                    gui.render();
-                });
-
-            FrameOutput::default()
+                ui.color_edit_button_rgba_unmultiplied(&mut color);
+            });
+            panel_width = gui_context.used_size().x as f64;
         })
         .unwrap();
+        while lights.len() < light_count {
+            lights.push(Glow::new(&context, light_box));
+        }
+        while lights.len() > light_count {
+            lights.pop();
+        }
+
+        for light in lights.iter_mut() {
+            light.set_light(
+                intensity,
+                Color::from_rgba_slice(&color),
+                Attenuation {
+                    constant,
+                    linear,
+                    quadratic,
+                },
+            );
+            light.update(0.00005 * size.magnitude() * frame_input.elapsed_time as f32);
+        }
+        let viewport = Viewport {
+            x: (panel_width * frame_input.device_pixel_ratio) as i32,
+            y: 0,
+            width: frame_input.viewport.width
+                - (panel_width * frame_input.device_pixel_ratio) as u32,
+            height: frame_input.viewport.height,
+        };
+        camera.set_viewport(viewport);
+
+        control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
+
+        let mut objects = lights.iter().map(|l| l.object()).collect::<Vec<_>>();
+        objects.extend(model.iter().map(|m| m as &dyn Object));
+
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0))
+            .render(
+                &camera,
+                &objects,
+                &lights
+                    .iter()
+                    .map(|l| &l.light as &dyn Light)
+                    .collect::<Vec<_>>(),
+            )
+            .write(|| {
+                gui.render();
+            });
+
+        FrameOutput::default()
+    });
 }
 
 struct Glow {

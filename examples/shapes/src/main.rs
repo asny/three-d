@@ -7,10 +7,10 @@ pub fn main() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(5.0, 2.0, 2.5),
         vec3(0.0, 0.0, -0.5),
         vec3(0.0, 1.0, 0.0),
@@ -98,31 +98,29 @@ pub fn main() {
     let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
     let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5));
 
-    window
-        .render_loop(move |mut frame_input: FrameInput| {
-            camera.set_viewport(frame_input.viewport);
-            control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
+    window.render_loop(move |mut frame_input: FrameInput| {
+        camera.set_viewport(frame_input.viewport);
+        control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
 
-            frame_input
-                .screen()
-                .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-                .render(
-                    &camera,
-                    &[
-                        &sphere,
-                        &cylinder,
-                        &cube,
-                        &axes,
-                        &bounding_box_sphere,
-                        &bounding_box_cube,
-                        &bounding_box_cylinder,
-                    ],
-                    &[&light0, &light1],
-                );
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+            .render(
+                &camera,
+                &[
+                    &sphere,
+                    &cylinder,
+                    &cube,
+                    &axes,
+                    &bounding_box_sphere,
+                    &bounding_box_cube,
+                    &bounding_box_cylinder,
+                ],
+                &[&light0, &light1],
+            );
 
-            FrameOutput::default()
-        })
-        .unwrap();
+        FrameOutput::default()
+    });
 }

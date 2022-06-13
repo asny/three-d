@@ -15,10 +15,10 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(-3.0, 1.0, 2.5),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -54,41 +54,39 @@ pub async fn run() {
 
     // main loop
     let mut color = [1.0; 4];
-    window
-        .render_loop(move |mut frame_input| {
-            let mut panel_width = 0.0;
-            gui.update(&mut frame_input, |gui_context| {
-                use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
-                    ui.heading("Debug Panel");
-                    ui.add(Slider::new(&mut model.material.metallic, 0.0..=1.0).text("Metallic"));
-                    ui.add(Slider::new(&mut model.material.roughness, 0.0..=1.0).text("Roughness"));
-                    ui.color_edit_button_rgba_unmultiplied(&mut color);
-                });
-                panel_width = gui_context.used_size().x as f64;
-            })
-            .unwrap();
-            model.material.albedo = Color::from_rgba_slice(&color);
-
-            let viewport = Viewport {
-                x: (panel_width * frame_input.device_pixel_ratio) as i32,
-                y: 0,
-                width: frame_input.viewport.width
-                    - (panel_width * frame_input.device_pixel_ratio) as u32,
-                height: frame_input.viewport.height,
-            };
-            camera.set_viewport(viewport);
-            control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
-
-            frame_input
-                .screen()
-                .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
-                .render(&camera, &[&skybox, &model], &[&light])
-                .write(|| gui.render());
-
-            FrameOutput::default()
+    window.render_loop(move |mut frame_input| {
+        let mut panel_width = 0.0;
+        gui.update(&mut frame_input, |gui_context| {
+            use three_d::egui::*;
+            SidePanel::left("side_panel").show(gui_context, |ui| {
+                ui.heading("Debug Panel");
+                ui.add(Slider::new(&mut model.material.metallic, 0.0..=1.0).text("Metallic"));
+                ui.add(Slider::new(&mut model.material.roughness, 0.0..=1.0).text("Roughness"));
+                ui.color_edit_button_rgba_unmultiplied(&mut color);
+            });
+            panel_width = gui_context.used_size().x as f64;
         })
         .unwrap();
+        model.material.albedo = Color::from_rgba_slice(&color);
+
+        let viewport = Viewport {
+            x: (panel_width * frame_input.device_pixel_ratio) as i32,
+            y: 0,
+            width: frame_input.viewport.width
+                - (panel_width * frame_input.device_pixel_ratio) as u32,
+            height: frame_input.viewport.height,
+        };
+        camera.set_viewport(viewport);
+        control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
+
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
+            .render(&camera, &[&skybox, &model], &[&light])
+            .write(|| gui.render());
+
+        FrameOutput::default()
+    });
 }

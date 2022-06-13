@@ -14,10 +14,10 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(2800.0, 240.0, 1700.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -109,29 +109,27 @@ pub async fn run() {
     plane.material.render_states.cull = Cull::Back;
 
     // main loop
-    window
-        .render_loop(move |mut frame_input| {
-            let mut redraw = frame_input.first_frame;
-            redraw |= camera.set_viewport(frame_input.viewport);
+    window.render_loop(move |mut frame_input| {
+        let mut redraw = frame_input.first_frame;
+        redraw |= camera.set_viewport(frame_input.viewport);
 
-            redraw |= control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
+        redraw |= control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
 
-            if redraw {
-                let mut objects = model.to_objects();
-                objects.push(&imposters);
-                objects.push(&plane);
-                frame_input
-                    .screen()
-                    .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-                    .render(&camera, &objects, &[&ambient, &directional]);
-            }
+        if redraw {
+            let mut objects = model.to_objects();
+            objects.push(&imposters);
+            objects.push(&plane);
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                .render(&camera, &objects, &[&ambient, &directional]);
+        }
 
-            FrameOutput {
-                swap_buffers: redraw,
-                ..Default::default()
-            }
-        })
-        .unwrap();
+        FrameOutput {
+            swap_buffers: redraw,
+            ..Default::default()
+        }
+    });
 }

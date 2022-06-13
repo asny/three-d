@@ -14,10 +14,10 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(4.0, 1.5, 4.0),
         vec3(0.0, 1.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -73,30 +73,28 @@ pub async fn run() {
     let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0));
 
     // main loop
-    window
-        .render_loop(move |mut frame_input| {
-            let mut redraw = frame_input.first_frame;
-            redraw |= camera.set_viewport(frame_input.viewport);
-            redraw |= control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
+    window.render_loop(move |mut frame_input| {
+        let mut redraw = frame_input.first_frame;
+        redraw |= camera.set_viewport(frame_input.viewport);
+        redraw |= control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
 
-            let mut objects = penguin.to_objects();
-            objects.push(&box_object);
-            objects.push(&skybox);
-            // draw
-            if redraw {
-                frame_input.screen().clear(ClearState::default()).render(
-                    &camera,
-                    &objects,
-                    &[&ambient, &directional],
-                );
-            }
+        let mut objects = penguin.to_objects();
+        objects.push(&box_object);
+        objects.push(&skybox);
+        // draw
+        if redraw {
+            frame_input.screen().clear(ClearState::default()).render(
+                &camera,
+                &objects,
+                &[&ambient, &directional],
+            );
+        }
 
-            FrameOutput {
-                swap_buffers: redraw,
-                ..Default::default()
-            }
-        })
-        .unwrap();
+        FrameOutput {
+            swap_buffers: redraw,
+            ..Default::default()
+        }
+    });
 }
