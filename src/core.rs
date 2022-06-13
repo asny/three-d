@@ -47,9 +47,6 @@ mod scissor_box;
 #[doc(inline)]
 pub use scissor_box::*;
 
-pub use crate::ThreeDResult;
-use thiserror::Error;
-
 pub mod prelude {
 
     //!
@@ -58,6 +55,10 @@ pub mod prelude {
     pub use three_d_asset::prelude::*;
 }
 pub use prelude::*;
+
+/// A result for this crate.
+pub type ThreeDResult<T> = std::result::Result<T, CoreError>;
+use thiserror::Error;
 
 ///
 /// Error in the [core](crate::core) module.

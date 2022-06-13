@@ -23,6 +23,3 @@ pub use window::*;
 mod gui;
 #[doc(inline)]
 pub use gui::*;
-
-/// A result for this crate.
-pub type ThreeDResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;

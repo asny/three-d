@@ -17,6 +17,8 @@ pub enum WindowError {
     WindowCreation(#[from] glutin::CreationError),
     #[error("failed creating a new context")]
     ContextCreation(#[from] glutin::ContextError),
+    #[error("three-d error")]
+    ThreeDError(#[from] CoreError),
     #[error("the number of MSAA samples must be a power of two")]
     InvalidNumberOfMSAASamples,
 }
@@ -34,7 +36,7 @@ impl Window {
     ///
     /// Constructs a new window with the given settings.
     ///
-    pub fn new(mut settings: WindowSettings) -> ThreeDResult<Window> {
+    pub fn new(mut settings: WindowSettings) -> Result<Window, WindowError> {
         if std::env::var("THREE_D_CI").is_ok() {
             Ok(Window {
                 windowed_context: None,
@@ -65,7 +67,7 @@ impl Window {
     fn new_windowed_context(
         settings: &WindowSettings,
         event_loop: &EventLoop<()>,
-    ) -> ThreeDResult<WindowedContext<NotCurrent>> {
+    ) -> Result<WindowedContext<NotCurrent>, WindowError> {
         if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
             Err(WindowError::InvalidNumberOfMSAASamples)?;
         }
