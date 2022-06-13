@@ -507,6 +507,11 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
+
+        #[cfg(debug_assertions)]
+        self.context
+            .error_check()
+            .expect("Unexpected rendering error occured")
     }
 
     ///
@@ -538,6 +543,11 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
+
+        #[cfg(debug_assertions)]
+        self.context
+            .error_check()
+            .expect("Unexpected rendering error occured")
     }
 
     ///
@@ -593,6 +603,11 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
+
+        #[cfg(debug_assertions)]
+        self.context
+            .error_check()
+            .expect("Unexpected rendering error occured")
     }
 
     ///
@@ -649,6 +664,11 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
+
+        #[cfg(debug_assertions)]
+        self.context
+            .error_check()
+            .expect("Unexpected rendering error occured")
     }
 
     ///
