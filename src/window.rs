@@ -30,6 +30,47 @@ mod canvas;
 #[cfg(target_arch = "wasm32")]
 pub use canvas::*;
 
+use thiserror::Error;
+///
+/// Error in the [window](crate::window) module.
+///
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Error, Debug)]
+#[allow(missing_docs)]
+pub enum WindowError {
+    #[error("failed creating a new window")]
+    WindowCreation(#[from] glutin::CreationError),
+    #[error("failed creating a new context")]
+    ContextCreation(#[from] glutin::ContextError),
+    #[error("error in three-d")]
+    ThreeDError(#[from] CoreError),
+    #[error("the number of MSAA samples must be a power of two")]
+    InvalidNumberOfMSAASamples,
+}
+
+///
+/// Error in the [window](crate::window) module.
+///
+#[cfg(target_arch = "wasm32")]
+#[derive(Error, Debug)]
+#[allow(missing_docs)]
+pub enum WindowError {
+    #[error("failed creating a new window")]
+    WindowCreation,
+    #[error("unable to get document from canvas")]
+    DocumentMissing,
+    #[error("unable to convert canvas to html canvas: {0}")]
+    CanvasConvertFailed(String),
+    #[error("unable to get webgl2 context for the given canvas, maybe the browser doesn't support WebGL2{0}")]
+    WebGL2NotSupported(String),
+    #[error("unable to get EXT_color_buffer_float extension for the given canvas, maybe the browser doesn't support EXT_color_buffer_float: {0}")]
+    ColorBufferFloatNotSupported(String),
+    #[error("unable to get OES_texture_float extension for the given canvas, maybe the browser doesn't support OES_texture_float: {0}")]
+    OESTextureFloatNotSupported(String),
+    #[error("error in three-d")]
+    ThreeDError(#[from] CoreError),
+}
+
 /// Type of mouse button.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {

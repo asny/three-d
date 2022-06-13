@@ -1,22 +1,14 @@
-use crate::core::{Context, CoreError};
+use crate::core::Context;
 use glutin::dpi::PhysicalSize;
 use glutin::event_loop::EventLoop;
 use glutin::{ContextBuilder, ContextCurrentState, CreationError, NotCurrent};
-
-use thiserror::Error;
-#[derive(Error, Debug)]
-#[allow(missing_docs)]
-pub enum HeadlessError {
-    #[error("error in three-d")]
-    ThreeDError(#[from] CoreError),
-}
 
 impl Context {
     ///
     /// Creates a new headless graphics context (a graphics context that is not associated with any window).
     ///
     ///
-    pub fn new() -> Result<Self, HeadlessError> {
+    pub fn new() -> Result<Self, super::WindowError> {
         let cb = ContextBuilder::new();
         let (headless_context, _el) = build_context(cb).unwrap();
         let headless_context = unsafe { headless_context.make_current().unwrap() };
