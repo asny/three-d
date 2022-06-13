@@ -50,7 +50,7 @@ pub async fn run() {
             },
         ),
     );
-    let mut gui = three_d::GUI::new(&context).unwrap();
+    let mut gui = three_d::GUI::new(&context);
 
     // main loop
     let mut color = [1.0; 4];
@@ -65,8 +65,7 @@ pub async fn run() {
                 ui.color_edit_button_rgba_unmultiplied(&mut color);
             });
             panel_width = gui_context.used_size().x as f64;
-        })
-        .unwrap();
+        });
         model.material.albedo = Color::from_rgba_slice(&color);
 
         let viewport = Viewport {
@@ -77,9 +76,7 @@ pub async fn run() {
             height: frame_input.viewport.height,
         };
         camera.set_viewport(viewport);
-        control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        control.handle_events(&mut camera, &mut frame_input.events);
 
         frame_input
             .screen()

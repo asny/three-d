@@ -53,9 +53,7 @@ pub async fn run() {
     window.render_loop(move |mut frame_input| {
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
-        change |= control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        change |= control.handle_events(&mut camera, &mut frame_input.events);
 
         for event in frame_input.events.iter() {
             match event {

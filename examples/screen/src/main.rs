@@ -35,7 +35,7 @@ pub fn main() {
 
     let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
 
-    let mut gui = three_d::GUI::new(&context).unwrap();
+    let mut gui = three_d::GUI::new(&context);
     let mut viewport_zoom = 1.0;
     let mut scissor_zoom = 1.0;
     window.render_loop(move |mut frame_input: FrameInput| {
@@ -53,8 +53,7 @@ pub fn main() {
                 ui.add(Slider::new(&mut scissor_zoom, 0.01..=1.0).text("Scissor"));
             });
             panel_width = gui_context.used_size().x as f64;
-        })
-        .unwrap();
+        });
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,

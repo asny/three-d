@@ -40,7 +40,7 @@ impl DeferredPipeline {
     ///
     /// Constructor.
     ///
-    pub fn new(context: &Context) -> ThreeDResult<Self> {
+    pub fn new(context: &Context) -> Self {
         let renderer = Self {
             context: context.clone(),
             camera: Camera::new_perspective(
@@ -73,7 +73,7 @@ impl DeferredPipeline {
                 DepthFormat::Depth32F,
             )),
         };
-        Ok(renderer)
+        renderer
     }
 
     ///
@@ -85,7 +85,7 @@ impl DeferredPipeline {
         &mut self,
         camera: &Camera,
         objects: &[(impl Geometry, &DeferredPhysicalMaterial)],
-    ) -> ThreeDResult<()> {
+    ) {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         match camera.projection_type() {
             ProjectionType::Perspective { field_of_view_y } => {
@@ -141,7 +141,6 @@ impl DeferredPipeline {
                 geometry.render_with_material(material, &self.camera, &[]);
             }
         });
-        Ok(())
     }
 
     ///
@@ -149,7 +148,7 @@ impl DeferredPipeline {
     /// and all of the given lights to render the objects.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn lighting_pass(&mut self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    pub fn lighting_pass(&mut self, camera: &Camera, lights: &[&dyn Light]) {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
             ..Default::default()
@@ -164,24 +163,26 @@ impl DeferredPipeline {
         );
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
-        self.context.effect(&fragment_shader, |effect| {
-            effect.use_uniform_if_required("cameraPosition", camera.position());
-            for (i, light) in lights.iter().enumerate() {
-                light.use_uniforms(effect, i as u32);
-            }
-            effect.use_texture_array("gbuffer", self.geometry_pass_texture());
-            effect.use_depth_texture("depthMap", self.geometry_pass_depth_texture());
-            effect.use_uniform_if_required(
-                "viewProjectionInverse",
-                (camera.projection() * camera.view()).invert().unwrap(),
-            );
-            effect.use_uniform("debug_type", self.debug_type as i32);
-            if self.debug_type == DebugType::DEPTH {
-                effect.use_uniform("zNear", camera.z_near());
-                effect.use_uniform("zFar", camera.z_far());
-            }
-            effect.apply(render_states, camera.viewport());
-        })
+        self.context
+            .effect(&fragment_shader, |effect| {
+                effect.use_uniform_if_required("cameraPosition", camera.position());
+                for (i, light) in lights.iter().enumerate() {
+                    light.use_uniforms(effect, i as u32);
+                }
+                effect.use_texture_array("gbuffer", self.geometry_pass_texture());
+                effect.use_depth_texture("depthMap", self.geometry_pass_depth_texture());
+                effect.use_uniform_if_required(
+                    "viewProjectionInverse",
+                    (camera.projection() * camera.view()).invert().unwrap(),
+                );
+                effect.use_uniform("debug_type", self.debug_type as i32);
+                if self.debug_type == DebugType::DEPTH {
+                    effect.use_uniform("zNear", camera.z_near());
+                    effect.use_uniform("zFar", camera.z_far());
+                }
+                effect.apply(render_states, camera.viewport());
+            })
+            .expect("Failed compiling shader")
     }
 
     /// Returns the geometry pass texture

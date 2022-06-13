@@ -84,9 +84,7 @@ pub async fn run() {
             }
         }
 
-        change |= control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        change |= control.handle_events(&mut camera, &mut frame_input.events);
 
         // draw
         if change {

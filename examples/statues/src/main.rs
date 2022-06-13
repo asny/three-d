@@ -130,7 +130,7 @@ pub async fn run() {
         3.0,
     ));
 
-    let mut gui = three_d::GUI::new(&context).unwrap();
+    let mut gui = three_d::GUI::new(&context);
     let mut camera_type = CameraType::Primary;
     let mut bounding_box_enabled = false;
     window.render_loop(move |mut frame_input| {
@@ -145,8 +145,7 @@ pub async fn run() {
                 ui.checkbox(&mut bounding_box_enabled, "Bounding boxes");
             });
             panel_width = gui_context.used_size().x as f64;
-        })
-        .unwrap();
+        });
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,
@@ -157,9 +156,7 @@ pub async fn run() {
         };
         primary_camera.set_viewport(viewport);
         secondary_camera.set_viewport(viewport);
-        control
-            .handle_events(&mut primary_camera, &mut frame_input.events)
-            .unwrap();
+        control.handle_events(&mut primary_camera, &mut frame_input.events);
 
         // draw
         frame_input

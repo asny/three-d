@@ -97,9 +97,7 @@ pub fn run() {
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
 
-        control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        control.handle_events(&mut camera, &mut frame_input.events);
         let elapsed_time = (frame_input.elapsed_time * 0.001) as f32;
         particles.time += elapsed_time;
         if particles.time > explosion_time {

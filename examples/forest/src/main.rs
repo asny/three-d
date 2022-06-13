@@ -113,9 +113,7 @@ pub async fn run() {
         let mut redraw = frame_input.first_frame;
         redraw |= camera.set_viewport(frame_input.viewport);
 
-        redraw |= control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        redraw |= control.handle_events(&mut camera, &mut frame_input.events);
 
         if redraw {
             let mut objects = model.to_objects();
