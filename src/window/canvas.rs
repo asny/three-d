@@ -1,4 +1,4 @@
-use crate::core::{Context, ThreeDResult, Viewport};
+use crate::core::{Context, Viewport};
 use crate::window::*;
 use serde::Serialize;
 use std::cell::RefCell;
@@ -28,6 +28,8 @@ pub enum CanvasError {
     ColorBufferFloatNotSupported(String),
     #[error("unable to get OES_texture_float extension for the given canvas, maybe the browser doesn't support OES_texture_float: {0}")]
     OESTextureFloatNotSupported(String),
+    #[error("three-d error")]
+    ThreeDError(#[from] CoreError),
 }
 
 ///
@@ -50,7 +52,7 @@ impl Window {
     ///
     /// Constructs a new window with the given settings.
     ///
-    pub fn new(settings: WindowSettings) -> ThreeDResult<Window> {
+    pub fn new(settings: WindowSettings) -> Result<Window, CanvasError> {
         let websys_window = web_sys::window().ok_or(CanvasError::WindowCreation)?;
         let document = websys_window
             .document()
@@ -93,7 +95,7 @@ impl Window {
     ///
     /// Specifies the canvas to write to when using [Screen](crate::Screen). Will overwrite the default canvas if any has been found.
     ///
-    pub fn set_canvas(&mut self, canvas: web_sys::HtmlCanvasElement) -> ThreeDResult<()> {
+    pub fn set_canvas(&mut self, canvas: web_sys::HtmlCanvasElement) -> Result<(), CanvasError> {
         let context_options = ContextOptions {
             antialias: self.settings.multisamples > 0,
         };

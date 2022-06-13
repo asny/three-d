@@ -28,8 +28,6 @@ pub use geometry::*;
 pub mod object;
 pub use object::*;
 
-pub use crate::ThreeDResult;
-
 impl<'a> DepthTarget<'a> {
     ///
     /// Render the objects using the given camera and lights into this depth target.
