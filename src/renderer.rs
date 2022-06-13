@@ -6,6 +6,9 @@
 pub use crate::core::*;
 
 use thiserror::Error;
+///
+/// Error in the [renderer](crate::renderer) module.
+///
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
 pub enum RendererError {

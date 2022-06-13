@@ -1,4 +1,4 @@
-use crate::core::{Context, CoreError, Viewport};
+use crate::core::{Context, Viewport};
 use crate::window::*;
 use serde::Serialize;
 use std::cell::RefCell;
@@ -7,30 +7,6 @@ use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
-
-use thiserror::Error;
-
-///
-/// Error related to the canvas.
-///
-#[derive(Error, Debug)]
-#[allow(missing_docs)]
-pub enum CanvasError {
-    #[error("failed creating a new window")]
-    WindowCreation,
-    #[error("unable to get document from canvas")]
-    DocumentMissing,
-    #[error("unable to convert canvas to html canvas: {0}")]
-    CanvasConvertFailed(String),
-    #[error("unable to get webgl2 context for the given canvas, maybe the browser doesn't support WebGL2{0}")]
-    WebGL2NotSupported(String),
-    #[error("unable to get EXT_color_buffer_float extension for the given canvas, maybe the browser doesn't support EXT_color_buffer_float: {0}")]
-    ColorBufferFloatNotSupported(String),
-    #[error("unable to get OES_texture_float extension for the given canvas, maybe the browser doesn't support OES_texture_float: {0}")]
-    OESTextureFloatNotSupported(String),
-    #[error("error in three-d")]
-    ThreeDError(#[from] CoreError),
-}
 
 ///
 /// Default window (canvas) and event handler for easy setup.
@@ -52,11 +28,11 @@ impl Window {
     ///
     /// Constructs a new window with the given settings.
     ///
-    pub fn new(settings: WindowSettings) -> Result<Window, CanvasError> {
-        let websys_window = web_sys::window().ok_or(CanvasError::WindowCreation)?;
+    pub fn new(settings: WindowSettings) -> Result<Window, WindowError> {
+        let websys_window = web_sys::window().ok_or(WindowError::WindowCreation)?;
         let document = websys_window
             .document()
-            .ok_or(CanvasError::DocumentMissing)?;
+            .ok_or(WindowError::DocumentMissing)?;
 
         let mut window = Window {
             context: None,
@@ -74,7 +50,7 @@ impl Window {
             window.set_canvas(
                 canvas
                     .dyn_into::<web_sys::HtmlCanvasElement>()
-                    .map_err(|e| CanvasError::CanvasConvertFailed(format!("{:?}", e)))?,
+                    .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?,
             )?;
         };
         Ok(window)
@@ -95,7 +71,7 @@ impl Window {
     ///
     /// Specifies the canvas to write to when using [Screen](crate::Screen). Will overwrite the default canvas if any has been found.
     ///
-    pub fn set_canvas(&mut self, canvas: web_sys::HtmlCanvasElement) -> Result<(), CanvasError> {
+    pub fn set_canvas(&mut self, canvas: web_sys::HtmlCanvasElement) -> Result<(), WindowError> {
         let context_options = ContextOptions {
             antialias: self.settings.multisamples > 0,
         };
@@ -104,19 +80,19 @@ impl Window {
                 "webgl2",
                 &JsValue::from_serde(&context_options).unwrap(),
             )
-            .map_err(|e| CanvasError::WebGL2NotSupported(format!(": {:?}", e)))?
-            .ok_or(CanvasError::WebGL2NotSupported("".to_string()))?
+            .map_err(|e| WindowError::WebGL2NotSupported(format!(": {:?}", e)))?
+            .ok_or(WindowError::WebGL2NotSupported("".to_string()))?
             .dyn_into::<WebGl2RenderingContext>()
-            .map_err(|e| CanvasError::WebGL2NotSupported(format!(": {:?}", e)))?;
+            .map_err(|e| WindowError::WebGL2NotSupported(format!(": {:?}", e)))?;
         context
             .get_extension("EXT_color_buffer_float")
-            .map_err(|e| CanvasError::ColorBufferFloatNotSupported(format!("{:?}", e)))?;
+            .map_err(|e| WindowError::ColorBufferFloatNotSupported(format!("{:?}", e)))?;
         context
             .get_extension("OES_texture_float")
-            .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
+            .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
         context
             .get_extension("OES_texture_float_linear")
-            .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
+            .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
 
         self.context = Some(crate::core::Context::from_gl_context(Arc::new(
             crate::context::Context::from_webgl2_context(context),

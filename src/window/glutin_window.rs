@@ -1,27 +1,10 @@
-use crate::core::{Context, CoreError, Viewport};
+use crate::core::{Context, Viewport};
 use crate::window::*;
 use glutin::event::{Event, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::WindowBuilder;
 use glutin::ContextBuilder;
 use glutin::*;
-
-use thiserror::Error;
-///
-/// Error from the glutin window.
-///
-#[derive(Error, Debug)]
-#[allow(missing_docs)]
-pub enum WindowError {
-    #[error("failed creating a new window")]
-    WindowCreation(#[from] glutin::CreationError),
-    #[error("failed creating a new context")]
-    ContextCreation(#[from] glutin::ContextError),
-    #[error("error in three-d")]
-    ThreeDError(#[from] CoreError),
-    #[error("the number of MSAA samples must be a power of two")]
-    InvalidNumberOfMSAASamples,
-}
 
 ///
 /// Default window and event handler for easy setup.
@@ -41,7 +24,7 @@ impl Window {
             Ok(Window {
                 windowed_context: None,
                 event_loop: None,
-                gl: Context::new().unwrap(),
+                gl: Context::new()?,
             })
         } else {
             let event_loop = EventLoop::new();
