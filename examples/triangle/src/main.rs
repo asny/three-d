@@ -10,11 +10,11 @@ pub fn main() {
     .unwrap();
 
     // Get the graphics context from the window
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     // Create a camera
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(0.0, 0.0, 2.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -63,5 +63,5 @@ pub fn main() {
 
         // Returns default frame output to end the frame
         FrameOutput::default()
-    }).unwrap();
+    });
 }

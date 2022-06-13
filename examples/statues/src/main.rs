@@ -20,10 +20,10 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut primary_camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(-300.0, 250.0, 200.0),
         vec3(0.0, 100.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -33,7 +33,7 @@ pub async fn run() {
     );
     // Static camera to view frustum culling in effect
     let mut secondary_camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(-600.0, 600.0, 600.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -133,59 +133,57 @@ pub async fn run() {
     let mut gui = three_d::GUI::new(&context).unwrap();
     let mut camera_type = CameraType::Primary;
     let mut bounding_box_enabled = false;
-    window
-        .render_loop(move |mut frame_input| {
-            let mut panel_width = 0.0;
-            gui.update(&mut frame_input, |gui_context| {
-                use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
-                    ui.heading("Debug Panel");
-                    ui.radio_value(&mut camera_type, CameraType::Primary, "Primary camera");
-                    ui.radio_value(&mut camera_type, CameraType::Secondary, "Secondary camera");
+    window.render_loop(move |mut frame_input| {
+        let mut panel_width = 0.0;
+        gui.update(&mut frame_input, |gui_context| {
+            use three_d::egui::*;
+            SidePanel::left("side_panel").show(gui_context, |ui| {
+                ui.heading("Debug Panel");
+                ui.radio_value(&mut camera_type, CameraType::Primary, "Primary camera");
+                ui.radio_value(&mut camera_type, CameraType::Secondary, "Secondary camera");
 
-                    ui.checkbox(&mut bounding_box_enabled, "Bounding boxes");
-                });
-                panel_width = gui_context.used_size().x as f64;
-            })
-            .unwrap();
-
-            let viewport = Viewport {
-                x: (panel_width * frame_input.device_pixel_ratio) as i32,
-                y: 0,
-                width: frame_input.viewport.width
-                    - (panel_width * frame_input.device_pixel_ratio) as u32,
-                height: frame_input.viewport.height,
-            };
-            primary_camera.set_viewport(viewport);
-            secondary_camera.set_viewport(viewport);
-            control
-                .handle_events(&mut primary_camera, &mut frame_input.events)
-                .unwrap();
-
-            // draw
-            frame_input
-                .screen()
-                .clear(ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0))
-                .write(|| {
-                    let camera = match camera_type {
-                        CameraType::Primary => &primary_camera,
-                        CameraType::Secondary => &secondary_camera,
-                    };
-                    for model in models
-                        .iter()
-                        .filter(|o| primary_camera.in_frustum(&o.aabb()))
-                    {
-                        model.render(camera, &[&ambient, &directional]);
-                    }
-                    if bounding_box_enabled {
-                        for bounding_box in bounding_boxes.iter() {
-                            bounding_box.render(camera, &[]);
-                        }
-                    }
-                    gui.render();
-                });
-
-            FrameOutput::default()
+                ui.checkbox(&mut bounding_box_enabled, "Bounding boxes");
+            });
+            panel_width = gui_context.used_size().x as f64;
         })
         .unwrap();
+
+        let viewport = Viewport {
+            x: (panel_width * frame_input.device_pixel_ratio) as i32,
+            y: 0,
+            width: frame_input.viewport.width
+                - (panel_width * frame_input.device_pixel_ratio) as u32,
+            height: frame_input.viewport.height,
+        };
+        primary_camera.set_viewport(viewport);
+        secondary_camera.set_viewport(viewport);
+        control
+            .handle_events(&mut primary_camera, &mut frame_input.events)
+            .unwrap();
+
+        // draw
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0))
+            .write(|| {
+                let camera = match camera_type {
+                    CameraType::Primary => &primary_camera,
+                    CameraType::Secondary => &secondary_camera,
+                };
+                for model in models
+                    .iter()
+                    .filter(|o| primary_camera.in_frustum(&o.aabb()))
+                {
+                    model.render(camera, &[&ambient, &directional]);
+                }
+                if bounding_box_enabled {
+                    for bounding_box in bounding_boxes.iter() {
+                        bounding_box.render(camera, &[]);
+                    }
+                }
+                gui.render();
+            });
+
+        FrameOutput::default()
+    });
 }

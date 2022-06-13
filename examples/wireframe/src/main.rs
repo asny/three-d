@@ -14,12 +14,12 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let target = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         target + scene_radius * vec3(0.6, 0.3, 1.0).normalize(),
         target,
         vec3(0.0, 1.0, 0.0),
@@ -83,31 +83,29 @@ pub async fn run() {
     let directional1 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0));
 
     // main loop
-    window
-        .render_loop(move |mut frame_input| {
-            let mut redraw = frame_input.first_frame;
-            redraw |= camera.set_viewport(frame_input.viewport);
-            redraw |= control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
+    window.render_loop(move |mut frame_input| {
+        let mut redraw = frame_input.first_frame;
+        redraw |= camera.set_viewport(frame_input.viewport);
+        redraw |= control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
 
-            if redraw {
-                frame_input
-                    .screen()
-                    .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-                    .render(
-                        &camera,
-                        &[&model, &vertices, &edges],
-                        &[&ambient, &directional0, &directional1],
-                    );
-            }
+        if redraw {
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
+                .render(
+                    &camera,
+                    &[&model, &vertices, &edges],
+                    &[&ambient, &directional0, &directional1],
+                );
+        }
 
-            FrameOutput {
-                swap_buffers: redraw,
-                ..Default::default()
-            }
-        })
-        .unwrap();
+        FrameOutput {
+            swap_buffers: redraw,
+            ..Default::default()
+        }
+    });
 }
 
 fn vertex_transformations(cpu_mesh: &CpuMesh) -> Instances {

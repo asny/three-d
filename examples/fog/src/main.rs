@@ -14,10 +14,10 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(4.0, 4.0, 5.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -50,66 +50,64 @@ pub async fn run() {
 
     // main loop
     let mut depth_texture = None;
-    window
-        .render_loop(move |mut frame_input| {
-            let mut change = frame_input.first_frame;
-            change |= camera.set_viewport(frame_input.viewport);
-            change |= control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
+    window.render_loop(move |mut frame_input| {
+        let mut change = frame_input.first_frame;
+        change |= camera.set_viewport(frame_input.viewport);
+        change |= control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
 
-            for event in frame_input.events.iter() {
-                match event {
-                    Event::KeyPress { kind, .. } => {
-                        if *kind == Key::F {
-                            fog_enabled = !fog_enabled;
-                            change = true;
-                            println!("Fog: {:?}", fog_enabled);
-                        }
+        for event in frame_input.events.iter() {
+            match event {
+                Event::KeyPress { kind, .. } => {
+                    if *kind == Key::F {
+                        fog_enabled = !fog_enabled;
+                        change = true;
+                        println!("Fog: {:?}", fog_enabled);
                     }
-                    _ => {}
                 }
+                _ => {}
             }
+        }
 
-            // draw
-            if change && fog_enabled {
-                depth_texture = Some(DepthTargetTexture2D::new(
-                    &context,
-                    frame_input.viewport.width,
-                    frame_input.viewport.height,
-                    Wrapping::ClampToEdge,
-                    Wrapping::ClampToEdge,
-                    DepthFormat::Depth32F,
-                ));
-                depth_texture.as_mut().map(|dt| {
-                    dt.as_depth_target()
-                        .clear(ClearState::default())
-                        .render_with_material(
-                            &DepthMaterial::default(),
+        // draw
+        if change && fog_enabled {
+            depth_texture = Some(DepthTargetTexture2D::new(
+                &context,
+                frame_input.viewport.width,
+                frame_input.viewport.height,
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+                DepthFormat::Depth32F,
+            ));
+            depth_texture.as_mut().map(|dt| {
+                dt.as_depth_target()
+                    .clear(ClearState::default())
+                    .render_with_material(
+                        &DepthMaterial::default(),
+                        &camera,
+                        &monkey.to_geometries(),
+                        &[],
+                    );
+            });
+        }
+
+        frame_input
+            .screen()
+            .clear(ClearState::default())
+            .render(&camera, &monkey.to_objects(), &[&ambient, &directional])
+            .write(|| {
+                if fog_enabled {
+                    if let Some(ref depth_texture) = depth_texture {
+                        fog_effect.apply(
                             &camera,
-                            &monkey.to_geometries(),
-                            &[],
+                            depth_texture,
+                            frame_input.accumulated_time as f32,
                         );
-                });
-            }
-
-            frame_input
-                .screen()
-                .clear(ClearState::default())
-                .render(&camera, &monkey.to_objects(), &[&ambient, &directional])
-                .write(|| {
-                    if fog_enabled {
-                        if let Some(ref depth_texture) = depth_texture {
-                            fog_effect.apply(
-                                &camera,
-                                depth_texture,
-                                frame_input.accumulated_time as f32,
-                            );
-                        }
                     }
-                });
+                }
+            });
 
-            FrameOutput::default()
-        })
-        .unwrap();
+        FrameOutput::default()
+    });
 }

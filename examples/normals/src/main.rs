@@ -15,7 +15,7 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     // Model source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/
     let mut loaded = three_d_asset::io::load_async(&[
@@ -69,7 +69,7 @@ pub async fn run() {
         .set_transformation(Mat4::from_translation(vec3(-1.4, -1.2, 0.0)));
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(0.0, 0.0, 7.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -83,28 +83,26 @@ pub async fn run() {
     let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0));
 
     // main loop
-    window
-        .render_loop(move |mut frame_input| {
-            camera.set_viewport(frame_input.viewport);
-            control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
+    window.render_loop(move |mut frame_input| {
+        camera.set_viewport(frame_input.viewport);
+        control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
 
-            // Draw
-            frame_input
-                .screen()
-                .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
-                .render(
-                    &camera,
-                    &[
-                        &model_with_computed_tangents,
-                        &model_with_loaded_tangents,
-                        &instanced_model_with_computed_tangents,
-                        &instanced_model_with_loaded_tangents,
-                    ],
-                    &[&ambient, &directional],
-                );
-            FrameOutput::default()
-        })
-        .unwrap();
+        // Draw
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
+            .render(
+                &camera,
+                &[
+                    &model_with_computed_tangents,
+                    &model_with_loaded_tangents,
+                    &instanced_model_with_computed_tangents,
+                    &instanced_model_with_loaded_tangents,
+                ],
+                &[&ambient, &directional],
+            );
+        FrameOutput::default()
+    });
 }

@@ -14,10 +14,10 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(0.0, 15.0, 15.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -72,37 +72,35 @@ pub async fn run() {
 
     let ambient = AmbientLight::new(&context, 1.0, Color::WHITE);
 
-    window
-        .render_loop(move |mut frame_input: FrameInput| {
-            camera.set_viewport(frame_input.viewport);
-            control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
+    window.render_loop(move |mut frame_input: FrameInput| {
+        camera.set_viewport(frame_input.viewport);
+        control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
 
-            frame_input
-                .screen()
-                .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-                .render(
-                    &camera,
-                    &[
-                        &axes,
-                        &Gm {
-                            geometry: &billboards,
-                            material: &material,
-                        },
-                        &Gm {
-                            geometry: &sprites_up,
-                            material: &material,
-                        },
-                        &Gm {
-                            geometry: &sprites,
-                            material: &material,
-                        },
-                    ],
-                    &[&ambient],
-                );
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+            .render(
+                &camera,
+                &[
+                    &axes,
+                    &Gm {
+                        geometry: &billboards,
+                        material: &material,
+                    },
+                    &Gm {
+                        geometry: &sprites_up,
+                        material: &material,
+                    },
+                    &Gm {
+                        geometry: &sprites,
+                        material: &material,
+                    },
+                ],
+                &[&ambient],
+            );
 
-            FrameOutput::default()
-        })
-        .unwrap();
+        FrameOutput::default()
+    });
 }

@@ -56,10 +56,10 @@ pub fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(0.0, 30.0, 150.0),
         vec3(0.0, 30.0, 0.0),
         vec3(0.0, 1.0, 0.0),
@@ -94,53 +94,51 @@ pub fn run() {
     // main loop
     particles.time = explosion_time + 100.0;
     let mut color_index = 0;
-    window
-        .render_loop(move |mut frame_input| {
-            camera.set_viewport(frame_input.viewport);
+    window.render_loop(move |mut frame_input| {
+        camera.set_viewport(frame_input.viewport);
 
-            control
-                .handle_events(&mut camera, &mut frame_input.events)
-                .unwrap();
-            let elapsed_time = (frame_input.elapsed_time * 0.001) as f32;
-            particles.time += elapsed_time;
-            if particles.time > explosion_time {
-                particles.time = 0.0;
-                color_index = (color_index + 1) % colors.len();
-                let start_position = vec3(
-                    10.0 * rng.gen::<f32>() - 5.0,
-                    40.0 + 10.0 * rng.gen::<f32>(),
-                    10.0 * rng.gen::<f32>() - 5.0,
+        control
+            .handle_events(&mut camera, &mut frame_input.events)
+            .unwrap();
+        let elapsed_time = (frame_input.elapsed_time * 0.001) as f32;
+        particles.time += elapsed_time;
+        if particles.time > explosion_time {
+            particles.time = 0.0;
+            color_index = (color_index + 1) % colors.len();
+            let start_position = vec3(
+                10.0 * rng.gen::<f32>() - 5.0,
+                40.0 + 10.0 * rng.gen::<f32>(),
+                10.0 * rng.gen::<f32>() - 5.0,
+            );
+            let mut data = Vec::new();
+            for _ in 0..300 {
+                let theta = rng.gen::<f32>() * std::f32::consts::PI;
+                let phi = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
+                let explosion_direction = vec3(
+                    theta.sin() * phi.cos(),
+                    theta.sin() * phi.sin(),
+                    theta.cos(),
                 );
-                let mut data = Vec::new();
-                for _ in 0..300 {
-                    let theta = rng.gen::<f32>() * std::f32::consts::PI;
-                    let phi = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
-                    let explosion_direction = vec3(
-                        theta.sin() * phi.cos(),
-                        theta.sin() * phi.sin(),
-                        theta.cos(),
-                    );
-                    data.push(ParticleData {
-                        start_position,
-                        start_velocity: (rng.gen::<f32>() * 0.2 + 0.9)
-                            * explosion_speed
-                            * explosion_direction,
-                    });
-                }
-                particles.update(&data);
-            }
-
-            frame_input
-                .screen()
-                .clear(ClearState::color(0.0, 0.0, 0.0, 1.0))
-                .write(|| {
-                    let f = particles.time / explosion_time.max(0.0);
-                    fireworks_material.fade = 1.0 - f * f * f * f;
-                    fireworks_material.color = colors[color_index];
-                    particles.render_with_material(&fireworks_material, &camera, &[]);
+                data.push(ParticleData {
+                    start_position,
+                    start_velocity: (rng.gen::<f32>() * 0.2 + 0.9)
+                        * explosion_speed
+                        * explosion_direction,
                 });
+            }
+            particles.update(&data);
+        }
 
-            FrameOutput::default()
-        })
-        .unwrap();
+        frame_input
+            .screen()
+            .clear(ClearState::color(0.0, 0.0, 0.0, 1.0))
+            .write(|| {
+                let f = particles.time / explosion_time.max(0.0);
+                fireworks_material.fade = 1.0 - f * f * f * f;
+                fireworks_material.color = colors[color_index];
+                particles.render_with_material(&fireworks_material, &camera, &[]);
+            });
+
+        FrameOutput::default()
+    });
 }

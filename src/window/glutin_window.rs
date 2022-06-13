@@ -100,10 +100,7 @@ impl Window {
     ///
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
-    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(
-        self,
-        mut callback: F,
-    ) -> ThreeDResult<()> {
+    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
         if let Some(event_loop) = self.event_loop {
             let windowed_context = self.windowed_context.unwrap();
             let mut last_time = std::time::Instant::now();
@@ -352,25 +349,24 @@ impl Window {
                         events: Vec::new(),
                         elapsed_time,
                         accumulated_time,
-                        viewport: self.viewport().unwrap(),
+                        viewport: self.viewport(),
                         device_pixel_ratio: 1.0,
-                        window_width: self.size().unwrap().0,
-                        window_height: self.size().unwrap().1,
+                        window_width: self.size().0,
+                        window_height: self.size().1,
                         first_frame,
-                        context: self.gl()?.clone(),
+                        context: self.gl().clone(),
                     });
                     first_frame = false;
                 }
             }
-            Ok(())
         }
     }
 
     ///
     /// Return the current logical size of the window.
     ///
-    pub fn size(&self) -> ThreeDResult<(u32, u32)> {
-        Ok(if let Some(ref windowed_context) = self.windowed_context {
+    pub fn size(&self) -> (u32, u32) {
+        if let Some(ref windowed_context) = self.windowed_context {
             windowed_context
                 .window()
                 .inner_size()
@@ -378,26 +374,26 @@ impl Window {
                 .into()
         } else {
             (1024, 1024)
-        })
+        }
     }
 
     ///
     /// Returns the current viewport of the window in physical pixels (the size of the screen [RenderTarget] which is returned from [FrameInput::screen]).
     ///
-    pub fn viewport(&self) -> ThreeDResult<Viewport> {
-        Ok(if let Some(ref windowed_context) = self.windowed_context {
+    pub fn viewport(&self) -> Viewport {
+        if let Some(ref windowed_context) = self.windowed_context {
             let (w, h): (u32, u32) = windowed_context.window().inner_size().into();
             Viewport::new_at_origo(w, h)
         } else {
             Viewport::new_at_origo(1024, 1024)
-        })
+        }
     }
 
     ///
     /// Returns the graphics context for this window.
     ///
-    pub fn gl(&self) -> ThreeDResult<crate::Context> {
-        Ok(self.gl.clone())
+    pub fn gl(&self) -> crate::Context {
+        self.gl.clone()
     }
 }
 
