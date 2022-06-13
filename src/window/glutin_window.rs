@@ -1,4 +1,4 @@
-use crate::core::*;
+use crate::core::{Context, CoreError, Viewport};
 use crate::window::*;
 use glutin::event::{Event, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
@@ -17,7 +17,7 @@ pub enum WindowError {
     WindowCreation(#[from] glutin::CreationError),
     #[error("failed creating a new context")]
     ContextCreation(#[from] glutin::ContextError),
-    #[error("three-d error")]
+    #[error("error in three-d")]
     ThreeDError(#[from] CoreError),
     #[error("the number of MSAA samples must be a power of two")]
     InvalidNumberOfMSAASamples,
@@ -29,7 +29,7 @@ pub enum WindowError {
 pub struct Window {
     windowed_context: Option<ContextWrapper<PossiblyCurrent, window::Window>>,
     event_loop: Option<EventLoop<()>>,
-    gl: crate::Context,
+    gl: Context,
 }
 
 impl Window {
@@ -41,7 +41,7 @@ impl Window {
             Ok(Window {
                 windowed_context: None,
                 event_loop: None,
-                gl: crate::core::Context::new()?,
+                gl: Context::new().unwrap(),
             })
         } else {
             let event_loop = EventLoop::new();
@@ -59,7 +59,7 @@ impl Window {
             Ok(Window {
                 windowed_context: Some(windowed_context),
                 event_loop: Some(event_loop),
-                gl: crate::core::Context::from_gl_context(std::sync::Arc::new(context))?,
+                gl: Context::from_gl_context(std::sync::Arc::new(context))?,
             })
         }
     }
@@ -394,7 +394,7 @@ impl Window {
     ///
     /// Returns the graphics context for this window.
     ///
-    pub fn gl(&self) -> crate::Context {
+    pub fn gl(&self) -> Context {
         self.gl.clone()
     }
 }

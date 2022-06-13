@@ -357,12 +357,12 @@ impl Instances {
     ///
     /// Returns an error if the instances is not valid.
     ///
-    pub fn validate(&self) -> Result<(), CoreError> {
+    pub fn validate(&self) -> Result<(), RendererError> {
         let instance_count = self.count();
-        let buffer_check = |length: Option<usize>, name: &str| -> Result<(), CoreError> {
+        let buffer_check = |length: Option<usize>, name: &str| -> Result<(), RendererError> {
             if let Some(length) = length {
                 if length < instance_count as usize {
-                    Err(CoreError::InvalidBufferLength(
+                    Err(RendererError::InvalidBufferLength(
                         name.to_string(),
                         instance_count as usize,
                         length,

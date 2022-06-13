@@ -1,4 +1,4 @@
-use crate::core::{Context, Viewport};
+use crate::core::{Context, CoreError, Viewport};
 use crate::window::*;
 use serde::Serialize;
 use std::cell::RefCell;
@@ -28,7 +28,7 @@ pub enum CanvasError {
     ColorBufferFloatNotSupported(String),
     #[error("unable to get OES_texture_float extension for the given canvas, maybe the browser doesn't support OES_texture_float: {0}")]
     OESTextureFloatNotSupported(String),
-    #[error("three-d error")]
+    #[error("error in three-d")]
     ThreeDError(#[from] CoreError),
 }
 
