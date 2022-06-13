@@ -178,9 +178,8 @@ impl Program {
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
-    pub fn use_uniform_int(&self, name: &str, data: &i32) -> ThreeDResult<()> {
+    pub fn use_uniform_int(&self, name: &str, data: &i32) {
         self.use_uniform(name, data);
-        Ok(())
     }
 
     ///
@@ -192,9 +191,8 @@ impl Program {
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
-    pub fn use_uniform_float(&self, name: &str, data: &f32) -> ThreeDResult<()> {
+    pub fn use_uniform_float(&self, name: &str, data: &f32) {
         self.use_uniform(name, data);
-        Ok(())
     }
 
     ///
@@ -206,9 +204,8 @@ impl Program {
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
-    pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> ThreeDResult<()> {
+    pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) {
         self.use_uniform(name, data);
-        Ok(())
     }
 
     ///
@@ -220,9 +217,8 @@ impl Program {
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
-    pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> ThreeDResult<()> {
+    pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) {
         self.use_uniform(name, data);
-        Ok(())
     }
 
     ///
@@ -234,9 +230,8 @@ impl Program {
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
-    pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> ThreeDResult<()> {
+    pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) {
         self.use_uniform(name, data);
-        Ok(())
     }
 
     ///
@@ -248,9 +243,8 @@ impl Program {
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
-    pub fn use_uniform_quat(&self, name: &str, data: &Quat) -> ThreeDResult<()> {
+    pub fn use_uniform_quat(&self, name: &str, data: &Quat) {
         self.use_uniform(name, data);
-        Ok(())
     }
 
     ///
@@ -262,9 +256,8 @@ impl Program {
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
-    pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> ThreeDResult<()> {
+    pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) {
         self.use_uniform(name, data);
-        Ok(())
     }
 
     ///
@@ -276,9 +269,8 @@ impl Program {
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
-    pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> ThreeDResult<()> {
+    pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) {
         self.use_uniform(name, data);
-        Ok(())
     }
 
     ///
@@ -290,9 +282,8 @@ impl Program {
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
-    pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> ThreeDResult<()> {
+    pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) {
         self.use_uniform(name, data);
-        Ok(())
     }
 
     fn get_uniform_location(&self, name: &str) -> &crate::context::UniformLocation {

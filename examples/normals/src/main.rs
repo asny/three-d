@@ -85,9 +85,7 @@ pub async fn run() {
     // main loop
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
-        control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        control.handle_events(&mut camera, &mut frame_input.events);
 
         // Draw
         frame_input

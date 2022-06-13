@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::window::*;
-use crate::ThreeDResult;
 #[doc(hidden)]
 pub use egui;
 
@@ -21,8 +20,8 @@ impl GUI {
     ///
     /// Creates a new GUI.
     ///
-    pub fn new(context: &Context) -> ThreeDResult<Self> {
-        Ok(GUI {
+    pub fn new(context: &Context) -> Self {
+        GUI {
             egui_context: egui::CtxRef::default(),
             context: context.clone(),
             width: 0,
@@ -41,8 +40,9 @@ impl GUI {
                     include_str!("../core/shared.frag"),
                     include_str!("shaders/egui.frag")
                 ),
-            )?,
-        })
+            )
+            .unwrap(),
+        }
     }
 
     ///
@@ -54,7 +54,7 @@ impl GUI {
         &mut self,
         frame_input: &mut FrameInput,
         callback: F,
-    ) -> ThreeDResult<bool> {
+    ) -> bool {
         self.width = frame_input.window_width;
         self.height = frame_input.window_height;
         let input_state = construct_input_state(frame_input);
@@ -107,7 +107,7 @@ impl GUI {
                 change = true;
             }
         }
-        Ok(change)
+        change
     }
 
     ///

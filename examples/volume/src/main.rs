@@ -40,7 +40,7 @@ pub async fn run() {
     let directional2 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0));
 
     // main loop
-    let mut gui = three_d::GUI::new(&context).unwrap();
+    let mut gui = three_d::GUI::new(&context);
     let mut color = [1.0; 4];
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
@@ -54,8 +54,7 @@ pub async fn run() {
                 ui.color_edit_button_rgba_unmultiplied(&mut color);
             });
             panel_width = gui_context.used_size().x as f64;
-        })
-        .unwrap();
+        });
         voxel_grid.material.color = Color::from_rgba_slice(&color);
 
         let viewport = Viewport {
@@ -66,9 +65,7 @@ pub async fn run() {
             height: frame_input.viewport.height,
         };
         camera.set_viewport(viewport);
-        control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        control.handle_events(&mut camera, &mut frame_input.events);
 
         // draw
         frame_input

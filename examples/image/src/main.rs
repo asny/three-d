@@ -25,7 +25,7 @@ pub async fn run() {
     .unwrap();
     let image = Texture2D::new(&context, &loaded.deserialize("").unwrap());
 
-    let mut gui = GUI::new(&context).unwrap();
+    let mut gui = GUI::new(&context);
 
     // main loop
     let mut tone_mapping = 1.0;
@@ -51,8 +51,7 @@ pub async fn run() {
                 );
             });
             panel_width = gui_context.used_size().x as f64;
-        })
-        .unwrap();
+        });
 
         image_effect.set_texture_transform(
             Mat3::from_scale(texture_transform_scale)

@@ -28,7 +28,7 @@ pub async fn run() {
         5000.0,
     );
     let mut control = FlyControl::new(0.01);
-    let mut gui = three_d::GUI::new(&context).unwrap();
+    let mut gui = three_d::GUI::new(&context);
 
     let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/sponza/Sponza.gltf",
@@ -143,8 +143,7 @@ pub async fn run() {
                 ui.color_edit_button_rgba_unmultiplied(&mut color);
             });
             panel_width = gui_context.used_size().x as f64;
-        })
-        .unwrap();
+        });
         while lights.len() < light_count {
             lights.push(Glow::new(&context, light_box));
         }
@@ -173,9 +172,7 @@ pub async fn run() {
         };
         camera.set_viewport(viewport);
 
-        control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        control.handle_events(&mut camera, &mut frame_input.events);
 
         let mut objects = lights.iter().map(|l| l.object()).collect::<Vec<_>>();
         objects.extend(model.iter().map(|m| m as &dyn Object));

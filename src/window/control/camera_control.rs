@@ -102,11 +102,7 @@ impl CameraControl {
     }
 
     /// Handles the events. Must be called each frame.
-    pub fn handle_events(
-        &mut self,
-        camera: &mut Camera,
-        events: &mut [Event],
-    ) -> ThreeDResult<bool> {
+    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> bool {
         let mut change = false;
         for event in events.iter_mut() {
             match event {
@@ -129,31 +125,26 @@ impl CameraControl {
                                     (self.right_drag_horizontal, self.right_drag_vertical)
                                 }
                             };
-                            *handled = self.handle_action(camera, control_horizontal, delta.0)?;
-                            *handled |= self.handle_action(camera, control_vertical, delta.1)?;
+                            *handled = self.handle_action(camera, control_horizontal, delta.0);
+                            *handled |= self.handle_action(camera, control_vertical, delta.1);
                             change |= *handled;
                         }
                     }
                 }
                 Event::MouseWheel { delta, handled, .. } => {
                     if !*handled {
-                        *handled = self.handle_action(camera, self.scroll_horizontal, delta.0)?;
-                        *handled |= self.handle_action(camera, self.scroll_vertical, delta.1)?;
+                        *handled = self.handle_action(camera, self.scroll_horizontal, delta.0);
+                        *handled |= self.handle_action(camera, self.scroll_vertical, delta.1);
                         change |= *handled;
                     }
                 }
                 _ => {}
             }
         }
-        Ok(change)
+        change
     }
 
-    fn handle_action(
-        &mut self,
-        camera: &mut Camera,
-        control_type: CameraAction,
-        x: f64,
-    ) -> ThreeDResult<bool> {
+    fn handle_action(&mut self, camera: &mut Camera, control_type: CameraAction, x: f64) -> bool {
         match control_type {
             CameraAction::Pitch { speed } => {
                 camera.pitch(radians(speed * x as f32));
@@ -194,6 +185,6 @@ impl CameraControl {
             }
             CameraAction::None => {}
         }
-        Ok(control_type != CameraAction::None)
+        control_type != CameraAction::None
     }
 }

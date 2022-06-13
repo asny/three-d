@@ -28,11 +28,7 @@ impl FlyControl {
     }
 
     /// Handles the events. Must be called each frame.
-    pub fn handle_events(
-        &mut self,
-        camera: &mut Camera,
-        events: &mut [Event],
-    ) -> ThreeDResult<bool> {
+    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> bool {
         self.control.handle_events(camera, events)
     }
 }

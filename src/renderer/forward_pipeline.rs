@@ -16,31 +16,25 @@ impl ForwardPipeline {
     ///
     /// Constructor.
     ///
-    pub fn new(context: &Context) -> ThreeDResult<Self> {
-        Ok(Self {
+    pub fn new(context: &Context) -> Self {
+        Self {
             context: context.clone(),
-        })
+        }
     }
 
     ///
     /// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn render_pass(
-        &self,
-        camera: &Camera,
-        objects: &[&dyn Object],
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    pub fn render_pass(&self, camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]) {
         render_pass(camera, objects, lights);
-        Ok(())
     }
 
     ///
     /// Render the distance from the camera to the objects in each pixel into a depth texture. Also, do not render transparent objects and objects outside the camera frustum.
     /// Must be called in the callback given as input to a [RenderTarget] or [DepthTarget] write method.
     ///
-    pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> ThreeDResult<()> {
+    pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) {
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -53,7 +47,6 @@ impl ForwardPipeline {
         }) {
             object.render_with_material(&depth_material, camera, &[]);
         }
-        Ok(())
     }
 
     ///
@@ -63,7 +56,7 @@ impl ForwardPipeline {
         &self,
         camera: &Camera,
         objects: &[&dyn Object],
-    ) -> ThreeDResult<DepthTargetTexture2D> {
+    ) -> DepthTargetTexture2D {
         let mut depth_texture = DepthTargetTexture2D::new(
             &self.context,
             camera.viewport().width,
@@ -75,7 +68,7 @@ impl ForwardPipeline {
         depth_texture
             .as_depth_target()
             .clear(ClearState::default())
-            .write(|| self.depth_pass(&camera, objects).unwrap());
-        Ok(depth_texture)
+            .write(|| self.depth_pass(&camera, objects));
+        depth_texture
     }
 }

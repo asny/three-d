@@ -86,9 +86,7 @@ pub async fn run() {
     window.render_loop(move |mut frame_input| {
         let mut redraw = frame_input.first_frame;
         redraw |= camera.set_viewport(frame_input.viewport);
-        redraw |= control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        redraw |= control.handle_events(&mut camera, &mut frame_input.events);
 
         if redraw {
             frame_input

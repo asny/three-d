@@ -38,7 +38,7 @@ pub async fn run() {
         30.0,
     );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
-    let mut gui = three_d::GUI::new(&context).unwrap();
+    let mut gui = three_d::GUI::new(&context);
 
     // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
     let mut cpu_model: CpuModel =
@@ -207,8 +207,7 @@ pub async fn run() {
                 ui.radio_value(&mut material_type, MaterialType::Orm, "ORM");
             });
             panel_width = gui_context.used_size().x as f64;
-        })
-        .unwrap();
+        });
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,
@@ -218,9 +217,7 @@ pub async fn run() {
             height: frame_input.viewport.height,
         };
         camera.set_viewport(viewport);
-        control
-            .handle_events(&mut camera, &mut frame_input.events)
-            .unwrap();
+        control.handle_events(&mut camera, &mut frame_input.events);
 
         let time = 0.001 * frame_input.accumulated_time;
         let c = time.cos() as f32;
