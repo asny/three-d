@@ -19,8 +19,7 @@ pub fn main() {
             color: Color::RED,
             ..Default::default()
         },
-    )
-    .unwrap();
+    );
     let mut circle = Circle::new_with_material(
         &context,
         vec2(500.0, 500.0),
