@@ -113,8 +113,8 @@ impl Texture3D {
     ///
     /// Fills this texture with the given data.
     ///
-    /// # Errors
-    /// Returns an error if the length of the data does not correspond to the width, height, depth and format specified at construction.
+    /// # Panic
+    /// Will panic if the length of the data does not correspond to the width, height, depth and format specified at construction.
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(&mut self, data: &[T]) {

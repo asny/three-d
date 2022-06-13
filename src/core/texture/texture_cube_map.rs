@@ -358,8 +358,8 @@ impl TextureCubeMap {
     ///
     /// Fills the cube map texture with the given pixel data for the 6 images.
     ///
-    /// # Errors
-    /// Returns an error if the length of the data for all 6 images does not correspond to the width, height and format specified at construction.
+    /// # Panic
+    /// Will panic if the length of the data for all 6 images does not correspond to the width, height and format specified at construction.
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(
