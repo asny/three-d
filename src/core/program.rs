@@ -159,8 +159,8 @@ impl Program {
     /// The glsl shader variable must be of same type and length as the data, so if the data is an array of three [Vec2], the variable must be `uniform vec2[3]`.
     /// The uniform variable is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_uniform_array<T: UniformDataType>(&self, name: &str, data: &[T]) {
@@ -173,8 +173,8 @@ impl Program {
     /// Send the given integer value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform int`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
@@ -186,8 +186,8 @@ impl Program {
     /// Send the given float value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform float`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
@@ -199,8 +199,8 @@ impl Program {
     /// Send the given [Vec2](crate::Vec2) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
@@ -212,8 +212,8 @@ impl Program {
     /// Send the given [Vec3](crate::Vec3) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
@@ -225,8 +225,8 @@ impl Program {
     /// Send the given [Vec4](crate::Vec4) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
@@ -238,8 +238,8 @@ impl Program {
     /// Send the given [Quat](crate::Quat) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
@@ -251,8 +251,8 @@ impl Program {
     /// Send the given [Mat2](crate::Mat2) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform mat2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
@@ -264,8 +264,8 @@ impl Program {
     /// Send the given [Mat3](crate::Mat3) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform mat3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
@@ -277,8 +277,8 @@ impl Program {
     /// Send the given [Mat4](crate::Mat4) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform mat4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     #[deprecated = "use use_uniform"]
@@ -431,8 +431,8 @@ impl Program {
     /// Each value in the buffer is used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
     /// Therefore the buffer must contain the same number of values as the number of vertices specified in those draw calls.
     ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_vertex_attribute(&self, name: &str, buffer: &VertexBuffer) {
@@ -462,8 +462,8 @@ impl Program {
     /// Each value in the buffer is used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain the same number of values as the number of instances specified in those draw calls.
     ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_instance_attribute(&self, name: &str, buffer: &InstanceBuffer) {
