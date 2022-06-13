@@ -14,7 +14,7 @@ impl ImageCubeEffect {
     /// Creates a new cube effect which applies the effect defined in the given fragment shader source to a side of a cube map
     /// when calling on of the render functions.
     ///
-    pub fn new(context: &Context, fragment_shader_source: &str) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, CoreError> {
         let program = Program::from_source(
             context,
             "uniform mat4 viewProjection;

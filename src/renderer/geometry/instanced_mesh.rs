@@ -357,9 +357,9 @@ impl Instances {
     ///
     /// Returns an error if the instances is not valid.
     ///
-    pub fn validate(&self) -> ThreeDResult<()> {
+    pub fn validate(&self) -> Result<(), CoreError> {
         let instance_count = self.count();
-        let buffer_check = |length: Option<usize>, name: &str| -> ThreeDResult<()> {
+        let buffer_check = |length: Option<usize>, name: &str| -> Result<(), CoreError> {
             if let Some(length) = length {
                 if length < instance_count as usize {
                     Err(CoreError::InvalidBufferLength(
