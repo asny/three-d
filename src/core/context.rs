@@ -53,7 +53,6 @@ impl Context {
                 glutin_context: None,
             }
         };
-        c.error_check()?;
         Ok(c)
     }
 
