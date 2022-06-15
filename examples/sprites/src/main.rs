@@ -83,18 +83,9 @@ pub async fn run() {
                 &camera,
                 &[
                     &axes,
-                    &Gm {
-                        geometry: &billboards,
-                        material: &material,
-                    },
-                    &Gm {
-                        geometry: &sprites_up,
-                        material: &material,
-                    },
-                    &Gm {
-                        geometry: &sprites,
-                        material: &material,
-                    },
+                    &GeometryMaterial::new(&billboards, &material),
+                    &GeometryMaterial::new(&sprites_up, &material),
+                    &GeometryMaterial::new(&sprites, &material),
                 ],
                 &[&ambient],
             );

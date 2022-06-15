@@ -66,7 +66,7 @@ pub async fn run() {
                 * Mat4::from_angle_x(degrees(-90.0))),
         )
         .unwrap();
-    let mut plane = Gm::new(
+    let mut plane = GeometryMaterial::new(
         Mesh::new(&context, &cpu_plane),
         PhysicalMaterial::new_opaque(
             &context,
@@ -76,7 +76,7 @@ pub async fn run() {
             },
         ),
     );
-    let deferred_plane = Gm::new(
+    let deferred_plane = GeometryMaterial::new(
         Mesh::new(&context, &cpu_plane),
         DeferredPhysicalMaterial::from_physical_material(&plane.material),
     );

@@ -57,7 +57,7 @@ pub async fn run() {
             ..Default::default()
         },
     );
-    let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), material);
+    let mut model = GeometryMaterial::new(Mesh::new(&context, &cpu_mesh), material);
     model.set_transformation(Mat4::from_angle_y(degrees(35.0)));
 
     let mut loaded = three_d_asset::io::load_async(

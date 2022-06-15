@@ -79,7 +79,7 @@ pub async fn run() {
     );
 
     // Plane
-    let mut plane = Gm::new(
+    let mut plane = GeometryMaterial::new(
         Mesh::new(
             &context,
             &CpuMesh {

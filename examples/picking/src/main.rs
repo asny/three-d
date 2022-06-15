@@ -29,7 +29,7 @@ pub async fn run() {
 
     let mut sphere = CpuMesh::sphere(8);
     sphere.transform(&Mat4::from_scale(0.05)).unwrap();
-    let mut pick_mesh = Gm::new(
+    let mut pick_mesh = GeometryMaterial::new(
         Mesh::new(&context, &sphere),
         PhysicalMaterial::new_opaque(
             &context,

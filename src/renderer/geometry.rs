@@ -1,6 +1,6 @@
 //!
 //! A collection of geometries implementing the [Geometry] trait, for example a [Mesh].
-//! A geometry together with a [material] can be rendered directly, or combined into an [object] (see [Gm]) that can be used in a render call, for example [RenderTarget::render].
+//! A geometry together with a [material] can be rendered directly, or combined into an [object] (see [GeometryMaterial]) that can be used in a render call, for example [RenderTarget::render].
 //!
 
 mod mesh;
@@ -26,7 +26,7 @@ pub use three_d_asset::{Indices, Positions, TriMesh as CpuMesh};
 
 ///
 /// Represents a 3D geometry that, together with a [material], can be rendered using [Geometry::render_with_material].
-/// Alternatively, a geometry and a material can be combined in a [Gm],
+/// Alternatively, a geometry and a material can be combined in a [GeometryMaterial],
 /// thereby creating an [Object] which can be used in a render call, for example [RenderTarget::render].
 ///
 /// If requested by the material, the geometry has to support the following attributes in the vertex shader source code.

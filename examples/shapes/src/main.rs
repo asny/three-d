@@ -20,7 +20,7 @@ pub fn main() {
     );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut sphere = Gm::new(
+    let mut sphere = GeometryMaterial::new(
         Mesh::new(&context, &CpuMesh::sphere(16)),
         PhysicalMaterial::new_transparent(
             &context,
@@ -36,7 +36,7 @@ pub fn main() {
         ),
     );
     sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
-    let mut cylinder = Gm::new(
+    let mut cylinder = GeometryMaterial::new(
         Mesh::new(&context, &CpuMesh::cylinder(16)),
         PhysicalMaterial::new_transparent(
             &context,
@@ -53,7 +53,7 @@ pub fn main() {
     );
     cylinder
         .set_transformation(Mat4::from_translation(vec3(1.3, 0.0, 0.0)) * Mat4::from_scale(0.2));
-    let mut cube = Gm::new(
+    let mut cube = GeometryMaterial::new(
         Mesh::new(&context, &CpuMesh::cube()),
         PhysicalMaterial::new_transparent(
             &context,

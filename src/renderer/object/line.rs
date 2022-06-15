@@ -5,7 +5,7 @@ use crate::renderer::*;
 ///
 pub struct Line<M: Material> {
     context: Context,
-    model: Gm<Mesh, M>,
+    model: GeometryMaterial<Mesh, M>,
     pixel0: Vec2,
     pixel1: Vec2,
     thickness: f32,
@@ -27,7 +27,7 @@ impl<M: Material> Line<M> {
             .unwrap();
         let mut line = Self {
             context: context.clone(),
-            model: Gm::new(Mesh::new(context, &mesh), material),
+            model: GeometryMaterial::new(Mesh::new(context, &mesh), material),
             pixel0,
             pixel1,
             thickness,

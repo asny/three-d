@@ -5,7 +5,7 @@ use crate::renderer::*;
 ///
 pub struct Circle<M: Material> {
     context: Context,
-    model: Gm<Mesh, M>,
+    model: GeometryMaterial<Mesh, M>,
     radius: f32,
     center: Vec2,
 }
@@ -18,7 +18,7 @@ impl<M: Material> Circle<M> {
         let mesh = CpuMesh::circle(64);
         let mut circle = Self {
             context: context.clone(),
-            model: Gm::new(Mesh::new(context, &mesh), material),
+            model: GeometryMaterial::new(Mesh::new(context, &mesh), material),
             center,
             radius,
         };

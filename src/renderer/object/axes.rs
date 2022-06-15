@@ -5,7 +5,7 @@ use crate::renderer::*;
 /// Used for easily debugging where objects are placed in the 3D world.
 ///
 pub struct Axes {
-    model: std::cell::RefCell<Gm<Mesh, ColorMaterial>>,
+    model: std::cell::RefCell<GeometryMaterial<Mesh, ColorMaterial>>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -19,7 +19,7 @@ impl Axes {
         let mut mesh = CpuMesh::arrow(0.9, 0.6, 16);
         mesh.transform(&Mat4::from_nonuniform_scale(length, radius, radius))
             .unwrap();
-        let model = Gm::new(Mesh::new(context, &mesh), ColorMaterial::default());
+        let model = GeometryMaterial::new(Mesh::new(context, &mesh), ColorMaterial::default());
         let mut aabb = model.aabb();
         let mut aabb2 = aabb.clone();
         aabb2.transform(&Mat4::from_angle_z(degrees(90.0)));

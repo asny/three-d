@@ -4,7 +4,7 @@ use crate::renderer::*;
 /// A rectangle 2D object which can be rendered.
 ///
 pub struct Rectangle<M: Material> {
-    model: Gm<Mesh, M>,
+    model: GeometryMaterial<Mesh, M>,
     context: Context,
     width: f32,
     height: f32,
@@ -27,7 +27,7 @@ impl<M: Material> Rectangle<M> {
         let mut mesh = CpuMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5))).unwrap();
         let mut rectangle = Self {
-            model: Gm::new(Mesh::new(context, &mesh), material),
+            model: GeometryMaterial::new(Mesh::new(context, &mesh), material),
             context: context.clone(),
             width,
             height,

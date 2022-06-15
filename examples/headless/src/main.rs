@@ -18,7 +18,7 @@ fn main() {
     );
 
     // Create the scene - a single colored triangle
-    let mut model = Gm::new(
+    let mut model = GeometryMaterial::new(
         Mesh::new(
             &context,
             &CpuMesh {

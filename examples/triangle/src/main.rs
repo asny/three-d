@@ -41,7 +41,7 @@ pub fn main() {
     };
 
     // Construct a model, with a default color material, thereby transferring the mesh data to the GPU
-    let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
+    let mut model = GeometryMaterial::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
 
     // Start the main render loop
     window.render_loop(move |frame_input: FrameInput| // Begin a new frame with an updated frame input

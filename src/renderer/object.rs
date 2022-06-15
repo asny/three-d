@@ -1,11 +1,11 @@
 //!
 //! A collection of objects (implementing the [Object] trait) that can be rendered directly or used in a render call, for example [RenderTarget::render].
-//! Can be a combination of any [geometry] and [material] by using the [Gm] struct.
+//! Can be a combination of any [geometry] and [material] by using the [GeometryMaterial] struct.
 //!
 
-mod gm;
+mod geometry_material;
 #[doc(inline)]
-pub use gm::*;
+pub use geometry_material::*;
 
 mod model;
 #[doc(inline)]

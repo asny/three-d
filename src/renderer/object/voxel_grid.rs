@@ -5,11 +5,11 @@ pub use three_d_asset::VoxelGrid as CpuVoxelGrid;
 ///
 /// A voxel grid inside a cube with a [material] type specified by the generic parameter.
 ///
-pub struct VoxelGrid<M: Material>(Gm<Mesh, M>);
+pub struct VoxelGrid<M: Material>(GeometryMaterial<Mesh, M>);
 
 impl<M: Material + FromCpuVoxelGrid> VoxelGrid<M> {
     ///
-    /// Constructs a [VoxelGrid] from a [CpuVoxelGrid], ie. constructs a [Gm] with a cube [Mesh] as geometry and
+    /// Constructs a [VoxelGrid] from a [CpuVoxelGrid], ie. constructs a [GeometryMaterial] with a cube [Mesh] as geometry and
     /// a [material] type specified by the generic parameter which implement [FromCpuVoxelGrid].
     ///
     pub fn new(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> Self {
@@ -20,7 +20,7 @@ impl<M: Material + FromCpuVoxelGrid> VoxelGrid<M> {
             0.5 * cpu_voxel_grid.size.z,
         ))
         .expect("Invalid size for VoxelGrid");
-        let gm = Gm::new(
+        let gm = GeometryMaterial::new(
             Mesh::new(&context, &cube),
             M::from_cpu_voxel_grid(context, cpu_voxel_grid),
         );
@@ -29,7 +29,7 @@ impl<M: Material + FromCpuVoxelGrid> VoxelGrid<M> {
 }
 
 impl<M: Material> std::ops::Deref for VoxelGrid<M> {
-    type Target = Gm<Mesh, M>;
+    type Target = GeometryMaterial<Mesh, M>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }

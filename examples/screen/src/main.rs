@@ -33,7 +33,7 @@ pub fn main() {
         ..Default::default()
     };
 
-    let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
+    let mut model = GeometryMaterial::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
 
     let mut gui = three_d::GUI::new(&context);
     let mut viewport_zoom = 1.0;

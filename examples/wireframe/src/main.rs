@@ -58,7 +58,7 @@ pub async fn run() {
     cylinder
         .transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007))
         .unwrap();
-    let edges = Gm::new(
+    let edges = GeometryMaterial::new(
         InstancedMesh::new(
             &context,
             &edge_transformations(&cpu_model.geometries[0]),
@@ -69,7 +69,7 @@ pub async fn run() {
 
     let mut sphere = CpuMesh::sphere(8);
     sphere.transform(&Mat4::from_scale(0.015)).unwrap();
-    let vertices = Gm::new(
+    let vertices = GeometryMaterial::new(
         InstancedMesh::new(
             &context,
             &vertex_transformations(&cpu_model.geometries[0]),

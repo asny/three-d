@@ -42,7 +42,7 @@ pub fn main() {
         10.0,
     );
 
-    let mut mesh = Gm::new(
+    let mut mesh = GeometryMaterial::new(
         Mesh::new(
             &context,
             &CpuMesh {
