@@ -141,7 +141,7 @@ impl Texture2D {
     ///
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     ///
-    pub fn as_color_target(&mut self, mip_level: Option<u32>) -> ColorTarget {
+    pub fn as_color_target<'a>(&'a mut self, mip_level: Option<u32>) -> ColorTarget<'a> {
         ColorTarget::new_texture2d(&self.context, self, mip_level)
     }
 
