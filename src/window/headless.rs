@@ -1,3 +1,4 @@
+#![allow(unsafe_code)]
 use crate::core::Context;
 use glutin::dpi::PhysicalSize;
 use glutin::event_loop::EventLoop;

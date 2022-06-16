@@ -2,6 +2,7 @@
 //! Mid-level modular abstractions of common graphics concepts such as buffer, texture, program, render target and so on.
 //! Can be combined with low-level calls in the `context` module.
 //!
+#![allow(unsafe_code)]
 
 mod context;
 #[doc(inline)]

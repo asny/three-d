@@ -1,3 +1,4 @@
+#![allow(unsafe_code)]
 use crate::core::{Context, Viewport};
 use crate::window::*;
 use glutin::event::{Event, WindowEvent};
