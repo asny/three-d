@@ -18,8 +18,6 @@ pub struct Context {
     programs: Arc<RwLock<HashMap<String, Program>>>,
     effects: Arc<RwLock<HashMap<String, ImageEffect>>>,
     camera2d: Arc<RwLock<Option<Camera>>>,
-    #[cfg(all(feature = "glutin", not(target_arch = "wasm32")))]
-    pub(crate) glutin_context: Option<Arc<glutin::Context<glutin::PossiblyCurrent>>>,
 }
 
 impl Context {
@@ -48,8 +46,6 @@ impl Context {
                 programs: Arc::new(RwLock::new(HashMap::new())),
                 effects: Arc::new(RwLock::new(HashMap::new())),
                 camera2d: Arc::new(RwLock::new(None)),
-                #[cfg(all(feature = "glutin", not(target_arch = "wasm32")))]
-                glutin_context: None,
             }
         };
         Ok(c)
