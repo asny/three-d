@@ -3,11 +3,13 @@ use glutin::dpi::PhysicalSize;
 use glutin::event_loop::EventLoop;
 use glutin::{ContextBuilder, ContextCurrentState, CreationError, NotCurrent, PossiblyCurrent};
 use std::ops::Deref;
+use std::rc::Rc;
 
 /// A headless graphics context (a graphics context that is not associated with any window).
+#[derive(Clone)]
 pub struct HeadlessContext {
     context: Context,
-    _glutin_context: glutin::Context<PossiblyCurrent>,
+    _glutin_context: Rc<glutin::Context<PossiblyCurrent>>,
 }
 
 impl HeadlessContext {
@@ -26,7 +28,7 @@ impl HeadlessContext {
         }))?;
         Ok(Self {
             context,
-            _glutin_context: glutin_context,
+            _glutin_context: Rc::new(glutin_context),
         })
     }
 }
