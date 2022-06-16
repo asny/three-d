@@ -24,7 +24,7 @@ egui-gui = ["egui"] # Additional GUI features
 [dependencies]
 glow = "0.11"
 cgmath = "0.18"
-three-d-asset = "0.1"
+three-d-asset = "0.2"
 half = {version="1.8", features=["std", "num-traits", "zerocopy", "serde"]}
 thiserror = "1.0"
 egui = { version = "0.13", optional = true }
@@ -42,7 +42,7 @@ serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
 rand = "0.8"
-three-d-asset = { version = "0.1", features = ["hdr", "gltf", "obj", "vol"] }
+three-d-asset = { version="0.2", features = ["hdr", "gltf", "obj", "vol", "png", "jpeg"] }
 tokio = { version = "1.16", features = ["macros", "rt-multi-thread"] }
 
 [[example]]
