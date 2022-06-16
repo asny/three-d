@@ -2,7 +2,6 @@ use crate::core::{Context, Viewport};
 use crate::window::*;
 use serde::Serialize;
 use std::sync::Arc;
-use std::sync::Arc;
 use std::sync::RwLock;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
