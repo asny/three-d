@@ -41,37 +41,6 @@ impl Deref for HeadlessContext {
     }
 }
 
-/// A graphics context that may be headed or headless.
-pub enum MaybeHeadlessContext {
-    /// Headed graphics context.
-    Haeded(Context),
-    /// Headless graphics context.
-    Headless(HeadlessContext),
-}
-
-impl Deref for MaybeHeadlessContext {
-    type Target = Context;
-
-    fn deref(&self) -> &Self::Target {
-        match self {
-            Self::Haeded(context) => context,
-            Self::Headless(context) => context,
-        }
-    }
-}
-
-impl From<Context> for MaybeHeadlessContext {
-    fn from(context: Context) -> Self {
-        Self::Haeded(context)
-    }
-}
-
-impl From<HeadlessContext> for MaybeHeadlessContext {
-    fn from(context: HeadlessContext) -> Self {
-        Self::Headless(context)
-    }
-}
-
 /*#[cfg(target_os = "linux")]
 fn build_context_surfaceless<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
