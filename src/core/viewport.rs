@@ -33,6 +33,27 @@ impl Viewport {
     pub fn aspect(&self) -> f32 {
         self.width as f32 / self.height as f32
     }
+
+    ///
+    /// Returns the intersection between this and the other Viewport.
+    ///
+    pub fn intersection(&self, other: impl Into<Self>) -> Self {
+        let other = other.into();
+        let x = self.x.max(other.x);
+        let y = self.y.max(other.y);
+        let width = (self.x + self.width as i32 - x)
+            .min(other.x + other.width as i32 - x)
+            .max(0) as u32;
+        let height = (self.y + self.height as i32 - y)
+            .min(other.y + other.height as i32 - y)
+            .max(0) as u32;
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
+    }
 }
 
 impl From<crate::core::ScissorBox> for Viewport {
