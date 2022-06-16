@@ -12,7 +12,7 @@ use glutin::*;
 pub struct Window {
     windowed_context: Option<ContextWrapper<PossiblyCurrent, window::Window>>,
     event_loop: Option<EventLoop<()>>,
-    gl: Context,
+    gl: MaybeHeadlessContext,
 }
 
 impl Window {
@@ -24,7 +24,7 @@ impl Window {
             Ok(Window {
                 windowed_context: None,
                 event_loop: None,
-                gl: Context::new()?,
+                gl: HeadlessContext::new()?.into(),
             })
         } else {
             let event_loop = EventLoop::new();
@@ -42,7 +42,7 @@ impl Window {
             Ok(Window {
                 windowed_context: Some(windowed_context),
                 event_loop: Some(event_loop),
-                gl: Context::from_gl_context(std::sync::Arc::new(context))?,
+                gl: Context::from_gl_context(std::sync::Arc::new(context))?.into(),
             })
         }
     }
