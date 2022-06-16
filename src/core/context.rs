@@ -1,8 +1,7 @@
 use super::*;
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::sync::Arc;
+use std::sync::RwLock;
 
 #[doc(hidden)]
 pub use crate::context::HasContext;
@@ -16,11 +15,11 @@ pub use crate::context::HasContext;
 pub struct Context {
     context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
-    programs: Rc<RefCell<HashMap<String, Program>>>,
-    effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
-    camera2d: Rc<RefCell<Option<Camera>>>,
+    programs: Arc<RwLock<HashMap<String, Program>>>,
+    effects: Arc<RwLock<HashMap<String, ImageEffect>>>,
+    camera2d: Arc<RwLock<Option<Camera>>>,
     #[cfg(all(feature = "glutin", not(target_arch = "wasm32")))]
-    pub(crate) glutin_context: Option<Rc<glutin::Context<glutin::PossiblyCurrent>>>,
+    pub(crate) glutin_context: Option<Arc<glutin::Context<glutin::PossiblyCurrent>>>,
 }
 
 impl Context {
@@ -46,9 +45,9 @@ impl Context {
             Self {
                 context,
                 vao,
-                programs: Rc::new(RefCell::new(HashMap::new())),
-                effects: Rc::new(RefCell::new(HashMap::new())),
-                camera2d: Rc::new(RefCell::new(None)),
+                programs: Arc::new(RwLock::new(HashMap::new())),
+                effects: Arc::new(RwLock::new(HashMap::new())),
+                camera2d: Arc::new(RwLock::new(None)),
                 #[cfg(all(feature = "glutin", not(target_arch = "wasm32")))]
                 glutin_context: None,
             }
@@ -67,13 +66,13 @@ impl Context {
         callback: impl FnOnce(&Program),
     ) -> Result<(), CoreError> {
         let key = format!("{}{}", vertex_shader_source, fragment_shader_source);
-        if !self.programs.borrow().contains_key(&key) {
-            self.programs.borrow_mut().insert(
+        if !self.programs.read().unwrap().contains_key(&key) {
+            self.programs.write().unwrap().insert(
                 key.clone(),
                 Program::from_source(self, vertex_shader_source, fragment_shader_source)?,
             );
         };
-        callback(self.programs.borrow().get(&key).unwrap());
+        callback(self.programs.read().unwrap().get(&key).unwrap());
         Ok(())
     }
 
@@ -86,13 +85,24 @@ impl Context {
         fragment_shader_source: &str,
         callback: impl FnOnce(&ImageEffect),
     ) -> Result<(), CoreError> {
-        if !self.effects.borrow().contains_key(fragment_shader_source) {
-            self.effects.borrow_mut().insert(
+        if !self
+            .effects
+            .read()
+            .unwrap()
+            .contains_key(fragment_shader_source)
+        {
+            self.effects.write().unwrap().insert(
                 fragment_shader_source.to_string(),
                 ImageEffect::new(self, fragment_shader_source)?,
             );
         };
-        callback(self.effects.borrow().get(fragment_shader_source).unwrap());
+        callback(
+            self.effects
+                .read()
+                .unwrap()
+                .get(fragment_shader_source)
+                .unwrap(),
+        );
         Ok(())
     }
 
@@ -100,8 +110,8 @@ impl Context {
     /// Returns a camera for viewing 2D content.
     ///
     pub fn camera2d(&self, viewport: Viewport, callback: impl FnOnce(&Camera)) {
-        if self.camera2d.borrow().is_none() {
-            *self.camera2d.borrow_mut() = Some(Camera::new_orthographic(
+        if self.camera2d.read().unwrap().is_none() {
+            *self.camera2d.write().unwrap() = Some(Camera::new_orthographic(
                 viewport,
                 vec3(0.0, 0.0, -1.0),
                 vec3(0.0, 0.0, 0.0),
@@ -111,7 +121,7 @@ impl Context {
                 10.0,
             ));
         }
-        let mut camera2d = self.camera2d.borrow_mut();
+        let mut camera2d = self.camera2d.write().unwrap();
         camera2d.as_mut().unwrap().set_viewport(viewport);
         camera2d
             .as_mut()
@@ -382,8 +392,8 @@ impl Context {
 impl std::fmt::Debug for Context {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut d = f.debug_struct("Context");
-        d.field("programs", &self.programs.borrow().len());
-        d.field("effects", &self.effects.borrow().len());
+        d.field("programs", &self.programs.read().unwrap().len());
+        d.field("effects", &self.effects.read().unwrap().len());
         d.finish()
     }
 }

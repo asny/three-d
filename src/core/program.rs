@@ -1,6 +1,6 @@
 use crate::core::*;
-use std::cell::RefCell;
 use std::collections::HashMap;
+use std::sync::RwLock;
 
 ///
 /// A shader program consisting of a programmable vertex shader followed by a programmable fragment shader.
@@ -12,9 +12,9 @@ pub struct Program {
     context: Context,
     id: crate::context::Program,
     attributes: HashMap<String, u32>,
-    textures: RefCell<HashMap<String, u32>>,
+    textures: RwLock<HashMap<String, u32>>,
     uniforms: HashMap<String, crate::context::UniformLocation>,
-    uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
+    uniform_blocks: RwLock<HashMap<String, (u32, u32)>>,
 }
 
 impl Program {
@@ -124,8 +124,8 @@ impl Program {
                 id,
                 attributes,
                 uniforms,
-                uniform_blocks: RefCell::new(HashMap::new()),
-                textures: RefCell::new(HashMap::new()),
+                uniform_blocks: RwLock::new(HashMap::new()),
+                textures: RwLock::new(HashMap::new()),
             })
         }
     }
@@ -386,12 +386,12 @@ impl Program {
     }
 
     fn use_texture_internal(&self, name: &str) -> u32 {
-        if !self.textures.borrow().contains_key(name) {
-            let mut map = self.textures.borrow_mut();
+        if !self.textures.read().unwrap().contains_key(name) {
+            let mut map = self.textures.write().unwrap();
             let index = map.len() as u32;
             map.insert(name.to_owned(), index);
         };
-        let index = self.textures.borrow().get(name).unwrap().clone();
+        let index = self.textures.read().unwrap().get(name).unwrap().clone();
         self.use_uniform(name, index as i32);
         unsafe {
             self.context
@@ -404,8 +404,8 @@ impl Program {
     /// Use the given [UniformBuffer] in this shader program and associate it with the given named variable.
     ///
     pub fn use_uniform_block(&self, name: &str, buffer: &UniformBuffer) {
-        if !self.uniform_blocks.borrow().contains_key(name) {
-            let mut map = self.uniform_blocks.borrow_mut();
+        if !self.uniform_blocks.read().unwrap().contains_key(name) {
+            let mut map = self.uniform_blocks.write().unwrap();
             let location = unsafe {
                 self.context
                     .get_uniform_block_index(self.id, name)
@@ -417,7 +417,13 @@ impl Program {
             let index = map.len() as u32;
             map.insert(name.to_owned(), (location, index));
         };
-        let (location, index) = self.uniform_blocks.borrow().get(name).unwrap().clone();
+        let (location, index) = self
+            .uniform_blocks
+            .read()
+            .unwrap()
+            .get(name)
+            .unwrap()
+            .clone();
         unsafe {
             self.context.uniform_block_binding(self.id, location, index);
             buffer.bind(index);

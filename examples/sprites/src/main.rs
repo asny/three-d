@@ -36,7 +36,7 @@ pub async fn run() {
         .unwrap();
     let material = ColorMaterial {
         color: Color::WHITE,
-        texture: Some(std::rc::Rc::new(Texture2D::new(&context, &img))),
+        texture: Some(std::sync::Arc::new(Texture2D::new(&context, &img))),
         ..Default::default()
     };
 

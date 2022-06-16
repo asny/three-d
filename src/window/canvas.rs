@@ -1,9 +1,9 @@
 use crate::core::{Context, Viewport};
 use crate::window::*;
 use serde::Serialize;
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::sync::Arc;
+use std::sync::Arc;
+use std::sync::RwLock;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
@@ -14,7 +14,7 @@ use web_sys::WebGl2RenderingContext;
 pub struct Window {
     context: Option<crate::Context>,
     canvas: Option<web_sys::HtmlCanvasElement>,
-    window: Rc<web_sys::Window>,
+    window: Arc<web_sys::Window>,
     settings: WindowSettings,
     closures: Vec<Closure<dyn FnMut()>>,
     closures_with_event: Vec<Closure<dyn FnMut(web_sys::Event)>>,
@@ -37,7 +37,7 @@ impl Window {
         let mut window = Window {
             context: None,
             canvas: None,
-            window: Rc::new(websys_window),
+            window: Arc::new(websys_window),
             settings,
             closures: Vec::new(),
             closures_with_event: Vec::new(),
@@ -160,8 +160,8 @@ impl Window {
         self.add_key_up_event_listener(input.clone());
 
         let input_clone = input.clone();
-        input.borrow_mut().render_loop_closure = Some(Closure::wrap(Box::new(move || {
-            let events = input_clone.borrow_mut().start_frame();
+        input.write().unwrap().render_loop_closure = Some(Closure::wrap(Box::new(move || {
+            let events = input_clone.write().unwrap().start_frame();
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
@@ -185,13 +185,13 @@ impl Window {
             let frame_output = callback(frame_input);
 
             if frame_output.exit {
-                input_clone.borrow_mut().render_loop_closure = None;
+                input_clone.write().unwrap().render_loop_closure = None;
             } else if !frame_output.wait_next_event {
-                input_clone.borrow_mut().request_animation_frame();
+                input_clone.write().unwrap().request_animation_frame();
             }
         })
             as Box<dyn FnMut()>));
-        input.borrow_mut().request_animation_frame();
+        input.write().unwrap().request_animation_frame();
     }
 
     fn pixels_per_point(&self) -> f64 {
@@ -272,9 +272,9 @@ impl Window {
         self.closures_with_event.push(closure);
     }
 
-    fn add_resize_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_resize_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move || {
-            input.borrow_mut().request_animation_frame();
+            input.write().unwrap().request_animation_frame();
         }) as Box<dyn FnMut()>);
         self.canvas_()
             .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
@@ -282,10 +282,10 @@ impl Window {
         self.closures.push(closure);
     }
 
-    fn add_mouseleave_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_mouseleave_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 input.mouse_pressed = None;
                 input.events.push(Event::MouseLeave);
                 event.stop_propagation();
@@ -300,10 +300,10 @@ impl Window {
         self.closures_with_mouseevent.push(closure);
     }
 
-    fn add_mouseenter_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_mouseenter_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 input.events.push(Event::MouseEnter);
                 event.stop_propagation();
                 event.prevent_default();
@@ -317,10 +317,10 @@ impl Window {
         self.closures_with_mouseevent.push(closure);
     }
 
-    fn add_mousedown_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_mousedown_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 let button = match event.button() {
                     0 => Some(MouseButton::Left),
                     1 => Some(MouseButton::Middle),
@@ -349,10 +349,10 @@ impl Window {
         self.closures_with_mouseevent.push(closure);
     }
 
-    fn add_mouseup_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_mouseup_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 let button = match event.button() {
                     0 => Some(MouseButton::Left),
                     1 => Some(MouseButton::Middle),
@@ -381,10 +381,10 @@ impl Window {
         self.closures_with_mouseevent.push(closure);
     }
 
-    fn add_mousemove_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_mousemove_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 let delta = if let Some((x, y)) = input.last_position {
                     ((event.offset_x() - x) as f64, (event.offset_y() - y) as f64)
                 } else {
@@ -412,10 +412,10 @@ impl Window {
         self.closures_with_mouseevent.push(closure);
     }
 
-    fn add_mousewheel_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_mousewheel_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 let modifiers = input.modifiers;
                 input.events.push(Event::MouseWheel {
                     delta: (event.delta_x() as f64, -event.delta_y() as f64),
@@ -434,10 +434,10 @@ impl Window {
         self.closures_with_wheelevent.push(closure);
     }
 
-    fn add_touchstart_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_touchstart_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
                     let modifiers = input.modifiers;
@@ -475,10 +475,10 @@ impl Window {
         self.closures_with_touchevent.push(closure);
     }
 
-    fn add_touchend_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_touchend_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 if let Some((x, y)) = input.last_position {
                     let modifiers = input.modifiers;
                     input.mouse_pressed = None;
@@ -503,10 +503,10 @@ impl Window {
         self.closures_with_touchevent.push(closure);
     }
 
-    fn add_touchmove_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_touchmove_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
                     if let Some((x, y)) = input.last_position {
@@ -559,10 +559,10 @@ impl Window {
         self.closures_with_touchevent.push(closure);
     }
 
-    fn add_key_down_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_key_down_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 if update_modifiers(&mut input.modifiers, &event) {
                     let modifiers = input.modifiers;
                     input.events.push(Event::ModifiersChange { modifiers });
@@ -591,10 +591,10 @@ impl Window {
         self.closures_with_keyboardevent.push(closure);
     }
 
-    fn add_key_up_event_listener(&mut self, input: Rc<RefCell<Input>>) {
+    fn add_key_up_event_listener(&mut self, input: Arc<RwLock<Input>>) {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                let mut input = input.borrow_mut();
+                let mut input = input.write().unwrap();
                 if update_modifiers(&mut input.modifiers, &event) {
                     let modifiers = input.modifiers;
                     input.events.push(Event::ModifiersChange { modifiers });
@@ -626,7 +626,7 @@ struct ContextOptions {
 }
 
 struct Input {
-    window: Rc<web_sys::Window>,
+    window: Arc<web_sys::Window>,
     render_loop_closure: Option<Closure<dyn FnMut()>>,
     render_requested: bool,
     events: Vec<Event>,
@@ -637,8 +637,8 @@ struct Input {
 }
 
 impl Input {
-    pub fn new(window: Rc<web_sys::Window>) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Self {
+    pub fn new(window: Arc<web_sys::Window>) -> Arc<RwLock<Self>> {
+        Arc::new(RwLock::new(Self {
             window,
             render_loop_closure: None,
             render_requested: false,

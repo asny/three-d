@@ -1,6 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::rc::Rc;
+use std::sync::Arc;
 
 ///
 /// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
@@ -11,7 +11,7 @@ pub struct ColorMaterial {
     /// Base surface color. Assumed to be in linear color space.
     pub color: Color,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
-    pub texture: Option<Rc<Texture2D>>,
+    pub texture: Option<Arc<Texture2D>>,
     /// Render states.
     pub render_states: RenderStates,
     /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).
@@ -35,7 +35,7 @@ impl ColorMaterial {
     /// Constructs a new opaque color material from a [CpuMaterial].
     pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
+            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
@@ -50,7 +50,7 @@ impl ColorMaterial {
     /// Constructs a new transparent color material from a [CpuMaterial].
     pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
+            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };

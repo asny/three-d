@@ -96,7 +96,7 @@ impl<T: Geometry> Geometry for Box<T> {
     }
 }
 
-impl<T: Geometry> Geometry for std::rc::Rc<T> {
+impl<T: Geometry> Geometry for std::sync::Arc<T> {
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -111,18 +111,20 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
     }
 }
 
-impl<T: Geometry> Geometry for std::rc::Rc<std::cell::RefCell<T>> {
+impl<T: Geometry> Geometry for std::sync::Arc<std::sync::RwLock<T>> {
     fn render_with_material(
         &self,
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        self.borrow().render_with_material(material, camera, lights)
+        self.read()
+            .unwrap()
+            .render_with_material(material, camera, lights)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.borrow().aabb()
+        self.read().unwrap().aabb()
     }
 }
 
@@ -155,15 +157,17 @@ impl<T: Geometry2D> Geometry2D for Box<T> {
     }
 }
 
-impl<T: Geometry2D> Geometry2D for std::rc::Rc<T> {
+impl<T: Geometry2D> Geometry2D for std::sync::Arc<T> {
     fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         self.as_ref().render_with_material(material, viewport)
     }
 }
 
-impl<T: Geometry2D> Geometry2D for std::rc::Rc<std::cell::RefCell<T>> {
+impl<T: Geometry2D> Geometry2D for std::sync::Arc<std::sync::RwLock<T>> {
     fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.borrow().render_with_material(material, viewport)
+        self.read()
+            .unwrap()
+            .render_with_material(material, viewport)
     }
 }
 

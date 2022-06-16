@@ -17,7 +17,7 @@ impl Context {
                 headless_context.get_proc_address(s) as *const _
             })
         }))?;
-        c.glutin_context = Some(std::rc::Rc::new(headless_context));
+        c.glutin_context = Some(std::sync::Arc::new(headless_context));
         Ok(c)
     }
 }

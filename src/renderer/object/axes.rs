@@ -5,7 +5,7 @@ use crate::renderer::*;
 /// Used for easily debugging where objects are placed in the 3D world.
 ///
 pub struct Axes {
-    model: std::cell::RefCell<Gm<Mesh, ColorMaterial>>,
+    model: std::sync::RwLock<Gm<Mesh, ColorMaterial>>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -28,7 +28,7 @@ impl Axes {
         aabb3.transform(&Mat4::from_angle_y(degrees(-90.0)));
         aabb.expand_with_aabb(&aabb3);
         Self {
-            model: std::cell::RefCell::new(model),
+            model: std::sync::RwLock::new(model),
             aabb: aabb.clone(),
             aabb_local: aabb,
             transformation: Mat4::identity(),
@@ -66,22 +66,28 @@ impl Geometry for Axes {
         lights: &[&dyn Light],
     ) {
         self.model
-            .borrow_mut()
+            .write()
+            .unwrap()
             .set_transformation(self.transformation);
         self.model
-            .borrow()
+            .read()
+            .unwrap()
             .render_with_material(&material, camera, lights);
         self.model
-            .borrow_mut()
+            .write()
+            .unwrap()
             .set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
         self.model
-            .borrow()
+            .read()
+            .unwrap()
             .render_with_material(&material, camera, lights);
         self.model
-            .borrow_mut()
+            .write()
+            .unwrap()
             .set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         self.model
-            .borrow()
+            .read()
+            .unwrap()
             .render_with_material(material, camera, lights);
     }
 }
@@ -89,9 +95,10 @@ impl Geometry for Axes {
 impl Object for Axes {
     fn render(&self, camera: &Camera, _lights: &[&dyn Light]) {
         self.model
-            .borrow_mut()
+            .write()
+            .unwrap()
             .set_transformation(self.transformation);
-        self.model.borrow().render_with_material(
+        self.model.read().unwrap().render_with_material(
             &ColorMaterial {
                 color: Color::RED,
                 ..Default::default()
@@ -100,9 +107,10 @@ impl Object for Axes {
             &[],
         );
         self.model
-            .borrow_mut()
+            .write()
+            .unwrap()
             .set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        self.model.borrow().render_with_material(
+        self.model.read().unwrap().render_with_material(
             &ColorMaterial {
                 color: Color::GREEN,
                 ..Default::default()
@@ -111,9 +119,10 @@ impl Object for Axes {
             &[],
         );
         self.model
-            .borrow_mut()
+            .write()
+            .unwrap()
             .set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
-        self.model.borrow().render_with_material(
+        self.model.read().unwrap().render_with_material(
             &ColorMaterial {
                 color: Color::BLUE,
                 ..Default::default()

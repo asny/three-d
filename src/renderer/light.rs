@@ -87,7 +87,7 @@ impl<T: Light> Light for Box<T> {
     }
 }
 
-impl<T: Light> Light for std::rc::Rc<T> {
+impl<T: Light> Light for std::sync::Arc<T> {
     fn shader_source(&self, i: u32) -> String {
         self.as_ref().shader_source(i)
     }
@@ -96,12 +96,12 @@ impl<T: Light> Light for std::rc::Rc<T> {
     }
 }
 
-impl<T: Light> Light for std::rc::Rc<std::cell::RefCell<T>> {
+impl<T: Light> Light for std::sync::Arc<std::sync::RwLock<T>> {
     fn shader_source(&self, i: u32) -> String {
-        self.borrow().shader_source(i)
+        self.read().unwrap().shader_source(i)
     }
     fn use_uniforms(&self, program: &Program, i: u32) {
-        self.borrow().use_uniforms(program, i)
+        self.read().unwrap().use_uniforms(program, i)
     }
 }
 
