@@ -1,6 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::rc::Rc;
+use std::sync::Arc;
 
 ///
 /// Render the object with colors that reflect its normals which primarily is used for debug purposes.
@@ -12,7 +12,7 @@ pub struct NormalMaterial {
     /// A scalar multiplier applied to each normal vector of the [Self::normal_texture].
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
-    pub normal_texture: Option<Rc<Texture2D>>,
+    pub normal_texture: Option<Arc<Texture2D>>,
     /// Render states.
     pub render_states: RenderStates,
 }
@@ -21,7 +21,7 @@ impl NormalMaterial {
     /// Constructs a new normal material from a [CpuMaterial] where only relevant information is used.
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
+            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };

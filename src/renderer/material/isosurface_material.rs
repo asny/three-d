@@ -9,7 +9,7 @@ use crate::renderer::*;
 #[derive(Clone)]
 pub struct IsosurfaceMaterial {
     /// The voxel data that defines the isosurface.
-    pub voxels: std::rc::Rc<Texture3D>,
+    pub voxels: std::sync::Arc<Texture3D>,
     /// Threshold (in the range [0..1]) that defines the surface in the voxel data.
     pub threshold: f32,
     /// Base surface color. Assumed to be in linear color space.
@@ -64,7 +64,7 @@ impl Material for IsosurfaceMaterial {
 impl FromCpuVoxelGrid for IsosurfaceMaterial {
     fn from_cpu_voxel_grid(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> Self {
         Self {
-            voxels: std::rc::Rc::new(Texture3D::new(&context, &cpu_voxel_grid.voxels)),
+            voxels: std::sync::Arc::new(Texture3D::new(&context, &cpu_voxel_grid.voxels)),
             lighting_model: LightingModel::Blinn,
             size: cpu_voxel_grid.size,
             threshold: 0.15,

@@ -166,7 +166,7 @@ impl<T: Material> Material for Box<T> {
     }
 }
 
-impl<T: Material> Material for std::rc::Rc<T> {
+impl<T: Material> Material for std::sync::Arc<T> {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         self.as_ref()
             .fragment_shader_source(use_vertex_colors, lights)
@@ -182,19 +182,20 @@ impl<T: Material> Material for std::rc::Rc<T> {
     }
 }
 
-impl<T: Material> Material for std::rc::Rc<std::cell::RefCell<T>> {
+impl<T: Material> Material for std::sync::Arc<std::sync::RwLock<T>> {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
-        self.borrow()
+        self.read()
+            .unwrap()
             .fragment_shader_source(use_vertex_colors, lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-        self.borrow().use_uniforms(program, camera, lights)
+        self.read().unwrap().use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {
-        self.borrow().render_states()
+        self.read().unwrap().render_states()
     }
     fn material_type(&self) -> MaterialType {
-        self.borrow().material_type()
+        self.read().unwrap().material_type()
     }
 }
 

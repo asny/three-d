@@ -1,6 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::rc::Rc;
+use std::sync::Arc;
 
 ///
 /// Similar to [PhysicalMaterial] except that rendering happens in two stages which produces the same result, but is more efficient for complex scenes.
@@ -19,29 +19,29 @@ pub struct DeferredPhysicalMaterial {
     /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
     pub albedo: Color,
     /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
-    pub albedo_texture: Option<Rc<Texture2D>>,
+    pub albedo_texture: Option<Arc<Texture2D>>,
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the material surface is.
     pub roughness: f32,
     /// Texture containing the metallic and roughness parameters which are multiplied with the [Self::metallic] and [Self::roughness] values in the shader.
     /// The metallic values are sampled from the blue channel and the roughness from the green channel.
-    pub metallic_roughness_texture: Option<Rc<Texture2D>>,
+    pub metallic_roughness_texture: Option<Arc<Texture2D>>,
     /// A scalar multiplier controlling the amount of occlusion applied from the [Self::occlusion_texture]. A value of 0.0 means no occlusion. A value of 1.0 means full occlusion.
     pub occlusion_strength: f32,
     /// An occlusion map. Higher values indicate areas that should receive full indirect lighting and lower values indicate no indirect lighting.
     /// The occlusion values are sampled from the red channel.
-    pub occlusion_texture: Option<Rc<Texture2D>>,
+    pub occlusion_texture: Option<Arc<Texture2D>>,
     /// A scalar multiplier applied to each normal vector of the [Self::normal_texture].
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
-    pub normal_texture: Option<Rc<Texture2D>>,
+    pub normal_texture: Option<Arc<Texture2D>>,
     /// Render states
     pub render_states: RenderStates,
     /// Color of light shining from an object.
     pub emissive: Color,
     /// Texture with color of light shining from an object.
-    pub emissive_texture: Option<Rc<Texture2D>>,
+    pub emissive_texture: Option<Arc<Texture2D>>,
     /// A threshold on the alpha value of the color as a workaround for transparency.
     /// If the alpha value of a pixel touched by an object with this material is less than the threshold, then that object is not contributing to the color of that pixel.
     /// On the other hand, if the alpha value is more than the threshold, then it is contributing fully to that pixel and thereby blocks out everything behind.
@@ -56,16 +56,16 @@ impl DeferredPhysicalMaterial {
     ///
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
+            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)))
+                Some(Arc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 if let Some(ref cpu_texture) = cpu_material.metallic_roughness_texture {
-                    Some(Rc::new(Texture2D::new(&context, cpu_texture)))
+                    Some(Arc::new(Texture2D::new(&context, cpu_texture)))
                 } else {
                     None
                 }
@@ -74,18 +74,18 @@ impl DeferredPhysicalMaterial {
             metallic_roughness_texture.clone()
         } else {
             if let Some(ref cpu_texture) = cpu_material.occlusion_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)))
+                Some(Arc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 None
             }
         };
         let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
+            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
         let emissive_texture = if let Some(ref cpu_texture) = cpu_material.emissive_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)))
+            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
         } else {
             None
         };
