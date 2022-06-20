@@ -27,7 +27,7 @@ A OpenGL/WebGL/OpenGL ES renderer which seeks to make graphics simple but still 
 - tools (2D or 3D)
 - games (2D or 3D)
 
-The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and two optional utility modules, `io` and `window`:
+The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and an optional `window` module for easy setup:
 
 | Module           | Description                   
 | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | 
