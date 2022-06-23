@@ -379,6 +379,7 @@ impl Instances {
         buffer_check(self.rotations.as_ref().map(|b| b.len()), "rotations")?;
         buffer_check(self.scales.as_ref().map(|b| b.len()), "scales")?;
         buffer_check(self.colors.as_ref().map(|b| b.len()), "colors")?;
+        buffer_check(Some(self.translations.len()), "translations")?;
 
         Ok(())
     }

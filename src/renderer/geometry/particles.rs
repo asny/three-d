@@ -1,14 +1,56 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::collections::HashMap;
 
 ///
 /// Used to define the initial position and velocity of a particle in [Particles](Particles).
 ///
+#[derive(Clone, Debug, Default)]
 pub struct ParticleData {
-    /// Initial position of the particle.
-    pub start_position: Vec3,
-    /// Initial velocity of the particle.
-    pub start_velocity: Vec3,
+    /// Initial positions of each particle in world coordinates.
+    pub start_positions: Vec<Vec3>,
+    /// Initial velocities of each particle defined in the world coordinate system.
+    pub start_velocities: Vec<Vec3>,
+    /// The texture transform applied to the uv coordinates of each particle.
+    pub texture_transforms: Option<Vec<Mat3>>,
+    /// Colors multiplied onto the base color of each particle.
+    pub colors: Option<Vec<Color>>,
+}
+
+impl ParticleData {
+    ///
+    /// Returns an error if the instances is not valid.
+    ///
+    pub fn validate(&self) -> Result<(), RendererError> {
+        let instance_count = self.count();
+        let buffer_check = |length: Option<usize>, name: &str| -> Result<(), RendererError> {
+            if let Some(length) = length {
+                if length < instance_count as usize {
+                    Err(RendererError::InvalidBufferLength(
+                        name.to_string(),
+                        instance_count as usize,
+                        length,
+                    ))?;
+                }
+            }
+            Ok(())
+        };
+
+        buffer_check(
+            self.texture_transforms.as_ref().map(|b| b.len()),
+            "texture transforms",
+        )?;
+        buffer_check(self.colors.as_ref().map(|b| b.len()), "colors")?;
+        buffer_check(Some(self.start_positions.len()), "start_positions")?;
+        buffer_check(Some(self.start_velocities.len()), "start_velocities")?;
+
+        Ok(())
+    }
+
+    /// Returns the number of instances.
+    pub fn count(&self) -> u32 {
+        self.start_positions.len() as u32
+    }
 }
 
 ///
@@ -20,17 +62,14 @@ pub struct ParticleData {
 ///
 pub struct Particles {
     context: Context,
-    start_position_buffer: InstanceBuffer,
-    start_velocity_buffer: InstanceBuffer,
-    position_buffer: VertexBuffer,
-    normal_buffer: Option<VertexBuffer>,
-    uv_buffer: Option<VertexBuffer>,
+    vertex_buffers: HashMap<String, VertexBuffer>,
+    instance_buffers: HashMap<String, InstanceBuffer>,
     index_buffer: Option<ElementBuffer>,
-    /// The acceleration applied to all particles. Default is gravity.
+    /// The acceleration applied to all particles defined in the world coordinate system. Default is gravity.
     pub acceleration: Vec3,
     instance_count: u32,
     transformation: Mat4,
-    normal_transformation: Mat4,
+    texture_transform: Mat3,
     /// A time variable that should be updated each frame.
     pub time: f32,
 }
@@ -39,50 +78,23 @@ impl Particles {
     ///
     /// Creates a new set of particles with geometry defined by the given cpu mesh.
     ///
-    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
+    pub fn new(context: &Context, data: &ParticleData, cpu_mesh: &CpuMesh) -> Self {
         #[cfg(debug_assertions)]
         cpu_mesh.validate().expect("invalid cpu mesh");
 
-        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32());
-        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_data(context, normals))
-        } else {
-            None
-        };
-        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind),
-                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind),
-                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind),
-            })
-        } else {
-            None
-        };
-        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_data(
-                context,
-                &uvs.iter()
-                    .map(|uv| vec2(uv.x, 1.0 - uv.y))
-                    .collect::<Vec<_>>(),
-            ))
-        } else {
-            None
-        };
-
-        Self {
+        let mut particles = Self {
             context: context.clone(),
-            position_buffer,
-            index_buffer,
-            normal_buffer,
-            uv_buffer,
-            start_position_buffer: InstanceBuffer::new(context),
-            start_velocity_buffer: InstanceBuffer::new(context),
+            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
+            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
+            instance_buffers: HashMap::new(),
             acceleration: vec3(0.0, -9.82, 0.0),
             instance_count: 0,
             transformation: Mat4::identity(),
-            normal_transformation: Mat4::identity(),
+            texture_transform: Mat3::identity(),
             time: 0.0,
-        }
+        };
+        particles.update(data);
+        particles
     }
 
     ///
@@ -97,67 +109,119 @@ impl Particles {
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
-        self.normal_transformation = self.transformation.invert().unwrap().transpose();
+    }
+
+    ///
+    /// Get the texture transform applied to the uv coordinates of all of the instances.
+    ///
+    pub fn texture_transform(&self) -> &Mat3 {
+        &self.texture_transform
+    }
+
+    ///
+    /// Set the texture transform applied to the uv coordinates of all of the model instances.
+    /// This is applied before the texture transform for each instance.
+    ///
+    pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
+        self.texture_transform = texture_transform;
     }
 
     ///
     /// Updates the particles with the given initial data.
-    /// The list contain one entry for each particle.
     ///
-    pub fn update(&mut self, data: &[ParticleData]) {
-        let mut start_position = Vec::new();
-        let mut start_velocity = Vec::new();
-        for particle in data {
-            start_position.push(particle.start_position);
-            start_velocity.push(particle.start_velocity);
+    pub fn update(&mut self, data: &ParticleData) {
+        #[cfg(debug_assertions)]
+        data.validate().expect("invalid particle data");
+        self.instance_count = data.count();
+        self.instance_buffers.clear();
+
+        self.instance_buffers.insert(
+            "start_position".to_string(),
+            InstanceBuffer::new_with_data(&self.context, &data.start_positions),
+        );
+        self.instance_buffers.insert(
+            "start_velocity".to_string(),
+            InstanceBuffer::new_with_data(&self.context, &data.start_velocities),
+        );
+        if let Some(texture_transforms) = &data.texture_transforms {
+            let mut instance_tex_transform1 = Vec::new();
+            let mut instance_tex_transform2 = Vec::new();
+            for texture_transform in texture_transforms.iter() {
+                instance_tex_transform1.push(vec3(
+                    texture_transform.x.x,
+                    texture_transform.y.x,
+                    texture_transform.z.x,
+                ));
+                instance_tex_transform2.push(vec3(
+                    texture_transform.x.y,
+                    texture_transform.y.y,
+                    texture_transform.z.y,
+                ));
+            }
+            self.instance_buffers.insert(
+                "tex_transform_row1".to_string(),
+                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1),
+            );
+            self.instance_buffers.insert(
+                "tex_transform_row2".to_string(),
+                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2),
+            );
         }
-        self.start_position_buffer.fill(&start_position);
-        self.start_velocity_buffer.fill(&start_velocity);
-        self.instance_count = data.len() as u32;
+        if let Some(instance_colors) = &data.colors {
+            self.instance_buffers.insert(
+                "instance_color".to_string(),
+                InstanceBuffer::new_with_data(&self.context, &instance_colors),
+            );
+        }
     }
 
-    fn vertex_shader_source(fragment_shader_source: &str) -> String {
+    fn vertex_shader_source(&self, fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
+        let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
-        format!("
-                uniform mat4 view;
-                uniform mat4 projection;
-                uniform float time;
-                uniform vec3 acceleration;
-
-                in vec3 start_position;
-                in vec3 start_velocity;
-
-                uniform mat4 modelMatrix;
-                in vec3 position;
-
-                {} // Positions out
-                {} // Normals in/out
-                {} // UV coordinates in/out
-
-                void main()
-                {{
-                    vec3 p = start_position + start_velocity * time + 0.5 * acceleration * time * time;
-                    gl_Position = projection * (view * modelMatrix * vec4(p, 1.0) + vec4(position, 0.0));
-                    {} // Position
-                    {} // Normal
-                    {} // UV coordinates
-                }}
-                ",
-                if use_positions {"out vec3 pos;"} else {""},
-                if use_normals {
-                    "uniform mat4 normalMatrix;
-                    in vec3 normal;
-                    out vec3 nor;"
-                    } else {""},
-                if use_uvs {
-                    "in vec2 uv_coordinates;
-                    out vec2 uvs;"
-                    } else {""},
-                if use_positions {"pos = worldPosition.xyz;"} else {""},
-                if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
-                if use_uvs { "uvs = uv_coordinates;" } else {""}
+        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
+        format!(
+            "#define PARTICLES\n{}{}{}{}{}{}{}{}",
+            if use_positions {
+                "#define USE_POSITIONS\n"
+            } else {
+                ""
+            },
+            if use_normals {
+                "#define USE_NORMALS\n"
+            } else {
+                ""
+            },
+            if use_tangents {
+                if fragment_shader_source.find("in vec3 bitang;").is_none() {
+                    panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
+                }
+                "#define USE_TANGENTS\n"
+            } else {
+                ""
+            },
+            if use_uvs { "#define USE_UVS\n" } else { "" },
+            if use_colors {
+                if self.instance_buffers.contains_key("instance_color")
+                    && self.vertex_buffers.contains_key("color")
+                {
+                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+                } else if self.instance_buffers.contains_key("instance_color") {
+                    "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
+                } else {
+                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
+                }
+            } else {
+                ""
+            },
+            if self.instance_buffers.contains_key("tex_transform_row1") {
+                "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
+            } else {
+                ""
+            },
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/mesh.vert"),
         )
     }
 }
@@ -173,36 +237,50 @@ impl Geometry for Particles {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source = material.fragment_shader_source(false, lights);
+        let fragment_shader_source = material.fragment_shader_source(
+            self.vertex_buffers.contains_key("color")
+                || self.instance_buffers.contains_key("instance_color"),
+            lights,
+        );
         self.context.program(
-            &Self::vertex_shader_source(&fragment_shader_source),
+            &self.vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights);
-
+                program.use_uniform("viewProjection", camera.projection() * camera.view());
                 program.use_uniform("modelMatrix", &self.transformation);
                 program.use_uniform("acceleration", &self.acceleration);
                 program.use_uniform("time", &self.time);
-                program.use_uniform("projection", camera.projection());
-                program.use_uniform("view", camera.view());
+                program.use_uniform_if_required("textureTransform", &self.texture_transform);
+                program.use_uniform_if_required(
+                    "normalMatrix",
+                    &self.transformation.invert().unwrap().transpose(),
+                );
 
-                program.use_instance_attribute("start_position", &self.start_position_buffer);
-                program.use_instance_attribute("start_velocity", &self.start_velocity_buffer);
-                if program.requires_attribute("position") {
-                    program.use_vertex_attribute("position", &self.position_buffer);
+                for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
+                    if program.requires_attribute(attribute_name) {
+                        program.use_vertex_attribute(
+                            attribute_name,
+                            self.vertex_buffers
+                                .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
+                        );
+                    }
                 }
-                if program.requires_attribute("uv_coordinates") {
-                    let uv_buffer = self
-                        .uv_buffer
-                        .as_ref().expect(&format!("the render call requires the uv_coordinates vertex buffer which is missing on the given geometry"));
-                    program.use_vertex_attribute("uv_coordinates", uv_buffer);
-                }
-                if program.requires_attribute("normal") {
-                    let normal_buffer = self
-                        .normal_buffer
-                        .as_ref().expect(&format!("the render call requires the normal vertex buffer which is missing on the given geometry"));
-                    program.use_uniform("normalMatrix", &self.normal_transformation);
-                    program.use_vertex_attribute("normal", normal_buffer);
+
+                for attribute_name in [
+                    "start_position",
+                    "start_velocity",
+                    "tex_transform_row1",
+                    "tex_transform_row2",
+                    "instance_color",
+                ] {
+                    if program.requires_attribute(attribute_name) {
+                        program.use_instance_attribute(
+                            attribute_name,
+                            self.instance_buffers
+                            .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
+                        );
+                    }
                 }
 
                 if let Some(ref index_buffer) = self.index_buffer {
@@ -216,7 +294,7 @@ impl Geometry for Particles {
                     program.draw_arrays_instanced(
                         material.render_states(),
                         camera.viewport(),
-                        self.position_buffer.vertex_count() as u32,
+                        self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
                         self.instance_count,
                     )
                 }

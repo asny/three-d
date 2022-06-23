@@ -85,7 +85,7 @@ pub fn run() {
     ];
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
-    let mut particles = Particles::new(&context, &square);
+    let mut particles = Particles::new(&context, &ParticleData::default(), &square);
     let mut fireworks_material = FireworksMaterial {
         color: vec3(0.0, 0.0, 0.0),
         fade: 0.0,
@@ -108,7 +108,8 @@ pub fn run() {
                 40.0 + 10.0 * rng.gen::<f32>(),
                 10.0 * rng.gen::<f32>() - 5.0,
             );
-            let mut data = Vec::new();
+            let start_positions = (0..300).map(|_| start_position).collect();
+            let mut start_velocities = Vec::new();
             for _ in 0..300 {
                 let theta = rng.gen::<f32>() * std::f32::consts::PI;
                 let phi = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
@@ -117,14 +118,14 @@ pub fn run() {
                     theta.sin() * phi.sin(),
                     theta.cos(),
                 );
-                data.push(ParticleData {
-                    start_position,
-                    start_velocity: (rng.gen::<f32>() * 0.2 + 0.9)
-                        * explosion_speed
-                        * explosion_direction,
-                });
+                start_velocities
+                    .push((rng.gen::<f32>() * 0.2 + 0.9) * explosion_speed * explosion_direction);
             }
-            particles.update(&data);
+            particles.update(&ParticleData {
+                start_positions,
+                start_velocities,
+                ..Default::default()
+            });
         }
 
         frame_input
