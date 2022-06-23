@@ -3,6 +3,13 @@ uniform mat4 viewProjection;
 uniform mat4 modelMatrix;
 in vec3 position;
 
+#ifdef PARTICLES
+in vec3 start_position;
+in vec3 start_velocity;
+uniform vec3 acceleration;
+uniform float time;
+#endif
+
 #ifdef USE_INSTANCE_TRANSLATIONS
 in vec3 instance_translation;
 #endif
@@ -65,6 +72,10 @@ void main()
 #endif
 
     vec4 worldPosition = local2World * vec4(position, 1.);
+#ifdef PARTICLES
+    worldPosition.xyz /= worldPosition.w;
+    worldPosition.xyz += start_position + start_velocity * time + 0.5 * acceleration * time * time;
+#endif
 #ifdef USE_INSTANCE_TRANSLATIONS 
     worldPosition.xyz += instance_translation;
 #endif
