@@ -5,7 +5,7 @@ use three_d::*;
 
 #[derive(Clone)]
 struct FireworksMaterial {
-    pub color: Vec3,
+    pub color: Color,
     pub fade: f32,
 }
 
@@ -14,15 +14,8 @@ impl Material for FireworksMaterial {
         include_str!("particles.frag").to_string()
     }
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
-        program.use_uniform(
-            "color",
-            vec4(
-                self.color.x * self.fade,
-                self.color.y * self.fade,
-                self.color.z * self.fade,
-                1.0,
-            ),
-        );
+        program.use_uniform("color", self.color);
+        program.use_uniform("fade", self.fade);
     }
     fn render_states(&self) -> RenderStates {
         RenderStates {
@@ -74,41 +67,54 @@ pub fn run() {
     let explosion_speed = 15.0;
     let explosion_time = 3.0;
     let colors = [
-        vec3(1.0, 1.0, 0.7),
-        vec3(1.0, 0.2, 0.1),
-        vec3(0.2, 0.4, 0.2),
-        vec3(0.5, 0.5, 0.8),
-        vec3(0.85, 0.09, 0.51),
-        vec3(0.98, 0.93, 0.15),
-        vec3(0.3, 0.93, 0.15),
-        vec3(0.16, 0.07, 0.87),
+        Color::new_opaque(255, 255, 178),
+        Color::new_opaque(255, 51, 25),
+        Color::new_opaque(51, 102, 51),
+        Color::new_opaque(127, 127, 204),
+        Color::new_opaque(217, 23, 51),
+        Color::new_opaque(250, 237, 38),
+        Color::new_opaque(76, 237, 38),
+        Color::new_opaque(40, 178, 222),
     ];
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
-    let mut particles = Particles::new(&context, &ParticleData::default(), &square);
-    let mut fireworks_material = FireworksMaterial {
-        color: vec3(0.0, 0.0, 0.0),
+    let particles = Particles::new(&context, &ParticleData::default(), &square);
+    let fireworks_material = FireworksMaterial {
+        color: colors[0],
         fade: 0.0,
     };
+    let mut fireworks = Gm::new(particles, fireworks_material);
 
     // main loop
-    particles.time = explosion_time + 100.0;
+    fireworks.time = explosion_time + 100.0;
     let mut color_index = 0;
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
 
         control.handle_events(&mut camera, &mut frame_input.events);
         let elapsed_time = (frame_input.elapsed_time * 0.001) as f32;
-        particles.time += elapsed_time;
-        if particles.time > explosion_time {
-            particles.time = 0.0;
+        fireworks.time += elapsed_time;
+        if fireworks.time > explosion_time {
             color_index = (color_index + 1) % colors.len();
+            fireworks.material.color = colors[color_index];
+            fireworks.time = 0.0;
             let start_position = vec3(
                 10.0 * rng.gen::<f32>() - 5.0,
                 40.0 + 10.0 * rng.gen::<f32>(),
                 10.0 * rng.gen::<f32>() - 5.0,
             );
             let start_positions = (0..300).map(|_| start_position).collect();
+            let colors = Some(
+                (0..300)
+                    .map(|_| {
+                        Color::new_opaque(
+                            (rng.gen::<f32>() * 100.0 - 50.0) as u8,
+                            (rng.gen::<f32>() * 100.0 - 50.0) as u8,
+                            (rng.gen::<f32>() * 100.0 - 50.0) as u8,
+                        )
+                    })
+                    .collect(),
+            );
             let mut start_velocities = Vec::new();
             for _ in 0..300 {
                 let theta = rng.gen::<f32>() * std::f32::consts::PI;
@@ -121,22 +127,20 @@ pub fn run() {
                 start_velocities
                     .push((rng.gen::<f32>() * 0.2 + 0.9) * explosion_speed * explosion_direction);
             }
-            particles.update(&ParticleData {
+            fireworks.update(&ParticleData {
                 start_positions,
                 start_velocities,
+                colors,
                 ..Default::default()
             });
         }
 
+        let f = fireworks.time / explosion_time.max(0.0);
+        fireworks.material.fade = 1.0 - f * f * f * f;
         frame_input
             .screen()
             .clear(ClearState::color(0.0, 0.0, 0.0, 1.0))
-            .write(|| {
-                let f = particles.time / explosion_time.max(0.0);
-                fireworks_material.fade = 1.0 - f * f * f * f;
-                fireworks_material.color = colors[color_index];
-                particles.render_with_material(&fireworks_material, &camera, &[]);
-            });
+            .render(&camera, &[&fireworks], &[]);
 
         FrameOutput::default()
     });
