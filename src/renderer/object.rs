@@ -97,6 +97,16 @@ impl<T: Object> Object for Box<T> {
     }
 }
 
+impl<T: Object> Object for std::rc::Rc<T> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
+        self.as_ref().render(camera, lights)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
+    }
+}
+
 impl<T: Object> Object for std::sync::Arc<T> {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().render(camera, lights)
@@ -107,7 +117,17 @@ impl<T: Object> Object for std::sync::Arc<T> {
     }
 }
 
-impl<T: Object> Object for std::sync::Arc<std::sync::RwLock<T>> {
+impl<T: Object> Object for std::cell::RefCell<T> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
+        self.borrow().render(camera, lights)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.borrow().material_type()
+    }
+}
+
+impl<T: Object> Object for std::sync::RwLock<T> {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.read().unwrap().render(camera, lights)
     }
@@ -165,6 +185,16 @@ impl<T: Object2D> Object2D for Box<T> {
     }
 }
 
+impl<T: Object2D> Object2D for std::rc::Rc<T> {
+    fn render(&self, viewport: Viewport) {
+        self.as_ref().render(viewport)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
+    }
+}
+
 impl<T: Object2D> Object2D for std::sync::Arc<T> {
     fn render(&self, viewport: Viewport) {
         self.as_ref().render(viewport)
@@ -175,7 +205,17 @@ impl<T: Object2D> Object2D for std::sync::Arc<T> {
     }
 }
 
-impl<T: Object2D> Object2D for std::sync::Arc<std::sync::RwLock<T>> {
+impl<T: Object2D> Object2D for std::cell::RefCell<T> {
+    fn render(&self, viewport: Viewport) {
+        self.borrow().render(viewport)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.borrow().material_type()
+    }
+}
+
+impl<T: Object2D> Object2D for std::sync::RwLock<T> {
     fn render(&self, viewport: Viewport) {
         self.read().unwrap().render(viewport)
     }
