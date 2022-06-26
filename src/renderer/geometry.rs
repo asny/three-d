@@ -96,6 +96,21 @@ impl<T: Geometry> Geometry for Box<T> {
     }
 }
 
+impl<T: Geometry> Geometry for std::rc::Rc<T> {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) {
+        self.as_ref().render_with_material(material, camera, lights)
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.as_ref().aabb()
+    }
+}
+
 impl<T: Geometry> Geometry for std::sync::Arc<T> {
     fn render_with_material(
         &self,
@@ -111,7 +126,22 @@ impl<T: Geometry> Geometry for std::sync::Arc<T> {
     }
 }
 
-impl<T: Geometry> Geometry for std::sync::Arc<std::sync::RwLock<T>> {
+impl<T: Geometry> Geometry for std::cell::RefCell<T> {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) {
+        self.borrow().render_with_material(material, camera, lights)
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.borrow().aabb()
+    }
+}
+
+impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -157,13 +187,25 @@ impl<T: Geometry2D> Geometry2D for Box<T> {
     }
 }
 
+impl<T: Geometry2D> Geometry2D for std::rc::Rc<T> {
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
+        self.as_ref().render_with_material(material, viewport)
+    }
+}
+
 impl<T: Geometry2D> Geometry2D for std::sync::Arc<T> {
     fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         self.as_ref().render_with_material(material, viewport)
     }
 }
 
-impl<T: Geometry2D> Geometry2D for std::sync::Arc<std::sync::RwLock<T>> {
+impl<T: Geometry2D> Geometry2D for std::cell::RefCell<T> {
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
+        self.borrow().render_with_material(material, viewport)
+    }
+}
+
+impl<T: Geometry2D> Geometry2D for std::sync::RwLock<T> {
     fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
         self.read()
             .unwrap()

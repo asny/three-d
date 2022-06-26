@@ -166,6 +166,22 @@ impl<T: Material> Material for Box<T> {
     }
 }
 
+impl<T: Material> Material for std::rc::Rc<T> {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+        self.as_ref()
+            .fragment_shader_source(use_vertex_colors, lights)
+    }
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
+        self.as_ref().use_uniforms(program, camera, lights)
+    }
+    fn render_states(&self) -> RenderStates {
+        self.as_ref().render_states()
+    }
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
+    }
+}
+
 impl<T: Material> Material for std::sync::Arc<T> {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         self.as_ref()
@@ -182,7 +198,23 @@ impl<T: Material> Material for std::sync::Arc<T> {
     }
 }
 
-impl<T: Material> Material for std::sync::Arc<std::sync::RwLock<T>> {
+impl<T: Material> Material for std::cell::RefCell<T> {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+        self.borrow()
+            .fragment_shader_source(use_vertex_colors, lights)
+    }
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
+        self.borrow().use_uniforms(program, camera, lights)
+    }
+    fn render_states(&self) -> RenderStates {
+        self.borrow().render_states()
+    }
+    fn material_type(&self) -> MaterialType {
+        self.borrow().material_type()
+    }
+}
+
+impl<T: Material> Material for std::sync::RwLock<T> {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         self.read()
             .unwrap()
