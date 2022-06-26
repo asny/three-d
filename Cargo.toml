@@ -25,7 +25,6 @@ egui-gui = ["egui"] # Additional GUI features
 glow = "0.11"
 cgmath = "0.18"
 three-d-asset = "0.2"
-half = {version="1.8", features=["std", "num-traits", "zerocopy", "serde"]}
 thiserror = "1.0"
 egui = { version = "0.13", optional = true }
 
