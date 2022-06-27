@@ -78,7 +78,7 @@ pub fn run() {
     ];
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
-    let particles = ParticleSystem::new(&context, &ParticleData::default(), &square);
+    let particles = ParticleSystem::new(&context, &Particles::default(), &square);
     let fireworks_material = FireworksMaterial {
         color: colors[0],
         fade: 0.0,
@@ -127,7 +127,7 @@ pub fn run() {
                 start_velocities
                     .push((rng.gen::<f32>() * 0.2 + 0.9) * explosion_speed * explosion_direction);
             }
-            fireworks.update(&ParticleData {
+            fireworks.update(&Particles {
                 start_positions,
                 start_velocities,
                 colors,
