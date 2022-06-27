@@ -60,6 +60,7 @@ out vec4 col;
 
 void main()
 {
+    // *** POSITION ***
     mat4 local2World = modelMatrix;
     
 #ifdef USE_INSTANCE_TRANSFORMS
@@ -85,6 +86,7 @@ void main()
     pos = worldPosition.xyz;
 #endif
 
+    // *** NORMAL ***
 #ifdef USE_NORMALS 
 #ifdef USE_INSTANCE_TRANSFORMS
     mat3 normalMat = mat3(transpose(inverse(local2World)));
@@ -100,6 +102,7 @@ void main()
 
 #endif
 
+    // *** UV ***
 #ifdef USE_UVS 
     mat3 texTransform = textureTransform;
 #ifdef USE_INSTANCE_TEXTURE_TRANSFORMATION
@@ -112,7 +115,7 @@ void main()
     uvs = (texTransform * vec3(uv_coordinates, 1.0)).xy;
 #endif
 
-
+    // *** COLOR ***
 #ifdef USE_COLORS
     col = vec4(1.0, 1.0, 1.0, 1.0);
 #ifdef USE_VERTEX_COLORS 
