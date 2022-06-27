@@ -334,6 +334,7 @@ impl Geometry for InstancedMesh {
 
 ///
 /// Defines the attributes for the instances of the model defined in [InstancedMesh] or [InstancedModel].
+///
 /// Each list of attributes must contain the same number of elements as the number of instances.
 /// The attributes are applied to each instance before they are rendered.
 /// The translation, rotation and scale is applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).

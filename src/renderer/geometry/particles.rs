@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 ///
 /// Used for defining the attributes for each particle in a [ParticleSystem], for example its starting position and velocity.
+///
 /// Each list of attributes must contain the same number of elements as the number of particles.
 ///
 #[derive(Clone, Debug, Default)]
@@ -55,7 +56,7 @@ impl Particles {
 }
 
 ///
-/// Particle system that can be rendered with any material.
+/// Particle system that can be used to simulate effects such as fireworks, fire, smoke or water particles.
 ///
 /// All particles are initialised with [Particles::start_positions] and [Particles::start_velocities] and a global [ParticleSystem::acceleration].
 /// Then, when time passes, their position is updated based on

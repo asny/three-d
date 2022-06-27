@@ -3,6 +3,7 @@ use crate::renderer::*;
 
 ///
 /// A set of sprites, ie. a set of quads that orients itself towards the camera.
+///
 /// The sprites will always orient themselves towards the camera, but if a direction is specified, the sprite normals will also always be orthogonal to that direction.
 /// For example, if the up direction is specified, the sprites will rotate around the up direction trying to face the camera.
 /// Sprites are also known as billboards in the case where no direction is specified.

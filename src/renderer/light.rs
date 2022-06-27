@@ -1,6 +1,8 @@
 //!
 //! A collection of lights implementing the [Light] trait.
 //!
+//! Lights shines onto objects in the scene, note however that some materials are affected by lights, others are not.
+//!
 
 mod directional_light;
 #[doc(inline)]
