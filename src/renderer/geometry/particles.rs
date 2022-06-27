@@ -7,7 +7,7 @@ use std::collections::HashMap;
 /// Each list of attributes must contain the same number of elements as the number of particles.
 ///
 #[derive(Clone, Debug, Default)]
-pub struct ParticleData {
+pub struct Particles {
     /// Initial positions of each particle in world coordinates.
     pub start_positions: Vec<Vec3>,
     /// Initial velocities of each particle defined in the world coordinate system.
@@ -18,7 +18,7 @@ pub struct ParticleData {
     pub colors: Option<Vec<Color>>,
 }
 
-impl ParticleData {
+impl Particles {
     ///
     /// Returns an error if the particle data is not valid.
     ///
@@ -57,7 +57,7 @@ impl ParticleData {
 ///
 /// Particle system that can be rendered with any material.
 ///
-/// All particles are initialised with [ParticleData::start_positions] and [ParticleData::start_velocities] and a global [ParticleSystem::acceleration].
+/// All particles are initialised with [Particles::start_positions] and [Particles::start_velocities] and a global [ParticleSystem::acceleration].
 /// Then, when time passes, their position is updated based on
 ///
 /// ```no_rust
@@ -84,7 +84,7 @@ impl ParticleSystem {
     ///
     /// Creates a new particle system with the given geometry and the given attributes for each particle.
     ///
-    pub fn new(context: &Context, data: &ParticleData, cpu_mesh: &CpuMesh) -> Self {
+    pub fn new(context: &Context, data: &Particles, cpu_mesh: &CpuMesh) -> Self {
         #[cfg(debug_assertions)]
         cpu_mesh.validate().expect("invalid cpu mesh");
 
@@ -135,7 +135,7 @@ impl ParticleSystem {
     ///
     /// Set the particles attributes.
     ///
-    pub fn update(&mut self, data: &ParticleData) {
+    pub fn update(&mut self, data: &Particles) {
         #[cfg(debug_assertions)]
         data.validate().expect("invalid particle data");
         self.instance_count = data.count();
