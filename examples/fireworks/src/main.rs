@@ -78,7 +78,7 @@ pub fn run() {
     ];
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
-    let particles = Particles::new(&context, &ParticleData::default(), &square);
+    let particles = ParticleSystem::new(&context, &ParticleData::default(), &square);
     let fireworks_material = FireworksMaterial {
         color: colors[0],
         fade: 0.0,
