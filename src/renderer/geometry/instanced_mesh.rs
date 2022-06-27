@@ -337,7 +337,7 @@ impl Geometry for InstancedMesh {
 /// Each list of attributes must contain the same number of elements as the number of instances.
 /// The attributes are applied to each instance before they are rendered.
 /// The translation, rotation and scale is applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).
-/// The texture transform is also applied after the texture transform applied to all isntances (see [InstancedMesh::set_texture_transform]).
+/// The texture transform is also applied after the texture transform applied to all instances (see [InstancedMesh::set_texture_transform]).
 ///
 #[derive(Clone, Debug, Default)]
 pub struct Instances {

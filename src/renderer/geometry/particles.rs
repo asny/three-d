@@ -3,7 +3,8 @@ use crate::renderer::*;
 use std::collections::HashMap;
 
 ///
-/// Used to define the initial position and velocity of a particle in [Particles](Particles).
+/// Used for defining the attributes for each particle in [Particles], for example its starting position and velocity.
+/// Each list of attributes must contain the same number of elements as the number of particles.
 ///
 #[derive(Clone, Debug, Default)]
 pub struct ParticleData {
@@ -13,13 +14,13 @@ pub struct ParticleData {
     pub start_velocities: Vec<Vec3>,
     /// The texture transform applied to the uv coordinates of each particle.
     pub texture_transforms: Option<Vec<Mat3>>,
-    /// Colors multiplied onto the base color of each particle.
+    /// A custom color for each particle.
     pub colors: Option<Vec<Color>>,
 }
 
 impl ParticleData {
     ///
-    /// Returns an error if the instances is not valid.
+    /// Returns an error if the particle data is not valid.
     ///
     pub fn validate(&self) -> Result<(), RendererError> {
         let instance_count = self.count();
@@ -56,9 +57,14 @@ impl ParticleData {
 ///
 /// Particle effect that can be rendered with any material.
 ///
-/// Each particle is initialised with a position and velocity using the [update](Particles::update) function and a global acceleration.
-/// Then when time passes, their position is updated based on
-/// `new_position = start_position + start_velocity * time + 0.5 * acceleration * time * time`
+/// All particles are initialised with [ParticleData::start_positions] and [ParticleData::start_velocities] and a global [Particles::acceleration].
+/// Then, when time passes, their position is updated based on
+///
+/// ```no_rust
+/// new_position = start_position + start_velocity * time + 0.5 * acceleration * time * time
+/// ```
+///
+/// The particles will therefore only move if the [Particles::time] variable is updated every frame.
 ///
 pub struct Particles {
     context: Context,
@@ -98,36 +104,36 @@ impl Particles {
     }
 
     ///
-    /// Returns the local to world transformation applied to all particles.
+    /// Returns local to world transformation applied to the particle geometry before its position is updated as described in [Particles].
     ///
     pub fn transformation(&self) -> Mat4 {
         self.transformation
     }
 
     ///
-    /// Set the local to world transformation applied to all particles.
+    /// Set the local to world transformation applied to the particle geometry before its position is updated as described in [Particles].
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
     }
 
     ///
-    /// Get the texture transform applied to the uv coordinates of all of the instances.
+    /// Get the texture transform applied to the uv coordinates of all of the particles.
     ///
     pub fn texture_transform(&self) -> &Mat3 {
         &self.texture_transform
     }
 
     ///
-    /// Set the texture transform applied to the uv coordinates of all of the model instances.
-    /// This is applied before the texture transform for each instance.
+    /// Set the texture transform applied to the uv coordinates of all of the particles.
+    /// This is applied before the texture transform for each particle.
     ///
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }
 
     ///
-    /// Updates the particles with the given initial data.
+    /// Updates the particles with the given data.
     ///
     pub fn update(&mut self, data: &ParticleData) {
         #[cfg(debug_assertions)]
