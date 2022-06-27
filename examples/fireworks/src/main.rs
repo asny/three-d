@@ -137,6 +137,17 @@ pub fn run() {
 
         let f = fireworks.time / explosion_time.max(0.0);
         fireworks.material.fade = 1.0 - f * f * f * f;
+        // Since our geometry is a square, we always want to view it from the same direction, nomatter how we change the camera.
+        fireworks.set_transformation(
+            Mat4::from_cols(
+                camera.view().x,
+                camera.view().y,
+                camera.view().z,
+                vec4(0.0, 0.0, 0.0, 1.0),
+            )
+            .invert()
+            .unwrap(),
+        );
         frame_input
             .screen()
             .clear(ClearState::color(0.0, 0.0, 0.0, 1.0))
