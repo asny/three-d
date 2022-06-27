@@ -1,6 +1,6 @@
 //!
 //! High-level features for easy rendering of different types of objects with different types of shading.
-//! Can be combined seamlessly with the mid-level features in the `core` module as well as functionality in the `context` module.
+//! Can be combined seamlessly with the mid-level features in the [core](crate::core) module as well as functionality in the [context](crate::context) module.
 //!
 //! This module contains four main traits
 //! - [Geometry] - a geometric representation in 3D space
