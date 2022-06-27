@@ -1,5 +1,6 @@
 //!
-//! A collection of common materials implementing the [Material] trait.
+//! A collection of materials implementing the [Material] trait.
+//!
 //! A material together with a [geometry] can be rendered directly, or combined into an [object] (see [Gm]) that can be used in a render call, for example [RenderTarget::render].
 //!
 

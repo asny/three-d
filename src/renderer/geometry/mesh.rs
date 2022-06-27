@@ -3,8 +3,7 @@ use crate::renderer::*;
 use std::collections::HashMap;
 
 ///
-/// A triangle mesh that implements the [Geometry] trait.
-/// This mesh can be rendered together with a [material].
+/// A triangle mesh [Geometry].
 ///
 pub struct Mesh {
     vertex_buffers: HashMap<String, VertexBuffer>,
@@ -18,7 +17,7 @@ pub struct Mesh {
 
 impl Mesh {
     ///
-    /// Creates a new 3D mesh from the given [CpuMesh].
+    /// Creates a new triangle mesh from the given [CpuMesh].
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     ///
     pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {

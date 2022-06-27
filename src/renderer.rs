@@ -2,6 +2,18 @@
 //! High-level features for easy rendering of different types of objects with different types of shading.
 //! Can be combined seamlessly with the mid-level features in the `core` module as well as functionality in the `context` module.
 //!
+//! This module contains four main traits
+//! - [Geometry] - a geometric representation in 3D space
+//! - [Material] - a material that can be applied to a geometry
+//! - [Object] - an object in 3D space which has both geometry and material information (use the [Gm] struct to combine any [Material] and [Geometry] into an object)
+//! - [Light] - a light that shines onto objects in the scene (some materials are affected by lights, others are not)
+//!
+//! Common implementations of these traits are found in their respective modules but it is also possible to do a custom implementation by implementing one of the four traits.
+//!
+//! There are several ways to render something.
+//! Objects can be rendered directly using [Object::render] or used in a render call, for example [RenderTarget::render].
+//! Geometries can be rendered with a given material using [Geometry::render_with_material] or combined into an object using the [Gm] struct and again used in a render call.
+//!
 
 pub use crate::core::*;
 
