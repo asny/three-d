@@ -85,11 +85,11 @@ impl ParticleSystem {
     ///
     /// Creates a new particle system with the given geometry and the given attributes for each particle.
     ///
-    pub fn new(context: &Context, data: &Particles, cpu_mesh: &CpuMesh) -> Self {
+    pub fn new(context: &Context, particles: &Particles, cpu_mesh: &CpuMesh) -> Self {
         #[cfg(debug_assertions)]
         cpu_mesh.validate().expect("invalid cpu mesh");
 
-        let mut particles = Self {
+        let mut particles_system = Self {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
@@ -100,8 +100,8 @@ impl ParticleSystem {
             texture_transform: Mat3::identity(),
             time: 0.0,
         };
-        particles.update(data);
-        particles
+        particles_system.set_particles(particles);
+        particles_system
     }
 
     ///
@@ -136,21 +136,21 @@ impl ParticleSystem {
     ///
     /// Set the particles attributes.
     ///
-    pub fn update(&mut self, data: &Particles) {
+    pub fn set_particles(&mut self, particles: &Particles) {
         #[cfg(debug_assertions)]
-        data.validate().expect("invalid particle data");
-        self.instance_count = data.count();
+        particles.validate().expect("invalid particles");
+        self.instance_count = particles.count();
         self.instance_buffers.clear();
 
         self.instance_buffers.insert(
             "start_position".to_string(),
-            InstanceBuffer::new_with_data(&self.context, &data.start_positions),
+            InstanceBuffer::new_with_data(&self.context, &particles.start_positions),
         );
         self.instance_buffers.insert(
             "start_velocity".to_string(),
-            InstanceBuffer::new_with_data(&self.context, &data.start_velocities),
+            InstanceBuffer::new_with_data(&self.context, &particles.start_velocities),
         );
-        if let Some(texture_transforms) = &data.texture_transforms {
+        if let Some(texture_transforms) = &particles.texture_transforms {
             let mut instance_tex_transform1 = Vec::new();
             let mut instance_tex_transform2 = Vec::new();
             for texture_transform in texture_transforms.iter() {
@@ -174,7 +174,7 @@ impl ParticleSystem {
                 InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2),
             );
         }
-        if let Some(instance_colors) = &data.colors {
+        if let Some(instance_colors) = &particles.colors {
             self.instance_buffers.insert(
                 "instance_color".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &instance_colors),
