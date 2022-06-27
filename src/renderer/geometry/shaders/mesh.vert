@@ -72,8 +72,8 @@ void main()
 #endif
 
     vec4 worldPosition = local2World * vec4(position, 1.);
-#ifdef PARTICLES
     worldPosition.xyz /= worldPosition.w;
+#ifdef PARTICLES
     worldPosition.xyz += start_position + start_velocity * time + 0.5 * acceleration * time * time;
 #endif
 #ifdef USE_INSTANCE_TRANSLATIONS 
