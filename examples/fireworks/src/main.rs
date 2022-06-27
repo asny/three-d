@@ -127,7 +127,7 @@ pub fn run() {
                 start_velocities
                     .push((rng.gen::<f32>() * 0.2 + 0.9) * explosion_speed * explosion_direction);
             }
-            fireworks.update(&Particles {
+            fireworks.set_particles(&Particles {
                 start_positions,
                 start_velocities,
                 colors,

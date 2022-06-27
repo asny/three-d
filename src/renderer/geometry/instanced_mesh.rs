@@ -26,7 +26,7 @@ impl InstancedMesh {
     ///
     pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> Self {
         let aabb = cpu_mesh.compute_aabb();
-        let mut model = Self {
+        let mut instanced_mesh = Self {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
@@ -38,8 +38,8 @@ impl InstancedMesh {
             instance_transforms: Vec::new(),
             texture_transform: Mat3::identity(),
         };
-        model.set_instances(instances);
-        model
+        instanced_mesh.set_instances(instances);
+        instanced_mesh
     }
 
     ///
