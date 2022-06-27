@@ -3,7 +3,7 @@ use crate::renderer::*;
 use std::collections::HashMap;
 
 ///
-/// Used for defining the attributes for each particle in [Particles], for example its starting position and velocity.
+/// Used for defining the attributes for each particle in a [ParticleSystem], for example its starting position and velocity.
 /// Each list of attributes must contain the same number of elements as the number of particles.
 ///
 #[derive(Clone, Debug, Default)]
@@ -48,25 +48,25 @@ impl ParticleData {
         Ok(())
     }
 
-    /// Returns the number of instances.
+    /// Returns the number of particles.
     pub fn count(&self) -> u32 {
         self.start_positions.len() as u32
     }
 }
 
 ///
-/// Particle effect that can be rendered with any material.
+/// Particle system that can be rendered with any material.
 ///
-/// All particles are initialised with [ParticleData::start_positions] and [ParticleData::start_velocities] and a global [Particles::acceleration].
+/// All particles are initialised with [ParticleData::start_positions] and [ParticleData::start_velocities] and a global [ParticleSystem::acceleration].
 /// Then, when time passes, their position is updated based on
 ///
 /// ```no_rust
 /// new_position = start_position + start_velocity * time + 0.5 * acceleration * time * time
 /// ```
 ///
-/// The particles will therefore only move if the [Particles::time] variable is updated every frame.
+/// The particles will only move if the [ParticleSystem::time] variable is updated every frame.
 ///
-pub struct Particles {
+pub struct ParticleSystem {
     context: Context,
     vertex_buffers: HashMap<String, VertexBuffer>,
     instance_buffers: HashMap<String, InstanceBuffer>,
@@ -80,9 +80,9 @@ pub struct Particles {
     pub time: f32,
 }
 
-impl Particles {
+impl ParticleSystem {
     ///
-    /// Creates a new set of particles with geometry defined by the given cpu mesh.
+    /// Creates a new particle system with the given geometry and the given attributes for each particle.
     ///
     pub fn new(context: &Context, data: &ParticleData, cpu_mesh: &CpuMesh) -> Self {
         #[cfg(debug_assertions)]
@@ -104,14 +104,14 @@ impl Particles {
     }
 
     ///
-    /// Returns local to world transformation applied to the particle geometry before its position is updated as described in [Particles].
+    /// Returns local to world transformation applied to the particle geometry before its position is updated as described in [ParticleSystem].
     ///
     pub fn transformation(&self) -> Mat4 {
         self.transformation
     }
 
     ///
-    /// Set the local to world transformation applied to the particle geometry before its position is updated as described in [Particles].
+    /// Set the local to world transformation applied to the particle geometry before its position is updated as described in [ParticleSystem].
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
@@ -133,7 +133,7 @@ impl Particles {
     }
 
     ///
-    /// Updates the particles with the given data.
+    /// Set the particles attributes.
     ///
     pub fn update(&mut self, data: &ParticleData) {
         #[cfg(debug_assertions)]
@@ -232,7 +232,7 @@ impl Particles {
     }
 }
 
-impl Geometry for Particles {
+impl Geometry for ParticleSystem {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::INFINITE
     }
