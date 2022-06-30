@@ -70,8 +70,8 @@ pub enum CoreError {
     ContextCreation(String),
     #[error("failed rendering with error: {0}")]
     ContextError(String),
-    #[error("failed compiling {0} shader: {1}")]
-    ShaderCompilation(String, String),
+    #[error("failed compiling {0} shader: {1}\n{2}")]
+    ShaderCompilation(String, String, String),
     #[error("failed to link shader program: {0}")]
     ShaderLink(String),
 }

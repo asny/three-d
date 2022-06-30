@@ -50,12 +50,11 @@ impl Program {
             } else {
                 "#version 330 core\n"
             };
+            let vertex_shader_source = format!("{}{}", header, vertex_shader_source);
+            let fragment_shader_source = format!("{}{}", header, fragment_shader_source);
 
-            context.shader_source(vert_shader, &format!("{}{}", header, vertex_shader_source));
-            context.shader_source(
-                frag_shader,
-                &format!("{}{}", header, fragment_shader_source),
-            );
+            context.shader_source(vert_shader, &vertex_shader_source);
+            context.shader_source(frag_shader, &fragment_shader_source);
             context.compile_shader(vert_shader);
             context.compile_shader(frag_shader);
 
@@ -67,11 +66,19 @@ impl Program {
             if !context.get_program_link_status(id) {
                 let log = context.get_shader_info_log(vert_shader);
                 if log.len() > 0 {
-                    Err(CoreError::ShaderCompilation("vertex".to_string(), log))?;
+                    Err(CoreError::ShaderCompilation(
+                        "vertex".to_string(),
+                        log,
+                        vertex_shader_source,
+                    ))?;
                 }
                 let log = context.get_shader_info_log(frag_shader);
                 if log.len() > 0 {
-                    Err(CoreError::ShaderCompilation("fragment".to_string(), log))?;
+                    Err(CoreError::ShaderCompilation(
+                        "fragment".to_string(),
+                        log,
+                        fragment_shader_source,
+                    ))?;
                 }
                 let log = context.get_program_info_log(id);
                 if log.len() > 0 {
