@@ -221,8 +221,22 @@ impl Camera {
     ///
     pub fn position_at_pixel(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
-            ProjectionType::Orthographic { height } => {
+            ProjectionType::Orthographic { .. } => {
                 let coords = self.uv_coordinates_at_pixel(pixel);
+                self.position_at_uv_coordinates(coords)
+            }
+            ProjectionType::Perspective { .. } => *self.position(),
+        }
+    }
+
+    ///
+    /// Returns the 3D position at the given uv coordinates of the viewport.
+    /// The uv coordinates must be between (0, 0) indicating the bottom left corner of the viewport
+    /// and (1, 1) indicating the top right corner.
+    ///
+    pub fn position_at_uv_coordinates(&self, coords: (f32, f32)) -> Vec3 {
+        match self.projection_type() {
+            ProjectionType::Orthographic { height } => {
                 let width = height * self.viewport.aspect();
                 self.position() + vec3((coords.0 - 0.5) * width, (coords.1 - 0.5) * height, 0.0)
             }
@@ -240,6 +254,20 @@ impl Camera {
             ProjectionType::Orthographic { .. } => self.view_direction(),
             ProjectionType::Perspective { .. } => {
                 let coords = self.uv_coordinates_at_pixel(pixel);
+                self.view_direction_at_uv_coordinates(coords)
+            }
+        }
+    }
+
+    ///
+    /// Returns the 3D view direction at the given uv coordinates of the viewport.
+    /// The uv coordinates must be between (0, 0) indicating the bottom left corner of the viewport
+    /// and (1, 1) indicating the top right corner.
+    ///
+    pub fn view_direction_at_uv_coordinates(&self, coords: (f32, f32)) -> Vec3 {
+        match self.projection_type() {
+            ProjectionType::Orthographic { .. } => self.view_direction(),
+            ProjectionType::Perspective { .. } => {
                 let screen_pos = vec4(2. * coords.0 - 1., 2. * coords.1 - 1.0, 0., 1.);
                 (self.screen2ray * screen_pos).truncate().normalize()
             }
