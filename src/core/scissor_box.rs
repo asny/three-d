@@ -60,3 +60,14 @@ impl From<crate::core::Viewport> for ScissorBox {
         }
     }
 }
+
+impl From<crate::core::ScissorBox> for crate::core::Viewport {
+    fn from(viewport: crate::core::ScissorBox) -> Self {
+        Self {
+            x: viewport.x,
+            y: viewport.y,
+            width: viewport.width,
+            height: viewport.height,
+        }
+    }
+}

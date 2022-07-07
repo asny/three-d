@@ -88,14 +88,14 @@ impl DeferredPipeline {
     ) {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         match camera.projection_type() {
-            ProjectionType::Perspective { field_of_view_y } => {
+            three_d_asset::ProjectionType::Perspective { field_of_view_y } => {
                 self.camera.set_perspective_projection(
                     *field_of_view_y,
                     camera.z_near(),
                     camera.z_far(),
                 );
             }
-            ProjectionType::Orthographic { height, .. } => {
+            three_d_asset::ProjectionType::Orthographic { height, .. } => {
                 self.camera
                     .set_orthographic_projection(*height, camera.z_near(), camera.z_far());
             }

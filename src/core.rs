@@ -24,10 +24,6 @@ mod uniform;
 #[doc(inline)]
 pub use uniform::*;
 
-mod camera;
-#[doc(inline)]
-pub use camera::*;
-
 mod image_effect;
 #[doc(inline)]
 pub use image_effect::*;
@@ -39,10 +35,6 @@ pub use image_cube_effect::*;
 mod program;
 #[doc(inline)]
 pub use program::*;
-
-mod viewport;
-#[doc(inline)]
-pub use viewport::*;
 
 mod scissor_box;
 #[doc(inline)]
@@ -56,6 +48,7 @@ pub mod prelude {
     pub use three_d_asset::prelude::*;
 }
 pub use prelude::*;
+pub use three_d_asset::{Camera, Viewport};
 
 /// A result for this crate.
 use thiserror::Error;
