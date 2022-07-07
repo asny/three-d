@@ -50,11 +50,7 @@ pub async fn run() {
     // Models from http://texturedmesh.isti.cnr.it/
     let mut loaded = three_d_asset::io::load_async(&[
         "examples/assets/COLOMBE.obj",
-        "examples/assets/COLOMBE.mtl",
-        "examples/assets/COLOMBE.png",
         "examples/assets/pfboy.obj",
-        "examples/assets/pfboy.mtl",
-        "examples/assets/pfboy.png",
     ])
     .await
     .unwrap();

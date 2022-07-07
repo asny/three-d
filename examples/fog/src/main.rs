@@ -27,12 +27,9 @@ pub async fn run() {
     );
     let mut control = FlyControl::new(0.05);
 
-    let mut loaded = three_d_asset::io::load_async(&[
-        "examples/assets/suzanne.obj",
-        "examples/assets/suzanne.mtl",
-    ])
-    .await
-    .unwrap();
+    let mut loaded = three_d_asset::io::load_async(&["examples/assets/suzanne.obj"])
+        .await
+        .unwrap();
 
     let mut monkey =
         Model::<PhysicalMaterial>::new(&context, &loaded.deserialize("suzanne.obj").unwrap())

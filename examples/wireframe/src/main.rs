@@ -29,12 +29,9 @@ pub async fn run() {
     );
     let mut control = OrbitControl::new(*camera.target(), 0.1 * scene_radius, 100.0 * scene_radius);
 
-    let mut loaded = three_d_asset::io::load_async(&[
-        "examples/assets/suzanne.obj",
-        "examples/assets/suzanne.mtl",
-    ])
-    .await
-    .unwrap();
+    let mut loaded = three_d_asset::io::load_async(&["examples/assets/suzanne.obj"])
+        .await
+        .unwrap();
 
     let mut cpu_model: CpuModel = loaded.deserialize("suzanne.obj").unwrap();
     cpu_model.geometries[0]

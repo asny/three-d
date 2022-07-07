@@ -35,8 +35,6 @@ pub async fn run() {
         "examples/assets/skybox_evening/back.jpg",
         "examples/assets/test_texture.jpg",
         "examples/assets/PenguinBaseMesh.obj",
-        "examples/assets/PenguinBaseMesh.mtl",
-        "examples/assets/penguin.png",
     ])
     .await
     .unwrap();
