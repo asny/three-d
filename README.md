@@ -66,3 +66,6 @@ If possible and feasible, functionality will be deprecated in one release before
 
 Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request against the [master branch](https://github.com/asny/three-d/tree/master). To avoid waste of time, please reach out before making major changes.
 
+### Sponsors
+
+[![rerun.io](.github/rerun.png)](https://www.rerun.io/)

@@ -4,7 +4,6 @@ use crate::renderer::*;
 /// A line 2D object which can be rendered.
 ///
 pub struct Line<M: Material> {
-    context: Context,
     model: Gm<Mesh, M>,
     pixel0: Vec2,
     pixel1: Vec2,
@@ -26,7 +25,6 @@ impl<M: Material> Line<M> {
         mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))
             .unwrap();
         let mut line = Self {
-            context: context.clone(),
             model: Gm::new(Mesh::new(context, &mesh), material),
             pixel0,
             pixel1,
@@ -80,16 +78,14 @@ impl<M: Material> Line<M> {
 
 impl<M: Material> Geometry2D for Line<M> {
     fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.context.camera2d(viewport, |camera2d| {
-            self.model.render_with_material(material, camera2d, &[])
-        })
+        self.model
+            .render_with_material(material, &camera2d(viewport), &[])
     }
 }
 
 impl<M: Material> Object2D for Line<M> {
     fn render(&self, viewport: Viewport) {
-        self.context
-            .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
+        self.model.render(&camera2d(viewport), &[])
     }
 
     fn material_type(&self) -> MaterialType {

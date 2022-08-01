@@ -4,7 +4,6 @@ use crate::renderer::*;
 /// A circle 2D object which can be rendered.
 ///
 pub struct Circle<M: Material> {
-    context: Context,
     model: Gm<Mesh, M>,
     radius: f32,
     center: Vec2,
@@ -17,7 +16,6 @@ impl<M: Material> Circle<M> {
     pub fn new_with_material(context: &Context, center: Vec2, radius: f32, material: M) -> Self {
         let mesh = CpuMesh::circle(64);
         let mut circle = Self {
-            context: context.clone(),
             model: Gm::new(Mesh::new(context, &mesh), material),
             center,
             radius,
@@ -57,16 +55,14 @@ impl<M: Material> Circle<M> {
 
 impl<M: Material> Geometry2D for Circle<M> {
     fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.context.camera2d(viewport, |camera2d| {
-            self.model.render_with_material(material, camera2d, &[])
-        })
+        self.model
+            .render_with_material(material, &camera2d(viewport), &[])
     }
 }
 
 impl<M: Material> Object2D for Circle<M> {
     fn render(&self, viewport: Viewport) {
-        self.context
-            .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
+        self.model.render(&camera2d(viewport), &[])
     }
 
     fn material_type(&self) -> MaterialType {

@@ -5,7 +5,6 @@ use crate::renderer::*;
 ///
 pub struct Rectangle<M: Material> {
     model: Gm<Mesh, M>,
-    context: Context,
     width: f32,
     height: f32,
     center: Vec2,
@@ -28,7 +27,6 @@ impl<M: Material> Rectangle<M> {
         mesh.transform(&(Mat4::from_scale(0.5))).unwrap();
         let mut rectangle = Self {
             model: Gm::new(Mesh::new(context, &mesh), material),
-            context: context.clone(),
             width,
             height,
             center,
@@ -83,16 +81,14 @@ impl<M: Material> Rectangle<M> {
 
 impl<M: Material> Geometry2D for Rectangle<M> {
     fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.context.camera2d(viewport, |camera2d| {
-            self.model.render_with_material(material, camera2d, &[])
-        })
+        self.model
+            .render_with_material(material, &camera2d(viewport), &[])
     }
 }
 
 impl<M: Material> Object2D for Rectangle<M> {
     fn render(&self, viewport: Viewport) {
-        self.context
-            .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
+        self.model.render(&camera2d(viewport), &[])
     }
 
     fn material_type(&self) -> MaterialType {

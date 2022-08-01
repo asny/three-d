@@ -17,7 +17,6 @@ pub struct Context {
     pub(super) vao: crate::context::VertexArray,
     programs: Arc<RwLock<HashMap<String, Program>>>,
     effects: Arc<RwLock<HashMap<String, ImageEffect>>>,
-    camera2d: Arc<RwLock<Option<Camera>>>,
 }
 
 impl Context {
@@ -45,7 +44,6 @@ impl Context {
                 vao,
                 programs: Arc::new(RwLock::new(HashMap::new())),
                 effects: Arc::new(RwLock::new(HashMap::new())),
-                camera2d: Arc::new(RwLock::new(None)),
             }
         };
         Ok(c)
@@ -109,25 +107,10 @@ impl Context {
     ///
     /// Returns a camera for viewing 2D content.
     ///
+    #[deprecated = "use three_d::renderer::object::camera2d function instead"]
     pub fn camera2d(&self, viewport: Viewport, callback: impl FnOnce(&Camera)) {
-        if self.camera2d.read().unwrap().is_none() {
-            *self.camera2d.write().unwrap() = Some(Camera::new_orthographic(
-                viewport,
-                vec3(0.0, 0.0, -1.0),
-                vec3(0.0, 0.0, 0.0),
-                vec3(0.0, -1.0, 0.0),
-                1.0,
-                0.0,
-                10.0,
-            ));
-        }
-        let mut camera2d = self.camera2d.write().unwrap();
-        camera2d.as_mut().unwrap().set_viewport(viewport);
-        camera2d
-            .as_mut()
-            .unwrap()
-            .set_orthographic_projection(viewport.height as f32, 0.0, 10.0);
-        camera2d.as_mut().unwrap().set_view(
+        let camera2d = Camera::new_orthographic(
+            viewport,
             vec3(
                 viewport.width as f32 * 0.5,
                 viewport.height as f32 * 0.5,
@@ -139,8 +122,11 @@ impl Context {
                 0.0,
             ),
             vec3(0.0, -1.0, 0.0),
+            viewport.height as f32,
+            0.0,
+            10.0,
         );
-        callback(camera2d.as_ref().unwrap());
+        callback(&camera2d);
     }
 
     ///
