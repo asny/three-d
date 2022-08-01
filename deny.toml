@@ -49,6 +49,7 @@ allow = [
     # "MPL-2.0",      # https://www.mozilla.org/en-US/MPL/2.0/FAQ/ - see Q11
     # "OpenSSL",      # https://www.openssl.org/source/license.html
     "Zlib", # https://tldrlegal.com/license/zlib-libpng-license-(zlib)
+    "Unicode-DFS-2016",  # https://spdx.org/licenses/Unicode-DFS-2016.html
 ]
 
 [sources]
