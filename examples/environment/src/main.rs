@@ -50,11 +50,14 @@ pub async fn run() {
             },
         ),
     );
-    let mut gui = three_d::GUI::new(&context);
+    let mut gui = three_d::GUI::new(context.inner());
 
     // main loop
     let mut color = [1.0; 4];
     window.render_loop(move |mut frame_input| {
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0));
         let mut panel_width = 0.0;
         gui.update(&mut frame_input, |gui_context| {
             use three_d::egui::*;
@@ -78,11 +81,13 @@ pub async fn run() {
         camera.set_viewport(viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 
-        frame_input
-            .screen()
-            .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
-            .render(&camera, &[&skybox, &model], &[&light])
-            .write(|| gui.render());
+        /*frame_input
+        .screen()
+        .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
+        //.render(&camera, &[&skybox, &model], &[&light])
+        .write(|| {
+            //gui.render();
+        });*/
 
         FrameOutput::default()
     });

@@ -17,16 +17,17 @@ rustdoc-args = ["--cfg", "docsrs"]
 targets = ["x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
 
 [features]
-default = ["window", "egui-gui"]
+default = ["window", "gui"]
 window = ["glutin"] # Window module
-egui-gui = ["egui"] # Additional GUI features 
+gui = ["egui_glow", "egui"] # Additional GUI features 
 
 [dependencies]
 glow = "0.11"
 cgmath = "0.18"
 three-d-asset = "0.3"
 thiserror = "1"
-egui = { version = "0.13", optional = true }
+egui = { path="../egui/egui/", default-features = false, features = ["bytemuck"], optional = true }
+egui_glow = { path="../egui/egui_glow/", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 glutin = { version = "0.28", optional = true }

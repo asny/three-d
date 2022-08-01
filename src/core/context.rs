@@ -51,6 +51,10 @@ impl Context {
         Ok(c)
     }
 
+    pub fn inner(&self) -> Arc<glow::Context> {
+        self.context.clone()
+    }
+
     ///
     /// Compiles a [Program] with the given vertex and fragment shader source and stores it for later use.
     /// If it has already been created, then it is just returned.
