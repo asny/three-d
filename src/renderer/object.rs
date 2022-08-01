@@ -53,6 +53,29 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
+/// Returns a camera for viewing 2D content.
+///
+pub fn camera2d(viewport: Viewport) -> Camera {
+    Camera::new_orthographic(
+        viewport,
+        vec3(
+            viewport.width as f32 * 0.5,
+            viewport.height as f32 * 0.5,
+            -1.0,
+        ),
+        vec3(
+            viewport.width as f32 * 0.5,
+            viewport.height as f32 * 0.5,
+            0.0,
+        ),
+        vec3(0.0, -1.0, 0.0),
+        viewport.height as f32,
+        0.0,
+        10.0,
+    )
+}
+
+///
 /// Represents a 3D object which can be rendered directly or used in a render call, for example [RenderTarget::render].
 ///
 pub trait Object: Geometry {
