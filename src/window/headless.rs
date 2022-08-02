@@ -80,8 +80,7 @@ fn build_context<T1: ContextCurrentState>(
     // If willing, you could attempt to use hidden windows instead of os mesa,
     // but note that you must handle events for the window that come on the
     // events loop.
-    use glutin::platform::unix::EventLoopExtUnix;
-    let el = EventLoopExtUnix::new_any_thread();
+    let el = EventLoop::new();
 
     /*
     let err1 = match build_context_surfaceless(cb.clone(), &el) {
