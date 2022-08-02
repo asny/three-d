@@ -21,11 +21,9 @@ wildcards = "allow"        # at least until https://github.com/EmbarkStudios/car
 deny = []
 
 skip = [
-    { name = "cfg-if" },              # winit depends on an old version
-    { name = "core-foundation" },     # winit depends on an old version
-    { name = "core-foundation-sys" }, # winit depends on an old version
-    { name = "core-graphics" },       # winit depends on an old version
-    { name = "miniz_oxide" },         # image crate depends on an old version
+    { name = "nix" },                 # glutin depends on an old version
+    { name = "foreign-types-shared" },# glutin depends on an old version
+    { name = "foreign-types" },       # glutin depends on an old version
 ]
 skip-tree = [
     { name = "image" },              # gltf uses an old version
