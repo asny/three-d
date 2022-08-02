@@ -118,12 +118,12 @@ impl Texture3D {
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(&mut self, data: &[T]) {
-        check_data_length(
+        check_data_length::<T>(
             self.width,
             self.height,
             self.depth,
             self.data_byte_size,
-            data,
+            data.len(),
         );
         self.bind();
         unsafe {

@@ -371,12 +371,48 @@ impl TextureCubeMap {
         front_data: &[T],
         back_data: &[T],
     ) {
-        check_data_length(self.width, self.height, 1, self.data_byte_size, right_data);
-        check_data_length(self.width, self.height, 1, self.data_byte_size, left_data);
-        check_data_length(self.width, self.height, 1, self.data_byte_size, top_data);
-        check_data_length(self.width, self.height, 1, self.data_byte_size, bottom_data);
-        check_data_length(self.width, self.height, 1, self.data_byte_size, front_data);
-        check_data_length(self.width, self.height, 1, self.data_byte_size, back_data);
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            right_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            left_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            top_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            bottom_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            front_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            back_data.len(),
+        );
         self.bind();
         for i in 0..6 {
             let data = match i {
@@ -533,101 +569,5 @@ impl Drop for TextureCubeMap {
         unsafe {
             self.context.delete_texture(self.id);
         }
-    }
-}
-
-fn ru8_data(t: &CpuTexture) -> &[u8] {
-    if let TextureData::RU8(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rgu8_data(t: &CpuTexture) -> &[[u8; 2]] {
-    if let TextureData::RgU8(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rgbu8_data(t: &CpuTexture) -> &[[u8; 3]] {
-    if let TextureData::RgbU8(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rgbau8_data(t: &CpuTexture) -> &[[u8; 4]] {
-    if let TextureData::RgbaU8(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rf16_data(t: &CpuTexture) -> &[f16] {
-    if let TextureData::RF16(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rgf16_data(t: &CpuTexture) -> &[[f16; 2]] {
-    if let TextureData::RgF16(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rgbf16_data(t: &CpuTexture) -> &[[f16; 3]] {
-    if let TextureData::RgbF16(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rgbaf16_data(t: &CpuTexture) -> &[[f16; 4]] {
-    if let TextureData::RgbaF16(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rf32_data(t: &CpuTexture) -> &[f32] {
-    if let TextureData::RF32(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rgf32_data(t: &CpuTexture) -> &[[f32; 2]] {
-    if let TextureData::RgF32(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rgbf32_data(t: &CpuTexture) -> &[[f32; 3]] {
-    if let TextureData::RgbF32(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
-    }
-}
-
-fn rgbaf32_data(t: &CpuTexture) -> &[[f32; 4]] {
-    if let TextureData::RgbaF32(data) = &t.data {
-        data
-    } else {
-        panic!("all of the images used for cube map sides must have the same texture data type")
     }
 }
