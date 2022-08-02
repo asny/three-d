@@ -23,7 +23,7 @@ impl HeadlessContext {
         let (glutin_context, _el) = build_context(cb).unwrap();
         let glutin_context = unsafe { glutin_context.make_current().unwrap() };
         let context =
-            Context::from_gl_context(crate::core::ContextRef::Arc(std::sync::Arc::new(unsafe {
+            Context::from_gl_context(crate::core::ContextRef::Rc(std::rc::Rc::new(unsafe {
                 crate::context::Context::from_loader_function(|s| {
                     glutin_context.get_proc_address(s) as *const _
                 })

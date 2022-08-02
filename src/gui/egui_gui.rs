@@ -2,7 +2,6 @@ use crate::window::*;
 #[doc(hidden)]
 pub use egui;
 use egui_glow::Painter;
-use glow::Context;
 
 ///
 /// Integration of [egui](https://crates.io/crates/egui), an immediate mode GUI.
@@ -113,6 +112,7 @@ impl GUI {
             &clipped_meshes,
             &output.textures_delta,
         );
+        #[allow(unsafe_code)]
         unsafe {
             use glow::HasContext as _;
             self.painter.gl().disable(glow::FRAMEBUFFER_SRGB);
