@@ -13,9 +13,135 @@ pub struct Texture2DArray {
     height: u32,
     depth: u32,
     number_of_mip_maps: u32,
+    data_byte_size: usize,
 }
 
 impl Texture2DArray {
+    ///
+    /// Creates a new texture array from the given [CpuTexture]s.
+    /// All of the cpu textures must contain data with the same [TextureDataType] and the same width and height.
+    ///
+    pub fn new(context: &Context, cpu_textures: &[&CpuTexture]) -> Self {
+        let cpu_texture = cpu_textures
+            .get(0)
+            .expect("Expect at least one texture in a texture array");
+        match &cpu_texture.data {
+            TextureData::RU8(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures.iter().map(|t| ru8_data(t)).collect::<Vec<_>>(),
+            ),
+            TextureData::RgU8(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rgu8_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RgbU8(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rgbu8_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RgbaU8(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rgbau8_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RF16(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rf16_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RgF16(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rgf16_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RgbF16(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rgbf16_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RgbaF16(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rgbaf16_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RF32(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rf32_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RgF32(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rgf32_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RgbF32(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rgbf32_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+            TextureData::RgbaF32(_) => Self::new_with_data(
+                context,
+                cpu_texture,
+                &cpu_textures
+                    .iter()
+                    .map(|t| rgbaf32_data(t))
+                    .collect::<Vec<_>>(),
+            ),
+        }
+    }
+
+    fn new_with_data<T: TextureDataType>(
+        context: &Context,
+        cpu_texture: &CpuTexture,
+        data: &[&[T]],
+    ) -> Self {
+        let mut texture = Self::new_empty::<T>(
+            context,
+            cpu_texture.width,
+            cpu_texture.height,
+            data.len() as u32,
+            cpu_texture.min_filter,
+            cpu_texture.mag_filter,
+            cpu_texture.mip_map_filter,
+            cpu_texture.wrap_s,
+            cpu_texture.wrap_t,
+        );
+        texture.fill(data);
+        texture
+    }
+
     ///
     /// Creates a new array of 2D textures.
     ///
@@ -39,6 +165,7 @@ impl Texture2DArray {
             height,
             depth,
             number_of_mip_maps,
+            data_byte_size: std::mem::size_of::<T>(),
         };
         texture.bind();
         set_parameters(
@@ -67,6 +194,44 @@ impl Texture2DArray {
         }
         texture.generate_mip_maps();
         texture
+    }
+
+    ///
+    /// Fills the texture array with the given pixel data.
+    ///
+    /// # Panic
+    /// Will panic if the data does not correspond to the width, height, depth and format specified at construction.
+    /// It is therefore necessary to create a new texture if the texture size or format has changed.
+    ///
+    pub fn fill<T: TextureDataType>(&mut self, data: &[&[T]]) {
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            self.depth,
+            self.data_byte_size,
+            data.iter().map(|d| d.len()).sum(),
+        );
+        self.bind();
+        for (i, data) in data.iter().enumerate() {
+            let mut data = (*data).to_owned();
+            flip_y(&mut data, self.width as usize, self.height as usize);
+            unsafe {
+                self.context.tex_sub_image_3d(
+                    crate::context::TEXTURE_2D_ARRAY,
+                    0,
+                    0,
+                    0,
+                    i as i32,
+                    self.width as i32,
+                    self.height as i32,
+                    1,
+                    format_from_data_type::<T>(),
+                    T::data_type(),
+                    crate::context::PixelUnpackData::Slice(to_byte_slice(&data)),
+                );
+            }
+        }
+        self.generate_mip_maps();
     }
 
     ///
