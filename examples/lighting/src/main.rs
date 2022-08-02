@@ -38,7 +38,7 @@ pub async fn run() {
         30.0,
     );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
-    let mut gui = three_d::GUI::new(context.inner());
+    let mut gui = three_d::GUI::new(&context);
 
     // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
     let mut cpu_model: CpuModel =
