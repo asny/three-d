@@ -30,7 +30,7 @@ egui = { path="../egui/egui/", default-features = false, features = ["bytemuck"]
 egui_glow = { path="../egui/egui_glow/", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-glutin = { version = "0.28", optional = true }
+glutin = { version = "0.29", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3"
