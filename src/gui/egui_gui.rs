@@ -3,7 +3,7 @@ use crate::window::*;
 pub use egui;
 use egui_glow::Painter;
 use glow::Context;
-use std::sync::Arc;
+use std::rc::Rc;
 
 ///
 /// Integration of [egui](https://crates.io/crates/egui), an immediate mode GUI.
@@ -19,7 +19,7 @@ impl GUI {
     ///
     /// Creates a new GUI.
     ///
-    pub fn new(context: Arc<Context>) -> Self {
+    pub fn new(context: Rc<Context>) -> Self {
         GUI {
             egui_context: egui::Context::default(),
             painter: Painter::new(context, None, "").unwrap(),

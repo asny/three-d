@@ -43,7 +43,10 @@ impl Window {
             Ok(Window {
                 windowed_context: Some(windowed_context),
                 event_loop: Some(event_loop),
-                gl: Context::from_gl_context(std::sync::Arc::new(context))?.into(),
+                gl: Context::from_gl_context(crate::core::ContextRef::Rc(std::rc::Rc::new(
+                    context,
+                )))?
+                .into(),
             })
         }
     }
