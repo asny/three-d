@@ -66,12 +66,8 @@ impl Context {
         Ok(c)
     }
 
-    pub fn inner(&self) -> Rc<glow::Context> {
-        if let ContextRef::Rc(ref c) = self.context {
-            c.clone()
-        } else {
-            unreachable!()
-        }
+    pub fn inner(&self) -> ContextRef {
+        self.context.clone()
     }
 
     ///
