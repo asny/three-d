@@ -8,7 +8,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-three-d = { path = "../../", default-features = false, features=["window", "egui-gui"] }
+three-d = { path = "../../", default-features = false, features=["window", "gui"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"
