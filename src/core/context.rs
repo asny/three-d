@@ -1,27 +1,10 @@
 use super::*;
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
 #[doc(hidden)]
 pub use crate::context::HasContext;
-
-#[derive(Clone)]
-pub enum ContextRef {
-    Rc(Rc<crate::context::Context>),
-    Arc(Arc<crate::context::Context>),
-}
-
-impl std::ops::Deref for ContextRef {
-    type Target = crate::context::Context;
-    fn deref(&self) -> &Self::Target {
-        match self {
-            ContextRef::Rc(c) => c,
-            ContextRef::Arc(c) => c,
-        }
-    }
-}
 
 ///
 /// Contains the low-level OpenGL/WebGL graphics context as well as other "global" variables.
@@ -30,7 +13,7 @@ impl std::ops::Deref for ContextRef {
 ///
 #[derive(Clone)]
 pub struct Context {
-    context: ContextRef,
+    context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
     programs: Arc<RwLock<HashMap<String, Program>>>,
     effects: Arc<RwLock<HashMap<String, ImageEffect>>>,
@@ -43,7 +26,7 @@ impl Context {
     /// Since the content in the [context](crate::context) module is just a re-export of [glow](https://crates.io/crates/glow),
     /// you can also call this method with a reference counter to a glow context created using glow and not the re-export in [context](crate::context).
     ///
-    pub fn from_gl_context(context: ContextRef) -> Result<Self, CoreError> {
+    pub fn from_gl_context(context: Arc<crate::context::Context>) -> Result<Self, CoreError> {
         #[cfg(not(target_arch = "wasm32"))]
         unsafe {
             // Enable seamless cube map textures
@@ -64,10 +47,6 @@ impl Context {
             }
         };
         Ok(c)
-    }
-
-    pub fn inner(&self) -> ContextRef {
-        self.context.clone()
     }
 
     ///
@@ -402,7 +381,7 @@ impl std::fmt::Debug for Context {
 }
 
 impl std::ops::Deref for Context {
-    type Target = crate::context::Context;
+    type Target = Arc<crate::context::Context>;
     fn deref(&self) -> &Self::Target {
         &self.context
     }

@@ -18,15 +18,18 @@ impl GUI {
     /// Creates a new GUI.
     ///
     pub fn new(context: &crate::core::Context) -> Self {
-        if let crate::core::ContextRef::Rc(context) = context.inner() {
-            GUI {
-                egui_context: egui::Context::default(),
-                painter: Painter::new(context, None, "").unwrap(),
-                width: 0,
-                height: 0,
-            }
-        } else {
-            unreachable!();
+        use std::ops::Deref;
+        Self::from_gl_context(context.deref().clone())
+    }
+
+    pub fn from_gl_context(context: std::sync::Arc<crate::context::Context>) -> Self {
+        #[allow(unsafe_code)] // Temporary until egui takes Arc
+        let context = unsafe { std::rc::Rc::from_raw(std::sync::Arc::into_raw(context)) };
+        GUI {
+            egui_context: egui::Context::default(),
+            painter: Painter::new(context, None, "").unwrap(),
+            width: 0,
+            height: 0,
         }
     }
 

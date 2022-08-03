@@ -93,8 +93,8 @@ impl Window {
             .get_extension("OES_texture_float_linear")
             .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
 
-        self.context = Some(crate::core::Context::from_gl_context(ContextRef::Rc(
-            Rc::new(crate::context::Context::from_webgl2_context(context)),
+        self.context = Some(crate::core::Context::from_gl_context(std::sync::Arc::new(
+            crate::context::Context::from_webgl2_context(context),
         ))?);
         self.canvas = Some(canvas);
         self.set_canvas_size();
