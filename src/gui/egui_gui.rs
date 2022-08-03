@@ -15,13 +15,16 @@ pub struct GUI {
 
 impl GUI {
     ///
-    /// Creates a new GUI.
+    /// Creates a new GUI from a mid-level [Context](crate::core::Context).
     ///
     pub fn new(context: &crate::core::Context) -> Self {
         use std::ops::Deref;
         Self::from_gl_context(context.deref().clone())
     }
 
+    ///
+    /// Creates a new GUI from a low-level graphics [Context](crate::context::Context).
+    ///
     pub fn from_gl_context(context: std::sync::Arc<crate::context::Context>) -> Self {
         #[allow(unsafe_code)] // Temporary until egui takes Arc
         let context = unsafe { std::rc::Rc::from_raw(std::sync::Arc::into_raw(context)) };
