@@ -381,7 +381,7 @@ impl std::fmt::Debug for Context {
 }
 
 impl std::ops::Deref for Context {
-    type Target = crate::context::Context;
+    type Target = Arc<crate::context::Context>;
     fn deref(&self) -> &Self::Target {
         &self.context
     }

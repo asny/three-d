@@ -1,47 +1,38 @@
-use crate::core::*;
 use crate::window::*;
 #[doc(hidden)]
 pub use egui;
+use egui_glow::Painter;
 
 ///
 /// Integration of [egui](https://crates.io/crates/egui), an immediate mode GUI.
 ///
 pub struct GUI {
-    context: Context,
-    egui_context: egui::CtxRef,
+    painter: Painter,
+    egui_context: egui::Context,
     width: u32,
     height: u32,
-    program: Program,
-    texture_version: u64,
-    texture: Option<Texture2D>,
 }
 
 impl GUI {
     ///
-    /// Creates a new GUI.
+    /// Creates a new GUI from a mid-level [Context](crate::core::Context).
     ///
-    pub fn new(context: &Context) -> Self {
+    pub fn new(context: &crate::core::Context) -> Self {
+        use std::ops::Deref;
+        Self::from_gl_context(context.deref().clone())
+    }
+
+    ///
+    /// Creates a new GUI from a low-level graphics [Context](crate::context::Context).
+    ///
+    pub fn from_gl_context(context: std::sync::Arc<crate::context::Context>) -> Self {
+        #[allow(unsafe_code)] // Temporary until egui takes Arc
+        let context = unsafe { std::rc::Rc::from_raw(std::sync::Arc::into_raw(context)) };
         GUI {
-            egui_context: egui::CtxRef::default(),
-            context: context.clone(),
+            egui_context: egui::Context::default(),
+            painter: Painter::new(context, None, "").unwrap(),
             width: 0,
             height: 0,
-            texture_version: 0,
-            texture: None,
-            program: Program::from_source(
-                context,
-                &format!(
-                    "{}{}",
-                    include_str!("../core/shared.frag"),
-                    include_str!("shaders/egui.vert")
-                ),
-                &format!(
-                    "{}{}",
-                    include_str!("../core/shared.frag"),
-                    include_str!("shaders/egui.frag")
-                ),
-            )
-            .unwrap(),
         }
     }
 
@@ -50,7 +41,7 @@ impl GUI {
     /// Construct the GUI (Add panels, widgets etc.) using the [egui::CtxRef](egui::CtxRef) in the callback function.
     /// This function returns whether or not the GUI has changed, ie. if it consumes any events, and therefore needs to be rendered again.
     ///
-    pub fn update<F: FnOnce(&egui::CtxRef)>(
+    pub fn update<F: FnOnce(&egui::Context)>(
         &mut self,
         frame_input: &mut FrameInput,
         callback: F,
@@ -115,106 +106,27 @@ impl GUI {
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn render(&mut self) {
-        let (_, shapes) = self.egui_context.end_frame();
-        let clipped_meshes = self.egui_context.tessellate(shapes);
-
-        let egui_texture = self.egui_context.texture();
-
-        if self.texture.is_none() || self.texture_version != egui_texture.version {
-            let mut pixels = Vec::new();
-            for pixel in egui_texture.srgba_pixels() {
-                pixels.push([pixel.r(), pixel.g(), pixel.b(), pixel.a()]);
-            }
-            self.texture = Some(Texture2D::new(
-                &self.context,
-                &CpuTexture {
-                    data: TextureData::RgbaU8(pixels),
-                    width: egui_texture.width as u32,
-                    height: egui_texture.height as u32,
-                    mip_map_filter: None,
-                    wrap_s: Wrapping::ClampToEdge,
-                    wrap_t: Wrapping::ClampToEdge,
-                    ..Default::default()
-                },
-            ));
-            self.texture_version = egui_texture.version;
-        };
-
+        let output = self.egui_context.end_frame();
+        let clipped_meshes = self.egui_context.tessellate(output.shapes);
         let scale = self.egui_context.pixels_per_point();
-        let viewport = Viewport::new_at_origo(
-            (self.width as f32 * scale).round() as u32,
-            (self.height as f32 * scale).round() as u32,
+        self.painter.paint_and_update_textures(
+            [
+                (self.width as f32 * scale).round() as u32,
+                (self.height as f32 * scale).round() as u32,
+            ],
+            scale,
+            &clipped_meshes,
+            &output.textures_delta,
         );
-
-        for egui::ClippedMesh(_, mesh) in clipped_meshes {
-            self.paint_mesh(
-                viewport,
-                self.width,
-                self.height,
-                &mesh,
-                self.texture.as_ref().unwrap(),
-            );
+        #[allow(unsafe_code)]
+        unsafe {
+            use glow::HasContext as _;
+            self.painter.gl().disable(glow::FRAMEBUFFER_SRGB);
         }
-    }
-
-    fn paint_mesh(
-        &self,
-        viewport: Viewport,
-        width: u32,
-        height: u32,
-        mesh: &egui::paint::Mesh,
-        texture: &Texture2D,
-    ) {
-        debug_assert!(mesh.is_valid());
-
-        let mut positions = Vec::new();
-        let mut colors = Vec::new();
-        let mut uvs = Vec::new();
-        for v in mesh.vertices.iter() {
-            positions.push(vec2(v.pos.x, v.pos.y));
-            uvs.push(vec2(v.uv.x, 1.0 - v.uv.y));
-            colors.push(vec4(
-                v.color[0] as f32,
-                v.color[1] as f32,
-                v.color[2] as f32,
-                v.color[3] as f32,
-            ));
-        }
-        let indices: Vec<u32> = mesh.indices.iter().map(|idx| *idx as u32).collect();
-
-        let position_buffer = VertexBuffer::new_with_data(&self.context, &positions);
-        let uv_buffer = VertexBuffer::new_with_data(&self.context, &uvs);
-        let color_buffer = VertexBuffer::new_with_data(&self.context, &colors);
-        let index_buffer = ElementBuffer::new_with_data(&self.context, &indices);
-
-        let render_states = RenderStates {
-            blend: Blend::Enabled {
-                source_rgb_multiplier: BlendMultiplierType::One,
-                source_alpha_multiplier: BlendMultiplierType::OneMinusDstAlpha,
-                destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
-                destination_alpha_multiplier: BlendMultiplierType::One,
-                rgb_equation: BlendEquationType::Add,
-                alpha_equation: BlendEquationType::Add,
-            },
-            depth_test: DepthTest::Always,
-            ..Default::default()
-        };
-
-        self.program.use_texture("u_sampler", texture);
-        self.program
-            .use_uniform("u_screen_size", vec2(width as f32, height as f32));
-
-        self.program.use_vertex_attribute("a_pos", &position_buffer);
-        self.program.use_vertex_attribute("a_srgba", &color_buffer);
-        self.program.use_vertex_attribute("a_tc", &uv_buffer);
-
-        self.program
-            .draw_elements(render_states, viewport, &index_buffer)
     }
 }
 
 fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
-    let mut scroll_delta = egui::Vec2::ZERO;
     let mut egui_modifiers = egui::Modifiers::default();
     let mut egui_events = Vec::new();
     for event in frame_input.events.iter() {
@@ -307,7 +219,10 @@ fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
             }
             Event::MouseWheel { delta, handled, .. } => {
                 if !handled {
-                    scroll_delta = egui::Vec2::new(delta.0 as f32, delta.1 as f32);
+                    egui_events.push(egui::Event::Scroll(egui::Vec2::new(
+                        delta.0 as f32,
+                        delta.1 as f32,
+                    )));
                 }
             }
             Event::ModifiersChange { modifiers } => egui_modifiers = map_modifiers(modifiers),
@@ -316,7 +231,6 @@ fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
     }
 
     egui::RawInput {
-        scroll_delta,
         screen_rect: Some(egui::Rect::from_min_size(
             Default::default(),
             egui::Vec2 {
