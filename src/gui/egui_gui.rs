@@ -1,3 +1,4 @@
+use crate::core::*;
 use crate::window::*;
 #[doc(hidden)]
 pub use egui;
@@ -15,9 +16,9 @@ pub struct GUI {
 
 impl GUI {
     ///
-    /// Creates a new GUI from a mid-level [Context](crate::core::Context).
+    /// Creates a new GUI from a mid-level [Context].
     ///
-    pub fn new(context: &crate::core::Context) -> Self {
+    pub fn new(context: &Context) -> Self {
         use std::ops::Deref;
         Self::from_gl_context(context.deref().clone())
     }
