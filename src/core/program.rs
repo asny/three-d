@@ -101,7 +101,7 @@ impl Program {
                 {
                     let location = context
                         .get_attrib_location(id, &name)
-                        .expect(&format!("Could not get the loacation of uniform {}", name));
+                        .expect(&format!("Could not get the location of uniform {}", name));
                     /*println!(
                         "Attribute location: {}, name: {}, type: {}, size: {}",
                         location, name, atype, size

@@ -39,7 +39,7 @@ impl GUI {
 
     ///
     /// Initialises a new frame of the GUI and handles events.
-    /// Construct the GUI (Add panels, widgets etc.) using the [egui::CtxRef](egui::CtxRef) in the callback function.
+    /// Construct the GUI (Add panels, widgets etc.) using the [egui::Context] in the callback function.
     /// This function returns whether or not the GUI has changed, ie. if it consumes any events, and therefore needs to be rendered again.
     ///
     pub fn update<F: FnOnce(&egui::Context)>(
