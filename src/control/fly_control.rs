@@ -1,22 +1,27 @@
-use crate::renderer::*;
-use crate::window::*;
+use super::*;
+use crate::core::*;
 
 ///
-/// A control that makes the camera move like it is a person on the ground.
+/// A control that makes the camera fly through the 3D scene.
 ///
-pub struct FirstPersonControl {
+pub struct FlyControl {
     control: CameraControl,
 }
 
-impl FirstPersonControl {
-    /// Creates a new first person control with the given speed of movements.
+impl FlyControl {
+    /// Creates a new fly control with the given speed of movements.
     pub fn new(speed: f32) -> Self {
         Self {
             control: CameraControl {
                 left_drag_horizontal: CameraAction::Yaw {
                     speed: std::f32::consts::PI / 1800.0,
                 },
+                left_drag_vertical: CameraAction::Pitch {
+                    speed: std::f32::consts::PI / 1800.0,
+                },
                 scroll_vertical: CameraAction::Forward { speed },
+                right_drag_horizontal: CameraAction::Left { speed },
+                right_drag_vertical: CameraAction::Up { speed },
                 ..Default::default()
             },
         }

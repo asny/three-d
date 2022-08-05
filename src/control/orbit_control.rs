@@ -1,5 +1,5 @@
+use super::*;
 use crate::core::*;
-use crate::window::*;
 
 ///
 /// A control that makes the camera orbit around a target.
