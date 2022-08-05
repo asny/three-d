@@ -23,3 +23,6 @@ pub use window::*;
 
 pub mod gui;
 pub use gui::*;
+
+pub mod control;
+pub use control::*;

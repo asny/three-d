@@ -1,5 +1,5 @@
+use crate::control::*;
 use crate::core::*;
-use crate::window::*;
 #[doc(hidden)]
 pub use egui;
 use egui_glow::Painter;
@@ -44,17 +44,22 @@ impl GUI {
     ///
     pub fn update<F: FnOnce(&egui::Context)>(
         &mut self,
-        frame_input: &mut FrameInput,
+        width: u32,
+        height: u32,
+        device_pixel_ratio: f64,
+        accumulated_time: f64,
+        events: &mut [Event],
         callback: F,
     ) -> bool {
-        self.width = frame_input.window_width;
-        self.height = frame_input.window_height;
-        let input_state = construct_input_state(frame_input);
+        self.width = width;
+        self.height = height;
+        let input_state =
+            construct_input_state(width, height, device_pixel_ratio, accumulated_time, events);
         self.egui_context.begin_frame(input_state);
         callback(&self.egui_context);
 
         let mut change = false;
-        for event in frame_input.events.iter_mut() {
+        for event in events.iter_mut() {
             if self.egui_context.wants_pointer_input() {
                 match event {
                     Event::MousePress {
@@ -127,10 +132,16 @@ impl GUI {
     }
 }
 
-fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
+fn construct_input_state(
+    width: u32,
+    height: u32,
+    device_pixel_ratio: f64,
+    accumulated_time: f64,
+    events: &[Event],
+) -> egui::RawInput {
     let mut egui_modifiers = egui::Modifiers::default();
     let mut egui_events = Vec::new();
-    for event in frame_input.events.iter() {
+    for event in events.iter() {
         match event {
             Event::KeyPress {
                 kind,
@@ -235,12 +246,12 @@ fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
         screen_rect: Some(egui::Rect::from_min_size(
             Default::default(),
             egui::Vec2 {
-                x: frame_input.window_width as f32,
-                y: frame_input.window_height as f32,
+                x: width as f32,
+                y: height as f32,
             },
         )),
-        pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
-        time: Some(frame_input.accumulated_time * 0.001),
+        pixels_per_point: Some(device_pixel_ratio as f32),
+        time: Some(accumulated_time * 0.001),
         modifiers: egui_modifiers,
         events: egui_events,
         ..Default::default()
