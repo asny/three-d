@@ -42,24 +42,28 @@ impl GUI {
     /// Construct the GUI (Add panels, widgets etc.) using the [egui::Context] in the callback function.
     /// This function returns whether or not the GUI has changed, ie. if it consumes any events, and therefore needs to be rendered again.
     ///
-    pub fn update<F: FnOnce(&egui::Context)>(
+    #[cfg(not(feature = "window"))]
+    pub fn update(
         &mut self,
-        width: u32,
-        height: u32,
-        device_pixel_ratio: f64,
-        accumulated_time: f64,
-        events: &mut [Event],
-        callback: F,
+        frame_input: egui::RawInput,
+        callback: impl FnOnce(&egui::Context),
     ) -> bool {
-        self.width = width;
-        self.height = height;
-        let input_state =
-            construct_input_state(width, height, device_pixel_ratio, accumulated_time, events);
-        self.egui_context.begin_frame(input_state);
-        callback(&self.egui_context);
+        self.update_internal(frame_input, callback)
+    }
 
-        let mut change = false;
-        for event in events.iter_mut() {
+    ///
+    /// Initialises a new frame of the GUI and handles events.
+    /// Construct the GUI (Add panels, widgets etc.) using the [egui::Context] in the callback function.
+    /// This function returns whether or not the GUI has changed, ie. if it consumes any events, and therefore needs to be rendered again.
+    ///
+    #[cfg(feature = "window")]
+    pub fn update(
+        &mut self,
+        frame_input: &mut crate::window::FrameInput,
+        callback: impl FnOnce(&egui::Context),
+    ) -> bool {
+        let change = self.update_internal(frame_input.into(), callback);
+        for event in frame_input.events.iter_mut() {
             if self.egui_context.wants_pointer_input() {
                 match event {
                     Event::MousePress {
@@ -84,7 +88,6 @@ impl GUI {
                     }
                     _ => {}
                 }
-                change = true;
             }
 
             if self.egui_context.wants_keyboard_input() {
@@ -101,10 +104,21 @@ impl GUI {
                     }
                     _ => {}
                 }
-                change = true;
             }
         }
         change
+    }
+
+    fn update_internal(
+        &mut self,
+        frame_input: egui::RawInput,
+        callback: impl FnOnce(&egui::Context),
+    ) -> bool {
+        self.width = frame_input.screen_rect.unwrap().max.x as u32;
+        self.height = frame_input.screen_rect.unwrap().max.y as u32;
+        self.egui_context.begin_frame(frame_input);
+        callback(&self.egui_context);
+        self.egui_context.wants_pointer_input() || self.egui_context.wants_keyboard_input()
     }
 
     ///
@@ -132,16 +146,25 @@ impl GUI {
     }
 }
 
-fn construct_input_state(
-    width: u32,
-    height: u32,
-    device_pixel_ratio: f64,
-    accumulated_time: f64,
-    events: &[Event],
-) -> egui::RawInput {
+#[cfg(feature = "window")]
+impl From<&mut crate::window::FrameInput> for egui::RawInput {
+    fn from(input: &mut crate::window::FrameInput) -> Self {
+        construct_input_state(input)
+    }
+}
+
+#[cfg(feature = "window")]
+impl From<&crate::window::FrameInput> for egui::RawInput {
+    fn from(input: &crate::window::FrameInput) -> Self {
+        construct_input_state(input)
+    }
+}
+
+#[cfg(feature = "window")]
+fn construct_input_state(frame_input: &crate::window::FrameInput) -> egui::RawInput {
     let mut egui_modifiers = egui::Modifiers::default();
     let mut egui_events = Vec::new();
-    for event in events.iter() {
+    for event in frame_input.events.iter() {
         match event {
             Event::KeyPress {
                 kind,
@@ -246,12 +269,12 @@ fn construct_input_state(
         screen_rect: Some(egui::Rect::from_min_size(
             Default::default(),
             egui::Vec2 {
-                x: width as f32,
-                y: height as f32,
+                x: frame_input.window_width as f32,
+                y: frame_input.window_height as f32,
             },
         )),
-        pixels_per_point: Some(device_pixel_ratio as f32),
-        time: Some(accumulated_time * 0.001),
+        pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
+        time: Some(frame_input.accumulated_time * 0.001),
         modifiers: egui_modifiers,
         events: egui_events,
         ..Default::default()
