@@ -36,7 +36,7 @@ pub enum Event {
     MousePress {
         /// Type of button
         button: MouseButton,
-        /// The screen position in logical pixels, to get it in physical pixels, multiply it with [FrameInput::device_pixel_ratio].
+        /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
         /// The first value defines the position on the horizontal axis with zero being at the left border of the window
         /// and the second on the vertical axis with zero being at the top edge of the window.
         position: (f64, f64),
@@ -49,7 +49,7 @@ pub enum Event {
     MouseRelease {
         /// Type of button
         button: MouseButton,
-        /// The screen position in logical pixels, to get it in physical pixels, multiply it with [FrameInput::device_pixel_ratio].
+        /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
         /// The first value defines the position on the horizontal axis with zero being at the left border of the window
         /// and the second on the vertical axis with zero being at the top edge of the window.
         position: (f64, f64),
@@ -64,7 +64,7 @@ pub enum Event {
         button: Option<MouseButton>,
         /// The relative movement of the mouse/finger since last [Event::MouseMotion] event.
         delta: (f64, f64),
-        /// The screen position in logical pixels, to get it in physical pixels, multiply it with [FrameInput::device_pixel_ratio].
+        /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
         /// The first value defines the position on the horizontal axis with zero being at the left border of the window
         /// and the second on the vertical axis with zero being at the top edge of the window.
         position: (f64, f64),
@@ -77,7 +77,7 @@ pub enum Event {
     MouseWheel {
         /// The relative scrolling since the last [Event::MouseWheel] event.
         delta: (f64, f64),
-        /// The screen position in logical pixels, to get it in physical pixels, multiply it with [FrameInput::device_pixel_ratio].
+        /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
         /// The first value defines the position on the horizontal axis with zero being at the left border of the window
         /// and the second on the vertical axis with zero being at the top edge of the window.
         position: (f64, f64),
