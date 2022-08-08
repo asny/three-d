@@ -50,7 +50,7 @@ impl GUI {
         self.width = frame_input.window_width;
         self.height = frame_input.window_height;
         self.egui_context
-            .begin_frame(egui::RawInput::from(&*frame_input));
+            .begin_frame(construct_egui_input(frame_input));
         callback(&self.egui_context);
 
         for event in frame_input.events.iter_mut() {
@@ -121,5 +121,128 @@ impl GUI {
             use glow::HasContext as _;
             self.painter.gl().disable(glow::FRAMEBUFFER_SRGB);
         }
+    }
+}
+
+fn construct_egui_input(frame_input: &FrameInput) -> egui::RawInput {
+    let mut egui_modifiers = egui::Modifiers::default();
+    let events = frame_input
+        .events
+        .iter()
+        .filter_map(|event| match event {
+            Event::KeyPress {
+                kind,
+                modifiers,
+                handled,
+            } => {
+                if !handled {
+                    Some(egui::Event::Key {
+                        key: kind.into(),
+                        pressed: true,
+                        modifiers: modifiers.into(),
+                    })
+                } else {
+                    None
+                }
+            }
+            Event::KeyRelease {
+                kind,
+                modifiers,
+                handled,
+            } => {
+                if !handled {
+                    Some(egui::Event::Key {
+                        key: kind.into(),
+                        pressed: false,
+                        modifiers: modifiers.into(),
+                    })
+                } else {
+                    None
+                }
+            }
+            Event::MousePress {
+                button,
+                position,
+                modifiers,
+                handled,
+            } => {
+                if !handled {
+                    Some(egui::Event::PointerButton {
+                        pos: egui::Pos2 {
+                            x: position.0 as f32,
+                            y: position.1 as f32,
+                        },
+                        button: button.into(),
+                        pressed: true,
+                        modifiers: modifiers.into(),
+                    })
+                } else {
+                    None
+                }
+            }
+            Event::MouseRelease {
+                button,
+                position,
+                modifiers,
+                handled,
+            } => {
+                if !handled {
+                    Some(egui::Event::PointerButton {
+                        pos: egui::Pos2 {
+                            x: position.0 as f32,
+                            y: position.1 as f32,
+                        },
+                        button: button.into(),
+                        pressed: false,
+                        modifiers: modifiers.into(),
+                    })
+                } else {
+                    None
+                }
+            }
+            Event::MouseMotion {
+                position, handled, ..
+            } => {
+                if !handled {
+                    Some(egui::Event::PointerMoved(egui::Pos2 {
+                        x: position.0 as f32,
+                        y: position.1 as f32,
+                    }))
+                } else {
+                    None
+                }
+            }
+            Event::Text(text) => Some(egui::Event::Text(text.clone())),
+            Event::MouseLeave => Some(egui::Event::PointerGone),
+            Event::MouseWheel { delta, handled, .. } => {
+                if !handled {
+                    Some(egui::Event::Scroll(egui::Vec2::new(
+                        delta.0 as f32,
+                        delta.1 as f32,
+                    )))
+                } else {
+                    None
+                }
+            }
+            Event::ModifiersChange { modifiers } => {
+                egui_modifiers = modifiers.into();
+                None
+            }
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    egui::RawInput {
+        screen_rect: Some(egui::Rect::from_min_size(
+            Default::default(),
+            egui::Vec2 {
+                x: frame_input.window_width as f32,
+                y: frame_input.window_height as f32,
+            },
+        )),
+        pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
+        time: Some(frame_input.accumulated_time * 0.001),
+        modifiers: egui_modifiers,
+        events,
+        ..Default::default()
     }
 }
