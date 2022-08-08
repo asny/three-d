@@ -49,7 +49,8 @@ impl GUI {
     ) -> bool {
         self.width = frame_input.window_width;
         self.height = frame_input.window_height;
-        self.egui_context.begin_frame(frame_input.clone().into());
+        self.egui_context
+            .begin_frame(egui::RawInput::from(&*frame_input));
         callback(&self.egui_context);
 
         for event in frame_input.events.iter_mut() {
