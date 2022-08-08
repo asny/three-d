@@ -279,7 +279,7 @@ mod egui_conversions {
                             egui_events.push(egui::Event::Key {
                                 key: translate_to_egui_key_code(kind),
                                 pressed: true,
-                                modifiers: map_modifiers(modifiers),
+                                modifiers: modifiers.into(),
                             });
                         }
                     }
@@ -292,7 +292,7 @@ mod egui_conversions {
                             egui_events.push(egui::Event::Key {
                                 key: translate_to_egui_key_code(kind),
                                 pressed: false,
-                                modifiers: map_modifiers(modifiers),
+                                modifiers: modifiers.into(),
                             });
                         }
                     }
@@ -314,7 +314,7 @@ mod egui_conversions {
                                     MouseButton::Middle => egui::PointerButton::Middle,
                                 },
                                 pressed: true,
-                                modifiers: map_modifiers(modifiers),
+                                modifiers: modifiers.into(),
                             });
                         }
                     }
@@ -336,7 +336,7 @@ mod egui_conversions {
                                     MouseButton::Middle => egui::PointerButton::Middle,
                                 },
                                 pressed: false,
-                                modifiers: map_modifiers(modifiers),
+                                modifiers: modifiers.into(),
                             });
                         }
                     }
@@ -364,9 +364,7 @@ mod egui_conversions {
                             )));
                         }
                     }
-                    Event::ModifiersChange { modifiers } => {
-                        egui_modifiers = map_modifiers(modifiers)
-                    }
+                    Event::ModifiersChange { modifiers } => egui_modifiers = modifiers.into(),
                     _ => (),
                 }
             }
@@ -444,13 +442,26 @@ mod egui_conversions {
         }
     }
 
-    fn map_modifiers(modifiers: Modifiers) -> egui::Modifiers {
-        egui::Modifiers {
-            alt: modifiers.alt,
-            ctrl: modifiers.ctrl,
-            shift: modifiers.shift,
-            command: modifiers.command,
-            mac_cmd: cfg!(target_os = "macos") && modifiers.command,
+    impl From<egui::Modifiers> for Modifiers {
+        fn from(modifiers: egui::Modifiers) -> Self {
+            Self {
+                alt: modifiers.alt,
+                ctrl: modifiers.ctrl,
+                shift: modifiers.shift,
+                command: modifiers.command || modifiers.mac_cmd,
+            }
+        }
+    }
+
+    impl From<Modifiers> for egui::Modifiers {
+        fn from(modifiers: Modifiers) -> Self {
+            Self {
+                alt: modifiers.alt,
+                ctrl: modifiers.ctrl,
+                shift: modifiers.shift,
+                command: modifiers.command,
+                mac_cmd: cfg!(target_os = "macos") && modifiers.command,
+            }
         }
     }
 }
