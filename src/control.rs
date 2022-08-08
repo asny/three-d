@@ -267,20 +267,23 @@ mod egui_conversions {
     impl From<FrameInput> for egui::RawInput {
         fn from(frame_input: FrameInput) -> Self {
             let mut egui_modifiers = egui::Modifiers::default();
-            let mut egui_events = Vec::new();
-            for event in frame_input.events {
-                match event {
+            let events = frame_input
+                .events
+                .into_iter()
+                .filter_map(|event| match event {
                     Event::KeyPress {
                         kind,
                         modifiers,
                         handled,
                     } => {
                         if !handled {
-                            egui_events.push(egui::Event::Key {
+                            Some(egui::Event::Key {
                                 key: kind.into(),
                                 pressed: true,
                                 modifiers: modifiers.into(),
-                            });
+                            })
+                        } else {
+                            None
                         }
                     }
                     Event::KeyRelease {
@@ -289,11 +292,13 @@ mod egui_conversions {
                         handled,
                     } => {
                         if !handled {
-                            egui_events.push(egui::Event::Key {
+                            Some(egui::Event::Key {
                                 key: kind.into(),
                                 pressed: false,
                                 modifiers: modifiers.into(),
-                            });
+                            })
+                        } else {
+                            None
                         }
                     }
                     Event::MousePress {
@@ -303,7 +308,7 @@ mod egui_conversions {
                         handled,
                     } => {
                         if !handled {
-                            egui_events.push(egui::Event::PointerButton {
+                            Some(egui::Event::PointerButton {
                                 pos: egui::Pos2 {
                                     x: position.0 as f32,
                                     y: position.1 as f32,
@@ -315,7 +320,9 @@ mod egui_conversions {
                                 },
                                 pressed: true,
                                 modifiers: modifiers.into(),
-                            });
+                            })
+                        } else {
+                            None
                         }
                     }
                     Event::MouseRelease {
@@ -325,7 +332,7 @@ mod egui_conversions {
                         handled,
                     } => {
                         if !handled {
-                            egui_events.push(egui::Event::PointerButton {
+                            Some(egui::Event::PointerButton {
                                 pos: egui::Pos2 {
                                     x: position.0 as f32,
                                     y: position.1 as f32,
@@ -337,37 +344,42 @@ mod egui_conversions {
                                 },
                                 pressed: false,
                                 modifiers: modifiers.into(),
-                            });
+                            })
+                        } else {
+                            None
                         }
                     }
                     Event::MouseMotion {
                         position, handled, ..
                     } => {
                         if !handled {
-                            egui_events.push(egui::Event::PointerMoved(egui::Pos2 {
+                            Some(egui::Event::PointerMoved(egui::Pos2 {
                                 x: position.0 as f32,
                                 y: position.1 as f32,
-                            }));
+                            }))
+                        } else {
+                            None
                         }
                     }
-                    Event::Text(text) => {
-                        egui_events.push(egui::Event::Text(text.clone()));
-                    }
-                    Event::MouseLeave => {
-                        egui_events.push(egui::Event::PointerGone);
-                    }
+                    Event::Text(text) => Some(egui::Event::Text(text.clone())),
+                    Event::MouseLeave => Some(egui::Event::PointerGone),
                     Event::MouseWheel { delta, handled, .. } => {
                         if !handled {
-                            egui_events.push(egui::Event::Scroll(egui::Vec2::new(
+                            Some(egui::Event::Scroll(egui::Vec2::new(
                                 delta.0 as f32,
                                 delta.1 as f32,
-                            )));
+                            )))
+                        } else {
+                            None
                         }
                     }
-                    Event::ModifiersChange { modifiers } => egui_modifiers = modifiers.into(),
-                    _ => (),
-                }
-            }
+                    Event::ModifiersChange { modifiers } => {
+                        egui_modifiers = modifiers.into();
+                        None
+                    }
+                    _ => None,
+                })
+                .collect::<Vec<_>>();
             egui::RawInput {
                 screen_rect: Some(egui::Rect::from_min_size(
                     Default::default(),
@@ -379,7 +391,7 @@ mod egui_conversions {
                 pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
                 time: Some(frame_input.accumulated_time * 0.001),
                 modifiers: egui_modifiers,
-                events: egui_events,
+                events,
                 ..Default::default()
             }
         }
