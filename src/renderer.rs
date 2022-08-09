@@ -60,6 +60,9 @@ pub use geometry::*;
 pub mod object;
 pub use object::*;
 
+pub mod control;
+pub use control::*;
+
 impl<'a> DepthTarget<'a> {
     ///
     /// Render the objects using the given camera and lights into this depth target.
