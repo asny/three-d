@@ -1,6 +1,7 @@
 use crate::control::*;
 use crate::core::*;
 use egui_glow::Painter;
+use std::cell::RefCell;
 
 #[doc(hidden)]
 pub use egui;
@@ -9,9 +10,9 @@ pub use egui;
 /// Integration of [egui](https://crates.io/crates/egui), an immediate mode GUI.
 ///
 pub struct GUI {
-    painter: Painter,
+    painter: RefCell<Painter>,
     egui_context: egui::Context,
-    output: Option<egui::FullOutput>,
+    output: RefCell<Option<egui::FullOutput>>,
     modifiers: Modifiers,
 }
 
@@ -32,8 +33,8 @@ impl GUI {
         let context = unsafe { std::rc::Rc::from_raw(std::sync::Arc::into_raw(context)) };
         GUI {
             egui_context: egui::Context::default(),
-            painter: Painter::new(context, None, "").unwrap(),
-            output: None,
+            painter: RefCell::new(Painter::new(context, None, "").unwrap()),
+            output: RefCell::new(None),
             modifiers: Modifiers::default(),
         }
     }
@@ -159,7 +160,7 @@ impl GUI {
 
         self.egui_context.begin_frame(egui_input);
         callback(&self.egui_context);
-        self.output = Some(self.egui_context.end_frame());
+        *self.output.borrow_mut() = Some(self.egui_context.end_frame());
 
         for event in events.iter_mut() {
             if let Event::ModifiersChange { modifiers } = event {
@@ -214,14 +215,15 @@ impl GUI {
     /// Render the GUI defined in the [update](Self::update) function.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn render(&mut self, viewport: Viewport) {
+    pub fn render(&self, viewport: Viewport) {
         let output = self
             .output
+            .borrow_mut()
             .take()
             .expect("need to call GUI::update before GUI::render");
         let clipped_meshes = self.egui_context.tessellate(output.shapes);
         let scale = self.egui_context.pixels_per_point();
-        self.painter.paint_and_update_textures(
+        self.painter.borrow_mut().paint_and_update_textures(
             [viewport.width, viewport.height],
             scale,
             &clipped_meshes,
@@ -230,7 +232,7 @@ impl GUI {
         #[allow(unsafe_code)]
         unsafe {
             use glow::HasContext as _;
-            self.painter.gl().disable(glow::FRAMEBUFFER_SRGB);
+            self.painter.borrow().gl().disable(glow::FRAMEBUFFER_SRGB);
         }
     }
 }
