@@ -128,86 +128,96 @@ pub async fn run() {
 
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
-        gui.update(&mut frame_input, |gui_context| {
-            use three_d::egui::*;
-            SidePanel::left("side_panel").show(gui_context, |ui| {
-                ui.heading("Debug Panel");
+        gui.update(
+            &mut frame_input.events,
+            frame_input.accumulated_time,
+            frame_input.device_pixel_ratio,
+            |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
 
-                ui.label("Surface parameters");
-                ui.add(
-                    Slider::new::<f32>(&mut model.material.metallic, 0.0..=1.0)
-                        .text("Model Metallic"),
-                );
-                ui.add(
-                    Slider::new::<f32>(&mut model.material.roughness, 0.0..=1.0)
-                        .text("Model Roughness"),
-                );
-                ui.add(Slider::new(&mut plane.material.metallic, 0.0..=1.0).text("Plane Metallic"));
-                ui.add(
-                    Slider::new(&mut plane.material.roughness, 0.0..=1.0).text("Plane Roughness"),
-                );
+                    ui.label("Surface parameters");
+                    ui.add(
+                        Slider::new::<f32>(&mut model.material.metallic, 0.0..=1.0)
+                            .text("Model Metallic"),
+                    );
+                    ui.add(
+                        Slider::new::<f32>(&mut model.material.roughness, 0.0..=1.0)
+                            .text("Model Roughness"),
+                    );
+                    ui.add(
+                        Slider::new(&mut plane.material.metallic, 0.0..=1.0).text("Plane Metallic"),
+                    );
+                    ui.add(
+                        Slider::new(&mut plane.material.roughness, 0.0..=1.0)
+                            .text("Plane Roughness"),
+                    );
 
-                ui.label("Light options");
-                ui.add(Slider::new(&mut ambient.intensity, 0.0..=1.0).text("Ambient intensity"));
-                ui.add(
-                    Slider::new(&mut directional0.intensity, 0.0..=1.0)
-                        .text("Directional 0 intensity"),
-                );
-                ui.add(
-                    Slider::new(&mut directional1.intensity, 0.0..=1.0)
-                        .text("Directional 1 intensity"),
-                );
-                ui.add(Slider::new(&mut spot0.intensity, 0.0..=1.0).text("Spot intensity"));
-                ui.add(Slider::new(&mut point0.intensity, 0.0..=1.0).text("Point 0 intensity"));
-                ui.add(Slider::new(&mut point1.intensity, 0.0..=1.0).text("Point 1 intensity"));
-                if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
-                    if !shadows_enabled {
-                        spot0.clear_shadow_map();
-                        directional0.clear_shadow_map();
-                        directional1.clear_shadow_map();
+                    ui.label("Light options");
+                    ui.add(
+                        Slider::new(&mut ambient.intensity, 0.0..=1.0).text("Ambient intensity"),
+                    );
+                    ui.add(
+                        Slider::new(&mut directional0.intensity, 0.0..=1.0)
+                            .text("Directional 0 intensity"),
+                    );
+                    ui.add(
+                        Slider::new(&mut directional1.intensity, 0.0..=1.0)
+                            .text("Directional 1 intensity"),
+                    );
+                    ui.add(Slider::new(&mut spot0.intensity, 0.0..=1.0).text("Spot intensity"));
+                    ui.add(Slider::new(&mut point0.intensity, 0.0..=1.0).text("Point 0 intensity"));
+                    ui.add(Slider::new(&mut point1.intensity, 0.0..=1.0).text("Point 1 intensity"));
+                    if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
+                        if !shadows_enabled {
+                            spot0.clear_shadow_map();
+                            directional0.clear_shadow_map();
+                            directional1.clear_shadow_map();
+                        }
                     }
-                }
 
-                ui.label("Lighting model");
-                ui.radio_value(&mut lighting_model, LightingModel::Phong, "Phong");
-                ui.radio_value(&mut lighting_model, LightingModel::Blinn, "Blinn");
-                ui.radio_value(
-                    &mut lighting_model,
-                    LightingModel::Cook(
-                        NormalDistributionFunction::Blinn,
-                        GeometryFunction::SmithSchlickGGX,
-                    ),
-                    "Cook (Blinn)",
-                );
-                ui.radio_value(
-                    &mut lighting_model,
-                    LightingModel::Cook(
-                        NormalDistributionFunction::Beckmann,
-                        GeometryFunction::SmithSchlickGGX,
-                    ),
-                    "Cook (Beckmann)",
-                );
-                ui.radio_value(
-                    &mut lighting_model,
-                    LightingModel::Cook(
-                        NormalDistributionFunction::TrowbridgeReitzGGX,
-                        GeometryFunction::SmithSchlickGGX,
-                    ),
-                    "Cook (Trowbridge-Reitz GGX)",
-                );
+                    ui.label("Lighting model");
+                    ui.radio_value(&mut lighting_model, LightingModel::Phong, "Phong");
+                    ui.radio_value(&mut lighting_model, LightingModel::Blinn, "Blinn");
+                    ui.radio_value(
+                        &mut lighting_model,
+                        LightingModel::Cook(
+                            NormalDistributionFunction::Blinn,
+                            GeometryFunction::SmithSchlickGGX,
+                        ),
+                        "Cook (Blinn)",
+                    );
+                    ui.radio_value(
+                        &mut lighting_model,
+                        LightingModel::Cook(
+                            NormalDistributionFunction::Beckmann,
+                            GeometryFunction::SmithSchlickGGX,
+                        ),
+                        "Cook (Beckmann)",
+                    );
+                    ui.radio_value(
+                        &mut lighting_model,
+                        LightingModel::Cook(
+                            NormalDistributionFunction::TrowbridgeReitzGGX,
+                            GeometryFunction::SmithSchlickGGX,
+                        ),
+                        "Cook (Trowbridge-Reitz GGX)",
+                    );
 
-                ui.label("Material options");
-                ui.radio_value(&mut material_type, MaterialType::Forward, "Forward");
-                ui.radio_value(&mut material_type, MaterialType::Deferred, "Deferred");
-                ui.radio_value(&mut material_type, MaterialType::Position, "Position");
-                ui.radio_value(&mut material_type, MaterialType::Normal, "Normal");
-                ui.radio_value(&mut material_type, MaterialType::Color, "Color");
-                ui.radio_value(&mut material_type, MaterialType::Uv, "UV");
-                ui.radio_value(&mut material_type, MaterialType::Depth, "Depth");
-                ui.radio_value(&mut material_type, MaterialType::Orm, "ORM");
-            });
-            panel_width = gui_context.used_size().x as f64;
-        });
+                    ui.label("Material options");
+                    ui.radio_value(&mut material_type, MaterialType::Forward, "Forward");
+                    ui.radio_value(&mut material_type, MaterialType::Deferred, "Deferred");
+                    ui.radio_value(&mut material_type, MaterialType::Position, "Position");
+                    ui.radio_value(&mut material_type, MaterialType::Normal, "Normal");
+                    ui.radio_value(&mut material_type, MaterialType::Color, "Color");
+                    ui.radio_value(&mut material_type, MaterialType::Uv, "UV");
+                    ui.radio_value(&mut material_type, MaterialType::Depth, "Depth");
+                    ui.radio_value(&mut material_type, MaterialType::Orm, "ORM");
+                });
+                panel_width = gui_context.used_size().x as f64;
+            },
+        );
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,

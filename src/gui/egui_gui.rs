@@ -45,15 +45,123 @@ impl GUI {
     ///
     pub fn update(
         &mut self,
-        frame_input: &mut FrameInput,
+        events: &mut [Event],
+        accumulated_time: f64,
+        device_pixel_ratio: f64,
         callback: impl FnOnce(&egui::Context),
     ) -> bool {
-        self.egui_context
-            .begin_frame(construct_egui_input(frame_input, &self.modifiers));
+        let egui_input = egui::RawInput {
+            pixels_per_point: Some(device_pixel_ratio as f32),
+            time: Some(accumulated_time * 0.001),
+            modifiers: (&self.modifiers).into(),
+            events: events
+                .iter()
+                .filter_map(|event| match event {
+                    Event::KeyPress {
+                        kind,
+                        modifiers,
+                        handled,
+                    } => {
+                        if !handled {
+                            Some(egui::Event::Key {
+                                key: kind.into(),
+                                pressed: true,
+                                modifiers: modifiers.into(),
+                            })
+                        } else {
+                            None
+                        }
+                    }
+                    Event::KeyRelease {
+                        kind,
+                        modifiers,
+                        handled,
+                    } => {
+                        if !handled {
+                            Some(egui::Event::Key {
+                                key: kind.into(),
+                                pressed: false,
+                                modifiers: modifiers.into(),
+                            })
+                        } else {
+                            None
+                        }
+                    }
+                    Event::MousePress {
+                        button,
+                        position,
+                        modifiers,
+                        handled,
+                    } => {
+                        if !handled {
+                            Some(egui::Event::PointerButton {
+                                pos: egui::Pos2 {
+                                    x: position.0 as f32,
+                                    y: position.1 as f32,
+                                },
+                                button: button.into(),
+                                pressed: true,
+                                modifiers: modifiers.into(),
+                            })
+                        } else {
+                            None
+                        }
+                    }
+                    Event::MouseRelease {
+                        button,
+                        position,
+                        modifiers,
+                        handled,
+                    } => {
+                        if !handled {
+                            Some(egui::Event::PointerButton {
+                                pos: egui::Pos2 {
+                                    x: position.0 as f32,
+                                    y: position.1 as f32,
+                                },
+                                button: button.into(),
+                                pressed: false,
+                                modifiers: modifiers.into(),
+                            })
+                        } else {
+                            None
+                        }
+                    }
+                    Event::MouseMotion {
+                        position, handled, ..
+                    } => {
+                        if !handled {
+                            Some(egui::Event::PointerMoved(egui::Pos2 {
+                                x: position.0 as f32,
+                                y: position.1 as f32,
+                            }))
+                        } else {
+                            None
+                        }
+                    }
+                    Event::Text(text) => Some(egui::Event::Text(text.clone())),
+                    Event::MouseLeave => Some(egui::Event::PointerGone),
+                    Event::MouseWheel { delta, handled, .. } => {
+                        if !handled {
+                            Some(egui::Event::Scroll(egui::Vec2::new(
+                                delta.0 as f32,
+                                delta.1 as f32,
+                            )))
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                })
+                .collect::<Vec<_>>(),
+            ..Default::default()
+        };
+
+        self.egui_context.begin_frame(egui_input);
         callback(&self.egui_context);
         self.output = Some(self.egui_context.end_frame());
 
-        for event in frame_input.events.iter_mut() {
+        for event in events.iter_mut() {
             if let Event::ModifiersChange { modifiers } = event {
                 self.modifiers = *modifiers;
             }
@@ -124,127 +232,6 @@ impl GUI {
             use glow::HasContext as _;
             self.painter.gl().disable(glow::FRAMEBUFFER_SRGB);
         }
-    }
-}
-
-fn construct_egui_input(frame_input: &FrameInput, egui_modifiers: &Modifiers) -> egui::RawInput {
-    let events = frame_input
-        .events
-        .iter()
-        .filter_map(|event| match event {
-            Event::KeyPress {
-                kind,
-                modifiers,
-                handled,
-            } => {
-                if !handled {
-                    Some(egui::Event::Key {
-                        key: kind.into(),
-                        pressed: true,
-                        modifiers: modifiers.into(),
-                    })
-                } else {
-                    None
-                }
-            }
-            Event::KeyRelease {
-                kind,
-                modifiers,
-                handled,
-            } => {
-                if !handled {
-                    Some(egui::Event::Key {
-                        key: kind.into(),
-                        pressed: false,
-                        modifiers: modifiers.into(),
-                    })
-                } else {
-                    None
-                }
-            }
-            Event::MousePress {
-                button,
-                position,
-                modifiers,
-                handled,
-            } => {
-                if !handled {
-                    Some(egui::Event::PointerButton {
-                        pos: egui::Pos2 {
-                            x: position.0 as f32,
-                            y: position.1 as f32,
-                        },
-                        button: button.into(),
-                        pressed: true,
-                        modifiers: modifiers.into(),
-                    })
-                } else {
-                    None
-                }
-            }
-            Event::MouseRelease {
-                button,
-                position,
-                modifiers,
-                handled,
-            } => {
-                if !handled {
-                    Some(egui::Event::PointerButton {
-                        pos: egui::Pos2 {
-                            x: position.0 as f32,
-                            y: position.1 as f32,
-                        },
-                        button: button.into(),
-                        pressed: false,
-                        modifiers: modifiers.into(),
-                    })
-                } else {
-                    None
-                }
-            }
-            Event::MouseMotion {
-                position, handled, ..
-            } => {
-                if !handled {
-                    Some(egui::Event::PointerMoved(egui::Pos2 {
-                        x: position.0 as f32,
-                        y: position.1 as f32,
-                    }))
-                } else {
-                    None
-                }
-            }
-            Event::Text(text) => Some(egui::Event::Text(text.clone())),
-            Event::MouseLeave => Some(egui::Event::PointerGone),
-            Event::MouseWheel { delta, handled, .. } => {
-                if !handled {
-                    Some(egui::Event::Scroll(egui::Vec2::new(
-                        delta.0 as f32,
-                        delta.1 as f32,
-                    )))
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        })
-        .collect::<Vec<_>>();
-    egui::RawInput {
-        screen_rect: Some(egui::Rect::from_min_size(
-            egui::Pos2 {
-                x: frame_input.viewport.x as f32,
-                y: frame_input.viewport.y as f32,
-            },
-            egui::Vec2 {
-                x: frame_input.viewport.width as f32,
-                y: frame_input.viewport.height as f32,
-            },
-        )),
-        pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
-        time: Some(frame_input.accumulated_time * 0.001),
-        modifiers: egui_modifiers.into(),
-        events,
-        ..Default::default()
     }
 }
 
