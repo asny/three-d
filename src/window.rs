@@ -12,23 +12,15 @@ pub use settings::*;
 pub mod control;
 pub use control::*;
 
-#[cfg(not(target_arch = "wasm32"))]
-mod glutin_window;
+mod winit_window;
 #[doc(inline)]
-#[cfg(not(target_arch = "wasm32"))]
-pub use glutin_window::*;
+pub use winit_window::*;
 
 #[cfg(not(target_arch = "wasm32"))]
 mod headless;
 #[doc(inline)]
 #[cfg(not(target_arch = "wasm32"))]
 pub use headless::*;
-
-#[cfg(target_arch = "wasm32")]
-mod canvas;
-#[doc(inline)]
-#[cfg(target_arch = "wasm32")]
-pub use canvas::*;
 
 use thiserror::Error;
 ///

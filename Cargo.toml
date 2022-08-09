@@ -22,6 +22,7 @@ window = ["glutin"] # Window module
 egui-gui = ["egui_glow", "egui"] # Additional GUI features 
 
 [dependencies]
+winit = {version = "0.27.1"}
 glow = "0.11"
 cgmath = "0.18"
 three-d-asset = "0.3"
@@ -39,7 +40,7 @@ wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCollection', 'HtmlCanvasElement', 'Window', 'CssStyleDeclaration', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer', 'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject', 'WebGlActiveInfo', 'WebGlSync', 'Performance','Headers', 'Request', 'RequestInit', 'RequestMode', 'Response'] }
 gloo-timers = "0.2"
 serde = { version = "1", features = ["derive"] }
-
+instant = "0.1.12"
 [dev-dependencies]
 rand = "0.8"
 three-d-asset = {version = "0.3", features = ["hdr", "gltf", "obj", "vol", "png", "jpeg"] }
