@@ -323,7 +323,7 @@ pub async fn run() {
                 screen.render(&camera, &[&deferred_model, &deferred_plane], &lights);
             }
         }
-        screen.write(|| gui.render());
+        screen.write(|| gui.render(frame_input.viewport));
 
         FrameOutput::default()
     });

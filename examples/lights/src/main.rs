@@ -117,7 +117,7 @@ pub async fn run() {
                     .collect::<Vec<_>>(),
             )
             .write(|| {
-                gui.render();
+                gui.render(frame_input.viewport);
             });
 
         FrameOutput::default()

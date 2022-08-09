@@ -131,7 +131,7 @@ pub async fn run() {
                     ),
                 };
                 model.render_with_material(&material, &camera, &[&light]);
-                gui.render();
+                gui.render(frame_input.viewport);
             });
 
         FrameOutput::default()
