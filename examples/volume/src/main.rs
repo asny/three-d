@@ -47,17 +47,20 @@ pub async fn run() {
         gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
-            frame_input.device_pixel_ratio, |gui_context| {
-            use three_d::egui::*;
-            SidePanel::left("side_panel").show(gui_context, |ui| {
-                ui.heading("Debug Panel");
-                ui.add(
-                    Slider::new(&mut voxel_grid.material.threshold, 0.0..=1.0).text("Threshold"),
-                );
-                ui.color_edit_button_rgba_unmultiplied(&mut color);
-            });
-            panel_width = gui_context.used_size().x as f64;
-        });
+            frame_input.device_pixel_ratio,
+            |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+                    ui.add(
+                        Slider::new(&mut voxel_grid.material.threshold, 0.0..=1.0)
+                            .text("Threshold"),
+                    );
+                    ui.color_edit_button_rgba_unmultiplied(&mut color);
+                });
+                panel_width = gui_context.used_size().x as f64;
+            },
+        );
         voxel_grid.material.color = Color::from_rgba_slice(&color);
 
         let viewport = Viewport {
