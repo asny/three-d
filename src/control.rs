@@ -18,8 +18,6 @@ mod fly_control;
 #[doc(inline)]
 pub use fly_control::*;
 
-use crate::core::*;
-
 /// Type of mouse button.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
