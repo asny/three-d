@@ -12,6 +12,7 @@ pub struct GUI {
     painter: Painter,
     egui_context: egui::Context,
     output: Option<egui::FullOutput>,
+    modifiers: Modifiers,
 }
 
 impl GUI {
@@ -33,6 +34,7 @@ impl GUI {
             egui_context: egui::Context::default(),
             painter: Painter::new(context, None, "").unwrap(),
             output: None,
+            modifiers: Modifiers::default(),
         }
     }
 
@@ -47,7 +49,7 @@ impl GUI {
         callback: impl FnOnce(&egui::Context),
     ) -> bool {
         self.egui_context
-            .begin_frame(construct_egui_input(frame_input));
+            .begin_frame(construct_egui_input(frame_input, &mut self.modifiers));
         callback(&self.egui_context);
         self.output = Some(self.egui_context.end_frame());
 
@@ -122,8 +124,11 @@ impl GUI {
     }
 }
 
-fn construct_egui_input(frame_input: &FrameInput) -> egui::RawInput {
-    let mut egui_modifiers = egui::Modifiers::default(); //TODO
+fn construct_egui_input(
+    frame_input: &FrameInput,
+    egui_modifiers: &mut Modifiers,
+) -> egui::RawInput {
+    let mods = egui_modifiers.clone();
     let events = frame_input
         .events
         .iter()
@@ -223,7 +228,7 @@ fn construct_egui_input(frame_input: &FrameInput) -> egui::RawInput {
                 }
             }
             Event::ModifiersChange { modifiers } => {
-                egui_modifiers = modifiers.into();
+                *egui_modifiers = *modifiers;
                 None
             }
             _ => None,
@@ -231,15 +236,18 @@ fn construct_egui_input(frame_input: &FrameInput) -> egui::RawInput {
         .collect::<Vec<_>>();
     egui::RawInput {
         screen_rect: Some(egui::Rect::from_min_size(
-            Default::default(),
+            egui::Pos2 {
+                x: frame_input.viewport.x as f32,
+                y: frame_input.viewport.y as f32,
+            },
             egui::Vec2 {
-                x: frame_input.window_width as f32,
-                y: frame_input.window_height as f32,
+                x: frame_input.viewport.width as f32,
+                y: frame_input.viewport.height as f32,
             },
         )),
         pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
         time: Some(frame_input.accumulated_time * 0.001),
-        modifiers: egui_modifiers,
+        modifiers: (&mods).into(),
         events,
         ..Default::default()
     }
