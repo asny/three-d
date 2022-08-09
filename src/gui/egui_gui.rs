@@ -49,11 +49,14 @@ impl GUI {
         callback: impl FnOnce(&egui::Context),
     ) -> bool {
         self.egui_context
-            .begin_frame(construct_egui_input(frame_input, &mut self.modifiers));
+            .begin_frame(construct_egui_input(frame_input, &self.modifiers));
         callback(&self.egui_context);
         self.output = Some(self.egui_context.end_frame());
 
         for event in frame_input.events.iter_mut() {
+            if let Event::ModifiersChange { modifiers } = event {
+                self.modifiers = *modifiers;
+            }
             if self.egui_context.wants_pointer_input() {
                 match event {
                     Event::MousePress {
@@ -124,11 +127,7 @@ impl GUI {
     }
 }
 
-fn construct_egui_input(
-    frame_input: &FrameInput,
-    egui_modifiers: &mut Modifiers,
-) -> egui::RawInput {
-    let mods = egui_modifiers.clone();
+fn construct_egui_input(frame_input: &FrameInput, egui_modifiers: &Modifiers) -> egui::RawInput {
     let events = frame_input
         .events
         .iter()
@@ -227,10 +226,6 @@ fn construct_egui_input(
                     None
                 }
             }
-            Event::ModifiersChange { modifiers } => {
-                *egui_modifiers = *modifiers;
-                None
-            }
             _ => None,
         })
         .collect::<Vec<_>>();
@@ -247,7 +242,7 @@ fn construct_egui_input(
         )),
         pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
         time: Some(frame_input.accumulated_time * 0.001),
-        modifiers: (&mods).into(),
+        modifiers: egui_modifiers.into(),
         events,
         ..Default::default()
     }
