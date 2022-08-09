@@ -1,20 +1,23 @@
 #![allow(unsafe_code)]
+use wgpu::{Instance, Adapter};
+use winit::event_loop::EventLoop;
+
 use crate::core::{Context, Viewport};
 use crate::window::*;
-use glutin::event::{Event, WindowEvent};
-use glutin::event_loop::{ControlFlow, EventLoop};
-use glutin::window::WindowBuilder;
-use glutin::ContextBuilder;
-use glutin::*;
+
 
 ///
 /// Default window and event handler for easy setup.
 ///
 pub struct Window {
-    windowed_context: Option<ContextWrapper<PossiblyCurrent, window::Window>>,
-    event_loop: Option<EventLoop<()>>,
-    gl: MaybeHeadlessContext,
+    window: winit::window::Window,
+    event_loop: EventLoop<()>,
+    instance: Instance,
+    adapter: Adapter,
+    
 }
+
+
 
 impl Window {
     ///

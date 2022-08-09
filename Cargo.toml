@@ -7,42 +7,91 @@ description = "2D/3D renderer - makes it simple to draw stuff across platforms (
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/asny/three-d"
-categories = ["graphics", "rendering", "visualization", "wasm", "web-programming"]
+categories = [
+    "graphics",
+    "rendering",
+    "visualization",
+    "wasm",
+    "web-programming",
+]
 keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
 exclude = ["/examples", ".gitignore", "index.html"]
 
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
-targets = ["x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
+targets = [
+    "x86_64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc",
+    "wasm32-unknown-unknown",
+]
 
 [features]
 default = ["window"]
-window = ["glutin"] # Window module
-egui-gui = ["egui_glow", "egui"] # Additional GUI features 
+window = ["winit"]   # Window module
+egui-gui = ["egui"]  # Additional GUI features 
 
 [dependencies]
-glow = "0.11"
+# glow = "0.11"
+wgpu = { version = "0.13.1" }
 cgmath = "0.18"
 three-d-asset = "0.3"
 thiserror = "1"
 egui = { version = "0.18", optional = true }
-egui_glow = { version = "0.18", optional = true }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-glutin = { version = "0.29", optional = true }
+winit = { version = "0.27.1", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3"
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCollection', 'HtmlCanvasElement', 'Window', 'CssStyleDeclaration', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer', 'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject', 'WebGlActiveInfo', 'WebGlSync', 'Performance','Headers', 'Request', 'RequestInit', 'RequestMode', 'Response'] }
+web-sys = { version = "0.3", features = [
+    'Document',
+    'Element',
+    'Node',
+    'HtmlElement',
+    'HtmlCollection',
+    'HtmlCanvasElement',
+    'Window',
+    'CssStyleDeclaration',
+    'Event',
+    'MouseEvent',
+    'EventTarget',
+    'WheelEvent',
+    'KeyboardEvent',
+    'TouchEvent',
+    'TouchList',
+    'Touch',
+    'WebGlBuffer',
+    'WebGlFramebuffer',
+    'WebGl2RenderingContext',
+    'WebGlProgram',
+    'WebGlShader',
+    'WebGlTexture',
+    'WebGlUniformLocation',
+    'WebGlVertexArrayObject',
+    'WebGlActiveInfo',
+    'WebGlSync',
+    'Performance',
+    'Headers',
+    'Request',
+    'RequestInit',
+    'RequestMode',
+    'Response',
+] }
 gloo-timers = "0.2"
 serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 rand = "0.8"
-three-d-asset = {version = "0.3", features = ["hdr", "gltf", "obj", "vol", "png", "jpeg"] }
+three-d-asset = { version = "0.3", features = [
+    "hdr",
+    "gltf",
+    "obj",
+    "vol",
+    "png",
+    "jpeg",
+] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
 [[example]]

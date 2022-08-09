@@ -1,3 +1,6 @@
+use wgpu::Device;
+use wgpu::Queue;
+
 use super::*;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -13,7 +16,8 @@ pub use crate::context::HasContext;
 ///
 #[derive(Clone)]
 pub struct Context {
-    context: Arc<crate::context::Context>,
+    device: Arc<Device>,
+    queue: Arc<Queue>,
     pub(super) vao: crate::context::VertexArray,
     programs: Arc<RwLock<HashMap<String, Program>>>,
     effects: Arc<RwLock<HashMap<String, ImageEffect>>>,

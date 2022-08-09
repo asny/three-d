@@ -18,17 +18,17 @@ mod glutin_window;
 #[cfg(not(target_arch = "wasm32"))]
 pub use glutin_window::*;
 
-#[cfg(not(target_arch = "wasm32"))]
-mod headless;
-#[doc(inline)]
-#[cfg(not(target_arch = "wasm32"))]
-pub use headless::*;
+// #[cfg(not(target_arch = "wasm32"))]
+// mod headless;
+// #[doc(inline)]
+// #[cfg(not(target_arch = "wasm32"))]
+// pub use headless::*;
 
-#[cfg(target_arch = "wasm32")]
-mod canvas;
-#[doc(inline)]
-#[cfg(target_arch = "wasm32")]
-pub use canvas::*;
+// #[cfg(target_arch = "wasm32")]
+// mod canvas;
+// #[doc(inline)]
+// #[cfg(target_arch = "wasm32")]
+// pub use canvas::*;
 
 use thiserror::Error;
 ///
@@ -39,9 +39,9 @@ use thiserror::Error;
 #[allow(missing_docs)]
 pub enum WindowError {
     #[error("failed creating a new window")]
-    WindowCreation(#[from] glutin::CreationError),
+    WindowCreation,
     #[error("failed creating a new context")]
-    ContextCreation(#[from] glutin::ContextError),
+    ContextCreation,
     #[error("error in three-d")]
     ThreeDError(#[from] CoreError),
     #[error("the number of MSAA samples must be a power of two")]
