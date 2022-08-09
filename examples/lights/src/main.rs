@@ -57,21 +57,29 @@ pub async fn run() {
     let mut color = [1.0; 4];
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
-        gui.update(&mut frame_input, |gui_context| {
-            use three_d::egui::*;
-            SidePanel::left("side_panel").show(gui_context, |ui| {
-                ui.heading("Debug Panel");
-                ui.add(Slider::new::<usize>(&mut light_count, 0..=50).text("Light count"));
-                ui.add(Slider::new::<f32>(&mut intensity, 0.0..=10.0).text("Light intensity"));
-                ui.add(Slider::new::<f32>(&mut constant, 0.0..=10.0).text("Attenuation constant"));
-                ui.add(Slider::new::<f32>(&mut linear, 0.01..=1.0).text("Attenuation linear"));
-                ui.add(
-                    Slider::new::<f32>(&mut quadratic, 0.0001..=1.0).text("Attenuation quadratic"),
-                );
-                ui.color_edit_button_rgba_unmultiplied(&mut color);
-            });
-            panel_width = gui_context.used_size().x as f64;
-        });
+        gui.update(
+            &mut frame_input.events,
+            frame_input.accumulated_time,
+            frame_input.device_pixel_ratio,
+            |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+                    ui.add(Slider::new::<usize>(&mut light_count, 0..=50).text("Light count"));
+                    ui.add(Slider::new::<f32>(&mut intensity, 0.0..=10.0).text("Light intensity"));
+                    ui.add(
+                        Slider::new::<f32>(&mut constant, 0.0..=10.0).text("Attenuation constant"),
+                    );
+                    ui.add(Slider::new::<f32>(&mut linear, 0.01..=1.0).text("Attenuation linear"));
+                    ui.add(
+                        Slider::new::<f32>(&mut quadratic, 0.0001..=1.0)
+                            .text("Attenuation quadratic"),
+                    );
+                    ui.color_edit_button_rgba_unmultiplied(&mut color);
+                });
+                panel_width = gui_context.used_size().x as f64;
+            },
+        );
         while lights.len() < light_count {
             lights.push(Glow::new(&context, light_box));
         }

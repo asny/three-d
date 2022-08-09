@@ -44,7 +44,10 @@ pub async fn run() {
     let mut color = [1.0; 4];
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
-        gui.update(&mut frame_input, |gui_context| {
+        gui.update(
+            &mut frame_input.events,
+            frame_input.accumulated_time,
+            frame_input.device_pixel_ratio, |gui_context| {
             use three_d::egui::*;
             SidePanel::left("side_panel").show(gui_context, |ui| {
                 ui.heading("Debug Panel");

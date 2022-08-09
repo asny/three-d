@@ -34,24 +34,31 @@ pub async fn run() {
     let mut texture_transform_y = 0.0;
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
-        gui.update(&mut frame_input, |gui_context| {
-            use three_d::egui::*;
-            SidePanel::left("side_panel").show(gui_context, |ui| {
-                ui.heading("Debug Panel");
-                ui.add(Slider::new(&mut tone_mapping, 0.0..=50.0).text("Tone mapping"));
-                ui.add(
-                    Slider::new(&mut texture_transform_scale, 0.0..=10.0)
-                        .text("Texture transform scale"),
-                );
-                ui.add(
-                    Slider::new(&mut texture_transform_x, 0.0..=1.0).text("Texture transform x"),
-                );
-                ui.add(
-                    Slider::new(&mut texture_transform_y, 0.0..=1.0).text("Texture transform y"),
-                );
-            });
-            panel_width = gui_context.used_size().x as f64;
-        });
+        gui.update(
+            &mut frame_input.events,
+            frame_input.accumulated_time,
+            frame_input.device_pixel_ratio,
+            |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+                    ui.add(Slider::new(&mut tone_mapping, 0.0..=50.0).text("Tone mapping"));
+                    ui.add(
+                        Slider::new(&mut texture_transform_scale, 0.0..=10.0)
+                            .text("Texture transform scale"),
+                    );
+                    ui.add(
+                        Slider::new(&mut texture_transform_x, 0.0..=1.0)
+                            .text("Texture transform x"),
+                    );
+                    ui.add(
+                        Slider::new(&mut texture_transform_y, 0.0..=1.0)
+                            .text("Texture transform y"),
+                    );
+                });
+                panel_width = gui_context.used_size().x as f64;
+            },
+        );
 
         image_effect.set_texture_transform(
             Mat3::from_scale(texture_transform_scale)

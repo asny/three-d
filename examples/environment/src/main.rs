@@ -56,16 +56,21 @@ pub async fn run() {
     let mut color = [1.0; 4];
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
-        gui.update(&mut frame_input, |gui_context| {
-            use three_d::egui::*;
-            SidePanel::left("side_panel").show(gui_context, |ui| {
-                ui.heading("Debug Panel");
-                ui.add(Slider::new(&mut model.material.metallic, 0.0..=1.0).text("Metallic"));
-                ui.add(Slider::new(&mut model.material.roughness, 0.0..=1.0).text("Roughness"));
-                ui.color_edit_button_rgba_unmultiplied(&mut color);
-            });
-            panel_width = gui_context.used_size().x as f64;
-        });
+        gui.update(
+            &mut frame_input.events,
+            frame_input.accumulated_time,
+            frame_input.device_pixel_ratio,
+            |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+                    ui.add(Slider::new(&mut model.material.metallic, 0.0..=1.0).text("Metallic"));
+                    ui.add(Slider::new(&mut model.material.roughness, 0.0..=1.0).text("Roughness"));
+                    ui.color_edit_button_rgba_unmultiplied(&mut color);
+                });
+                panel_width = gui_context.used_size().x as f64;
+            },
+        );
         model.material.albedo = Color::from_rgba_slice(&color);
 
         let viewport = Viewport {
