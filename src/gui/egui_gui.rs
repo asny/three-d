@@ -1,8 +1,9 @@
 use crate::control::*;
 use crate::core::*;
+use egui_glow::Painter;
+
 #[doc(hidden)]
 pub use egui;
-use egui_glow::Painter;
 
 ///
 /// Integration of [egui](https://crates.io/crates/egui), an immediate mode GUI.
@@ -10,8 +11,7 @@ use egui_glow::Painter;
 pub struct GUI {
     painter: Painter,
     egui_context: egui::Context,
-    width: u32,
-    height: u32,
+    output: Option<egui::FullOutput>,
 }
 
 impl GUI {
@@ -32,8 +32,7 @@ impl GUI {
         GUI {
             egui_context: egui::Context::default(),
             painter: Painter::new(context, None, "").unwrap(),
-            width: 0,
-            height: 0,
+            output: None,
         }
     }
 
@@ -47,11 +46,10 @@ impl GUI {
         frame_input: &mut FrameInput,
         callback: impl FnOnce(&egui::Context),
     ) -> bool {
-        self.width = frame_input.window_width;
-        self.height = frame_input.window_height;
         self.egui_context
             .begin_frame(construct_egui_input(frame_input));
         callback(&self.egui_context);
+        self.output = Some(self.egui_context.end_frame());
 
         for event in frame_input.events.iter_mut() {
             if self.egui_context.wants_pointer_input() {
@@ -103,15 +101,15 @@ impl GUI {
     /// Render the GUI defined in the [update](Self::update) function.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn render(&mut self) {
-        let output = self.egui_context.end_frame();
+    pub fn render(&mut self, viewport: Viewport) {
+        let output = self
+            .output
+            .take()
+            .expect("need to call GUI::update before GUI::render");
         let clipped_meshes = self.egui_context.tessellate(output.shapes);
         let scale = self.egui_context.pixels_per_point();
         self.painter.paint_and_update_textures(
-            [
-                (self.width as f32 * scale).round() as u32,
-                (self.height as f32 * scale).round() as u32,
-            ],
+            [viewport.width, viewport.height],
             scale,
             &clipped_meshes,
             &output.textures_delta,
