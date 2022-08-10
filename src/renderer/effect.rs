@@ -1,5 +1,5 @@
 //!
-//! Effects applied to each pixel, for example fog or anti-aliasing.
+//! A collection of image based effects, ie. effects applied to each pixel of a rendered image.
 //!
 
 mod fog;

@@ -1,5 +1,5 @@
 //!
-//! Contain a [CameraControl] struct that can be easily customized as well as a set of default camera controls.
+//! A collection of controls for example to control the camera.
 //!
 
 mod camera_control;
