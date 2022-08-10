@@ -9,9 +9,6 @@ mod settings;
 #[doc(inline)]
 pub use settings::*;
 
-pub mod control;
-pub use control::*;
-
 mod winit_window;
 #[doc(inline)]
 pub use winit_window::*;

@@ -20,38 +20,35 @@ pub struct Window {
 impl Window {
     /// function to create window on web platforms
     #[cfg(target_arch = "wasm32")]
-    pub fn new(settings: WindowSettings) -> Result<Window, WindowError> {
+    pub fn new(window_settings: WindowSettings) -> Result<Window, WindowError> {
         use std::sync::Arc;
 
         use wasm_bindgen::JsCast;
         use winit::platform::web::{WindowBuilderExtWebSys, WindowExtWebSys};
 
-        let event_loop = EventLoop::new();
+        let websys_window = web_sys::window().ok_or(WindowError::WindowCreation)?;
+        let document = websys_window
+            .document()
+            .ok_or(WindowError::DocumentMissing)?;
 
-        // use predefined_canvase if it exists
-        let predefined_canvas = web_sys::window()
-            .and_then(|w| w.document())
-            .and_then(|doc| doc.get_element_by_id("three_d_canvas_id"))
-            .and_then(|e| e.dyn_into::<web_sys::HtmlCanvasElement>().ok());
-        let is_canvas_already_in_dom = predefined_canvas.is_some();
+        let event_loop = EventLoop::new();
+        let canvas =
+            if let Some(canvas) = window_settings.canvas {
+                canvas
+            } else {
+                document.get_elements_by_tag_name("canvas").item(0)
+            .expect("settings doesn't contain canvas and DOM doesn't have a canvas element either")
+            .dyn_into::<web_sys::HtmlCanvasElement>()
+            .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
+            };
+
         // create winit window
         let window = WindowBuilder::new()
-            .with_title(settings.title)
-            .with_canvas(predefined_canvas)
+            .with_title(window_settings.title)
+            .with_canvas(Some(canvas))
             .build(&event_loop)?;
         let canvas = window.canvas();
-        // if it was not a predefined canvas from dom, then we add this newly created
-        // canvas by winit to the dom ourselves.
-        if !is_canvas_already_in_dom {
-            // append canvas
-            web_sys::window()
-                .and_then(|w| w.document())
-                .expect("failed to get websys document")
-                .body()
-                .expect("failed to get body")
-                .append_child(&canvas)
-                .expect("failed to add winit window to websys doc body");
-        }
+
         // get webgl context and verify extensions
         let webgl_context = canvas
             .get_context("webgl2")
