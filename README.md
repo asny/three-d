@@ -27,7 +27,7 @@ A OpenGL/WebGL/OpenGL ES renderer which seeks to make graphics simple but still 
 - tools (2D or 3D)
 - games (2D or 3D)
 
-The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and an optional `window` module for easy setup and an optional `gui` integration module:
+The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and an optional `window` module for easy setup:
 
 | Module           | Description                   
 | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | 
@@ -35,7 +35,6 @@ The crate consist of three main modules for drawing, `context`, `core` and `rend
 | [`core`](https://docs.rs/three-d/0/three_d/core/) | Mid-level rendering module - requires at least some knowledge about graphics concepts. Use this if you want to write your own shaders and but don't want to spend time on setup and error handling. Can be combined with low-level functionality in the `context` module.                                                                                                                           
 | [`renderer`](https://docs.rs/three-d/0/three_d/renderer/)  | High-level rendering module - requires no knowledge about graphics concepts. Use this if you just want to draw something on the screen. Features include methods for rendering different types of standard objects with different types of shading. Can be combined seamlessly with the mid-level features in the `core` module as well as functionality in the `context` module.             |
 | [`window`](https://docs.rs/three-d/0/three_d/window/) (requires the `"window"` feature) | Contains functionality for creating a window on both cross-platform native and web. Also contain render loop, event handling and camera control functionality. Can be replaced by anything that provides an OpenGL or WebGL2 graphics context, for example [eframe](https://github.com/emilk/egui/tree/master/eframe) as shown in [this](https://github.com/emilk/egui/blob/master/eframe/examples/custom_3d_three-d.rs) example.
-| [`gui`](https://docs.rs/three-d/0/three_d/gui/) | Contains functionality for using the immediate mode GUI [egui](https://crates.io/crates/egui) (requires the `"egui-gui"` feature).
 
 In addition, the [three-d-asset](https://github.com/asny/three-d-asset) crate enables loading, deserializing, serializing and saving 3D assets, for example 3D models, textures etc. 
 
