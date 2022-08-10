@@ -47,6 +47,8 @@ pub enum WindowError {
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
 pub enum WindowError {
+    #[error("failed to create a new winit window")]
+    WinitError(#[from] winit::error::OsError),
     #[error("failed creating a new window")]
     WindowCreation,
     #[error("unable to get document from canvas")]

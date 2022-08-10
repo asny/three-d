@@ -24,36 +24,53 @@ impl Window {
         use std::sync::Arc;
 
         use wasm_bindgen::JsCast;
-        use winit::platform::web::WindowExtWebSys;
+        use winit::platform::web::{WindowBuilderExtWebSys, WindowExtWebSys};
 
         let event_loop = EventLoop::new();
 
+        // use predefined_canvase if it exists
+        let predefined_canvas = web_sys::window()
+            .and_then(|w| w.document())
+            .and_then(|doc| doc.get_element_by_id("three_d_canvas_id"))
+            .and_then(|e| e.dyn_into::<web_sys::HtmlCanvasElement>().ok());
+        let is_canvas_already_in_dom = predefined_canvas.is_some();
+        // create winit window
         let window = WindowBuilder::new()
             .with_title(settings.title)
-            .build(&event_loop)
-            .expect("failed to create winit window");
-
+            .with_canvas(predefined_canvas)
+            .build(&event_loop)?;
         let canvas = window.canvas();
-
+        // if it was not a predefined canvas from dom, then we add this newly created
+        // canvas by winit to the dom ourselves.
+        if !is_canvas_already_in_dom {
+            // append canvas
+            web_sys::window()
+                .and_then(|w| w.document())
+                .expect("failed to get websys document")
+                .body()
+                .expect("failed to get body")
+                .append_child(&canvas)
+                .expect("failed to add winit window to websys doc body");
+        }
+        // get webgl context and verify extensions
         let webgl_context = canvas
             .get_context("webgl2")
-            .expect("failed to get webgl2 context")
-            .expect("no webgl2 context object found")
+            .map_err(|e| WindowError::WebGL2NotSupported(format!(": {:?}", e)))?
+            .ok_or(WindowError::WebGL2NotSupported("".to_string()))?
             .dyn_into::<web_sys::WebGl2RenderingContext>()
-            .expect("failed to convert js object into webgl2rendering context");
-
+            .map_err(|e| WindowError::WebGL2NotSupported(format!(": {:?}", e)))?;
+        webgl_context
+            .get_extension("EXT_color_buffer_float")
+            .map_err(|e| WindowError::ColorBufferFloatNotSupported(format!("{:?}", e)))?;
+        webgl_context
+            .get_extension("OES_texture_float")
+            .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
+        webgl_context
+            .get_extension("OES_texture_float_linear")
+            .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
         let gl = crate::core::Context::from_gl_context(Arc::new(
             crate::context::Context::from_webgl2_context(webgl_context),
-        ))
-        .expect("failed to create core context");
-
-        let doc = web_sys::window()
-            .and_then(|w| w.document())
-            .expect("failed to get websys document");
-        doc.body()
-            .expect("failed to get body")
-            .append_child(&canvas)
-            .expect("failed to add winit window to websys doc body");
+        ))?;
 
         let window = Window {
             window: Some(window),
