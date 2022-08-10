@@ -21,5 +21,5 @@ pub mod window;
 #[cfg(feature = "window")]
 pub use window::*;
 
-pub mod gui;
+mod gui;
 pub use gui::*;

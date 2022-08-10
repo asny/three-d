@@ -44,16 +44,21 @@ pub fn main() {
         )));
 
         let mut panel_width = 0.0;
-        gui.update(&mut frame_input, |gui_context| {
-            use three_d::egui::*;
-            SidePanel::left("side_panel").show(gui_context, |ui| {
+        gui.update(
+            &mut frame_input.events,
+            frame_input.accumulated_time,
+            frame_input.device_pixel_ratio,
+            |gui_context| {
                 use three_d::egui::*;
-                ui.heading("Debug Panel");
-                ui.add(Slider::new(&mut viewport_zoom, 0.01..=1.0).text("Viewport"));
-                ui.add(Slider::new(&mut scissor_zoom, 0.01..=1.0).text("Scissor"));
-            });
-            panel_width = gui_context.used_size().x as f64;
-        });
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    use three_d::egui::*;
+                    ui.heading("Debug Panel");
+                    ui.add(Slider::new(&mut viewport_zoom, 0.01..=1.0).text("Viewport"));
+                    ui.add(Slider::new(&mut scissor_zoom, 0.01..=1.0).text("Scissor"));
+                });
+                panel_width = gui_context.used_size().x as f64;
+            },
+        );
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,
@@ -88,7 +93,7 @@ pub fn main() {
                 ClearState::color(0.5, 0.5, 0.5, 1.0),
             )
             .render_partially(scissor_box_zoomed, &camera, &[&model], &[])
-            .write(|| gui.render());
+            .write(|| gui.render(frame_input.viewport));
 
         // Secondary view
         let secondary_viewport = Viewport {
