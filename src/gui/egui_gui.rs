@@ -47,13 +47,13 @@ impl GUI {
     pub fn update(
         &mut self,
         events: &mut [Event],
-        accumulated_time: f64,
+        accumulated_time_in_ms: f64,
         device_pixel_ratio: f64,
         callback: impl FnOnce(&egui::Context),
     ) -> bool {
         let egui_input = egui::RawInput {
             pixels_per_point: Some(device_pixel_ratio as f32),
-            time: Some(accumulated_time * 0.001),
+            time: Some(accumulated_time_in_ms * 0.001),
             modifiers: (&self.modifiers).into(),
             events: events
                 .iter()
