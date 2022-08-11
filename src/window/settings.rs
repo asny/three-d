@@ -24,6 +24,10 @@ pub struct WindowSettings {
     ///
     /// No effect on web.
     pub borderless: bool,
+    /// An optional Canvas for using as winit window
+    /// if this is None, the DOM (`index.html`) must contain a canvas element
+    #[cfg(target_arch = "wasm32")]
+    pub canvas: Option<web_sys::HtmlCanvasElement>,
 }
 impl Default for WindowSettings {
     fn default() -> Self {
@@ -34,6 +38,8 @@ impl Default for WindowSettings {
             vsync: true,
             multisamples: 4,
             borderless: false,
+            #[cfg(target_arch = "wasm32")]
+            canvas: None,
         }
     }
 }
