@@ -229,6 +229,7 @@ impl GUI {
             &clipped_meshes,
             &output.textures_delta,
         );
+        #[cfg(not(target_arch = "wasm32"))]
         #[allow(unsafe_code)]
         unsafe {
             use glow::HasContext as _;
