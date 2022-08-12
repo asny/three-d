@@ -18,15 +18,15 @@ targets = ["x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows
 
 [features]
 default = ["window"]
-window = ["glutin"] # Window module
+window = ["glutin", "winit"] # Window module
 egui-gui = ["egui_glow", "egui"] # Additional GUI features 
 
 [dependencies]
-winit = {version = "0.27.1"}
 glow = "0.11"
 cgmath = "0.18"
 three-d-asset = "0.3"
 thiserror = "1"
+winit = {version = "0.27", optional = true}
 egui = { version = "0.18", optional = true }
 egui_glow = { version = "0.18", optional = true }
 
