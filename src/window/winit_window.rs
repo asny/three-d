@@ -189,6 +189,26 @@ impl Window {
                             + duration.subsec_nanos() as f64 * 1e-6;
                         accumulated_time += elapsed_time;
 
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            window.set_inner_size(winit::dpi::Size::Logical(
+                                winit::dpi::LogicalSize {
+                                    width: web_sys::window()
+                                        .unwrap()
+                                        .inner_width()
+                                        .unwrap()
+                                        .as_f64()
+                                        .unwrap(),
+                                    height: web_sys::window()
+                                        .unwrap()
+                                        .inner_height()
+                                        .unwrap()
+                                        .as_f64()
+                                        .unwrap(),
+                                },
+                            ));
+                        }
+
                         let (physical_width, physical_height): (u32, u32) =
                             window.inner_size().into();
                         let device_pixel_ratio = window.scale_factor();
