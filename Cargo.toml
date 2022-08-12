@@ -34,13 +34,11 @@ egui_glow = { version = "0.18", optional = true }
 glutin = { version = "0.29", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-js-sys = "0.3"
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCollection', 'HtmlCanvasElement', 'Window', 'CssStyleDeclaration', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer', 'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject', 'WebGlActiveInfo', 'WebGlSync', 'Performance','Headers', 'Request', 'RequestInit', 'RequestMode', 'Response'] }
-gloo-timers = "0.2"
-serde = { version = "1", features = ["derive"] }
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ['Document', 'HtmlCollection', 'HtmlCanvasElement', 'Window'] }
+
 instant = "0.1.12"
+
 [dev-dependencies]
 rand = "0.8"
 three-d-asset = {version = "0.3", features = ["hdr", "gltf", "obj", "vol", "png", "jpeg"] }
