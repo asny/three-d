@@ -234,6 +234,34 @@ impl<'a> RenderTarget<'a> {
         ScissorBox::new_at_origo(self.width, self.height)
     }
 
+    ///
+    /// Creates a [RenderTarget] with the given low-level [Framebuffer]. Should only be used if the [Framebuffer] is used for something else, ie. to be able
+    /// to combine this crate with functionality of another crate. Also see [Self::into_framebuffer].
+    ///
+    pub fn from_framebuffer(
+        context: &Context,
+        width: u32,
+        height: u32,
+        framebuffer: Framebuffer,
+    ) -> Self {
+        Self {
+            id: Some(framebuffer),
+            color: None,
+            depth: None,
+            context: context.clone(),
+            width,
+            height,
+        }
+    }
+
+    ///
+    /// Transforms this [RenderTarget] into a low-level [Framebuffer]. Should only be used if the [Framebuffer] is used for something else, ie. to be able
+    /// to combine this crate with functionality of another crate. Also see [Self::from_framebuffer].
+    ///
+    pub fn into_framebuffer(mut self) -> Option<Framebuffer> {
+        self.id.take()
+    }
+
     fn new_color(color: ColorTarget<'a>) -> Self {
         let width = color.width();
         let height = color.height();
