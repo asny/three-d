@@ -8,8 +8,12 @@ pub struct WindowSettings {
     /// On web this has no effect.
     pub title: String,
     /// The minimum size of the window (width, height).
+    ///
+    /// On web this has no effect.
     pub min_size: (u32, u32),
     /// The maximum size of the window (width, height). If None is specified, the window is maximized.
+    ///
+    /// On web this has no effect.
     pub max_size: Option<(u32, u32)>,
     /// Whether VSync is enabled.
     ///
@@ -22,7 +26,7 @@ pub struct WindowSettings {
     pub multisamples: u8,
     /// Borderless mode.
     ///
-    /// No effect on web.
+    /// On web this has no effect.
     pub borderless: bool,
     /// An optional Canvas for using as winit window
     /// if this is None, the DOM (`index.html`) must contain a canvas element
