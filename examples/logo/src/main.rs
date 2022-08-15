@@ -60,11 +60,18 @@ pub async fn run() {
     let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), material);
     model.set_transformation(Mat4::from_angle_y(degrees(35.0)));
 
-    let mut loaded = three_d_asset::io::load_async(
-        &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
-    )
-    .await
-    .unwrap();
+    // Source: https://polyhaven.com/
+    let mut loaded = if let Ok(loaded) =
+        three_d_asset::io::load_async(&["../assets/syferfontein_18d_clear_4k.hdr"]).await
+    {
+        loaded
+    } else {
+        three_d_asset::io::load_async(&[
+            "https://asny.github.io/three-d/assets/syferfontein_18d_clear_4k.hdr",
+        ])
+        .await
+        .unwrap()
+    };
     let environment_map =
         TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.deserialize("").unwrap());
     let light = AmbientLight {

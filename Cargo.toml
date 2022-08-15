@@ -41,7 +41,7 @@ instant = "0.1.12"
 
 [dev-dependencies]
 rand = "0.8"
-three-d-asset = {version = "0.3", features = ["hdr", "gltf", "obj", "vol", "png", "jpeg"] }
+three-d-asset = {version = "0.3", features = ["hdr", "gltf", "obj", "vol", "png", "jpeg", "http"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
 [[example]]

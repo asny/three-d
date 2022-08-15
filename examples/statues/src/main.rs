@@ -48,14 +48,20 @@ pub async fn run() {
     );
 
     // Models from http://texturedmesh.isti.cnr.it/
-    let mut loaded = three_d_asset::io::load_async(&[
-        "examples/assets/COLOMBE.obj",
-        "examples/assets/pfboy.obj",
-    ])
-    .await
-    .unwrap();
+    let mut loaded = if let Ok(loaded) =
+        three_d_asset::io::load_async(&["../assets/COLOMBE.obj", "../assets/pfboy.obj"]).await
+    {
+        loaded
+    } else {
+        three_d_asset::io::load_async(&[
+            "https://asny.github.io/three-d/assets/COLOMBE.obj",
+            "https://asny.github.io/three-d/assets/pfboy.obj",
+        ])
+        .await
+        .unwrap()
+    };
 
-    let cpu_model: CpuModel = loaded.deserialize("examples/assets/COLOMBE.obj").unwrap();
+    let cpu_model: CpuModel = loaded.deserialize("COLOMBE.obj").unwrap();
 
     let mut models = Vec::new();
     let scale = Mat4::from_scale(10.0);
@@ -76,11 +82,9 @@ pub async fn run() {
         models.extend(statue.drain(..));
     }
 
-    let mut fountain = Model::<PhysicalMaterial>::new(
-        &context,
-        &loaded.deserialize("examples/assets/pfboy.obj").unwrap(),
-    )
-    .unwrap();
+    let mut fountain =
+        Model::<PhysicalMaterial>::new(&context, &loaded.deserialize("pfboy.obj").unwrap())
+            .unwrap();
     fountain.iter_mut().for_each(|m| {
         m.material.render_states.cull = Cull::Back;
         m.set_transformation(Mat4::from_angle_x(degrees(-90.0)));

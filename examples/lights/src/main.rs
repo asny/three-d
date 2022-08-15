@@ -30,9 +30,15 @@ pub async fn run() {
     let mut control = FlyControl::new(0.01);
     let mut gui = three_d::GUI::new(&context);
 
-    let mut loaded = three_d_asset::io::load_async(&["examples/assets/sponza/Sponza.gltf"])
-        .await
-        .unwrap();
+    let mut loaded = if let Ok(loaded) =
+        three_d_asset::io::load_async(&["../assets/sponza/Sponza.gltf"]).await
+    {
+        loaded
+    } else {
+        three_d_asset::io::load_async(&["https://asny.github.io/three-d/assets/sponza/Sponza.gltf"])
+            .await
+            .unwrap()
+    };
 
     let model = loaded.deserialize("Sponza.gltf").unwrap();
     let model = Model::<DeferredPhysicalMaterial>::new(&context, &model).unwrap();

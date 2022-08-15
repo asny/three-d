@@ -18,11 +18,18 @@ pub async fn run() {
     let context = window.gl();
     let mut image_effect = ImageEffect::new(&context, include_str!("shader.frag")).unwrap();
 
-    let mut loaded = three_d_asset::io::load_async(
-        &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
-    )
-    .await
-    .unwrap();
+    // Source: https://polyhaven.com/
+    let mut loaded = if let Ok(loaded) =
+        three_d_asset::io::load_async(&["../assets/syferfontein_18d_clear_4k.hdr"]).await
+    {
+        loaded
+    } else {
+        three_d_asset::io::load_async(&[
+            "https://asny.github.io/three-d/assets/syferfontein_18d_clear_4k.hdr",
+        ])
+        .await
+        .unwrap()
+    };
     let image = Texture2D::new(&context, &loaded.deserialize("").unwrap());
 
     let mut gui = GUI::new(&context);

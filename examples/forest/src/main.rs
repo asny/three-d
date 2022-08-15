@@ -27,9 +27,17 @@ pub async fn run() {
     );
     let mut control = FlyControl::new(0.1);
 
-    let mut loaded = three_d_asset::io::load_async(&["examples/assets/Gledista_Triacanthos.obj"])
+    let mut loaded = if let Ok(loaded) =
+        three_d_asset::io::load_async(&["../assets/Gledista_Triacanthos.obj"]).await
+    {
+        loaded
+    } else {
+        three_d_asset::io::load_async(&[
+            "https://asny.github.io/three-d/assets/Gledista_Triacanthos.obj",
+        ])
         .await
-        .unwrap();
+        .unwrap()
+    };
     // Tree
     let mut cpu_model: CpuModel = loaded.deserialize(".obj").unwrap();
     cpu_model

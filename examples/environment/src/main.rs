@@ -28,11 +28,19 @@ pub async fn run() {
     );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut loaded = three_d_asset::io::load_async(
-        &["examples/assets/chinese_garden_4k.hdr"], // Source: https://polyhaven.com/
-    )
-    .await
-    .unwrap();
+    // Source: https://polyhaven.com/
+    let mut loaded = if let Ok(loaded) =
+        three_d_asset::io::load_async(&["../assets/chinese_garden_4k.hdr"]).await
+    {
+        loaded
+    } else {
+        three_d_asset::io::load_async(&[
+            "https://asny.github.io/three-d/assets/chinese_garden_4k.hdr",
+        ])
+        .await
+        .unwrap()
+    };
+
     let skybox = Skybox::new_from_equirectangular(
         &context,
         &loaded.deserialize("chinese_garden_4k").unwrap(),

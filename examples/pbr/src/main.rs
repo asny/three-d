@@ -29,12 +29,21 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context);
 
-    let mut loaded = three_d_asset::io::load_async(&[
+    let mut loaded = if let Ok(loaded) = three_d_asset::io::load_async(&[
+        "../assets/chinese_garden_4k.hdr", // Source: https://polyhaven.com/
         "examples/assets/gltf/DamagedHelmet.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
-        "examples/assets/chinese_garden_4k.hdr",  // Source: https://polyhaven.com/
     ])
     .await
-    .unwrap();
+    {
+        loaded
+    } else {
+        three_d_asset::io::load_async(&[
+            "https://asny.github.io/three-d/assets/chinese_garden_4k.hdr",
+            "examples/assets/gltf/DamagedHelmet.glb",
+        ])
+        .await
+        .unwrap()
+    };
 
     let environment_map = loaded.deserialize("chinese").unwrap();
     let skybox = Skybox::new_from_equirectangular(&context, &environment_map);
