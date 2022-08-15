@@ -14,6 +14,8 @@ pub struct Window {
     event_loop: Option<EventLoop<()>>,
     #[cfg(not(target_arch = "wasm32"))]
     glutin_context: Option<glutin::RawContext<glutin::PossiblyCurrent>>,
+    #[cfg(target_arch = "wasm32")]
+    closure: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
     gl: MaybeHeadlessContext,
 }
 
@@ -22,7 +24,6 @@ impl Window {
     #[cfg(target_arch = "wasm32")]
     pub fn new(window_settings: WindowSettings) -> Result<Window, WindowError> {
         use std::sync::Arc;
-
         use wasm_bindgen::JsCast;
         use winit::platform::web::{WindowBuilderExtWebSys, WindowExtWebSys};
 
@@ -46,6 +47,7 @@ impl Window {
         let window = WindowBuilder::new()
             .with_title(window_settings.title)
             .with_canvas(Some(canvas))
+            .with_prevent_default(true)
             .build(&event_loop)?;
         let canvas = window.canvas();
 
@@ -69,9 +71,17 @@ impl Window {
             crate::context::Context::from_webgl2_context(webgl_context),
         ))?;
 
+        let closure = wasm_bindgen::closure::Closure::wrap(Box::new(move |event: web_sys::Event| {
+            event.prevent_default();
+        }) as Box<dyn FnMut(_)>);
+        canvas
+            .add_event_listener_with_callback("contextmenu", closure.as_ref().unchecked_ref())
+            .expect("failed to listen to canvas context menu");
+
         let window = Window {
             window: Some(window),
             event_loop: Some(event_loop),
+            closure,
             gl: MaybeHeadlessContext::Haeded(gl),
         };
 
@@ -172,6 +182,18 @@ impl Window {
             event_loop.run(move |event, _, control_flow| {
                 match event {
                     Event::LoopDestroyed => {
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            use wasm_bindgen::JsCast;
+                            use winit::platform::web::WindowExtWebSys;
+                            window
+                                .canvas()
+                                .remove_event_listener_with_callback(
+                                    "contextmenu",
+                                    self.closure.as_ref().unchecked_ref(),
+                                )
+                                .unwrap();
+                        }
                         return;
                     }
                     Event::MainEventsCleared => {
