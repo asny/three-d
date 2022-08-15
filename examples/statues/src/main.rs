@@ -58,7 +58,7 @@ pub async fn run() {
             "https://asny.github.io/three-d/assets/pfboy.obj",
         ])
         .await
-        .unwrap()
+        .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
     };
 
     let cpu_model: CpuModel = loaded.deserialize("COLOMBE.obj").unwrap();

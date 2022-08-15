@@ -70,7 +70,7 @@ pub async fn run() {
             "https://asny.github.io/three-d/assets/syferfontein_18d_clear_4k.hdr",
         ])
         .await
-        .unwrap()
+        .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
     };
     let environment_map =
         TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.deserialize("").unwrap());
