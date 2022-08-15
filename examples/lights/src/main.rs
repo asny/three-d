@@ -37,7 +37,7 @@ pub async fn run() {
     } else {
         three_d_asset::io::load_async(&["https://asny.github.io/three-d/assets/sponza/Sponza.gltf"])
             .await
-            .unwrap()
+            .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
     };
 
     let model = loaded.deserialize("Sponza.gltf").unwrap();

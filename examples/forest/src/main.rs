@@ -36,7 +36,7 @@ pub async fn run() {
             "https://asny.github.io/three-d/assets/Gledista_Triacanthos.obj",
         ])
         .await
-        .unwrap()
+        .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
     };
     // Tree
     let mut cpu_model: CpuModel = loaded.deserialize(".obj").unwrap();
