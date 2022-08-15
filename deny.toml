@@ -16,18 +16,13 @@ yanked = "deny"
 ignore = []
 
 [bans]
-multiple-versions = "deny"
+multiple-versions = "warn"
 wildcards = "allow"        # at least until https://github.com/EmbarkStudios/cargo-deny/issues/241 is fixed
 deny = []
 
 skip = [
-    { name = "nix" },                 # glutin depends on an old version
-    { name = "foreign-types-shared" },# glutin depends on an old version
-    { name = "foreign-types" },       # glutin depends on an old version
-    { name = "raw-window-handle" },       # winit depends on an old version
 ]
 skip-tree = [
-    { name = "image" },              # gltf uses an old version
 ]
 
 
