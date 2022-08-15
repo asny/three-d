@@ -68,4 +68,4 @@ Feature requests and bug reports are more than welcome, just open an issue or st
 
 ### Sponsors
 
-[![rerun.io](.github/rerun.png)](https://www.rerun.io/)
+[![rerun.io](https://asny.github.io/three-d/rerun.png)](https://www.rerun.io/)
