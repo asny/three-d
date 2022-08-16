@@ -47,7 +47,7 @@ void main() {
         }
         vec3 uvw = (rayPos / size) + 0.5;
         float surfaceDensity = texture(tex, uvw).r - threshold;
-        if (surfaceDensity >= 0) { // We hit the surface
+        if (surfaceDensity >= 0.0) { // We hit the surface
             vec3 normal = estimate_normal(uvw);
             outColor.rgb = calculate_lighting(cameraPosition, surfaceColor.rgb, rayPos, normal, metallic, roughness, 1.0);
             outColor.rgb = reinhard_tone_mapping(outColor.rgb);
