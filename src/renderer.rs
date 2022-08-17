@@ -223,20 +223,11 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> &Self {
-        let render_pass = |camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]| {
-            let mut culled_objects = objects
+        let (mut deferred_objects, mut forward_objects): (Vec<&dyn Object>, Vec<&dyn Object>) =
+            objects
                 .iter()
                 .filter(|o| camera.in_frustum(&o.aabb()))
-                .collect::<Vec<_>>();
-            culled_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
-            for object in culled_objects {
-                object.render(camera, lights);
-            }
-        };
-
-        let (deferred_objects, forward_objects): (Vec<_>, Vec<_>) = objects
-            .iter()
-            .partition(|o| o.material_type() == MaterialType::Deferred);
+                .partition(|o| o.material_type() == MaterialType::Deferred);
 
         // Deferred
         if deferred_objects.len() > 0 {
@@ -245,6 +236,7 @@ impl<'a> RenderTarget<'a> {
             let viewport =
                 Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
             geometry_pass_camera.set_viewport(viewport);
+            deferred_objects.sort_by(|a, b| cmp_render_order(&geometry_pass_camera, a, b));
             let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
                 &self.context,
                 viewport.width,
@@ -269,7 +261,11 @@ impl<'a> RenderTarget<'a> {
                 geometry_pass_depth_texture.as_depth_target(),
             )
             .clear(ClearState::default())
-            .write(|| render_pass(&geometry_pass_camera, &deferred_objects, lights));
+            .write(|| {
+                for object in deferred_objects {
+                    object.render(&geometry_pass_camera, lights);
+                }
+            });
 
             // Lighting pass
             self.write_partially(scissor_box, || {
@@ -284,8 +280,11 @@ impl<'a> RenderTarget<'a> {
         }
 
         // Forward
+        forward_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
         self.write_partially(scissor_box, || {
-            render_pass(camera, &forward_objects, lights)
+            for object in forward_objects {
+                object.render(camera, lights);
+            }
         });
         self
     }
