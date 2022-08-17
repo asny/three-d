@@ -5,7 +5,6 @@ async fn main() {
     run().await;
 }
 
-use three_d::core::*;
 use three_d::*;
 
 pub async fn run() {
