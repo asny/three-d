@@ -101,31 +101,6 @@ impl Context {
     }
 
     ///
-    /// Returns a camera for viewing 2D content.
-    ///
-    #[deprecated = "use three_d::renderer::object::camera2d function instead"]
-    pub fn camera2d(&self, viewport: Viewport, callback: impl FnOnce(&Camera)) {
-        let camera2d = Camera::new_orthographic(
-            viewport,
-            vec3(
-                viewport.width as f32 * 0.5,
-                viewport.height as f32 * 0.5,
-                -1.0,
-            ),
-            vec3(
-                viewport.width as f32 * 0.5,
-                viewport.height as f32 * 0.5,
-                0.0,
-            ),
-            vec3(0.0, -1.0, 0.0),
-            viewport.height as f32,
-            0.0,
-            10.0,
-        );
-        callback(&camera2d);
-    }
-
-    ///
     /// Set the scissor test for this context (see [ScissorBox]).
     ///
     pub fn set_scissor(&self, scissor_box: ScissorBox) {

@@ -287,3 +287,19 @@ impl Default for DeferredPhysicalMaterial {
         }
     }
 }
+
+///
+/// Used for debug purposes.
+///
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[allow(missing_docs)]
+#[allow(dead_code)]
+enum DebugType {
+    POSITION,
+    NORMAL,
+    COLOR,
+    DEPTH,
+    ORM,
+    UV,
+    NONE,
+}

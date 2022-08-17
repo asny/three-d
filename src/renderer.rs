@@ -40,14 +40,6 @@ pub enum RendererError {
 pub mod material;
 pub use material::*;
 
-mod forward_pipeline;
-#[doc(inline)]
-pub use forward_pipeline::*;
-
-mod deferred_pipeline;
-#[doc(inline)]
-pub use deferred_pipeline::*;
-
 pub mod effect;
 pub use effect::*;
 
@@ -231,7 +223,17 @@ impl<'a> RenderTarget<'a> {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> &Self {
-        #![allow(deprecated)]
+        let render_pass = |camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]| {
+            let mut culled_objects = objects
+                .iter()
+                .filter(|o| camera.in_frustum(&o.aabb()))
+                .collect::<Vec<_>>();
+            culled_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
+            for object in culled_objects {
+                object.render(camera, lights);
+            }
+        };
+
         let (deferred_objects, forward_objects): (Vec<_>, Vec<_>) = objects
             .iter()
             .partition(|o| o.material_type() == MaterialType::Deferred);
@@ -328,28 +330,6 @@ impl<'a> RenderTarget<'a> {
             }
         });
         self
-    }
-}
-
-///
-/// Render the objects using the given camera and lights.
-/// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
-/// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
-///
-/// **Note:**
-/// Objects with a [DeferredPhysicalMaterial] applied is not supported.
-/// Must be called when a render target is bound, for example in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
-/// If you are using one of these targets, it is preferred to use the [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods.
-///
-#[deprecated = "use RenderTarget::render, ColorTarget::render or DepthTarget::render or render each object by using the Object::render method"]
-pub fn render_pass(camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]) {
-    let mut culled_objects = objects
-        .iter()
-        .filter(|o| camera.in_frustum(&o.aabb()))
-        .collect::<Vec<_>>();
-    culled_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
-    for object in culled_objects {
-        object.render(camera, lights);
     }
 }
 
