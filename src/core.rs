@@ -20,10 +20,6 @@ mod cpu_mesh;
 #[doc(inline)]
 pub use cpu_mesh::*;
 
-mod cpu_point_cloud;
-#[doc(inline)]
-pub use cpu_point_cloud::*;
-
 pub mod render_states;
 pub use render_states::*;
 

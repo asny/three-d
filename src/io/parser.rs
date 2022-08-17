@@ -5,13 +5,6 @@ mod obj;
 #[cfg(feature = "obj-io")]
 pub use obj::*;
 
-#[cfg(feature = "pcd-io")]
-#[cfg_attr(docsrs, doc(cfg(feature = "pcd-io")))]
-mod pcd;
-#[doc(inline)]
-#[cfg(feature = "pcd-io")]
-pub use self::pcd::*;
-
 #[cfg(feature = "gltf-io")]
 #[cfg_attr(docsrs, doc(cfg(feature = "gltf-io")))]
 mod gltf;
