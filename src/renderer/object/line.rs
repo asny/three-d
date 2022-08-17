@@ -4,8 +4,7 @@ use crate::renderer::*;
 /// A line 2D object which can be rendered.
 ///
 pub struct Line<M: Material> {
-    context: Context,
-    model: Model<M>,
+    model: Gm<Mesh, M>,
     pixel0: Vec2,
     pixel1: Vec2,
     thickness: f32,
@@ -21,18 +20,18 @@ impl<M: Material> Line<M> {
         pixel1: Vec2,
         thickness: f32,
         material: M,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut mesh = CpuMesh::square();
-        mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))?;
+        mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))
+            .unwrap();
         let mut line = Self {
-            context: context.clone(),
-            model: Model::new_with_material(context, &mesh, material)?,
+            model: Gm::new(Mesh::new(context, &mesh), material),
             pixel0,
             pixel1,
             thickness,
         };
         line.update();
-        Ok(line)
+        line
     }
 
     /// Get one of the end points of the line.
@@ -78,24 +77,18 @@ impl<M: Material> Line<M> {
 }
 
 impl<M: Material> Geometry2D for Line<M> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        self.context.camera2d(viewport, |camera2d| {
-            self.model.render_with_material(material, camera2d, &[])
-        })
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
+        self.model
+            .render_with_material(material, &camera2d(viewport), &[])
     }
 }
 
 impl<M: Material> Object2D for Line<M> {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
-        self.context
-            .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
+    fn render(&self, viewport: Viewport) {
+        self.model.render(&camera2d(viewport), &[])
     }
 
-    fn is_transparent(&self) -> bool {
-        self.model.is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.model.material_type()
     }
 }

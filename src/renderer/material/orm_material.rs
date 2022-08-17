@@ -1,6 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::rc::Rc;
+use std::sync::Arc;
 
 ///
 /// Render the object with colors that reflect its ORM (occlusion, roughness and metallic) values which primarily is used for debug purposes.
@@ -14,25 +14,25 @@ pub struct ORMMaterial {
     pub roughness: f32,
     /// Texture containing the metallic and roughness parameters which are multiplied with the [Self::metallic] and [Self::roughness] values in the shader.
     /// The metallic values are sampled from the blue channel and the roughness from the green channel.
-    pub metallic_roughness_texture: Option<Rc<Texture2D>>,
+    pub metallic_roughness_texture: Option<Arc<Texture2D>>,
     /// A scalar multiplier controlling the amount of occlusion applied from the [Self::occlusion_texture]. A value of 0.0 means no occlusion. A value of 1.0 means full occlusion.
     pub occlusion_strength: f32,
     /// An occlusion map. Higher values indicate areas that should receive full indirect lighting and lower values indicate no indirect lighting.
     /// The occlusion values are sampled from the red channel.
-    pub occlusion_texture: Option<Rc<Texture2D>>,
+    pub occlusion_texture: Option<Arc<Texture2D>>,
     /// Render states.
     pub render_states: RenderStates,
 }
 
 impl ORMMaterial {
     /// Constructs a new ORM material from a [CpuMaterial] where only relevant information is used.
-    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                Some(Arc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 if let Some(ref cpu_texture) = cpu_material.metallic_roughness_texture {
-                    Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                    Some(Arc::new(Texture2D::new(&context, cpu_texture)))
                 } else {
                     None
                 }
@@ -41,19 +41,19 @@ impl ORMMaterial {
             metallic_roughness_texture.clone()
         } else {
             if let Some(ref cpu_texture) = cpu_material.occlusion_texture {
-                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                Some(Arc::new(Texture2D::new(&context, cpu_texture)))
             } else {
                 None
             }
         };
-        Ok(Self {
+        Self {
             metallic: cpu_material.metallic,
             roughness: cpu_material.roughness,
             metallic_roughness_texture,
             occlusion_texture,
             occlusion_strength: cpu_material.occlusion_strength,
             render_states: RenderStates::default(),
-        })
+        }
     }
 
     /// Creates a ORM material from a [PhysicalMaterial].
@@ -73,6 +73,12 @@ impl ORMMaterial {
     }
 }
 
+impl FromCpuMaterial for ORMMaterial {
+    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> Self {
+        Self::new(context, cpu_material)
+    }
+}
+
 impl Material for ORMMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         let mut output = String::new();
@@ -89,30 +95,24 @@ impl Material for ORMMaterial {
         output
     }
 
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        _camera: &Camera,
-        _lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
-        program.use_uniform("metallic", &self.metallic)?;
-        program.use_uniform("roughness", &self.roughness)?;
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
+        program.use_uniform("metallic", &self.metallic);
+        program.use_uniform("roughness", &self.roughness);
         if let Some(ref texture) = self.metallic_roughness_texture {
-            program.use_texture("metallicRoughnessTexture", texture)?;
+            program.use_texture("metallicRoughnessTexture", texture);
         }
         if let Some(ref texture) = self.occlusion_texture {
-            program.use_uniform("occlusionStrength", &self.occlusion_strength)?;
-            program.use_texture("occlusionTexture", texture)?;
+            program.use_uniform("occlusionStrength", &self.occlusion_strength);
+            program.use_texture("occlusionTexture", texture);
         }
-        Ok(())
     }
 
     fn render_states(&self) -> RenderStates {
         self.render_states
     }
 
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }
 

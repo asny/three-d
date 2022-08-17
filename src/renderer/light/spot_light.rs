@@ -34,8 +34,8 @@ impl SpotLight {
         direction: &Vec3,
         cutoff: impl Into<Radians>,
         attenuation: Attenuation,
-    ) -> ThreeDResult<SpotLight> {
-        Ok(SpotLight {
+    ) -> SpotLight {
+        SpotLight {
             context: context.clone(),
             shadow_texture: None,
             intensity,
@@ -45,7 +45,7 @@ impl SpotLight {
             cutoff: cutoff.into(),
             attenuation,
             shadow_matrix: Mat4::identity(),
-        })
+        }
     }
 
     ///
@@ -62,11 +62,7 @@ impl SpotLight {
     /// It is recomended that the texture size is power of 2.
     /// If the shadows are too low resolution (the edges between shadow and non-shadow are pixelated) try to increase the texture size.
     ///
-    pub fn generate_shadow_map(
-        &mut self,
-        texture_size: u32,
-        geometries: &[&dyn Geometry],
-    ) -> ThreeDResult<()> {
+    pub fn generate_shadow_map(&mut self, texture_size: u32, geometries: &[&dyn Geometry]) {
         let position = self.position;
         let direction = self.direction;
         let up = compute_up_direction(self.direction);
@@ -84,7 +80,6 @@ impl SpotLight {
         }
 
         let shadow_camera = Camera::new_perspective(
-            &self.context,
             viewport,
             position,
             position + direction,
@@ -92,7 +87,7 @@ impl SpotLight {
             self.cutoff,
             z_near.max(0.01),
             z_far,
-        )?;
+        );
         self.shadow_matrix = shadow_matrix(&shadow_camera);
 
         let mut shadow_texture = DepthTargetTexture2D::new(
@@ -102,7 +97,7 @@ impl SpotLight {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
-        )?;
+        );
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -112,18 +107,16 @@ impl SpotLight {
         };
         shadow_texture
             .as_depth_target()
-            .clear(ClearState::default())?
+            .clear(ClearState::default())
             .write(|| {
                 for geometry in geometries
                     .iter()
                     .filter(|g| shadow_camera.in_frustum(&g.aabb()))
                 {
-                    geometry.render_with_material(&depth_material, &shadow_camera, &[])?;
+                    geometry.render_with_material(&depth_material, &shadow_camera, &[]);
                 }
-                Ok(())
-            })?;
+            });
         self.shadow_texture = Some(shadow_texture);
-        Ok(())
     }
 
     ///
@@ -196,15 +189,15 @@ impl Light for SpotLight {
                 ", i, i, i, i, i, i, i, i, i, i, i)
         }
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         if let Some(ref tex) = self.shadow_texture {
-            program.use_depth_texture(&format!("shadowMap{}", i), tex)?;
-            program.use_uniform(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
+            program.use_depth_texture(&format!("shadowMap{}", i), tex);
+            program.use_uniform(&format!("shadowMVP{}", i), &self.shadow_matrix);
         }
         program.use_uniform(
             &format!("color{}", i),
             &(self.color.to_vec3() * self.intensity),
-        )?;
+        );
         program.use_uniform(
             &format!("attenuation{}", i),
             &vec3(
@@ -212,10 +205,9 @@ impl Light for SpotLight {
                 self.attenuation.linear,
                 self.attenuation.quadratic,
             ),
-        )?;
-        program.use_uniform(&format!("position{}", i), &self.position)?;
-        program.use_uniform(&format!("direction{}", i), &self.direction.normalize())?;
-        program.use_uniform(&format!("cutoff{}", i), &self.cutoff.0)?;
-        Ok(())
+        );
+        program.use_uniform(&format!("position{}", i), &self.position);
+        program.use_uniform(&format!("direction{}", i), &self.direction.normalize());
+        program.use_uniform(&format!("cutoff{}", i), &self.cutoff.0);
     }
 }

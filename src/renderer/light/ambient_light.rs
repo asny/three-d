@@ -16,12 +16,12 @@ pub struct AmbientLight {
 
 impl AmbientLight {
     /// Constructs an ambient light that shines equally on all surfaces.
-    pub fn new(_context: &Context, intensity: f32, color: Color) -> ThreeDResult<Self> {
-        Ok(Self {
+    pub fn new(_context: &Context, intensity: f32, color: Color) -> Self {
+        Self {
             intensity,
             color,
             environment: None,
-        })
+        }
     }
 
     /// Constructs an ambient light that shines based on the given environment map.
@@ -30,12 +30,12 @@ impl AmbientLight {
         intensity: f32,
         color: Color,
         environment_map: &TextureCubeMap,
-    ) -> ThreeDResult<Self> {
-        Ok(Self {
+    ) -> Self {
+        Self {
             intensity,
             color,
-            environment: Some(Environment::new(context, environment_map)?),
-        })
+            environment: Some(Environment::new(context, environment_map)),
+        }
     }
 }
 
@@ -88,13 +88,13 @@ impl Light for AmbientLight {
                 ", i)
         }
     }
-    fn use_uniforms(&self, program: &Program, _i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, _i: u32) {
         if let Some(ref environment) = self.environment {
-            program.use_texture_cube("irradianceMap", &environment.irradiance_map)?;
-            program.use_texture_cube("prefilterMap", &environment.prefilter_map)?;
-            program.use_texture("brdfLUT", &environment.brdf_map)?;
+            program.use_texture_cube("irradianceMap", &environment.irradiance_map);
+            program.use_texture_cube("prefilterMap", &environment.prefilter_map);
+            program.use_texture("brdfLUT", &environment.brdf_map);
         }
-        program.use_uniform("ambientColor", &(self.color.to_vec3() * self.intensity))
+        program.use_uniform("ambientColor", &(self.color.to_vec3() * self.intensity));
     }
 }
 

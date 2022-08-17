@@ -4,8 +4,7 @@ use crate::renderer::*;
 /// A rectangle 2D object which can be rendered.
 ///
 pub struct Rectangle<M: Material> {
-    model: Model<M>,
-    context: Context,
+    model: Gm<Mesh, M>,
     width: f32,
     height: f32,
     center: Vec2,
@@ -23,19 +22,18 @@ impl<M: Material> Rectangle<M> {
         width: f32,
         height: f32,
         material: M,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut mesh = CpuMesh::square();
-        mesh.transform(&(Mat4::from_scale(0.5)))?;
+        mesh.transform(&(Mat4::from_scale(0.5))).unwrap();
         let mut rectangle = Self {
-            model: Model::new_with_material(context, &mesh, material)?,
-            context: context.clone(),
+            model: Gm::new(Mesh::new(context, &mesh), material),
             width,
             height,
             center,
             rotation: rotation.into(),
         };
         rectangle.update();
-        Ok(rectangle)
+        rectangle
     }
 
     /// Set the size of the rectangle.
@@ -82,24 +80,18 @@ impl<M: Material> Rectangle<M> {
 }
 
 impl<M: Material> Geometry2D for Rectangle<M> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        self.context.camera2d(viewport, |camera2d| {
-            self.model.render_with_material(material, camera2d, &[])
-        })
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
+        self.model
+            .render_with_material(material, &camera2d(viewport), &[])
     }
 }
 
 impl<M: Material> Object2D for Rectangle<M> {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
-        self.context
-            .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
+    fn render(&self, viewport: Viewport) {
+        self.model.render(&camera2d(viewport), &[])
     }
 
-    fn is_transparent(&self) -> bool {
-        self.model.is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.model.material_type()
     }
 }

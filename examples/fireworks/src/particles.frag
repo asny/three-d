@@ -1,7 +1,9 @@
 
 uniform vec4 color;
+uniform float fade;
 
 in vec2 uvs;
+in vec4 col;
 
 layout (location = 0) out vec4 outColor;
 
@@ -14,6 +16,6 @@ void main()
     }
     else {
         float f = 1.0 - sqrDist*sqrDist;
-        outColor = vec4(color.rgb, color.a * f);
+        outColor = vec4(col.rgb + color.rgb, fade * color.a * f);
     }
 }

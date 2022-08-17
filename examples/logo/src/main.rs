@@ -14,19 +14,17 @@ pub async fn run() {
         ..Default::default()
     })
     .unwrap();
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     let mut camera = Camera::new_perspective(
-        &context,
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(0.0, 0.0, 2.2),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(60.0),
         0.1,
         10.0,
-    )
-    .unwrap();
+    );
 
     let mut cpu_mesh = CpuMesh::sphere(37);
     let mut colors = Vec::new();
@@ -58,35 +56,36 @@ pub async fn run() {
             ),
             ..Default::default()
         },
-    )
-    .unwrap();
-    let mut model = Model::new_with_material(&context, &cpu_mesh, material).unwrap();
+    );
+    let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), material);
     model.set_transformation(Mat4::from_angle_y(degrees(35.0)));
 
-    let mut loaded = Loader::load_async(
-        &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
-    )
-    .await
-    .unwrap();
+    // Source: https://polyhaven.com/
+    let mut loaded = if let Ok(loaded) =
+        three_d_asset::io::load_async(&["../assets/syferfontein_18d_clear_4k.hdr"]).await
+    {
+        loaded
+    } else {
+        three_d_asset::io::load_async(&[
+            "https://asny.github.io/three-d/assets/syferfontein_18d_clear_4k.hdr",
+        ])
+        .await
+        .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
+    };
     let environment_map =
-        TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.hdr_image("").unwrap())
-            .unwrap();
+        TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.deserialize("").unwrap());
     let light = AmbientLight {
-        environment: Some(Environment::new(&context, &environment_map).unwrap()),
+        environment: Some(Environment::new(&context, &environment_map)),
         ..Default::default()
     };
 
-    window
-        .render_loop(move |frame_input: FrameInput| {
-            camera.set_viewport(frame_input.viewport).unwrap();
-            frame_input
-                .screen()
-                .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-                .unwrap()
-                .render(&camera, &[&model], &[&light])
-                .unwrap();
+    window.render_loop(move |frame_input: FrameInput| {
+        camera.set_viewport(frame_input.viewport);
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
+            .render(&camera, &[&model], &[&light]);
 
-            FrameOutput::default()
-        })
-        .unwrap();
+        FrameOutput::default()
+    });
 }

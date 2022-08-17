@@ -16,7 +16,7 @@ impl Texture3D {
     ///
     /// Construcs a new 3D texture with the given data.
     ///
-    pub fn new(context: &Context, cpu_texture: &CpuTexture3D) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_texture: &CpuTexture3D) -> Self {
         match cpu_texture.data {
             TextureData::RU8(ref data) => Self::new_with_data(context, cpu_texture, data),
             TextureData::RgU8(ref data) => Self::new_with_data(context, cpu_texture, data),
@@ -37,7 +37,7 @@ impl Texture3D {
         context: &Context,
         cpu_texture: &CpuTexture3D,
         data: &[T],
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
@@ -49,9 +49,9 @@ impl Texture3D {
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
             cpu_texture.wrap_r,
-        )?;
-        texture.fill(data)?;
-        Ok(texture)
+        );
+        texture.fill(data);
+        texture
     }
 
     ///
@@ -68,8 +68,8 @@ impl Texture3D {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         wrap_r: Wrapping,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let number_of_mip_maps =
             calculate_number_of_mip_maps(mip_map_filter, width, height, Some(depth));
         let texture = Self {
@@ -95,7 +95,7 @@ impl Texture3D {
             wrap_s,
             wrap_t,
             Some(wrap_r),
-        )?;
+        );
         unsafe {
             context.tex_storage_3d(
                 crate::context::TEXTURE_3D,
@@ -107,25 +107,24 @@ impl Texture3D {
             );
         }
         texture.generate_mip_maps();
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///
     /// Fills this texture with the given data.
     ///
-    /// # Errors
-    /// Returns an error if the length of the data does not correspond to the width, height, depth and format specified at construction.
+    /// # Panic
+    /// Will panic if the length of the data does not correspond to the width, height, depth and format specified at construction.
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
-    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
-        check_data_length(
+    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) {
+        check_data_length::<T>(
             self.width,
             self.height,
             self.depth,
             self.data_byte_size,
-            data,
-        )?;
+            data.len(),
+        );
         self.bind();
         unsafe {
             self.context.tex_sub_image_3d(
@@ -143,7 +142,6 @@ impl Texture3D {
             );
         }
         self.generate_mip_maps();
-        self.context.error_check()
     }
 
     /// The width of this texture.

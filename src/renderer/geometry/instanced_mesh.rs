@@ -20,17 +20,16 @@ pub struct InstancedMesh {
 
 impl InstancedMesh {
     ///
-    /// Creates a new 3D mesh from the given [CpuMesh].
+    /// Creates a new instanced 3D mesh from the given [CpuMesh].
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
-    /// The mesh is rendered in as many instances as there are [Instance] structs given as input.
-    /// The transformation and texture transform in [Instance] are applied to each instance before they are rendered.
+    /// The model is rendered in as many instances as there are attributes in [Instances] given as input.
     ///
-    pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> Self {
         let aabb = cpu_mesh.compute_aabb();
-        let mut model = Self {
+        let mut instanced_mesh = Self {
             context: context.clone(),
-            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh)?,
-            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh)?,
+            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
+            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
             instance_buffers: HashMap::new(),
             aabb,
             aabb_local: aabb.clone(),
@@ -39,8 +38,8 @@ impl InstancedMesh {
             instance_transforms: Vec::new(),
             texture_transform: Mat3::identity(),
         };
-        model.set_instances(instances)?;
-        Ok(model)
+        instanced_mesh.set_instances(instances);
+        instanced_mesh
     }
 
     ///
@@ -52,6 +51,7 @@ impl InstancedMesh {
 
     ///
     /// Set the local to world transformation applied to all instances.
+    /// This is applied before the transform for each instance.
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
@@ -61,20 +61,20 @@ impl InstancedMesh {
     ///
     /// Get the texture transform applied to the uv coordinates of all of the instances.
     ///
-    pub fn texture_transform(&mut self) -> &Mat3 {
+    pub fn texture_transform(&self) -> &Mat3 {
         &self.texture_transform
     }
 
     ///
     /// Set the texture transform applied to the uv coordinates of all of the model instances.
-    /// This is multiplied to the texture transform for each instance.
+    /// This is applied before the texture transform for each instance.
     ///
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }
 
     /// Returns the number of instances that is rendered.
-    pub fn instance_count(&mut self) -> u32 {
+    pub fn instance_count(&self) -> u32 {
         self.instance_count
     }
 
@@ -89,10 +89,11 @@ impl InstancedMesh {
     ///
     /// Update the instances.
     ///
-    pub fn set_instances(&mut self, instances: &Instances) -> ThreeDResult<()> {
+    pub fn set_instances(&mut self, instances: &Instances) {
         #[cfg(debug_assertions)]
-        instances.validate()?;
+        instances.validate().expect("invalid instances");
         self.instance_count = instances.count();
+        self.instance_buffers.clear();
         self.instance_transforms = (0..self.instance_count as usize)
             .map(|i| {
                 Mat4::from_translation(instances.translations[i])
@@ -112,7 +113,7 @@ impl InstancedMesh {
         if instances.rotations.is_none() && instances.scales.is_none() {
             self.instance_buffers.insert(
                 "instance_translation".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instances.translations)?,
+                InstanceBuffer::new_with_data(&self.context, &instances.translations),
             );
         } else {
             let mut row1 = Vec::new();
@@ -143,15 +144,15 @@ impl InstancedMesh {
 
             self.instance_buffers.insert(
                 "row1".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &row1)?,
+                InstanceBuffer::new_with_data(&self.context, &row1),
             );
             self.instance_buffers.insert(
                 "row2".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &row2)?,
+                InstanceBuffer::new_with_data(&self.context, &row2),
             );
             self.instance_buffers.insert(
                 "row3".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &row3)?,
+                InstanceBuffer::new_with_data(&self.context, &row3),
             );
         }
 
@@ -172,21 +173,20 @@ impl InstancedMesh {
             }
             self.instance_buffers.insert(
                 "tex_transform_row1".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1)?,
+                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1),
             );
             self.instance_buffers.insert(
                 "tex_transform_row2".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2)?,
+                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2),
             );
         }
         if let Some(instance_colors) = &instances.colors {
             self.instance_buffers.insert(
                 "instance_color".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_colors)?,
+                InstanceBuffer::new_with_data(&self.context, &instance_colors),
             );
         }
         self.update_aabb();
-        Ok(())
     }
 
     fn update_aabb(&mut self) {
@@ -199,13 +199,13 @@ impl InstancedMesh {
         self.aabb = aabb;
     }
 
-    fn vertex_shader_source(&self, fragment_shader_source: &str) -> ThreeDResult<String> {
+    fn vertex_shader_source(&self, fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
-        Ok(format!(
+        format!(
             "{}{}{}{}{}{}{}{}{}",
             if self.instance_buffers.contains_key("instance_translation") {
                 "#define USE_INSTANCE_TRANSLATIONS\n"
@@ -224,7 +224,7 @@ impl InstancedMesh {
             },
             if use_tangents {
                 if fragment_shader_source.find("in vec3 bitang;").is_none() {
-                    Err(CoreError::MissingBitangent)?;
+                    panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
                 }
                 "#define USE_TANGENTS\n"
             } else {
@@ -251,7 +251,7 @@ impl InstancedMesh {
             },
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
-        ))
+        )
     }
 }
 
@@ -265,33 +265,32 @@ impl Geometry for InstancedMesh {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         let fragment_shader_source = material.fragment_shader_source(
             self.vertex_buffers.contains_key("color")
                 || self.instance_buffers.contains_key("instance_color"),
             lights,
         );
         self.context.program(
-            &self.vertex_shader_source(&fragment_shader_source)?,
+            &self.vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, lights)?;
-                program.use_uniform("viewProjection", camera.projection() * camera.view())?;
-                program.use_uniform("modelMatrix", &self.transformation)?;
-                program.use_uniform_if_required("textureTransform", &self.texture_transform)?;
+                material.use_uniforms(program, camera, lights);
+                program.use_uniform("viewProjection", camera.projection() * camera.view());
+                program.use_uniform("modelMatrix", &self.transformation);
+                program.use_uniform_if_required("textureTransform", &self.texture_transform);
                 program.use_uniform_if_required(
                     "normalMatrix",
                     &self.transformation.invert().unwrap().transpose(),
-                )?;
+                );
 
                 for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
                     if program.requires_attribute(attribute_name) {
                         program.use_vertex_attribute(
                             attribute_name,
                             self.vertex_buffers
-                                .get(attribute_name)
-                                .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
-                        )?;
+                                .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
+                        );
                     }
                 }
 
@@ -308,9 +307,8 @@ impl Geometry for InstancedMesh {
                         program.use_instance_attribute(
                             attribute_name,
                             self.instance_buffers
-                                .get(attribute_name)
-                                .ok_or(CoreError::MissingMeshBuffer(attribute_name.to_string()))?,
-                        )?;
+                            .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
+                        );
                     }
                 }
 
@@ -330,15 +328,19 @@ impl Geometry for InstancedMesh {
                     )
                 }
             },
-        )
+        ).expect("Failed compiling shader")
     }
 }
 
 ///
 /// Defines the attributes for the instances of the model defined in [InstancedMesh] or [InstancedModel].
-/// Each list of attributes must contain the same number of elements as the number of instances.
 ///
-#[derive(Clone, Debug)]
+/// Each list of attributes must contain the same number of elements as the number of instances.
+/// The attributes are applied to each instance before they are rendered.
+/// The translation, rotation and scale is applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).
+/// The texture transform is also applied after the texture transform applied to all instances (see [InstancedMesh::set_texture_transform]).
+///
+#[derive(Clone, Debug, Default)]
 pub struct Instances {
     /// The translation applied to the positions of each instance.
     pub translations: Vec<Vec3>,
@@ -356,12 +358,12 @@ impl Instances {
     ///
     /// Returns an error if the instances is not valid.
     ///
-    pub fn validate(&self) -> ThreeDResult<()> {
+    pub fn validate(&self) -> Result<(), RendererError> {
         let instance_count = self.count();
-        let buffer_check = |length: Option<usize>, name: &str| -> ThreeDResult<()> {
+        let buffer_check = |length: Option<usize>, name: &str| -> Result<(), RendererError> {
             if let Some(length) = length {
                 if length < instance_count as usize {
-                    Err(CoreError::InvalidBufferLength(
+                    Err(RendererError::InvalidBufferLength(
                         name.to_string(),
                         instance_count as usize,
                         length,
@@ -378,6 +380,7 @@ impl Instances {
         buffer_check(self.rotations.as_ref().map(|b| b.len()), "rotations")?;
         buffer_check(self.scales.as_ref().map(|b| b.len()), "scales")?;
         buffer_check(self.colors.as_ref().map(|b| b.len()), "colors")?;
+        buffer_check(Some(self.translations.len()), "translations")?;
 
         Ok(())
     }
@@ -385,17 +388,5 @@ impl Instances {
     /// Returns the number of instances.
     pub fn count(&self) -> u32 {
         self.translations.len() as u32
-    }
-}
-
-impl Default for Instances {
-    fn default() -> Self {
-        Self {
-            translations: vec![Vec3::zero()],
-            rotations: None,
-            scales: None,
-            texture_transforms: None,
-            colors: None,
-        }
     }
 }

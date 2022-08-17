@@ -23,8 +23,8 @@ impl DepthTargetTexture2DArray {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: DepthFormat,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let texture = Self {
             context: context.clone(),
             id,
@@ -42,7 +42,7 @@ impl DepthTargetTexture2DArray {
             wrap_s,
             wrap_t,
             None,
-        )?;
+        );
         unsafe {
             context.tex_storage_3d(
                 crate::context::TEXTURE_2D_ARRAY,
@@ -53,36 +53,15 @@ impl DepthTargetTexture2DArray {
                 depth as i32,
             );
         }
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///
     /// Returns a [DepthTarget] which can be used to clear, write to and read from the given layer of this texture.
     /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
     ///
-    pub fn as_depth_target(&mut self, layer: u32) -> DepthTarget {
+    pub fn as_depth_target<'a>(&'a mut self, layer: u32) -> DepthTarget<'a> {
         DepthTarget::new_texture_2d_array(&self.context, self, layer)
-    }
-
-    ///
-    /// Writes the depth of whatever rendered in the `render` closure into the depth texture defined by the input parameter `layer`.
-    /// Before writing, the texture is cleared based on the given clear state.
-    ///
-    #[deprecated = "use as_depth_target followed by clear and write"]
-    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
-        &mut self,
-        layer: u32,
-        clear_state: Option<f32>,
-        render: F,
-    ) -> ThreeDResult<()> {
-        self.as_depth_target(layer)
-            .clear(ClearState {
-                depth: clear_state,
-                ..ClearState::none()
-            })?
-            .write(render)?;
-        Ok(())
     }
 
     /// The width of this texture.

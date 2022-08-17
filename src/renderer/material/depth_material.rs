@@ -15,25 +15,25 @@ pub struct DepthMaterial {
     pub render_states: RenderStates,
 }
 
+impl FromCpuMaterial for DepthMaterial {
+    fn from_cpu_material(_context: &Context, _cpu_material: &CpuMaterial) -> Self {
+        Self::default()
+    }
+}
+
 impl Material for DepthMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         include_str!("shaders/depth_material.frag").to_string()
     }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        _lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
-        program.use_uniform("minDistance", &self.min_distance.unwrap_or(camera.z_near()))?;
-        program.use_uniform("maxDistance", &self.max_distance.unwrap_or(camera.z_far()))?;
-        program.use_uniform_block("Camera", camera.uniform_buffer())?;
-        Ok(())
+    fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
+        program.use_uniform("minDistance", &self.min_distance.unwrap_or(camera.z_near()));
+        program.use_uniform("maxDistance", &self.max_distance.unwrap_or(camera.z_far()));
+        program.use_uniform("eye", camera.position());
     }
     fn render_states(&self) -> RenderStates {
         self.render_states
     }
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }

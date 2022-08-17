@@ -16,19 +16,14 @@ yanked = "deny"
 ignore = []
 
 [bans]
-multiple-versions = "deny"
+multiple-versions = "warn"
 wildcards = "allow"        # at least until https://github.com/EmbarkStudios/cargo-deny/issues/241 is fixed
 deny = []
 
 skip = [
-    { name = "base64" },              # gltf uses an old version
-    { name = "cfg-if" },              # winit depends on an old version
-    { name = "core-foundation" },     # winit depends on an old version
-    { name = "core-foundation-sys" }, # winit depends on an old version
-    { name = "core-graphics" },       # winit depends on an old version
-    { name = "miniz_oxide" },         # image crate depends on an old version
 ]
-skip-tree = []
+skip-tree = [
+]
 
 
 [licenses]
@@ -45,7 +40,12 @@ allow = [
     "CC0-1.0",      # https://creativecommons.org/publicdomain/zero/1.0/
     "ISC",          # https://tldrlegal.com/license/-isc-license
     "MIT",          # https://tldrlegal.com/license/mit-license
-    # "MPL-2.0",      # https://www.mozilla.org/en-US/MPL/2.0/FAQ/ - see Q11
+    "MPL-2.0",      # https://www.mozilla.org/en-US/MPL/2.0/FAQ/ - see Q11
     # "OpenSSL",      # https://www.openssl.org/source/license.html
     "Zlib", # https://tldrlegal.com/license/zlib-libpng-license-(zlib)
+    "Unicode-DFS-2016",  # https://spdx.org/licenses/Unicode-DFS-2016.html
 ]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

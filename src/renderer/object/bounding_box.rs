@@ -4,7 +4,7 @@ use crate::renderer::*;
 /// A bounding box object used for visualising an [AxisAlignedBoundingBox].
 ///
 pub struct BoundingBox<M: Material> {
-    model: InstancedModel<M>,
+    model: Gm<InstancedMesh, M>,
     aabb: AxisAlignedBoundingBox,
 }
 
@@ -12,11 +12,7 @@ impl<M: Material> BoundingBox<M> {
     ///
     /// Creates a bounding box object from an axis aligned bounding box.
     ///
-    pub fn new_with_material(
-        context: &Context,
-        aabb: AxisAlignedBoundingBox,
-        material: M,
-    ) -> ThreeDResult<Self> {
+    pub fn new_with_material(context: &Context, aabb: AxisAlignedBoundingBox, material: M) -> Self {
         let size = aabb.size();
         let thickness = 0.02 * size.x.max(size.y).max(size.z);
 
@@ -32,7 +28,7 @@ impl<M: Material> BoundingBox<M> {
         aabb: AxisAlignedBoundingBox,
         material: M,
         thickness: f32,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let max = aabb.max();
         let min = aabb.min();
         let size = aabb.size();
@@ -80,18 +76,20 @@ impl<M: Material> BoundingBox<M> {
             vec3(size.z, thickness, thickness),
             vec3(size.z, thickness, thickness),
         ];
-        let model = InstancedModel::new_with_material(
-            context,
-            &Instances {
-                translations,
-                rotations: Some(rotations),
-                scales: Some(scales),
-                ..Default::default()
-            },
-            &CpuMesh::cylinder(16),
+        let model = Gm::new(
+            InstancedMesh::new(
+                context,
+                &Instances {
+                    translations,
+                    rotations: Some(rotations),
+                    scales: Some(scales),
+                    ..Default::default()
+                },
+                &CpuMesh::cylinder(16),
+            ),
             material,
-        )?;
-        Ok(Self { model, aabb })
+        );
+        Self { model, aabb }
     }
 }
 
@@ -105,17 +103,17 @@ impl<M: Material> Geometry for BoundingBox<M> {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.model.render_with_material(material, camera, lights)
     }
 }
 
 impl<M: Material> Object for BoundingBox<M> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.model.render(camera, lights)
     }
 
-    fn is_transparent(&self) -> bool {
-        false
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }

@@ -17,13 +17,8 @@ impl FogEffect {
     ///
     /// Constructs a new fog effect.
     ///
-    pub fn new(
-        context: &Context,
-        color: Color,
-        density: f32,
-        animation: f32,
-    ) -> ThreeDResult<FogEffect> {
-        Ok(FogEffect {
+    pub fn new(context: &Context, color: Color, density: f32, animation: f32) -> FogEffect {
+        FogEffect {
             color,
             density,
             animation,
@@ -34,20 +29,16 @@ impl FogEffect {
                     include_str!("../../core/shared.frag"),
                     include_str!("shaders/fog.frag")
                 ),
-            )?,
-        })
+            )
+            .unwrap(),
+        }
     }
 
     ///
     /// Apply the fog effect on the current render target based on the given depth map.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn apply(
-        &self,
-        camera: &Camera,
-        depth_texture: &DepthTargetTexture2D,
-        time: f32,
-    ) -> ThreeDResult<()> {
+    pub fn apply(&self, camera: &Camera, depth_texture: &DepthTargetTexture2D, time: f32) {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
             blend: Blend::TRANSPARENCY,
@@ -56,19 +47,18 @@ impl FogEffect {
         };
 
         self.image_effect
-            .use_depth_texture("depthMap", depth_texture)?;
+            .use_depth_texture("depthMap", depth_texture);
         self.image_effect.use_uniform(
             "viewProjectionInverse",
             (camera.projection() * camera.view()).invert().unwrap(),
-        )?;
-        self.image_effect.use_uniform("fogColor", self.color)?;
-        self.image_effect.use_uniform("fogDensity", self.density)?;
-        self.image_effect.use_uniform("animation", self.animation)?;
-        self.image_effect.use_uniform("time", 0.001 * time)?;
+        );
+        self.image_effect.use_uniform("fogColor", self.color);
+        self.image_effect.use_uniform("fogDensity", self.density);
+        self.image_effect.use_uniform("animation", self.animation);
+        self.image_effect.use_uniform("time", 0.001 * time);
         self.image_effect
-            .use_uniform("eyePosition", camera.position())?;
+            .use_uniform("eyePosition", camera.position());
 
-        self.image_effect.apply(render_states, camera.viewport())?;
-        Ok(())
+        self.image_effect.apply(render_states, camera.viewport());
     }
 }

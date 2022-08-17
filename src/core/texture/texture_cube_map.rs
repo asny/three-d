@@ -73,33 +73,33 @@ impl CubeMapSide {
     pub(in crate::core) fn view(&self) -> Mat4 {
         match self {
             CubeMapSide::Right => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(1.0, 0.0, 0.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(1.0, 0.0, 0.0),
                 vec3(0.0, -1.0, 0.0),
             ),
             CubeMapSide::Left => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(-1.0, 0.0, 0.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(-1.0, 0.0, 0.0),
                 vec3(0.0, -1.0, 0.0),
             ),
             CubeMapSide::Top => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(0.0, 1.0, 0.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(0.0, 1.0, 0.0),
                 vec3(0.0, 0.0, 1.0),
             ),
             CubeMapSide::Bottom => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(0.0, -1.0, 0.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(0.0, -1.0, 0.0),
                 vec3(0.0, 0.0, -1.0),
             ),
             CubeMapSide::Front => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(0.0, 0.0, 1.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(0.0, 0.0, 1.0),
                 vec3(0.0, -1.0, 0.0),
             ),
             CubeMapSide::Back => Mat4::look_at_rh(
-                Point::new(0.0, 0.0, 0.0),
-                Point::new(0.0, 0.0, -1.0),
+                Point3::new(0.0, 0.0, 0.0),
+                Point3::new(0.0, 0.0, -1.0),
                 vec3(0.0, -1.0, 0.0),
             ),
         }
@@ -121,61 +121,165 @@ pub struct TextureCubeMap {
 
 impl TextureCubeMap {
     ///
-    /// Creates a new texture cube map from the given cpu texture.
-    /// The cpu texture must contain 6 images all with the width and height specified in the cpu texture.
-    /// The images are used in the following order; right, left, top, bottom, front, back.
+    /// Creates a new cube map texture from the given [CpuTexture]s.
+    /// All of the cpu textures must contain data with the same [TextureDataType].
     ///
-    pub fn new(context: &Context, cpu_texture: &CpuTextureCube) -> ThreeDResult<Self> {
-        match &cpu_texture.data {
-            TextureCubeData::RU8(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RgU8(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RgbU8(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RgbaU8(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RF16(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RgF16(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RgbF16(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RgbaF16(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RF32(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RgF32(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RgbF32(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
-            TextureCubeData::RgbaF32(right, left, top, bottom, front, back) => {
-                Self::new_with_data(context, cpu_texture, right, left, top, bottom, front, back)
-            }
+    pub fn new(
+        context: &Context,
+        right: &CpuTexture,
+        left: &CpuTexture,
+        top: &CpuTexture,
+        bottom: &CpuTexture,
+        front: &CpuTexture,
+        back: &CpuTexture,
+    ) -> Self {
+        match &front.data {
+            TextureData::RU8(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                ru8_data(right),
+                ru8_data(left),
+                ru8_data(top),
+                ru8_data(bottom),
+                front_data,
+                ru8_data(back),
+            ),
+            TextureData::RgU8(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rgu8_data(right),
+                rgu8_data(left),
+                rgu8_data(top),
+                rgu8_data(bottom),
+                front_data,
+                rgu8_data(back),
+            ),
+            TextureData::RgbU8(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rgbu8_data(right),
+                rgbu8_data(left),
+                rgbu8_data(top),
+                rgbu8_data(bottom),
+                front_data,
+                rgbu8_data(back),
+            ),
+            TextureData::RgbaU8(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rgbau8_data(right),
+                rgbau8_data(left),
+                rgbau8_data(top),
+                rgbau8_data(bottom),
+                front_data,
+                rgbau8_data(back),
+            ),
+            TextureData::RF16(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rf16_data(right),
+                rf16_data(left),
+                rf16_data(top),
+                rf16_data(bottom),
+                front_data,
+                rf16_data(back),
+            ),
+            TextureData::RgF16(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rgf16_data(right),
+                rgf16_data(left),
+                rgf16_data(top),
+                rgf16_data(bottom),
+                front_data,
+                rgf16_data(back),
+            ),
+            TextureData::RgbF16(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rgbf16_data(right),
+                rgbf16_data(left),
+                rgbf16_data(top),
+                rgbf16_data(bottom),
+                front_data,
+                rgbf16_data(back),
+            ),
+            TextureData::RgbaF16(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rgbaf16_data(right),
+                rgbaf16_data(left),
+                rgbaf16_data(top),
+                rgbaf16_data(bottom),
+                front_data,
+                rgbaf16_data(back),
+            ),
+            TextureData::RF32(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rf32_data(right),
+                rf32_data(left),
+                rf32_data(top),
+                rf32_data(bottom),
+                front_data,
+                rf32_data(back),
+            ),
+            TextureData::RgF32(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rgf32_data(right),
+                rgf32_data(left),
+                rgf32_data(top),
+                rgf32_data(bottom),
+                front_data,
+                rgf32_data(back),
+            ),
+            TextureData::RgbF32(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rgbf32_data(right),
+                rgbf32_data(left),
+                rgbf32_data(top),
+                rgbf32_data(bottom),
+                front_data,
+                rgbf32_data(back),
+            ),
+            TextureData::RgbaF32(front_data) => Self::new_with_data(
+                context,
+                front,
+                right.wrap_s,
+                rgbaf32_data(right),
+                rgbaf32_data(left),
+                rgbaf32_data(top),
+                rgbaf32_data(bottom),
+                front_data,
+                rgbaf32_data(back),
+            ),
         }
     }
 
     fn new_with_data<T: TextureDataType>(
         context: &Context,
-        cpu_texture: &CpuTextureCube,
+        cpu_texture: &CpuTexture,
+        wrap_r: Wrapping,
         right_data: &[T],
         left_data: &[T],
         top_data: &[T],
         bottom_data: &[T],
         front_data: &[T],
         back_data: &[T],
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
@@ -185,8 +289,8 @@ impl TextureCubeMap {
             cpu_texture.mip_map_filter,
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
-            cpu_texture.wrap_r,
-        )?;
+            wrap_r,
+        );
         texture.fill(
             right_data,
             left_data,
@@ -194,8 +298,8 @@ impl TextureCubeMap {
             bottom_data,
             front_data,
             back_data,
-        )?;
-        Ok(texture)
+        );
+        texture
     }
 
     ///
@@ -211,8 +315,8 @@ impl TextureCubeMap {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         wrap_r: Wrapping,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
         let texture = Self {
             context: context.clone(),
@@ -237,7 +341,7 @@ impl TextureCubeMap {
             wrap_s,
             wrap_t,
             Some(wrap_r),
-        )?;
+        );
         unsafe {
             context.tex_storage_2d(
                 crate::context::TEXTURE_CUBE_MAP,
@@ -248,15 +352,14 @@ impl TextureCubeMap {
             );
         }
         texture.generate_mip_maps();
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///
     /// Fills the cube map texture with the given pixel data for the 6 images.
     ///
-    /// # Errors
-    /// Returns an error if the length of the data for all 6 images does not correspond to the width, height and format specified at construction.
+    /// # Panic
+    /// Will panic if the length of the data for all 6 images does not correspond to the width, height and format specified at construction.
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(
@@ -267,13 +370,49 @@ impl TextureCubeMap {
         bottom_data: &[T],
         front_data: &[T],
         back_data: &[T],
-    ) -> ThreeDResult<()> {
-        check_data_length(self.width, self.height, 1, self.data_byte_size, right_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, left_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, top_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, bottom_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, front_data)?;
-        check_data_length(self.width, self.height, 1, self.data_byte_size, back_data)?;
+    ) {
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            right_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            left_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            top_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            bottom_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            front_data.len(),
+        );
+        check_data_length::<T>(
+            self.width,
+            self.height,
+            1,
+            self.data_byte_size,
+            back_data.len(),
+        );
         self.bind();
         for i in 0..6 {
             let data = match i {
@@ -300,7 +439,6 @@ impl TextureCubeMap {
             }
         }
         self.generate_mip_maps();
-        self.context.error_check()
     }
 
     ///
@@ -309,7 +447,7 @@ impl TextureCubeMap {
     pub fn new_from_equirectangular<T: PrimitiveDataType + TextureDataType>(
         context: &Context,
         cpu_texture: &CpuTexture,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let texture_size = cpu_texture.width / 4;
         let mut texture = Self::new_empty::<[T; 4]>(
             &context,
@@ -321,10 +459,10 @@ impl TextureCubeMap {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-        )?;
+        );
 
         {
-            let map = Texture2D::new(context, cpu_texture)?;
+            let map = Texture2D::new(context, cpu_texture);
             let fragment_shader_source = "uniform sampler2D equirectangularMap;
             const vec2 invAtan = vec2(0.1591, 0.3183);
             
@@ -344,18 +482,20 @@ impl TextureCubeMap {
                 vec2 uv = sample_spherical_map(normalize(pos));
                 outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
             }";
-            let effect = ImageCubeEffect::new(context, fragment_shader_source)?;
+            let effect = ImageCubeEffect::new(context, fragment_shader_source).unwrap();
 
             for side in CubeMapSide::iter() {
-                effect.use_texture("equirectangularMap", &map)?;
+                effect.use_texture("equirectangularMap", &map);
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
                     .as_color_target(side, None)
-                    .clear(ClearState::default())?
-                    .write(|| effect.render(side, RenderStates::default(), viewport))?;
+                    .clear(ClearState::default())
+                    .write(|| {
+                        effect.render(side, RenderStates::default(), viewport);
+                    });
             }
         }
-        Ok(texture)
+        texture
     }
 
     ///
@@ -372,43 +512,6 @@ impl TextureCubeMap {
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {
         ColorTarget::new_texture_cube_map(&self.context, self, side, mip_level)
-    }
-
-    ///
-    /// Writes whatever rendered in the `render` closure into the color texture at the cube map side given by the input parameter `side`.
-    /// Before writing, the texture side is cleared based on the given clear state.
-    ///
-    #[deprecated = "use as_color_target followed by clear and write"]
-    pub fn write(
-        &mut self,
-        side: CubeMapSide,
-        clear_state: ClearState,
-        render: impl FnOnce() -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
-        self.as_color_target(side, None)
-            .as_render_target()?
-            .clear(clear_state)?
-            .write(render)?;
-        Ok(())
-    }
-
-    ///
-    /// Writes whatever rendered in the `render` closure into the given mip level of the color texture at the cube map side given by the input parameter `side`.
-    /// Before writing, the texture side is cleared based on the given clear state.
-    ///
-    #[deprecated = "use as_color_target followed by clear and write"]
-    pub fn write_to_mip_level(
-        &mut self,
-        side: CubeMapSide,
-        mip_level: u32,
-        clear_state: ClearState,
-        render: impl FnOnce() -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
-        self.as_color_target(side, Some(mip_level))
-            .as_render_target()?
-            .clear(clear_state)?
-            .write(render)?;
-        Ok(())
     }
 
     /// The width of this texture.

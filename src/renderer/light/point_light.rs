@@ -23,13 +23,13 @@ impl PointLight {
         color: Color,
         position: &Vec3,
         attenuation: Attenuation,
-    ) -> ThreeDResult<PointLight> {
-        Ok(PointLight {
+    ) -> PointLight {
+        PointLight {
             intensity,
             color,
             position: *position,
             attenuation,
-        })
+        }
     }
 }
 
@@ -53,11 +53,11 @@ impl Light for PointLight {
         
         ", i, i, i, i, i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         program.use_uniform(
             &format!("color{}", i),
             &(self.color.to_vec3() * self.intensity),
-        )?;
+        );
         program.use_uniform(
             &format!("attenuation{}", i),
             &vec3(
@@ -65,8 +65,7 @@ impl Light for PointLight {
                 self.attenuation.linear,
                 self.attenuation.quadratic,
             ),
-        )?;
-        program.use_uniform(&format!("position{}", i), &self.position)?;
-        Ok(())
+        );
+        program.use_uniform(&format!("position{}", i), &self.position);
     }
 }

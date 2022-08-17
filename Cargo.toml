@@ -1,6 +1,6 @@
 [package]
 name = "three-d"
-version = "0.12.0" # Remember to update example links
+version = "0.14.0" # Remember to update example links
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2021"
 description = "2D/3D renderer - makes it simple to draw stuff across platforms (including web)"
@@ -17,39 +17,32 @@ rustdoc-args = ["--cfg", "docsrs"]
 targets = ["x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
 
 [features]
-default = ["glutin-window", "canvas", "egui-gui", "obj-io", "gltf-io", "image-io", "reqwest"]
-glutin-window = ["glutin"] # Default window for desktop (only available when NOT building for the wasm32 architecture)
-canvas = [] # Default window for web (only available when building for the wasm32 architecture)
-egui-gui = ["egui"] # Additional GUI features 
-image-io = ["image"] # Additional image functionality, for example loading an image to a texture
-obj-io = ["wavefront_obj", "image-io"]
-gltf-io = ["gltf", "image-io"]
+default = ["window"]
+window = ["glutin", "winit"] # Window module
+egui-gui = ["egui_glow", "egui"] # Additional GUI features 
 
 [dependencies]
 glow = "0.11"
 cgmath = "0.18"
-half = {version="1.8", features=["std", "num-traits", "zerocopy", "serde"]}
-thiserror = "1.0"
-reqwest = { version = "0.11", optional = true }
-gltf = { version = "1.0.0", features = ["utils"], optional = true }
-wavefront_obj = { version = "10.0", optional = true }
-image = { version = "0.23", optional = true, default-features = false, features = ["gif", "jpeg", "ico", "png", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt", "dds", "farbfeld"]}
-egui = { version = "0.13", optional = true }
+three-d-asset = "0.3"
+thiserror = "1"
+winit = {version = "0.27", optional = true}
+egui = { version = "0.18", optional = true }
+egui_glow = { version = "0.18", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-glutin = { version = "0.28", optional = true }
+glutin = { version = "0.29", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-js-sys = "0.3"
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCollection', 'HtmlCanvasElement', 'Window', 'CssStyleDeclaration', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer', 'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject', 'WebGlActiveInfo', 'WebGlSync', 'Performance','Headers', 'Request', 'RequestInit', 'RequestMode', 'Response'] }
-gloo-timers = "0.2"
-serde = { version = "1.0", features = ["derive"] }
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ['Document', 'HtmlCollection', 'HtmlCanvasElement', 'Window'] }
+
+instant = "0.1.12"
 
 [dev-dependencies]
 rand = "0.8"
-tokio = { version = "1.16", features = ["macros", "rt-multi-thread"] }
+three-d-asset = {version = "0.3", features = ["hdr", "gltf", "obj", "vol", "png", "jpeg", "http"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
 [[example]]
 name = "triangle"
@@ -58,6 +51,7 @@ path = "examples/triangle/src/main.rs"
 [[example]]
 name = "screen"
 path = "examples/screen/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "mandelbrot"
@@ -82,6 +76,7 @@ path = "examples/texture/src/main.rs"
 [[example]]
 name = "volume"
 path = "examples/volume/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "point_cloud"
@@ -94,22 +89,27 @@ path = "examples/picking/src/main.rs"
 [[example]]
 name = "environment"
 path = "examples/environment/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "pbr"
 path = "examples/pbr/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "lighting"
 path = "examples/lighting/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "lights"
 path = "examples/lights/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "image"
 path = "examples/image/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "fog"
@@ -122,6 +122,7 @@ path = "examples/fireworks/src/main.rs"
 [[example]]
 name = "statues"
 path = "examples/statues/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "wireframe"

@@ -10,20 +10,18 @@ pub fn main() {
     .unwrap();
 
     // Get the graphics context from the window
-    let context = window.gl().unwrap();
+    let context = window.gl();
 
     // Create a camera
     let mut camera = Camera::new_perspective(
-        &context,
-        window.viewport().unwrap(),
+        window.viewport(),
         vec3(0.0, 0.0, 2.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
         10.0,
-    )
-    .unwrap();
+    );
 
     // Create a CPU-side mesh consisting of a single colored triangle
     let positions = vec![
@@ -43,13 +41,13 @@ pub fn main() {
     };
 
     // Construct a model, with a default color material, thereby transferring the mesh data to the GPU
-    let mut model = Model::new(&context, &cpu_mesh).unwrap();
+    let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
 
     // Start the main render loop
     window.render_loop(move |frame_input: FrameInput| // Begin a new frame with an updated frame input
     {
         // Ensure the viewport matches the current window viewport which changes if the window is resized
-        camera.set_viewport(frame_input.viewport).unwrap();
+        camera.set_viewport(frame_input.viewport);
 
         // Set the current transformation of the triangle
         model.set_transformation(Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32)));
@@ -57,14 +55,13 @@ pub fn main() {
         // Get the screen render target to be able to render something on the screen
         frame_input.screen()
             // Clear the color and depth of the screen render target
-            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0)).unwrap()
-            // Write to the screen render target
-            .write(|| {
-                // Render the triangle with the color material which uses the per vertex colors defined at construction
-                model.render(&camera, &[])
-            }).unwrap();
+            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+            // Render the triangle with the color material which uses the per vertex colors defined at construction
+            .render(
+                &camera, &[&model], &[]
+            );
 
         // Returns default frame output to end the frame
         FrameOutput::default()
-    }).unwrap();
+    });
 }

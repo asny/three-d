@@ -1,6 +1,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 //#![warn(clippy::all)]
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //!
 //! A 3D renderer which enables out-of-the-box build to both desktop and web with the same code.
 //! See the [README](https://crates.io/crates/three-d) for more information and
@@ -14,15 +15,11 @@ pub mod core;
 pub mod renderer;
 pub use renderer::*;
 
+#[cfg(feature = "window")]
+#[cfg_attr(docsrs, doc(feature = "window"))]
 pub mod window;
+#[cfg(feature = "window")]
 pub use window::*;
 
-pub mod io;
-pub use io::*;
-
 mod gui;
-#[doc(inline)]
 pub use gui::*;
-
-/// A result for this crate.
-pub type ThreeDResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;

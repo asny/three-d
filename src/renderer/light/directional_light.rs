@@ -25,15 +25,15 @@ impl DirectionalLight {
         intensity: f32,
         color: Color,
         direction: &Vec3,
-    ) -> ThreeDResult<DirectionalLight> {
-        Ok(DirectionalLight {
+    ) -> DirectionalLight {
+        DirectionalLight {
             context: context.clone(),
             shadow_matrix: Mat4::identity(),
             shadow_texture: None,
             intensity,
             color,
             direction: *direction,
-        })
+        }
     }
 
     ///
@@ -51,11 +51,7 @@ impl DirectionalLight {
     /// If the shadows are too low resolution (the edges between shadow and non-shadow are pixelated) try to increase the texture size
     /// and/or split the scene by creating another light source with same parameters and let the two light sources shines on different parts of the scene.
     ///
-    pub fn generate_shadow_map(
-        &mut self,
-        texture_size: u32,
-        geometries: &[&dyn Geometry],
-    ) -> ThreeDResult<()> {
+    pub fn generate_shadow_map(&mut self, texture_size: u32, geometries: &[&dyn Geometry]) {
         let up = compute_up_direction(self.direction);
 
         let viewport = Viewport::new_at_origo(texture_size, texture_size);
@@ -64,7 +60,7 @@ impl DirectionalLight {
             aabb.expand_with_aabb(&geometry.aabb());
         }
         if aabb.is_empty() {
-            return Ok(());
+            return;
         }
         let target = aabb.center();
         let position = target - aabb.max().distance(aabb.min()) * self.direction;
@@ -72,7 +68,6 @@ impl DirectionalLight {
         let z_near = aabb.distance(&position);
         let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
         let shadow_camera = Camera::new_orthographic(
-            &self.context,
             viewport,
             position,
             target,
@@ -80,7 +75,7 @@ impl DirectionalLight {
             frustum_height,
             z_near,
             z_far,
-        )?;
+        );
         let mut shadow_texture = DepthTargetTexture2D::new(
             &self.context,
             texture_size,
@@ -88,7 +83,7 @@ impl DirectionalLight {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
-        )?;
+        );
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -98,19 +93,17 @@ impl DirectionalLight {
         };
         shadow_texture
             .as_depth_target()
-            .clear(ClearState::default())?
+            .clear(ClearState::default())
             .write(|| {
                 for geometry in geometries
                     .iter()
                     .filter(|g| shadow_camera.in_frustum(&g.aabb()))
                 {
-                    geometry.render_with_material(&depth_material, &shadow_camera, &[])?;
+                    geometry.render_with_material(&depth_material, &shadow_camera, &[]);
                 }
-                Ok(())
-            })?;
+            });
         self.shadow_texture = Some(shadow_texture);
         self.shadow_matrix = shadow_matrix(&shadow_camera);
-        Ok(())
     }
 
     ///
@@ -153,16 +146,15 @@ impl Light for DirectionalLight {
                 ", i, i, i, i, i)
         }
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         if let Some(ref tex) = self.shadow_texture {
-            program.use_depth_texture(&format!("shadowMap{}", i), tex)?;
-            program.use_uniform(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
+            program.use_depth_texture(&format!("shadowMap{}", i), tex);
+            program.use_uniform(&format!("shadowMVP{}", i), &self.shadow_matrix);
         }
         program.use_uniform(
             &format!("color{}", i),
             &(self.color.to_vec3() * self.intensity),
-        )?;
-        program.use_uniform(&format!("direction{}", i), &self.direction.normalize())?;
-        Ok(())
+        );
+        program.use_uniform(&format!("direction{}", i), &self.direction.normalize());
     }
 }

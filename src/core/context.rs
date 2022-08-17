@@ -1,7 +1,7 @@
 use super::*;
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::RwLock;
 
 #[doc(hidden)]
 pub use crate::context::HasContext;
@@ -13,13 +13,10 @@ pub use crate::context::HasContext;
 ///
 #[derive(Clone)]
 pub struct Context {
-    context: Rc<crate::context::Context>,
+    context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
-    programs: Rc<RefCell<HashMap<String, Program>>>,
-    effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
-    camera2d: Rc<RefCell<Option<Camera>>>,
-    #[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
-    pub(crate) glutin_context: Option<Rc<glutin::Context<glutin::PossiblyCurrent>>>,
+    programs: Arc<RwLock<HashMap<String, Program>>>,
+    effects: Arc<RwLock<HashMap<String, ImageEffect>>>,
 }
 
 impl Context {
@@ -29,7 +26,7 @@ impl Context {
     /// Since the content in the [context](crate::context) module is just a re-export of [glow](https://crates.io/crates/glow),
     /// you can also call this method with a reference counter to a glow context created using glow and not the re-export in [context](crate::context).
     ///
-    pub fn from_gl_context(context: Rc<crate::context::Context>) -> ThreeDResult<Self> {
+    pub fn from_gl_context(context: Arc<crate::context::Context>) -> Result<Self, CoreError> {
         #[cfg(not(target_arch = "wasm32"))]
         unsafe {
             // Enable seamless cube map textures
@@ -45,14 +42,10 @@ impl Context {
             Self {
                 context,
                 vao,
-                programs: Rc::new(RefCell::new(HashMap::new())),
-                effects: Rc::new(RefCell::new(HashMap::new())),
-                camera2d: Rc::new(RefCell::new(None)),
-                #[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
-                glutin_context: None,
+                programs: Arc::new(RwLock::new(HashMap::new())),
+                effects: Arc::new(RwLock::new(HashMap::new())),
             }
         };
-        c.error_check()?;
         Ok(c)
     }
 
@@ -64,16 +57,17 @@ impl Context {
         &self,
         vertex_shader_source: &str,
         fragment_shader_source: &str,
-        callback: impl FnOnce(&Program) -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
+        callback: impl FnOnce(&Program),
+    ) -> Result<(), CoreError> {
         let key = format!("{}{}", vertex_shader_source, fragment_shader_source);
-        if !self.programs.borrow().contains_key(&key) {
-            self.programs.borrow_mut().insert(
+        if !self.programs.read().unwrap().contains_key(&key) {
+            self.programs.write().unwrap().insert(
                 key.clone(),
                 Program::from_source(self, vertex_shader_source, fragment_shader_source)?,
             );
         };
-        callback(self.programs.borrow().get(&key).unwrap())
+        callback(self.programs.read().unwrap().get(&key).unwrap());
+        Ok(())
     }
 
     ///
@@ -83,58 +77,27 @@ impl Context {
     pub fn effect(
         &self,
         fragment_shader_source: &str,
-        callback: impl FnOnce(&ImageEffect) -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
-        if !self.effects.borrow().contains_key(fragment_shader_source) {
-            self.effects.borrow_mut().insert(
+        callback: impl FnOnce(&ImageEffect),
+    ) -> Result<(), CoreError> {
+        if !self
+            .effects
+            .read()
+            .unwrap()
+            .contains_key(fragment_shader_source)
+        {
+            self.effects.write().unwrap().insert(
                 fragment_shader_source.to_string(),
                 ImageEffect::new(self, fragment_shader_source)?,
             );
         };
-        callback(self.effects.borrow().get(fragment_shader_source).unwrap())
-    }
-
-    ///
-    /// Returns a camera for viewing 2D content.
-    ///
-    pub fn camera2d(
-        &self,
-        viewport: Viewport,
-        callback: impl FnOnce(&Camera) -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
-        if self.camera2d.borrow().is_none() {
-            *self.camera2d.borrow_mut() = Some(Camera::new_orthographic(
-                self,
-                viewport,
-                vec3(0.0, 0.0, -1.0),
-                vec3(0.0, 0.0, 0.0),
-                vec3(0.0, -1.0, 0.0),
-                1.0,
-                0.0,
-                10.0,
-            )?)
-        }
-        let mut camera2d = self.camera2d.borrow_mut();
-        camera2d.as_mut().unwrap().set_viewport(viewport)?;
-        camera2d.as_mut().unwrap().set_orthographic_projection(
-            viewport.height as f32,
-            0.0,
-            10.0,
-        )?;
-        camera2d.as_mut().unwrap().set_view(
-            vec3(
-                viewport.width as f32 * 0.5,
-                viewport.height as f32 * 0.5,
-                -1.0,
-            ),
-            vec3(
-                viewport.width as f32 * 0.5,
-                viewport.height as f32 * 0.5,
-                0.0,
-            ),
-            vec3(0.0, -1.0, 0.0),
-        )?;
-        callback(camera2d.as_ref().unwrap())
+        callback(
+            self.effects
+                .read()
+                .unwrap()
+                .get(fragment_shader_source)
+                .unwrap(),
+        );
+        Ok(())
     }
 
     ///
@@ -304,20 +267,23 @@ impl Context {
     ///
     /// Set the render states for this context (see [RenderStates]).
     ///
-    pub fn set_render_states(&self, render_states: RenderStates) -> ThreeDResult<()> {
+    pub fn set_render_states(&self, render_states: RenderStates) {
         self.set_cull(render_states.cull);
         self.set_write_mask(render_states.write_mask);
-        if render_states.write_mask.depth {
-            self.set_depth_test(render_states.depth_test);
-        } else {
+        if !render_states.write_mask.depth && render_states.depth_test == DepthTest::Always {
             unsafe { self.disable(crate::context::DEPTH_TEST) }
+        } else {
+            self.set_depth_test(render_states.depth_test);
         }
         self.set_blend(render_states.blend);
-        self.error_check()
     }
 
-    pub(super) fn error_check(&self) -> ThreeDResult<()> {
-        #[cfg(debug_assertions)]
+    ///
+    /// Returns an error if an GPU-side error has happened while rendering which can be used to check for errors while developing.
+    /// Can also be used in production to handle unexpected rendering errors, but do not call it too often to avoid performance problems.
+    ///
+    pub fn error_check(&self) -> Result<(), CoreError> {
+        self.framebuffer_check()?;
         unsafe {
             let e = self.get_error();
             if e != crate::context::NO_ERROR {
@@ -341,48 +307,37 @@ impl Context {
         Ok(())
     }
 
-    pub(super) fn framebuffer_check(&self) -> ThreeDResult<()> {
-        #[cfg(debug_assertions)]
+    fn framebuffer_check(&self) -> Result<(), CoreError> {
         unsafe {
             match self.check_framebuffer_status(crate::context::FRAMEBUFFER) {
                 crate::context::FRAMEBUFFER_COMPLETE => Ok(()),
-                crate::context::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_ATTACHMENT".to_string(),
-                    ))
-                }
-                crate::context::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER".to_string(),
-                    ))
-                }
+                crate::context::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => Err(CoreError::ContextError(
+                    "FRAMEBUFFER_INCOMPLETE_ATTACHMENT".to_string(),
+                )),
+                crate::context::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => Err(CoreError::ContextError(
+                    "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER".to_string(),
+                )),
                 crate::context::FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT => {
-                    Err(CoreError::RenderTargetCreation(
+                    Err(CoreError::ContextError(
                         "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT".to_string(),
                     ))
                 }
-                crate::context::FRAMEBUFFER_UNSUPPORTED => Err(CoreError::RenderTargetCreation(
+                crate::context::FRAMEBUFFER_UNSUPPORTED => Err(CoreError::ContextError(
                     "FRAMEBUFFER_UNSUPPORTED".to_string(),
                 )),
-                crate::context::FRAMEBUFFER_UNDEFINED => Err(CoreError::RenderTargetCreation(
-                    "FRAMEBUFFER_UNDEFINED".to_string(),
+                crate::context::FRAMEBUFFER_UNDEFINED => {
+                    Err(CoreError::ContextError("FRAMEBUFFER_UNDEFINED".to_string()))
+                }
+                crate::context::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => Err(CoreError::ContextError(
+                    "FRAMEBUFFER_INCOMPLETE_READ_BUFFER".to_string(),
                 )),
-                crate::context::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_READ_BUFFER".to_string(),
-                    ))
-                }
-                crate::context::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE".to_string(),
-                    ))
-                }
-                crate::context::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => {
-                    Err(CoreError::RenderTargetCreation(
-                        "FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS".to_string(),
-                    ))
-                }
-                _ => Err(CoreError::RenderTargetCreation(
+                crate::context::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => Err(CoreError::ContextError(
+                    "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE".to_string(),
+                )),
+                crate::context::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => Err(
+                    CoreError::ContextError("FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS".to_string()),
+                ),
+                _ => Err(CoreError::ContextError(
                     "Unknown framebuffer error".to_string(),
                 )),
             }?;
@@ -394,14 +349,14 @@ impl Context {
 impl std::fmt::Debug for Context {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut d = f.debug_struct("Context");
-        d.field("programs", &self.programs.borrow().len());
-        d.field("effects", &self.effects.borrow().len());
+        d.field("programs", &self.programs.read().unwrap().len());
+        d.field("effects", &self.effects.read().unwrap().len());
         d.finish()
     }
 }
 
 impl std::ops::Deref for Context {
-    type Target = crate::context::Context;
+    type Target = Arc<crate::context::Context>;
     fn deref(&self) -> &Self::Target {
         &self.context
     }

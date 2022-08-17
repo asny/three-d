@@ -8,10 +8,11 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-three-d = { path = "../../" }
+three-d = { path = "../../", features=["egui-gui"] }
+three-d-asset = {version = "0.3", features = ["gltf", "hdr", "jpeg", "http"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.16", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"

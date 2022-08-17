@@ -1,4 +1,4 @@
-![Logo](https://asny.github.io/three-d/0.12/logo.png)
+![Logo](https://asny.github.io/three-d/0.14/logo.png)
 
 # `three-d`
 
@@ -27,19 +27,20 @@ A OpenGL/WebGL/OpenGL ES renderer which seeks to make graphics simple but still 
 - tools (2D or 3D)
 - games (2D or 3D)
 
-The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and two optional utility modules, `io` and `window`:
+The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and an optional `window` module for easy setup:
 
 | Module           | Description                   
 | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | 
 | [`context`](https://docs.rs/three-d/0/three_d/context/) | Low-level rendering module - requires a solid understanding of graphics concepts. Gives you complete control over both setup and rendering.                             
 | [`core`](https://docs.rs/three-d/0/three_d/core/) | Mid-level rendering module - requires at least some knowledge about graphics concepts. Use this if you want to write your own shaders and but don't want to spend time on setup and error handling. Can be combined with low-level functionality in the `context` module.                                                                                                                           
 | [`renderer`](https://docs.rs/three-d/0/three_d/renderer/)  | High-level rendering module - requires no knowledge about graphics concepts. Use this if you just want to draw something on the screen. Features include methods for rendering different types of standard objects with different types of shading. Can be combined seamlessly with the mid-level features in the `core` module as well as functionality in the `context` module.             |
-| [`io`](https://docs.rs/three-d/0/three_d/io/) | Contains functionality to load any type of asset runtime on both desktop and web as well as parsers for different image and 3D model formats. Also includes functionality to save data which is limited to desktop.
-| [`window`](https://docs.rs/three-d/0/three_d/window/)  | Contains functionality for creating a window on both cross-platform desktop (requires the `"glutin-window"` feature) and web (requires the `"canvas"` feature). Also contain render loop, event handling and camera control functionality. Can be replaced by anything that provides an OpenGL or WebGL2 graphics context, for example [eframe](https://github.com/emilk/egui/tree/master/eframe) as shown in [this](https://github.com/emilk/egui/blob/master/eframe/examples/custom_3d_three-d.rs) example.
+| [`window`](https://docs.rs/three-d/0/three_d/window/) (requires the `"window"` feature) | Window functionality on cross-platform native and web. This is primarily provided to make it easy to get started, however, in some cases it is desireable to replace this with a custom setup. It can be replaced by anything that provides an OpenGL or WebGL2 graphics context, for example [winit](https://github.com/rust-windowing/winit) and [glutin](https://github.com/rust-windowing/glutin) (the code in this `window` module can be used as a starting point), [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/introduction.html) and related crates (only on web) or [eframe](https://github.com/emilk/egui/tree/master/eframe) as shown in [this](https://github.com/emilk/egui/blob/master/eframe/examples/custom_3d_three-d.rs) example.
+
+In addition, the [three-d-asset](https://github.com/asny/three-d-asset) crate enables loading, deserializing, serializing and saving 3D assets, for example 3D models, textures etc. 
 
 ### [Examples](https://github.com/asny/three-d/tree/master/examples)
 
-![PBR example](https://asny.github.io/three-d/0.12/pbr.png)
+![PBR example](https://asny.github.io/three-d/0.14/pbr.png)
 
 Several examples covering most features can be found in the [examples folder](https://github.com/asny/three-d/tree/master/examples). 
 
@@ -65,3 +66,6 @@ If possible and feasible, functionality will be deprecated in one release before
 
 Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request against the [master branch](https://github.com/asny/three-d/tree/master). To avoid waste of time, please reach out before making major changes.
 
+### Sponsors
+
+[![rerun.io](https://asny.github.io/three-d/rerun.png)](https://www.rerun.io/)

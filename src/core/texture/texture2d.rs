@@ -16,7 +16,7 @@ impl Texture2D {
     ///
     /// Construcs a new texture with the given data.
     ///
-    pub fn new(context: &Context, cpu_texture: &CpuTexture) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_texture: &CpuTexture) -> Self {
         match cpu_texture.data {
             TextureData::RU8(ref data) => Self::new_with_data(context, cpu_texture, data),
             TextureData::RgU8(ref data) => Self::new_with_data(context, cpu_texture, data),
@@ -37,7 +37,7 @@ impl Texture2D {
         context: &Context,
         cpu_texture: &CpuTexture,
         data: &[T],
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
@@ -47,9 +47,9 @@ impl Texture2D {
             cpu_texture.mip_map_filter,
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
-        )?;
-        texture.fill(data)?;
-        Ok(texture)
+        );
+        texture.fill(data);
+        texture
     }
 
     ///
@@ -66,8 +66,8 @@ impl Texture2D {
         mip_map_filter: Option<Interpolation>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
         let texture = Self {
             context: context.clone(),
@@ -91,7 +91,7 @@ impl Texture2D {
             wrap_s,
             wrap_t,
             None,
-        )?;
+        );
         unsafe {
             context.tex_storage_2d(
                 crate::context::TEXTURE_2D,
@@ -102,19 +102,18 @@ impl Texture2D {
             );
         }
         texture.generate_mip_maps();
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///
     /// Fills this texture with the given data.
     ///
-    /// # Errors
-    /// Returns an error if the length of the data does not correspond to the width, height and format specified at construction.
+    /// # Panic
+    /// Will panic if the length of the data does not correspond to the width, height and format specified at construction.
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
-    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
-        check_data_length(self.width, self.height, 1, self.data_byte_size, data)?;
+    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) {
+        check_data_length::<T>(self.width, self.height, 1, self.data_byte_size, data.len());
         self.bind();
         let mut data = data.to_owned();
         flip_y(&mut data, self.width as usize, self.height as usize);
@@ -132,7 +131,6 @@ impl Texture2D {
             );
         }
         self.generate_mip_maps();
-        self.context.error_check()
     }
 
     ///
@@ -143,39 +141,8 @@ impl Texture2D {
     ///
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     ///
-    pub fn as_color_target(&mut self, mip_level: Option<u32>) -> ColorTarget {
+    pub fn as_color_target<'a>(&'a mut self, mip_level: Option<u32>) -> ColorTarget<'a> {
         ColorTarget::new_texture2d(&self.context, self, mip_level)
-    }
-
-    ///
-    /// Renders whatever rendered in the `render` closure into the texture.
-    /// Before writing, the texture is cleared based on the given clear state.
-    ///
-    /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
-    /// Use a [RenderTarget] to write to both color and depth.
-    ///
-    #[deprecated = "use as_color_target followed by clear and write"]
-    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
-        &mut self,
-        clear_state: ClearState,
-        render: F,
-    ) -> ThreeDResult<()> {
-        self.as_color_target(None)
-            .as_render_target()?
-            .clear(clear_state)?
-            .write(render)?;
-        Ok(())
-    }
-
-    ///
-    /// Returns the values of the pixels in this texture inside the given viewport.
-    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
-    ///
-    /// **Note:** On web, the data format needs to match the data format of this texture.
-    ///
-    #[deprecated = "use as_color_target followed by read"]
-    pub fn read<T: TextureDataType>(&mut self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
-        self.as_color_target(None).read_partially(viewport.into())
     }
 
     /// The width of this texture.

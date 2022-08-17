@@ -4,8 +4,7 @@ use crate::renderer::*;
 /// A circle 2D object which can be rendered.
 ///
 pub struct Circle<M: Material> {
-    context: Context,
-    model: Model<M>,
+    model: Gm<Mesh, M>,
     radius: f32,
     center: Vec2,
 }
@@ -14,21 +13,15 @@ impl<M: Material> Circle<M> {
     ///
     /// Constructs a new circle object with the given material.
     ///
-    pub fn new_with_material(
-        context: &Context,
-        center: Vec2,
-        radius: f32,
-        material: M,
-    ) -> ThreeDResult<Self> {
+    pub fn new_with_material(context: &Context, center: Vec2, radius: f32, material: M) -> Self {
         let mesh = CpuMesh::circle(64);
         let mut circle = Self {
-            context: context.clone(),
-            model: Model::new_with_material(context, &mesh, material)?,
+            model: Gm::new(Mesh::new(context, &mesh), material),
             center,
             radius,
         };
         circle.update();
-        Ok(circle)
+        circle
     }
 
     /// Set the radius of the circle.
@@ -61,24 +54,18 @@ impl<M: Material> Circle<M> {
 }
 
 impl<M: Material> Geometry2D for Circle<M> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        self.context.camera2d(viewport, |camera2d| {
-            self.model.render_with_material(material, camera2d, &[])
-        })
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
+        self.model
+            .render_with_material(material, &camera2d(viewport), &[])
     }
 }
 
 impl<M: Material> Object2D for Circle<M> {
-    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
-        self.context
-            .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
+    fn render(&self, viewport: Viewport) {
+        self.model.render(&camera2d(viewport), &[])
     }
 
-    fn is_transparent(&self) -> bool {
-        self.model.is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.model.material_type()
     }
 }

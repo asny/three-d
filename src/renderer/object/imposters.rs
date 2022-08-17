@@ -26,24 +26,24 @@ impl Imposters {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         objects
             .iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
-        let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)))?;
+        let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)));
         sprites.set_transformation(get_sprite_transform(aabb));
-        Ok(Imposters {
+        Imposters {
             sprites,
-            material: ImpostersMaterial::new(context, aabb, objects, lights, max_texture_size)?,
-        })
+            material: ImpostersMaterial::new(context, aabb, objects, lights, max_texture_size),
+        }
     }
 
     ///
     /// Set the positions of the imposters.
     ///
-    pub fn set_positions(&mut self, positions: &[Vec3]) -> ThreeDResult<()> {
-        self.sprites.set_centers(positions)
+    pub fn set_positions(&mut self, positions: &[Vec3]) {
+        self.sprites.set_centers(positions);
     }
 
     ///
@@ -55,15 +55,14 @@ impl Imposters {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         objects
             .iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
         self.sprites.set_transformation(get_sprite_transform(aabb));
         self.material
-            .update(aabb, objects, lights, max_texture_size)?;
-        Ok(())
+            .update(aabb, objects, lights, max_texture_size);
     }
 }
 
@@ -85,7 +84,7 @@ impl Geometry for Imposters {
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    ) {
         self.sprites.render_with_material(material, camera, lights)
     }
 
@@ -95,12 +94,12 @@ impl Geometry for Imposters {
 }
 
 impl Object for Imposters {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
         self.render_with_material(&self.material, camera, lights)
     }
 
-    fn is_transparent(&self) -> bool {
-        self.material.is_transparent()
+    fn material_type(&self) -> MaterialType {
+        self.material.material_type()
     }
 }
 
@@ -116,10 +115,10 @@ impl ImpostersMaterial {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,
-    ) -> ThreeDResult<Self> {
+    ) -> Self {
         let mut m = Self {
             context: context.clone(),
-            texture: Texture2DArray::new_empty::<Vector4<u8>>(
+            texture: Texture2DArray::new_empty::<[u8; 4]>(
                 context,
                 1,
                 1,
@@ -129,10 +128,10 @@ impl ImpostersMaterial {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-            )?,
+            ),
         };
-        m.update(aabb, objects, lights, max_texture_size)?;
-        Ok(m)
+        m.update(aabb, objects, lights, max_texture_size);
+        m
     }
     pub fn update(
         &mut self,
@@ -140,7 +139,7 @@ impl ImpostersMaterial {
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         if !aabb.is_empty() {
             let (min, max) = (aabb.min(), aabb.max());
             let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
@@ -150,7 +149,6 @@ impl ImpostersMaterial {
             let viewport = Viewport::new_at_origo(texture_width, texture_height);
             let center = 0.5 * min + 0.5 * max;
             let mut camera = Camera::new_orthographic(
-                &self.context,
                 viewport,
                 center + vec3(0.0, 0.0, -1.0),
                 center,
@@ -158,8 +156,8 @@ impl ImpostersMaterial {
                 height,
                 0.0,
                 4.0 * (width + height),
-            )?;
-            self.texture = Texture2DArray::new_empty::<Vector4<f16>>(
+            );
+            self.texture = Texture2DArray::new_empty::<[f16; 4]>(
                 &self.context,
                 texture_width,
                 texture_height,
@@ -169,7 +167,7 @@ impl ImpostersMaterial {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-            )?;
+            );
             let mut depth_texture = DepthTargetTexture2D::new(
                 &self.context,
                 texture_width,
@@ -177,7 +175,7 @@ impl ImpostersMaterial {
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
                 DepthFormat::Depth32F,
-            )?;
+            );
             for i in 0..NO_VIEW_ANGLES {
                 let layers = [i];
                 let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
@@ -185,16 +183,15 @@ impl ImpostersMaterial {
                     center + width * vec3(f32::cos(angle), 0.0, f32::sin(angle)),
                     center,
                     vec3(0.0, 1.0, 0.0),
-                )?;
+                );
                 RenderTarget::new(
                     self.texture.as_color_target(&layers, None),
                     depth_texture.as_depth_target(),
-                )?
-                .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))?
-                .render(&camera, objects, lights)?;
+                )
+                .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))
+                .render(&camera, objects, lights);
             }
         }
-        Ok(())
     }
 }
 
@@ -207,16 +204,10 @@ impl Material for ImpostersMaterial {
         )
     }
 
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        _lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
-        program.use_uniform("no_views", &(NO_VIEW_ANGLES as i32))?;
-        program.use_uniform_block("Camera", camera.uniform_buffer())?;
-        program.use_texture_array("tex", &self.texture)?;
-        Ok(())
+    fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
+        program.use_uniform("no_views", &(NO_VIEW_ANGLES as i32));
+        program.use_uniform("view", camera.view());
+        program.use_texture_array("tex", &self.texture);
     }
 
     fn render_states(&self) -> RenderStates {
@@ -226,7 +217,7 @@ impl Material for ImpostersMaterial {
             ..Default::default()
         }
     }
-    fn is_transparent(&self) -> bool {
-        true
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Transparent
     }
 }

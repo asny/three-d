@@ -1,6 +1,6 @@
 use crate::core::*;
-use std::cell::RefCell;
 use std::collections::HashMap;
+use std::sync::RwLock;
 
 ///
 /// A shader program consisting of a programmable vertex shader followed by a programmable fragment shader.
@@ -12,9 +12,9 @@ pub struct Program {
     context: Context,
     id: crate::context::Program,
     attributes: HashMap<String, u32>,
-    textures: RefCell<HashMap<String, u32>>,
+    textures: RwLock<HashMap<String, u32>>,
     uniforms: HashMap<String, crate::context::UniformLocation>,
-    uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
+    uniform_blocks: RwLock<HashMap<String, (u32, u32)>>,
 }
 
 impl Program {
@@ -25,17 +25,17 @@ impl Program {
         context: &Context,
         vertex_shader_source: &str,
         fragment_shader_source: &str,
-    ) -> ThreeDResult<Program> {
+    ) -> Result<Self, CoreError> {
         unsafe {
             let vert_shader = context
                 .create_shader(crate::context::VERTEX_SHADER)
-                .map_err(|e| CoreError::ShaderCreation(e))?;
+                .expect("Failed creating vertex shader");
             let frag_shader = context
                 .create_shader(crate::context::FRAGMENT_SHADER)
-                .map_err(|e| CoreError::ShaderCreation(e))?;
+                .expect("Failed creating fragment shader");
 
-            #[cfg(target_arch = "wasm32")]
-            const HEADER: &str = "#version 300 es
+            let header: &str = if context.version().is_embedded {
+                "#version 300 es
                     #ifdef GL_FRAGMENT_PRECISION_HIGH
                         precision highp float;
                         precision highp int;
@@ -46,21 +46,19 @@ impl Program {
                         precision mediump int;
                         precision mediump sampler2DArray;
                         precision mediump sampler3D;
-                    #endif\n";
-            #[cfg(not(target_arch = "wasm32"))]
-            const HEADER: &str = "#version 330 core\n";
+                    #endif\n"
+            } else {
+                "#version 330 core\n"
+            };
+            let vertex_shader_source = format!("{}{}", header, vertex_shader_source);
+            let fragment_shader_source = format!("{}{}", header, fragment_shader_source);
 
-            context.shader_source(vert_shader, &format!("{}{}", HEADER, vertex_shader_source));
-            context.shader_source(
-                frag_shader,
-                &format!("{}{}", HEADER, fragment_shader_source),
-            );
+            context.shader_source(vert_shader, &vertex_shader_source);
+            context.shader_source(frag_shader, &fragment_shader_source);
             context.compile_shader(vert_shader);
             context.compile_shader(frag_shader);
 
-            let id = context
-                .create_program()
-                .map_err(|e| CoreError::ProgramCreation(e))?;
+            let id = context.create_program().expect("Failed creating program");
             context.attach_shader(id, vert_shader);
             context.attach_shader(id, frag_shader);
             context.link_program(id);
@@ -68,11 +66,19 @@ impl Program {
             if !context.get_program_link_status(id) {
                 let log = context.get_shader_info_log(vert_shader);
                 if log.len() > 0 {
-                    Err(CoreError::ShaderCompilation("vertex".to_string(), log))?;
+                    Err(CoreError::ShaderCompilation(
+                        "vertex".to_string(),
+                        log,
+                        vertex_shader_source,
+                    ))?;
                 }
                 let log = context.get_shader_info_log(frag_shader);
                 if log.len() > 0 {
-                    Err(CoreError::ShaderCompilation("fragment".to_string(), log))?;
+                    Err(CoreError::ShaderCompilation(
+                        "fragment".to_string(),
+                        log,
+                        fragment_shader_source,
+                    ))?;
                 }
                 let log = context.get_program_info_log(id);
                 if log.len() > 0 {
@@ -93,7 +99,9 @@ impl Program {
                 if let Some(crate::context::ActiveAttribute { name, .. }) =
                     context.get_active_attribute(id, i)
                 {
-                    let location = context.get_attrib_location(id, &name).unwrap();
+                    let location = context
+                        .get_attrib_location(id, &name)
+                        .expect(&format!("Could not get the location of uniform {}", name));
                     /*println!(
                         "Attribute location: {}, name: {}, type: {}, size: {}",
                         location, name, atype, size
@@ -120,14 +128,13 @@ impl Program {
                 }
             }
 
-            context.error_check()?;
             Ok(Program {
                 context: context.clone(),
                 id,
                 attributes,
                 uniforms,
-                uniform_blocks: RefCell::new(HashMap::new()),
-                textures: RefCell::new(HashMap::new()),
+                uniform_blocks: RwLock::new(HashMap::new()),
+                textures: RwLock::new(HashMap::new()),
             })
         }
     }
@@ -137,29 +144,23 @@ impl Program {
     /// The glsl shader variable must be of type `uniform int` if the data is an integer, `uniform vec2` if it is of type [Vec2] etc.
     /// The uniform variable is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined or not used in the shader code.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
+    pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) {
+        let location = self.get_uniform_location(name);
         T::send_uniform(&self.context, location, &[data]);
         self.unuse_program();
-        self.context.error_check()
     }
 
     ///
     /// Calls [Self::use_uniform] if [Self::requires_uniform] returns true.
     ///
-    pub fn use_uniform_if_required<T: UniformDataType>(
-        &self,
-        name: &str,
-        data: T,
-    ) -> ThreeDResult<()> {
+    pub fn use_uniform_if_required<T: UniformDataType>(&self, name: &str, data: T) {
         if self.requires_uniform(name) {
-            self.use_uniform(name, data)?;
+            self.use_uniform(name, data);
         }
-        Ok(())
     }
 
     ///
@@ -167,285 +168,160 @@ impl Program {
     /// The glsl shader variable must be of same type and length as the data, so if the data is an array of three [Vec2], the variable must be `uniform vec2[3]`.
     /// The uniform variable is uniformly available across all processing of vertices and fragments.
     ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the uniform is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_uniform_array<T: UniformDataType>(
-        &self,
-        name: &str,
-        data: &[T],
-    ) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
+    pub fn use_uniform_array<T: UniformDataType>(&self, name: &str, data: &[T]) {
+        let location = self.get_uniform_location(name);
         T::send_uniform(&self.context, location, data);
         self.unuse_program();
-        self.context.error_check()
     }
 
-    ///
-    /// Send the given integer value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform int`, meaning it is uniformly available across all processing of vertices and fragments.
-    ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_uniform_int(&self, name: &str, data: &i32) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
-    }
-
-    ///
-    /// Send the given float value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform float`, meaning it is uniformly available across all processing of vertices and fragments.
-    ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_uniform_float(&self, name: &str, data: &f32) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
-    }
-
-    ///
-    /// Send the given [Vec2](crate::Vec2) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform vec2`, meaning it is uniformly available across all processing of vertices and fragments.
-    ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
-    }
-
-    ///
-    /// Send the given [Vec3](crate::Vec3) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform vec3`, meaning it is uniformly available across all processing of vertices and fragments.
-    ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
-    }
-
-    ///
-    /// Send the given [Vec4](crate::Vec4) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
-    ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
-    }
-
-    ///
-    /// Send the given [Quat](crate::Quat) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
-    ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_uniform_quat(&self, name: &str, data: &Quat) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
-    }
-
-    ///
-    /// Send the given [Mat2](crate::Mat2) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform mat2`, meaning it is uniformly available across all processing of vertices and fragments.
-    ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
-    }
-
-    ///
-    /// Send the given [Mat3](crate::Mat3) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform mat3`, meaning it is uniformly available across all processing of vertices and fragments.
-    ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
-    }
-
-    ///
-    /// Send the given [Mat4](crate::Mat4) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform mat4`, meaning it is uniformly available across all processing of vertices and fragments.
-    ///
-    /// # Errors
-    /// Will return an error if the uniform is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> ThreeDResult<()> {
-        self.use_uniform(name, data)
-    }
-
-    fn get_uniform_location(&self, name: &str) -> ThreeDResult<&crate::context::UniformLocation> {
+    fn get_uniform_location(&self, name: &str) -> &crate::context::UniformLocation {
         self.use_program();
-        let loc = self
-            .uniforms
-            .get(name)
-            .ok_or_else(|| CoreError::UnusedUniform(name.to_string()))?;
-        Ok(loc)
+        self.uniforms.get(name).expect(&format!(
+            "the uniform {} is sent to the shader but not defined or never used",
+            name
+        ))
     }
 
     ///
     /// Use the given [Texture2D] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture(&self, name: &str, texture: &Texture2D) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_texture(&self, name: &str, texture: &Texture2D) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given [DepthTargetTexture2D] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_depth_texture(
-        &self,
-        name: &str,
-        texture: &DepthTargetTexture2D,
-    ) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_depth_texture(&self, name: &str, texture: &DepthTargetTexture2D) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given texture array in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture_array(&self, name: &str, texture: &Texture2DArray) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_texture_array(&self, name: &str, texture: &Texture2DArray) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given texture array in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_depth_texture_array(
-        &self,
-        name: &str,
-        texture: &DepthTargetTexture2DArray,
-    ) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_depth_texture_array(&self, name: &str, texture: &DepthTargetTexture2DArray) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given texture cube map in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture_cube(&self, name: &str, texture: &TextureCubeMap) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_texture_cube(&self, name: &str, texture: &TextureCubeMap) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given texture cube map in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_depth_texture_cube(
-        &self,
-        name: &str,
-        texture: &DepthTargetTextureCubeMap,
-    ) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_depth_texture_cube(&self, name: &str, texture: &DepthTargetTextureCubeMap) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
     ///
     /// Use the given 3D texture in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler3D` and can only be accessed in the fragment shader.
     ///
-    /// # Errors
-    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the texture is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_texture_3d(&self, name: &str, texture: &Texture3D) -> ThreeDResult<()> {
-        self.use_texture_internal(name)?;
+    pub fn use_texture_3d(&self, name: &str, texture: &Texture3D) {
+        self.use_texture_internal(name);
         texture.bind();
-        self.context.error_check()
     }
 
-    fn use_texture_internal(&self, name: &str) -> ThreeDResult<u32> {
-        if !self.textures.borrow().contains_key(name) {
-            let mut map = self.textures.borrow_mut();
+    fn use_texture_internal(&self, name: &str) -> u32 {
+        if !self.textures.read().unwrap().contains_key(name) {
+            let mut map = self.textures.write().unwrap();
             let index = map.len() as u32;
             map.insert(name.to_owned(), index);
         };
-        let index = self.textures.borrow().get(name).unwrap().clone();
-        self.use_uniform(name, index as i32)?;
+        let index = self.textures.read().unwrap().get(name).unwrap().clone();
+        self.use_uniform(name, index as i32);
         unsafe {
             self.context
                 .active_texture(crate::context::TEXTURE0 + index);
         }
-        Ok(index)
+        index
     }
 
     ///
     /// Use the given [UniformBuffer] in this shader program and associate it with the given named variable.
     ///
-    pub fn use_uniform_block(&self, name: &str, buffer: &UniformBuffer) -> ThreeDResult<()> {
-        if !self.uniform_blocks.borrow().contains_key(name) {
-            let mut map = self.uniform_blocks.borrow_mut();
+    pub fn use_uniform_block(&self, name: &str, buffer: &UniformBuffer) {
+        if !self.uniform_blocks.read().unwrap().contains_key(name) {
+            let mut map = self.uniform_blocks.write().unwrap();
             let location = unsafe {
                 self.context
                     .get_uniform_block_index(self.id, name)
-                    .ok_or(CoreError::UnusedUniform(name.to_string()))?
+                    .expect(&format!(
+                        "the uniform block {} is sent to the shader but not defined or never used",
+                        name
+                    ))
             };
             let index = map.len() as u32;
             map.insert(name.to_owned(), (location, index));
         };
-        let (location, index) = self.uniform_blocks.borrow().get(name).unwrap().clone();
+        let (location, index) = self
+            .uniform_blocks
+            .read()
+            .unwrap()
+            .get(name)
+            .unwrap()
+            .clone();
         unsafe {
             self.context.uniform_block_binding(self.id, location, index);
             buffer.bind(index);
             self.context
                 .bind_buffer(crate::context::UNIFORM_BUFFER, None);
         }
-        self.context.error_check()
     }
 
     ///
@@ -453,14 +329,14 @@ impl Program {
     /// Each value in the buffer is used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
     /// Therefore the buffer must contain the same number of values as the number of vertices specified in those draw calls.
     ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_vertex_attribute(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
+    pub fn use_vertex_attribute(&self, name: &str, buffer: &VertexBuffer) {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(name)?;
+            let loc = self.location(name);
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
@@ -477,7 +353,6 @@ impl Program {
             }
             self.unuse_program();
         }
-        self.context.error_check()
     }
 
     ///
@@ -485,14 +360,14 @@ impl Program {
     /// Each value in the buffer is used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain the same number of values as the number of instances specified in those draw calls.
     ///
-    /// # Errors
-    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// # Panic
+    /// Will panic if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_instance_attribute(&self, name: &str, buffer: &InstanceBuffer) -> ThreeDResult<()> {
+    pub fn use_instance_attribute(&self, name: &str, buffer: &InstanceBuffer) {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(name)?;
+            let loc = self.location(name);
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
@@ -509,7 +384,6 @@ impl Program {
             }
             self.unuse_program();
         }
-        self.context.error_check()
     }
 
     ///
@@ -518,14 +392,9 @@ impl Program {
     /// Assumes that the data for the three vertices in a triangle is defined contiguous in each vertex buffer.
     /// If you want to use an [ElementBuffer], see [Program::draw_elements].
     ///
-    pub fn draw_arrays(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        count: u32,
-    ) -> ThreeDResult<()> {
+    pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32) {
         self.context.set_viewport(viewport);
-        self.context.set_render_states(render_states)?;
+        self.context.set_render_states(render_states);
         self.use_program();
         unsafe {
             self.context
@@ -536,7 +405,11 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
-        self.context.error_check()
+
+        #[cfg(debug_assertions)]
+        self.context
+            .error_check()
+            .expect("Unexpected rendering error occured")
     }
 
     ///
@@ -549,9 +422,9 @@ impl Program {
         viewport: Viewport,
         count: u32,
         instance_count: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         self.context.set_viewport(viewport);
-        self.context.set_render_states(render_states)?;
+        self.context.set_render_states(render_states);
         self.use_program();
         unsafe {
             self.context.draw_arrays_instanced(
@@ -568,7 +441,11 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
-        self.context.error_check()
+
+        #[cfg(debug_assertions)]
+        self.context
+            .error_check()
+            .expect("Unexpected rendering error occured")
     }
 
     ///
@@ -581,7 +458,7 @@ impl Program {
         render_states: RenderStates,
         viewport: Viewport,
         element_buffer: &ElementBuffer,
-    ) -> ThreeDResult<()> {
+    ) {
         self.draw_subset_of_elements(
             render_states,
             viewport,
@@ -603,9 +480,9 @@ impl Program {
         element_buffer: &ElementBuffer,
         first: u32,
         count: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         self.context.set_viewport(viewport);
-        self.context.set_render_states(render_states)?;
+        self.context.set_render_states(render_states);
         self.use_program();
         element_buffer.bind();
         unsafe {
@@ -624,7 +501,11 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
-        self.context.error_check()
+
+        #[cfg(debug_assertions)]
+        self.context
+            .error_check()
+            .expect("Unexpected rendering error occured")
     }
 
     ///
@@ -637,7 +518,7 @@ impl Program {
         viewport: Viewport,
         element_buffer: &ElementBuffer,
         instance_count: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         self.draw_subset_of_elements_instanced(
             render_states,
             viewport,
@@ -660,9 +541,9 @@ impl Program {
         first: u32,
         count: u32,
         instance_count: u32,
-    ) -> ThreeDResult<()> {
+    ) {
         self.context.set_viewport(viewport);
-        self.context.set_render_states(render_states)?;
+        self.context.set_render_states(render_states);
         self.use_program();
         element_buffer.bind();
         unsafe {
@@ -681,7 +562,11 @@ impl Program {
             self.context.bind_vertex_array(None);
         }
         self.unuse_program();
-        self.context.error_check()
+
+        #[cfg(debug_assertions)]
+        self.context
+            .error_check()
+            .expect("Unexpected rendering error occured")
     }
 
     ///
@@ -698,13 +583,12 @@ impl Program {
         self.attributes.contains_key(name)
     }
 
-    fn location(&self, name: &str) -> ThreeDResult<u32> {
+    fn location(&self, name: &str) -> u32 {
         self.use_program();
-        let location = self
-            .attributes
-            .get(name)
-            .ok_or_else(|| CoreError::UnusedAttribute(name.to_string()))?;
-        Ok(*location)
+        *self.attributes.get(name).expect(&format!(
+            "the attribute {} is sent to the shader but not defined or never used",
+            name
+        ))
     }
 
     fn use_program(&self) {

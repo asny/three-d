@@ -1,7 +1,8 @@
 //!
 //! Mid-level modular abstractions of common graphics concepts such as buffer, texture, program, render target and so on.
-//! Can be combined with low-level calls in the `context` module.
+//! Can be combined with low-level calls in the [context](crate::context) module as well as high-level functionality in the [renderer](crate::renderer) module.
 //!
+#![allow(unsafe_code)]
 
 mod context;
 #[doc(inline)]
@@ -10,15 +11,8 @@ pub use context::*;
 pub mod buffer;
 pub use buffer::*;
 
-pub mod math;
-pub use math::*;
-
 pub mod texture;
 pub use texture::*;
-
-mod cpu_mesh;
-#[doc(inline)]
-pub use cpu_mesh::*;
 
 pub mod render_states;
 pub use render_states::*;
@@ -29,18 +23,6 @@ pub use render_target::*;
 mod uniform;
 #[doc(inline)]
 pub use uniform::*;
-
-mod cpu_material;
-#[doc(inline)]
-pub use cpu_material::*;
-
-mod cpu_volume;
-#[doc(inline)]
-pub use cpu_volume::*;
-
-mod camera;
-#[doc(inline)]
-pub use camera::*;
 
 mod image_effect;
 #[doc(inline)]
@@ -54,24 +36,23 @@ mod program;
 #[doc(inline)]
 pub use program::*;
 
-mod aabb;
-#[doc(inline)]
-pub use aabb::*;
-
-mod color;
-#[doc(inline)]
-pub use color::*;
-
-mod viewport;
-#[doc(inline)]
-pub use viewport::*;
-
 mod scissor_box;
 #[doc(inline)]
 pub use scissor_box::*;
 
-pub use crate::ThreeDResult;
+pub mod prelude {
+
+    //!
+    //! Basic types used throughout this crate, mostly basic math.
+    //!
+    pub use three_d_asset::prelude::*;
+}
+pub use prelude::*;
+pub use three_d_asset::{Camera, Viewport};
+
+/// A result for this crate.
 use thiserror::Error;
+
 ///
 /// Error in the [core](crate::core) module.
 ///
@@ -82,52 +63,10 @@ pub enum CoreError {
     ContextCreation(String),
     #[error("failed rendering with error: {0}")]
     ContextError(String),
-    #[error("failed creating shader: {0}")]
-    ShaderCreation(String),
-    #[error("failed creating program: {0}")]
-    ProgramCreation(String),
-    #[error("failed creating buffer: {0}")]
-    BufferCreation(String),
-    #[error("failed compiling {0} shader: {1}")]
-    ShaderCompilation(String, String),
+    #[error("failed compiling {0} shader: {1}\n{2}")]
+    ShaderCompilation(String, String, String),
     #[error("failed to link shader program: {0}")]
     ShaderLink(String),
-    #[error("the uniform {0} is sent to the shader but not defined or never used")]
-    UnusedUniform(String),
-    #[error("the attribute {0} is sent to the shader but not defined or never used")]
-    UnusedAttribute(String),
-    #[error("failed creating a new render target: {0}")]
-    RenderTargetCreation(String),
-    #[error("cannot read {0} from a render target without {0}")]
-    RenderTargetRead(String),
-    #[error("cannot read color from anything else but an RGBA texture")]
-    ReadWrongFormat,
-    #[error("failed creating a new texture: {0}")]
-    TextureCreation(String),
-    #[error("invalid size of texture data (got {0} bytes but expected {1} bytes)")]
-    InvalidTextureLength(usize, usize),
-    #[error("the render call requires the {0} vertex buffer which is missing on the given mesh")]
-    MissingMeshBuffer(String),
-    #[error(
-        "if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'"
-    )]
-    MissingBitangent,
-    #[error("{0} buffer length must be {1}, actual length is {2}")]
-    InvalidBufferLength(String, usize, usize),
-    #[error("mesh must have both normals and uv coordinates to be able to compute tangents")]
-    FailedComputingTangents,
-    #[error("the number of vertices must be divisable by 3, actual count is {0}")]
-    InvalidNumberOfVertices(usize),
-    #[error("data for element at index {0} has length {1} but a length of {2} was expected")]
-    InvalidUniformBufferElementLength(u32, usize, usize),
-    #[error("the index {0} is outside the expected range [0, {1}]")]
-    IndexOutOfRange(usize, usize),
-    #[error("cannot take as input a negative minimum distance")]
-    NegativeDistance,
-    #[error("a minimum must be smaller than a maximum")]
-    MinimumLargerThanMaximum,
-    #[error("the transformation matrix cannot be inverted and is therefore invalid")]
-    FailedInvertingTransformationMatrix,
 }
 
 mod data_type;

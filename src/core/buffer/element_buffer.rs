@@ -39,38 +39,31 @@ impl ElementBuffer {
     ///
     /// Creates a new empty element buffer.
     ///
-    pub fn new(context: &Context) -> ThreeDResult<Self> {
-        let id = unsafe {
-            context
-                .create_buffer()
-                .map_err(|e| CoreError::BufferCreation(e))?
-        };
-        Ok(Self {
+    pub fn new(context: &Context) -> Self {
+        let id = unsafe { context.create_buffer().expect("Failed creating buffer") };
+        Self {
             context: context.clone(),
             id,
             count: 0,
             data_type: 0,
-        })
+        }
     }
 
     ///
     /// Creates a new element buffer and fills it with the given indices which must be divisable by 3.
     ///
-    pub fn new_with_data<T: ElementBufferDataType>(
-        context: &Context,
-        data: &[T],
-    ) -> ThreeDResult<Self> {
-        let mut buffer = Self::new(context)?;
+    pub fn new_with_data<T: ElementBufferDataType>(context: &Context, data: &[T]) -> Self {
+        let mut buffer = Self::new(context);
         if data.len() > 0 {
-            buffer.fill(data)?;
+            buffer.fill(data);
         }
-        Ok(buffer)
+        buffer
     }
 
     ///
     /// Fills the buffer with the given indices which must be divisable by 3.
     ///
-    pub fn fill<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
+    pub fn fill<T: ElementBufferDataType>(&mut self, data: &[T]) {
         self.bind();
         unsafe {
             self.context.buffer_data_u8_slice(
@@ -83,7 +76,6 @@ impl ElementBuffer {
         }
         self.count = data.len();
         self.data_type = T::data_type();
-        self.context.error_check()
     }
 
     ///

@@ -3,6 +3,13 @@ uniform mat4 viewProjection;
 uniform mat4 modelMatrix;
 in vec3 position;
 
+#ifdef PARTICLES
+in vec3 start_position;
+in vec3 start_velocity;
+uniform vec3 acceleration;
+uniform float time;
+#endif
+
 #ifdef USE_INSTANCE_TRANSLATIONS
 in vec3 instance_translation;
 #endif
@@ -53,6 +60,7 @@ out vec4 col;
 
 void main()
 {
+    // *** POSITION ***
     mat4 local2World = modelMatrix;
     
 #ifdef USE_INSTANCE_TRANSFORMS
@@ -65,6 +73,10 @@ void main()
 #endif
 
     vec4 worldPosition = local2World * vec4(position, 1.);
+    worldPosition.xyz /= worldPosition.w;
+#ifdef PARTICLES
+    worldPosition.xyz += start_position + start_velocity * time + 0.5 * acceleration * time * time;
+#endif
 #ifdef USE_INSTANCE_TRANSLATIONS 
     worldPosition.xyz += instance_translation;
 #endif
@@ -74,6 +86,7 @@ void main()
     pos = worldPosition.xyz;
 #endif
 
+    // *** NORMAL ***
 #ifdef USE_NORMALS 
 #ifdef USE_INSTANCE_TRANSFORMS
     mat3 normalMat = mat3(transpose(inverse(local2World)));
@@ -89,6 +102,7 @@ void main()
 
 #endif
 
+    // *** UV ***
 #ifdef USE_UVS 
     mat3 texTransform = textureTransform;
 #ifdef USE_INSTANCE_TEXTURE_TRANSFORMATION
@@ -101,7 +115,7 @@ void main()
     uvs = (texTransform * vec3(uv_coordinates, 1.0)).xy;
 #endif
 
-
+    // *** COLOR ***
 #ifdef USE_COLORS
     col = vec4(1.0, 1.0, 1.0, 1.0);
 #ifdef USE_VERTEX_COLORS 

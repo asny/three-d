@@ -22,8 +22,8 @@ impl DepthTargetTextureCubeMap {
         wrap_t: Wrapping,
         wrap_r: Wrapping,
         format: DepthFormat,
-    ) -> ThreeDResult<Self> {
-        let id = generate(context)?;
+    ) -> Self {
+        let id = generate(context);
         let texture = Self {
             context: context.clone(),
             id,
@@ -40,7 +40,7 @@ impl DepthTargetTextureCubeMap {
             wrap_s,
             wrap_t,
             Some(wrap_r),
-        )?;
+        );
         unsafe {
             context.tex_storage_2d(
                 crate::context::TEXTURE_CUBE_MAP,
@@ -50,36 +50,15 @@ impl DepthTargetTextureCubeMap {
                 height as i32,
             );
         }
-        context.error_check()?;
-        Ok(texture)
+        texture
     }
 
     ///
     /// Returns a [DepthTarget] which can be used to clear, write to and read from the given side of this texture.
     /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
     ///
-    pub fn as_depth_target(&mut self, side: CubeMapSide) -> DepthTarget {
+    pub fn as_depth_target<'a>(&'a mut self, side: CubeMapSide) -> DepthTarget<'a> {
         DepthTarget::new_texture_cube_map(&self.context, self, side)
-    }
-
-    ///
-    /// Writes the depth of whatever rendered in the `render` closure into the depth texture at the cube map side given by the input parameter `side`.
-    /// Before writing, the texture side is cleared based on the given clear state.
-    ///
-    #[deprecated = "use as_depth_target followed by clear and write"]
-    pub fn write(
-        &mut self,
-        side: CubeMapSide,
-        clear_state: Option<f32>,
-        render: impl FnOnce() -> ThreeDResult<()>,
-    ) -> ThreeDResult<()> {
-        self.as_depth_target(side)
-            .clear(ClearState {
-                depth: clear_state,
-                ..ClearState::none()
-            })?
-            .write(render)?;
-        Ok(())
     }
 
     /// The width of this texture.

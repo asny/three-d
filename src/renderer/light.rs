@@ -1,7 +1,7 @@
 //!
-//! A collection of light types.
-//! Currently implemented light types are ambient light, directional light, spot light and point light.
-//! Directional and spot lights can cast shadows.
+//! A collection of lights implementing the [Light] trait.
+//!
+//! Lights shines onto objects in the scene, note however that some materials are affected by lights, others are not.
 //!
 
 mod directional_light;
@@ -59,14 +59,14 @@ pub trait Light {
     /// This function should return the color contribution for this light on the surface with the given surface parameters.
     fn shader_source(&self, i: u32) -> String;
     /// Should bind the uniforms that is needed for calculating this lights contribution to the color in [Light::shader_source].
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()>;
+    fn use_uniforms(&self, program: &Program, i: u32);
 }
 
 impl<T: Light + ?Sized> Light for &T {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         (*self).use_uniforms(program, i)
     }
 }
@@ -75,7 +75,7 @@ impl<T: Light + ?Sized> Light for &mut T {
     fn shader_source(&self, i: u32) -> String {
         (**self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         (**self).use_uniforms(program, i)
     }
 }
@@ -84,33 +84,39 @@ impl<T: Light> Light for Box<T> {
     fn shader_source(&self, i: u32) -> String {
         self.as_ref().shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         self.as_ref().use_uniforms(program, i)
     }
 }
 
-impl<T: Light> Light for std::rc::Rc<T> {
+impl<T: Light> Light for std::sync::Arc<T> {
     fn shader_source(&self, i: u32) -> String {
         self.as_ref().shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) {
         self.as_ref().use_uniforms(program, i)
     }
 }
 
-impl<T: Light> Light for std::rc::Rc<std::cell::RefCell<T>> {
+impl<T: Light> Light for std::sync::Arc<std::sync::RwLock<T>> {
     fn shader_source(&self, i: u32) -> String {
-        self.borrow().shader_source(i)
+        self.read().unwrap().shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
-        self.borrow().use_uniforms(program, i)
+    fn use_uniforms(&self, program: &Program, i: u32) {
+        self.read().unwrap().use_uniforms(program, i)
     }
 }
 
-pub(crate) fn lights_fragment_shader_source(
-    lights: &[&dyn Light],
-    lighting_model: LightingModel,
-) -> String {
+///
+/// Returns shader source code with the function `calculate_lighting` which calculate the lighting contribution for the given lights and the given [LightingModel].
+/// Use this if you want to implement a custom [Material](crate::renderer::Material) but use the default lighting calculations.
+///
+/// The shader function has the following signature:
+/// ```no_rust
+/// vec3 calculate_lighting(vec3 camera_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+/// ```
+///
+pub fn lights_shader_source(lights: &[&dyn Light], lighting_model: LightingModel) -> String {
     let mut shader_source = lighting_model_shader(lighting_model).to_string();
     shader_source.push_str(include_str!("../core/shared.frag"));
     shader_source.push_str(include_str!("light/shaders/light_shared.frag"));
@@ -121,11 +127,10 @@ pub(crate) fn lights_fragment_shader_source(
     }
     shader_source.push_str(&format!(
         "
-            uniform vec3 eyePosition;
-            vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+            vec3 calculate_lighting(vec3 camera_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
                 vec3 color = vec3(0.0, 0.0, 0.0);
-                vec3 view_direction = normalize(eyePosition - position);
+                vec3 view_direction = normalize(camera_position - position);
                 {}
                 return color;
             }}
@@ -150,6 +155,7 @@ fn compute_up_direction(direction: Vec3) -> Vec3 {
     }
 }
 
+use crate::renderer::{LightingModel, NormalDistributionFunction};
 pub(crate) fn lighting_model_shader(lighting_model: LightingModel) -> &'static str {
     match lighting_model {
         LightingModel::Phong => "#define PHONG",
