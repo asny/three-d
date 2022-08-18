@@ -52,8 +52,14 @@ impl Window {
         let canvas = window.canvas();
 
         // get webgl context and verify extensions
+        let context_options = ContextOptions {
+            antialias: self.settings.multisamples > 0,
+        };
         let webgl_context = canvas
-            .get_context("webgl2")
+            .get_context_with_context_options(
+                "webgl2",
+                &JsValue::from_serde(&context_options).unwrap(),
+            )
             .map_err(|e| WindowError::WebGL2NotSupported(format!(": {:?}", e)))?
             .ok_or(WindowError::WebGL2NotSupported("".to_string()))?
             .dyn_into::<web_sys::WebGl2RenderingContext>()
