@@ -2,7 +2,7 @@ use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
 
-pub use three_d_asset::Points;
+pub use three_d_asset::PointCloud as Points;
 
 ///
 /// Similar to [Mesh], except it is possible to render many instances of the same mesh efficiently.
