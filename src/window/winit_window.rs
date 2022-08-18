@@ -53,7 +53,13 @@ impl Window {
 
         // get webgl context and verify extensions
         let webgl_context = canvas
-            .get_context("webgl2")
+            .get_context_with_context_options(
+                "webgl2",
+                &wasm_bindgen::JsValue::from_serde(&serde_json::json!({
+                    "antialias": window_settings.multisamples > 0,
+                }))
+                .unwrap(),
+            )
             .map_err(|e| WindowError::WebGL2NotSupported(format!(": {:?}", e)))?
             .ok_or(WindowError::WebGL2NotSupported("".to_string()))?
             .dyn_into::<web_sys::WebGl2RenderingContext>()
