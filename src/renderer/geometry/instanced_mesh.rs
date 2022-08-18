@@ -2,6 +2,8 @@ use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
 
+pub use three_d_asset::PointCloud as Points;
+
 ///
 /// Similar to [Mesh], except it is possible to render many instances of the same mesh efficiently.
 ///
@@ -40,6 +42,20 @@ impl InstancedMesh {
         };
         instanced_mesh.set_instances(instances);
         instanced_mesh
+    }
+
+    ///
+    /// Creates a set of point geometries from the given [Points] data. Each point in the [Points] data is represented by the given [CpuMesh].
+    /// The resulting geometry can then be visualized with any [Material].
+    /// All data in [Points] is transfered to the GPU, so make sure to remove all unnecessary data from [Points] before calling this method.
+    ///
+    pub fn new_points(context: &Context, points: Points, point_mesh: &CpuMesh) -> Self {
+        let instances = Instances {
+            translations: points.positions.to_f32(),
+            colors: points.colors.clone(),
+            ..Default::default()
+        };
+        Self::new(context, &instances, point_mesh)
     }
 
     ///

@@ -12,10 +12,6 @@ mod instanced_mesh;
 #[doc(inline)]
 pub use instanced_mesh::*;
 
-mod point_cloud;
-#[doc(inline)]
-pub use point_cloud::*;
-
 mod sprites;
 #[doc(inline)]
 pub use sprites::*;

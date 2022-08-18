@@ -18,14 +18,14 @@ pub async fn run() {
 
     let mut camera = Camera::new_perspective(
         window.viewport(),
-        vec3(0.25, -0.5, -2.0),
+        vec3(0.125, -0.25, -0.5),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
-        0.1,
+        0.01,
         100.0,
     );
-    let mut control = OrbitControl::new(*camera.target(), 0.1, 100.0);
+    let mut control = OrbitControl::new(*camera.target(), 0.1, 3.0);
 
     let point_material = PhysicalMaterial {
         name: "point_material".to_string(),
@@ -43,10 +43,15 @@ pub async fn run() {
         .unwrap();
     let cpu_point_cloud = loaded.deserialize("hand.pcd").unwrap();
 
-    let point_cloud = Gm {
-        geometry: PointCloud::new(&context, cpu_point_cloud),
+    let mut point_mesh = CpuMesh::sphere(4);
+    point_mesh.transform(&Mat4::from_scale(0.001)).unwrap();
+
+    let mut point_cloud = Gm {
+        geometry: InstancedMesh::new_points(&context, cpu_point_cloud, &point_mesh),
         material: point_material,
     };
+    let c = -point_cloud.aabb().center();
+    point_cloud.set_transformation(Mat4::from_translation(c));
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
     let directional1 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
@@ -64,7 +69,7 @@ pub async fn run() {
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
                 .render(
                     &camera,
-                    &[&point_cloud],
+                    &[&point_cloud, &Axes::new(&context, 0.01, 0.1)],
                     &[&ambient, &directional1, &directional2],
                 );
         }
