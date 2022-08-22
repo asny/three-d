@@ -391,10 +391,10 @@ impl Instances {
     }
 }
 
-pub use three_d_asset::PointCloud as Points;
+pub use three_d_asset::PointCloud;
 
-impl From<Points> for Instances {
-    fn from(points: Points) -> Self {
+impl From<PointCloud> for Instances {
+    fn from(points: PointCloud) -> Self {
         Self {
             translations: points.positions.to_f32(),
             colors: points.colors.clone(),
