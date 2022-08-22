@@ -23,7 +23,7 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
-pub use three_d_asset::{Indices, Positions, TriMesh as CpuMesh};
+pub use three_d_asset::{Indices, PointCloud, Positions, TriMesh as CpuMesh};
 
 ///
 /// Represents a 3D geometry that, together with a [material], can be rendered using [Geometry::render_with_material].

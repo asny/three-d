@@ -391,8 +391,6 @@ impl Instances {
     }
 }
 
-pub use three_d_asset::PointCloud;
-
 impl From<PointCloud> for Instances {
     fn from(points: PointCloud) -> Self {
         Self {
