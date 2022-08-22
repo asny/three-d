@@ -41,13 +41,13 @@ pub async fn run() {
     let mut loaded = three_d_asset::io::load_async(&["examples/assets/hand.pcd"])
         .await
         .unwrap();
-    let cpu_point_cloud = loaded.deserialize("hand.pcd").unwrap();
+    let cpu_point_cloud: Points = loaded.deserialize("hand.pcd").unwrap();
 
     let mut point_mesh = CpuMesh::sphere(4);
     point_mesh.transform(&Mat4::from_scale(0.001)).unwrap();
 
     let mut point_cloud = Gm {
-        geometry: InstancedMesh::new_points(&context, cpu_point_cloud, &point_mesh),
+        geometry: InstancedMesh::new(&context, &cpu_point_cloud.into(), &point_mesh),
         material: point_material,
     };
     let c = -point_cloud.aabb().center();
