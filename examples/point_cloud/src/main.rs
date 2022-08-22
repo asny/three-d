@@ -27,17 +27,6 @@ pub async fn run() {
     );
     let mut control = OrbitControl::new(*camera.target(), 0.1, 3.0);
 
-    let point_material = PhysicalMaterial {
-        name: "point_material".to_string(),
-        roughness: 0.7,
-        metallic: 0.5,
-        render_states: RenderStates {
-            cull: Cull::Back,
-            ..Default::default()
-        },
-        ..Default::default()
-    };
-
     let mut loaded = three_d_asset::io::load_async(&["examples/assets/hand.pcd"])
         .await
         .unwrap();
@@ -48,7 +37,7 @@ pub async fn run() {
 
     let mut point_cloud = Gm {
         geometry: InstancedMesh::new(&context, &cpu_point_cloud.into(), &point_mesh),
-        material: point_material,
+        material: ColorMaterial::default(),
     };
     let c = -point_cloud.aabb().center();
     point_cloud.set_transformation(Mat4::from_translation(c));
