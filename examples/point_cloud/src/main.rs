@@ -27,6 +27,7 @@ pub async fn run() {
     );
     let mut control = OrbitControl::new(*camera.target(), 0.1, 3.0);
 
+    // Load point cloud
     let mut loaded = three_d_asset::io::load_async(&["examples/assets/hand.pcd"])
         .await
         .unwrap();
@@ -42,10 +43,6 @@ pub async fn run() {
     let c = -point_cloud.aabb().center();
     point_cloud.set_transformation(Mat4::from_translation(c));
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
-    let directional1 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
-    let directional2 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0));
-
     // main loop
     window.render_loop(move |mut frame_input| {
         let mut redraw = frame_input.first_frame;
@@ -59,7 +56,7 @@ pub async fn run() {
                 .render(
                     &camera,
                     &[&point_cloud, &Axes::new(&context, 0.01, 0.1)],
-                    &[&ambient, &directional1, &directional2],
+                    &[],
                 );
         }
 
