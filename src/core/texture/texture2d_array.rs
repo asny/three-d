@@ -204,32 +204,43 @@ impl Texture2DArray {
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(&mut self, data: &[&[T]]) {
-        check_data_length::<T>(
-            self.width,
-            self.height,
-            self.depth,
-            self.data_byte_size,
-            data.iter().map(|d| d.len()).sum(),
-        );
-        self.bind();
         for (i, data) in data.iter().enumerate() {
-            let mut data = (*data).to_owned();
-            flip_y(&mut data, self.width as usize, self.height as usize);
-            unsafe {
-                self.context.tex_sub_image_3d(
-                    crate::context::TEXTURE_2D_ARRAY,
-                    0,
-                    0,
-                    0,
-                    i as i32,
-                    self.width as i32,
-                    self.height as i32,
-                    1,
-                    format_from_data_type::<T>(),
-                    T::data_type(),
-                    crate::context::PixelUnpackData::Slice(to_byte_slice(&data)),
-                );
-            }
+            self.fill_layer(i as u32, data);
+        }
+    }
+
+    ///
+    /// Fills the given layer in the texture array with the given pixel data.
+    ///
+    /// # Panic
+    /// Will panic if the layer number is bigger than the number of layers or if the data does not correspond to the width, height and format specified at construction.
+    /// It is therefore necessary to create a new texture if the texture size or format has changed.
+    ///
+    pub fn fill_layer<T: TextureDataType>(&mut self, layer: u32, data: &[T]) {
+        if layer >= self.depth {
+            panic!(
+                "cannot fill the layer {} with data, since there are only {} layers in the texture array",
+                layer, self.depth
+            )
+        }
+        check_data_length::<T>(self.width, self.height, 1, self.data_byte_size, data.len());
+        self.bind();
+        let mut data = (*data).to_owned();
+        flip_y(&mut data, self.width as usize, self.height as usize);
+        unsafe {
+            self.context.tex_sub_image_3d(
+                crate::context::TEXTURE_2D_ARRAY,
+                0,
+                0,
+                0,
+                layer as i32,
+                self.width as i32,
+                self.height as i32,
+                1,
+                format_from_data_type::<T>(),
+                T::data_type(),
+                crate::context::PixelUnpackData::Slice(to_byte_slice(&data)),
+            );
         }
         self.generate_mip_maps();
     }
