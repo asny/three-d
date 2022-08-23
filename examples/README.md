@@ -89,6 +89,10 @@ This is the recomended starting point for a gentle introduction to `three-d`.
 
 ![Image example](https://asny.github.io/three-d/0.14/image.png)
 
+## Point cloud [[code](https://github.com/asny/three-d/tree/master/examples/point_cloud/src/main.rs)] [[demo](https://asny.github.io/three-d/0.14/point_cloud.html)]
+
+![Point cloud example](https://asny.github.io/three-d/0.14/point_cloud.png)
+
 ## Fog [[code](https://github.com/asny/three-d/tree/master/examples/fog/src/main.rs)] [[demo](https://asny.github.io/three-d/0.14/fog.html)]
 
 ![Fog example](https://asny.github.io/three-d/0.14/fog.png)
