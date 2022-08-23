@@ -390,3 +390,13 @@ impl Instances {
         self.translations.len() as u32
     }
 }
+
+impl From<PointCloud> for Instances {
+    fn from(points: PointCloud) -> Self {
+        Self {
+            translations: points.positions.to_f32(),
+            colors: points.colors,
+            ..Default::default()
+        }
+    }
+}
