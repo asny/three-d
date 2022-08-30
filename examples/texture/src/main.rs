@@ -33,7 +33,7 @@ pub async fn run() {
         "examples/assets/skybox_evening/top.jpg",
         "examples/assets/skybox_evening/front.jpg",
         "examples/assets/skybox_evening/back.jpg",
-        "examples/assets/test_texture.jpg",
+        "examples/assets/Skybox_example.png",
         "examples/assets/PenguinBaseMesh.obj",
     ])
     .await
@@ -54,7 +54,7 @@ pub async fn run() {
         ColorMaterial {
             texture: Some(std::sync::Arc::new(Texture2D::new(
                 &context,
-                &loaded.deserialize("test_texture").unwrap(),
+                &loaded.deserialize("Skybox_example").unwrap(),
             ))),
             ..Default::default()
         },
