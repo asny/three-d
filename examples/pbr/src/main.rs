@@ -52,7 +52,7 @@ pub async fn run() {
     cpu_model
         .geometries
         .iter_mut()
-        .for_each(|m| m.compute_tangents().unwrap());
+        .for_each(|m| m.compute_tangents());
     let model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
         .unwrap()
         .remove(0);
