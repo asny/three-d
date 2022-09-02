@@ -117,12 +117,12 @@ pub fn run() {
             );
             let mut start_velocities = Vec::new();
             for _ in 0..300 {
-                let theta = rng.gen::<f32>() * std::f32::consts::PI;
+                let theta = rng.gen::<f32>() * 2.0 - 1.0;
                 let phi = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
                 let explosion_direction = vec3(
-                    theta.sin() * phi.cos(),
-                    theta.sin() * phi.sin(),
-                    theta.cos(),
+                    theta.acos().sin() * phi.cos(),
+                    theta.acos().sin() * phi.sin(),
+                    theta,
                 );
                 start_velocities
                     .push((rng.gen::<f32>() * 0.2 + 0.9) * explosion_speed * explosion_direction);
