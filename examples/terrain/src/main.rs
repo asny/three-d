@@ -49,23 +49,21 @@ pub async fn run() {
     let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
 
     let noise_generator = SuperSimplex::new();
-    let height_map = |x, y| {
+    let height_map = move |x, y| {
         (noise_generator.get([x as f64 * 0.1, y as f64 * 0.1])
             + 0.25 * noise_generator.get([x as f64 * 0.5, y as f64 * 0.5])
             + 2.0 * noise_generator.get([x as f64 * 0.02, y as f64 * 0.02])) as f32
     };
 
-    let model = Gm::new(
-        Terrain::new(&context, &height_map, vec3(0.0, 0.0, 0.0)),
-        PhysicalMaterial::new_opaque(
-            &context,
-            &CpuMaterial {
-                roughness: 1.0,
-                metallic: 0.2,
-                albedo: Color::new_opaque(150, 170, 150),
-                ..Default::default()
-            },
-        ),
+    let mut terrain_geometry = Terrain::new(&context, &height_map, vec3(0.0, 0.0, 0.0));
+    let terrain_material = PhysicalMaterial::new_opaque(
+        &context,
+        &CpuMaterial {
+            roughness: 1.0,
+            metallic: 0.2,
+            albedo: Color::new_opaque(150, 170, 150),
+            ..Default::default()
+        },
     );
 
     // main loop
@@ -74,11 +72,17 @@ pub async fn run() {
         change |= camera.set_viewport(frame_input.viewport);
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
+        terrain_geometry.update(*camera.position(), &height_map);
+
         if change {
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
-                .render(&camera, &[&skybox, &model], &[&light]);
+                .render(
+                    &camera,
+                    &[&skybox, &Gm::new(&terrain_geometry, &terrain_material)],
+                    &[&light],
+                );
         }
 
         FrameOutput {
