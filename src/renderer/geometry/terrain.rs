@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::rc::Rc;
 
 const PATCH_SIZE: f32 = 16.0;
 const PATCHES_PER_SIDE: u32 = 33;
@@ -13,7 +12,6 @@ pub struct Terrain {
     context: Context,
     center: (i32, i32),
     patches: Vec<GroundPatch>,
-    ground_material: Rc<PhysicalMaterial>,
 }
 impl Terrain {
     pub fn new(context: &Context, height_map: &impl Fn(f32, f32) -> f32, position: Vec3) -> Self {
@@ -21,7 +19,6 @@ impl Terrain {
             three_d_asset::io::load(&["./assets/rocks_ground/rocks_ground_02_4k.gltf"]).unwrap();
 
         let ground_model: CpuModel = loaded.deserialize(".gltf").unwrap();
-        let ground_material = Rc::new(PhysicalMaterial::new(context, &ground_model.materials[0]));
         let (x0, y0) = Self::pos2patch(position);
         let mut patches = Vec::new();
         for ix in x0 - HALF_PATCHES_PER_SIDE..x0 + HALF_PATCHES_PER_SIDE + 1 {
@@ -34,7 +31,6 @@ impl Terrain {
             context: context.clone(),
             center: (x0, y0),
             patches,
-            ground_material,
         }
     }
 
@@ -101,18 +97,32 @@ impl Terrain {
         });
     }
 
-    pub fn to_geometries(&self) -> Vec<&dyn Geometry> {
-        self.patches
-            .iter()
-            .map(|p| p as &dyn Geometry)
-            .collect::<Vec<_>>()
-    }
-
     fn pos2patch(position: Vec3) -> (i32, i32) {
         (
             (position.x / PATCH_SIZE).floor() as i32,
             (position.z / PATCH_SIZE).floor() as i32,
         )
+    }
+}
+
+impl Geometry for Terrain {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) {
+        for p in self.patches.iter() {
+            p.render_with_material(material, camera, lights);
+        }
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for p in self.patches.iter() {
+            aabb.expand_with_aabb(&p.aabb());
+        }
+        aabb
     }
 }
 
