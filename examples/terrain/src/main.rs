@@ -48,7 +48,7 @@ pub async fn run() {
     let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
 
     let model = Gm::new(
-        Mesh::new(&context, &CpuMesh::sphere(32)),
+        Terrain::new(&context, &|x, y| 0.0, vec3(0.0, 0.0, 0.0)),
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {

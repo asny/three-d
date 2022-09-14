@@ -15,10 +15,6 @@ pub struct Terrain {
 }
 impl Terrain {
     pub fn new(context: &Context, height_map: &impl Fn(f32, f32) -> f32, position: Vec3) -> Self {
-        let mut loaded =
-            three_d_asset::io::load(&["./assets/rocks_ground/rocks_ground_02_4k.gltf"]).unwrap();
-
-        let ground_model: CpuModel = loaded.deserialize(".gltf").unwrap();
         let (x0, y0) = Self::pos2patch(position);
         let mut patches = Vec::new();
         for ix in x0 - HALF_PATCHES_PER_SIDE..x0 + HALF_PATCHES_PER_SIDE + 1 {
