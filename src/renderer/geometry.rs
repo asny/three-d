@@ -20,6 +20,10 @@ mod particles;
 #[doc(inline)]
 pub use particles::*;
 
+mod terrain;
+#[doc(inline)]
+pub use terrain::*;
+
 use crate::core::*;
 use crate::renderer::*;
 
