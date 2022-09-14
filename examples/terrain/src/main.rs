@@ -5,6 +5,7 @@ async fn main() {
     run().await;
 }
 
+use noise::{NoiseFn, SuperSimplex};
 use three_d::*;
 
 pub async fn run() {
@@ -47,13 +48,21 @@ pub async fn run() {
     );
     let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
 
+    let noise_generator = SuperSimplex::new();
+    let height_map = |x, y| {
+        (noise_generator.get([x as f64 * 0.1, y as f64 * 0.1])
+            + 0.25 * noise_generator.get([x as f64 * 0.5, y as f64 * 0.5])
+            + 2.0 * noise_generator.get([x as f64 * 0.02, y as f64 * 0.02])) as f32
+    };
+
     let model = Gm::new(
-        Terrain::new(&context, &|x, y| 0.0, vec3(0.0, 0.0, 0.0)),
+        Terrain::new(&context, &height_map, vec3(0.0, 0.0, 0.0)),
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
-                roughness: 0.2,
-                metallic: 0.8,
+                roughness: 1.0,
+                metallic: 0.2,
+                albedo: Color::new_opaque(150, 170, 150),
                 ..Default::default()
             },
         ),
