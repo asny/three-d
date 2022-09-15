@@ -62,7 +62,11 @@ impl SpotLight {
     /// It is recomended that the texture size is power of 2.
     /// If the shadows are too low resolution (the edges between shadow and non-shadow are pixelated) try to increase the texture size.
     ///
-    pub fn generate_shadow_map(&mut self, texture_size: u32, geometries: &[&dyn Geometry]) {
+    pub fn generate_shadow_map<'a>(
+        &mut self,
+        texture_size: u32,
+        geometries: impl Iterator<Item = &'a dyn Geometry> + Clone,
+    ) {
         let position = self.position;
         let direction = self.direction;
         let up = compute_up_direction(self.direction);
@@ -71,7 +75,7 @@ impl SpotLight {
 
         let mut z_far = 0.0f32;
         let mut z_near = f32::MAX;
-        for geometry in geometries {
+        for geometry in geometries.clone() {
             let aabb = geometry.aabb();
             if !aabb.is_empty() {
                 z_far = z_far.max(aabb.distance_max(&self.position));
@@ -109,10 +113,7 @@ impl SpotLight {
             .as_depth_target()
             .clear(ClearState::default())
             .write(|| {
-                for geometry in geometries
-                    .iter()
-                    .filter(|g| shadow_camera.in_frustum(&g.aabb()))
-                {
+                for geometry in geometries.filter(|g| shadow_camera.in_frustum(&g.aabb())) {
                     geometry.render_with_material(&depth_material, &shadow_camera, &[]);
                 }
             });
