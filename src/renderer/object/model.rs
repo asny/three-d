@@ -9,10 +9,10 @@ pub struct Model<M: Material>(Vec<Gm<Mesh, M>>);
 
 impl<M: Material> Model<M> {
     ///
-    /// Returns a list of references to the objects in this model which can be used as input to a render function, for example [RenderTarget::render].
+    /// Returns an iterator of references to the objects in this model which can be used as input to a render function, for example [RenderTarget::render].
     ///
-    pub fn to_objects(&self) -> Vec<&dyn Object> {
-        self.0.iter().map(|m| m as &dyn Object).collect::<Vec<_>>()
+    pub fn objects(&self) -> impl Iterator<Item = &dyn Object> {
+        self.0.iter().map(|m| m as &dyn Object)
     }
 
     ///
