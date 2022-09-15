@@ -61,7 +61,12 @@ impl<'a> DepthTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render(&self, camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]) -> &Self {
+    pub fn render<'b>(
+        &self,
+        camera: &Camera,
+        objects: impl Iterator<Item = &'b dyn Object>,
+        lights: &[&dyn Light],
+    ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
@@ -70,11 +75,11 @@ impl<'a> DepthTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_partially(
+    pub fn render_partially<'b>(
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: impl Iterator<Item = &'b dyn Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target()
@@ -134,7 +139,12 @@ impl<'a> ColorTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render(&self, camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]) -> &Self {
+    pub fn render<'b>(
+        &self,
+        camera: &Camera,
+        objects: impl Iterator<Item = &'b dyn Object>,
+        lights: &[&dyn Light],
+    ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
@@ -143,11 +153,11 @@ impl<'a> ColorTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_partially(
+    pub fn render_partially<'b>(
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: impl Iterator<Item = &'b dyn Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target()
@@ -207,7 +217,12 @@ impl<'a> RenderTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render(&self, camera: &Camera, objects: &[&dyn Object], lights: &[&dyn Light]) -> &Self {
+    pub fn render<'b>(
+        &self,
+        camera: &Camera,
+        objects: impl Iterator<Item = &'b dyn Object>,
+        lights: &[&dyn Light],
+    ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
@@ -216,16 +231,15 @@ impl<'a> RenderTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_partially(
+    pub fn render_partially<'b>(
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: impl Iterator<Item = &'b dyn Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         let (mut deferred_objects, mut forward_objects): (Vec<&dyn Object>, Vec<&dyn Object>) =
             objects
-                .iter()
                 .filter(|o| camera.in_frustum(&o.aabb()))
                 .partition(|o| o.material_type() == MaterialType::Deferred);
 
