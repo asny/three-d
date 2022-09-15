@@ -107,15 +107,14 @@ pub fn main() {
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             .render(
                 &camera,
-                &[
-                    &sphere,
-                    &cylinder,
-                    &cube,
-                    &axes,
-                    &bounding_box_sphere,
-                    &bounding_box_cube,
-                    &bounding_box_cylinder,
-                ],
+                sphere
+                    .obj_iter()
+                    .chain(cylinder.obj_iter())
+                    .chain(cube.obj_iter())
+                    .chain(axes.obj_iter())
+                    .chain(bounding_box_sphere.obj_iter())
+                    .chain(bounding_box_cube.obj_iter())
+                    .chain(bounding_box_cylinder.obj_iter()),
                 &[&light0, &light1],
             );
 

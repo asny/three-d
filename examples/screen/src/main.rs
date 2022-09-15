@@ -92,7 +92,7 @@ pub fn main() {
                 },
                 ClearState::color(0.5, 0.5, 0.5, 1.0),
             )
-            .render_partially(scissor_box_zoomed, &camera, &[&model], &[])
+            .render_partially(scissor_box_zoomed, &camera, model.obj_iter(), &[])
             .write(|| gui.render(frame_input.viewport));
 
         // Secondary view
@@ -109,7 +109,7 @@ pub fn main() {
                 secondary_viewport.into(),
                 ClearState::color(0.3, 0.3, 0.3, 1.0),
             )
-            .render_partially(secondary_viewport.into(), &camera, &[&model], &[]);
+            .render_partially(secondary_viewport.into(), &camera, model.obj_iter(), &[]);
 
         // Returns default frame output to end the frame
         FrameOutput::default()

@@ -72,7 +72,7 @@ pub async fn run() {
     let imposters = Imposters::new(
         &context,
         &positions,
-        &model.to_objects(),
+        model.obj_iter(),
         &[&ambient, &directional],
         256,
     );
@@ -115,13 +115,17 @@ pub async fn run() {
         redraw |= control.handle_events(&mut camera, &mut frame_input.events);
 
         if redraw {
-            let mut objects = model.to_objects();
-            objects.push(&imposters);
-            objects.push(&plane);
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-                .render(&camera, &objects, &[&ambient, &directional]);
+                .render(
+                    &camera,
+                    model
+                        .obj_iter()
+                        .chain(imposters.obj_iter())
+                        .chain(plane.obj_iter()),
+                    &[&ambient, &directional],
+                );
         }
 
         FrameOutput {

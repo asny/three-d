@@ -243,9 +243,9 @@ pub async fn run() {
 
         // Draw
         if shadows_enabled {
-            directional0.generate_shadow_map(1024, &[&model]);
-            directional1.generate_shadow_map(1024, &[&model]);
-            spot0.generate_shadow_map(1024, &[&model]);
+            directional0.generate_shadow_map(1024, model.geo_iter());
+            directional1.generate_shadow_map(1024, model.geo_iter());
+            spot0.generate_shadow_map(1024, model.geo_iter());
         }
 
         let lights = [
@@ -278,7 +278,7 @@ pub async fn run() {
                 screen.render_with_material(
                     &DepthMaterial::default(),
                     &camera,
-                    &[&model, &plane],
+                    model.geo_iter().chain(plane.geo_iter()),
                     &lights,
                 );
             }
@@ -300,7 +300,7 @@ pub async fn run() {
                 screen.render_with_material(
                     &PositionMaterial::default(),
                     &camera,
-                    &[&model, &plane],
+                    model.geo_iter().chain(plane.geo_iter()),
                     &lights,
                 );
             }
@@ -308,7 +308,7 @@ pub async fn run() {
                 screen.render_with_material(
                     &UVMaterial::default(),
                     &camera,
-                    &[&model, &plane],
+                    model.geo_iter().chain(plane.geo_iter()),
                     &lights,
                 );
             }
@@ -327,10 +327,14 @@ pub async fn run() {
                 });
             }
             MaterialType::Forward => {
-                screen.render(&camera, &[&model, &plane], &lights);
+                screen.render(&camera, model.obj_iter().chain(plane.obj_iter()), &lights);
             }
             MaterialType::Deferred => {
-                screen.render(&camera, &[&deferred_model, &deferred_plane], &lights);
+                screen.render(
+                    &camera,
+                    deferred_model.obj_iter().chain(deferred_plane.obj_iter()),
+                    &lights,
+                );
             }
         }
         screen.write(|| gui.render(frame_input.viewport));

@@ -19,6 +19,20 @@ impl<G: Geometry, M: Material> Gm<G, M> {
     pub fn new(geometry: G, material: M) -> Self {
         Self { geometry, material }
     }
+
+    ///
+    /// Returns an iterator over a reference to the object which can be used as input to a render function, for example [RenderTarget::render].
+    ///
+    pub fn obj_iter(&self) -> impl Iterator<Item = &dyn Object> + Clone {
+        std::iter::once(self as &dyn Object)
+    }
+
+    ///
+    /// Returns an iterator over a reference to the geometry which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
+    ///
+    pub fn geo_iter(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
+        std::iter::once(self as &dyn Geometry)
+    }
 }
 
 impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
