@@ -92,11 +92,11 @@ impl<'a> DepthTarget<'a> {
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_with_material(
+    pub fn render_with_material<'b>(
         &self,
         material: &dyn Material,
         camera: &Camera,
-        geometries: &[&dyn Geometry],
+        geometries: impl Iterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially_with_material(
@@ -114,12 +114,12 @@ impl<'a> DepthTarget<'a> {
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_partially_with_material(
+    pub fn render_partially_with_material<'b>(
         &self,
         scissor_box: ScissorBox,
         material: &dyn Material,
         camera: &Camera,
-        geometries: &[&dyn Geometry],
+        geometries: impl Iterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target().render_partially_with_material(
@@ -170,11 +170,11 @@ impl<'a> ColorTarget<'a> {
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_with_material(
+    pub fn render_with_material<'b>(
         &self,
         material: &dyn Material,
         camera: &Camera,
-        geometries: &[&dyn Geometry],
+        geometries: impl Iterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially_with_material(
@@ -192,12 +192,12 @@ impl<'a> ColorTarget<'a> {
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_partially_with_material(
+    pub fn render_partially_with_material<'b>(
         &self,
         scissor_box: ScissorBox,
         material: &dyn Material,
         camera: &Camera,
-        geometries: &[&dyn Geometry],
+        geometries: impl Iterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target().render_partially_with_material(
@@ -308,11 +308,11 @@ impl<'a> RenderTarget<'a> {
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_with_material(
+    pub fn render_with_material<'b>(
         &self,
         material: &dyn Material,
         camera: &Camera,
-        geometries: &[&dyn Geometry],
+        geometries: impl Iterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially_with_material(
@@ -329,16 +329,16 @@ impl<'a> RenderTarget<'a> {
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_partially_with_material(
+    pub fn render_partially_with_material<'b>(
         &self,
         scissor_box: ScissorBox,
         material: &dyn Material,
         camera: &Camera,
-        geometries: &[&dyn Geometry],
+        geometries: impl Iterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            for object in geometries.iter().filter(|o| camera.in_frustum(&o.aabb())) {
+            for object in geometries.filter(|o| camera.in_frustum(&o.aabb())) {
                 object.render_with_material(material, camera, lights);
             }
         });
@@ -383,11 +383,11 @@ pub fn cmp_render_order(
 /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
 /// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
 ///
-pub fn pick(
+pub fn pick<'b>(
     context: &Context,
     camera: &Camera,
     pixel: (f32, f32),
-    geometries: &[&dyn Geometry],
+    geometries: impl Iterator<Item = &'b dyn Geometry>,
 ) -> Option<Vec3> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
@@ -404,12 +404,12 @@ pub fn pick(
 /// Finds the closest intersection between a ray starting at the given position in the given direction and the given geometries.
 /// Returns ```None``` if no geometry was hit before the given maximum depth.
 ///
-pub fn ray_intersect(
+pub fn ray_intersect<'b>(
     context: &Context,
     position: Vec3,
     direction: Vec3,
     max_depth: f32,
-    geometries: &[&dyn Geometry],
+    geometries: impl Iterator<Item = &'b dyn Geometry>,
 ) -> Option<Vec3> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
