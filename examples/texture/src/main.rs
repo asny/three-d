@@ -76,14 +76,14 @@ pub async fn run() {
         redraw |= camera.set_viewport(frame_input.viewport);
         redraw |= control.handle_events(&mut camera, &mut frame_input.events);
 
-        let mut objects = penguin.to_objects();
-        objects.push(&box_object);
-        objects.push(&skybox);
         // draw
         if redraw {
             frame_input.screen().clear(ClearState::default()).render(
                 &camera,
-                &objects,
+                penguin
+                    .obj_iter()
+                    .chain(box_object.obj_iter())
+                    .chain(skybox.obj_iter()),
                 &[&ambient, &directional],
             );
         }

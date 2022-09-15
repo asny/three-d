@@ -55,7 +55,9 @@ pub async fn run() {
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
                 .render(
                     &camera,
-                    &[&point_cloud, &Axes::new(&context, 0.01, 0.1)],
+                    point_cloud
+                        .obj_iter()
+                        .chain(Axes::new(&context, 0.01, 0.1).obj_iter()),
                     &[],
                 );
         }

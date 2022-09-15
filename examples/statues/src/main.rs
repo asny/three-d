@@ -79,7 +79,7 @@ pub async fn run() {
             m.set_transformation(translation * scale * rotation);
             m.material.render_states.cull = Cull::Back;
         });
-        models.extend(statue.drain(..));
+        models.push(statue);
     }
 
     let mut fountain =
@@ -89,7 +89,6 @@ pub async fn run() {
         m.material.render_states.cull = Cull::Back;
         m.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
     });
-    models.extend(fountain.drain(..));
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
     let mut directional = DirectionalLight::new(
@@ -100,15 +99,19 @@ pub async fn run() {
     );
     directional.generate_shadow_map(
         1024,
-        &models
+        models
             .iter()
-            .map(|m| m as &dyn Geometry)
-            .collect::<Vec<_>>(),
+            .flat_map(|m| m.geo_iter())
+            .chain(fountain.geo_iter()),
     );
     // Bounding boxes
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     let mut bounding_boxes = Vec::new();
-    for geometry in models.iter() {
+    for geometry in models
+        .iter()
+        .flat_map(|m| m.geo_iter())
+        .chain(fountain.geo_iter())
+    {
         bounding_boxes.push(BoundingBox::new_with_material_and_thickness(
             &context,
             geometry.aabb(),
@@ -172,11 +175,13 @@ pub async fn run() {
                     CameraType::Primary => &primary_camera,
                     CameraType::Secondary => &secondary_camera,
                 };
-                for model in models
+                for object in models
                     .iter()
+                    .flat_map(|m| m.obj_iter())
+                    .chain(fountain.obj_iter())
                     .filter(|o| primary_camera.in_frustum(&o.aabb()))
                 {
-                    model.render(camera, &[&ambient, &directional]);
+                    object.render(camera, &[&ambient, &directional]);
                 }
                 if bounding_box_enabled {
                     for bounding_box in bounding_boxes.iter() {

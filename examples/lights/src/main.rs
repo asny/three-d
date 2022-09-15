@@ -116,15 +116,12 @@ pub async fn run() {
 
         control.handle_events(&mut camera, &mut frame_input.events);
 
-        let mut objects = lights.iter().map(|l| l.object()).collect::<Vec<_>>();
-        objects.extend(model.iter().map(|m| m as &dyn Object));
-
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0))
             .render(
                 &camera,
-                &objects,
+                lights.iter().map(|l| l.object()).chain(model.obj_iter()),
                 &lights
                     .iter()
                     .map(|l| &l.light as &dyn Light)

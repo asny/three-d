@@ -80,7 +80,11 @@ pub async fn run() {
                 .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
                 .render(
                     &camera,
-                    &[&skybox, &Gm::new(&terrain_geometry, &terrain_material)],
+                    [
+                        &skybox as &dyn Object,
+                        &Gm::new(&terrain_geometry, &terrain_material),
+                    ]
+                    .into_iter(),
                     &[&light],
                 );
         }

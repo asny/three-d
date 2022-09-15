@@ -70,8 +70,7 @@ pub async fn run() {
                                 - frame_input.device_pixel_ratio * position.1)
                                 as f32,
                         );
-                        if let Some(pick) = pick(&context, &camera, pixel, &monkey.to_geometries())
-                        {
+                        if let Some(pick) = pick(&context, &camera, pixel, monkey.geo_iter()) {
                             pick_mesh.set_transformation(Mat4::from_translation(pick));
                             change = true;
                         }
@@ -85,12 +84,14 @@ pub async fn run() {
 
         // draw
         if change {
-            let mut objects = monkey.to_objects();
-            objects.push(&pick_mesh);
             frame_input
                 .screen()
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-                .render(&camera, &objects, &[&ambient, &directional]);
+                .render(
+                    &camera,
+                    monkey.obj_iter().chain(pick_mesh.obj_iter()),
+                    &[&ambient, &directional],
+                );
         }
 
         FrameOutput {

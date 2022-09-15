@@ -40,6 +40,20 @@ impl Imposters {
     }
 
     ///
+    /// Returns an iterator over a reference to the object which can be used as input to a render function, for example [RenderTarget::render].
+    ///
+    pub fn obj_iter(&self) -> impl Iterator<Item = &dyn Object> + Clone {
+        std::iter::once(self as &dyn Object)
+    }
+
+    ///
+    /// Returns an iterator over a reference to the geometry which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
+    ///
+    pub fn geo_iter(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
+        std::iter::once(self as &dyn Geometry)
+    }
+
+    ///
     /// Set the positions of the imposters.
     ///
     pub fn set_positions(&mut self, positions: &[Vec3]) {

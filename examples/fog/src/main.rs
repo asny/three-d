@@ -81,7 +81,7 @@ pub async fn run() {
                     .render_with_material(
                         &DepthMaterial::default(),
                         &camera,
-                        &monkey.to_geometries(),
+                        monkey.geo_iter(),
                         &[],
                     );
             });
@@ -90,7 +90,7 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::default())
-            .render(&camera, &monkey.to_objects(), &[&ambient, &directional])
+            .render(&camera, monkey.obj_iter(), &[&ambient, &directional])
             .write(|| {
                 if fog_enabled {
                     if let Some(ref depth_texture) = depth_texture {

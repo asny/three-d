@@ -81,8 +81,8 @@ pub async fn run() {
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             .render(
                 &camera,
-                &[
-                    &axes,
+                [
+                    &axes as &dyn Object,
                     &Gm {
                         geometry: &billboards,
                         material: &material,
@@ -95,7 +95,8 @@ pub async fn run() {
                         geometry: &sprites,
                         material: &material,
                     },
-                ],
+                ]
+                .into_iter(),
                 &[&ambient],
             );
 
