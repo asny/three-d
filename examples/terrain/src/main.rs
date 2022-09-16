@@ -70,7 +70,6 @@ pub async fn run() {
         height_map,
         32.0,
         33,
-        4,
         vec3(0.0, 0.0, 0.0),
     );
 
