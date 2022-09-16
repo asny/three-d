@@ -55,8 +55,7 @@ pub async fn run() {
             + 2.0 * noise_generator.get([x as f64 * 0.02, y as f64 * 0.02])) as f32
     };
 
-    let mut terrain_geometry = Terrain::new(&context, &height_map, vec3(0.0, 0.0, 0.0));
-    let terrain_material = PhysicalMaterial::new_opaque(
+    let terrain_material = std::rc::Rc::new(PhysicalMaterial::new_opaque(
         &context,
         &CpuMaterial {
             roughness: 1.0,
@@ -64,6 +63,12 @@ pub async fn run() {
             albedo: Color::new_opaque(150, 170, 150),
             ..Default::default()
         },
+    ));
+    let mut terrain = Terrain::new(
+        &context,
+        terrain_material.clone(),
+        &height_map,
+        vec3(0.0, 0.0, 0.0),
     );
 
     // main loop
@@ -72,7 +77,7 @@ pub async fn run() {
         change |= camera.set_viewport(frame_input.viewport);
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
-        terrain_geometry.update(*camera.position(), &height_map);
+        terrain.update(terrain_material.clone(), *camera.position(), &height_map);
 
         if change {
             frame_input
@@ -80,9 +85,7 @@ pub async fn run() {
                 .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
                 .render(
                     &camera,
-                    skybox
-                        .obj_iter()
-                        .chain(Gm::new(&terrain_geometry, &terrain_material).obj_iter()),
+                    skybox.obj_iter().chain(terrain.obj_iter()),
                     light.iter(),
                 );
         }
