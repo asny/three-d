@@ -81,7 +81,7 @@ pub fn camera2d(viewport: Viewport) -> Camera {
 pub trait Object: Geometry {
     ///
     /// Render the object.
-    /// Use `std::iter::empty()` for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     fn render(&self, camera: &Camera, lights: &[&dyn Light]);
