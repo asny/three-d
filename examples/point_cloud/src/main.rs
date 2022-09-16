@@ -58,7 +58,7 @@ pub async fn run() {
                     point_cloud
                         .obj_iter()
                         .chain(Axes::new(&context, 0.01, 0.1).obj_iter()),
-                    &[],
+                    std::iter::empty(),
                 );
         }
 

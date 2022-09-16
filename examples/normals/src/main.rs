@@ -93,14 +93,12 @@ pub async fn run() {
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
             .render(
                 &camera,
-                [
-                    &model_with_computed_tangents as &dyn Object,
-                    &model_with_loaded_tangents,
-                    &instanced_model_with_computed_tangents,
-                    &instanced_model_with_loaded_tangents,
-                ]
-                .into_iter(),
-                &[&ambient, &directional],
+                model_with_computed_tangents
+                    .obj_iter()
+                    .chain(model_with_loaded_tangents.obj_iter())
+                    .chain(instanced_model_with_computed_tangents.obj_iter())
+                    .chain(instanced_model_with_loaded_tangents.obj_iter()),
+                ambient.iter().chain(directional.iter()),
             );
         FrameOutput::default()
     });

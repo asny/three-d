@@ -95,8 +95,10 @@ pub fn main() {
         },
     );
 
-    let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
-    let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5));
+    let lights = vec![
+        DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5)),
+        DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5)),
+    ];
 
     window.render_loop(move |mut frame_input: FrameInput| {
         camera.set_viewport(frame_input.viewport);
@@ -115,7 +117,7 @@ pub fn main() {
                     .chain(bounding_box_sphere.obj_iter())
                     .chain(bounding_box_cube.obj_iter())
                     .chain(bounding_box_cylinder.obj_iter()),
-                &[&light0, &light1],
+                lights.iter().map(|l| l as &dyn Light),
             );
 
         FrameOutput::default()

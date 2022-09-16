@@ -24,7 +24,7 @@ impl Imposters {
         context: &Context,
         positions: &[Vec3],
         objects: impl Iterator<Item = &'a dyn Object> + Clone,
-        lights: &[&dyn Light],
+        lights: impl Iterator<Item = &'a dyn Light> + Clone,
         max_texture_size: u32,
     ) -> Self {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
@@ -67,7 +67,7 @@ impl Imposters {
     pub fn update_texture<'a>(
         &mut self,
         objects: impl Iterator<Item = &'a dyn Object> + Clone,
-        lights: &[&dyn Light],
+        lights: impl Iterator<Item = &'a dyn Light> + Clone,
         max_texture_size: u32,
     ) {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
@@ -127,7 +127,7 @@ impl ImpostersMaterial {
         context: &Context,
         aabb: AxisAlignedBoundingBox,
         objects: impl Iterator<Item = &'a dyn Object> + Clone,
-        lights: &[&dyn Light],
+        lights: impl Iterator<Item = &'a dyn Light> + Clone,
         max_texture_size: u32,
     ) -> Self {
         let mut m = Self {
@@ -151,7 +151,7 @@ impl ImpostersMaterial {
         &mut self,
         aabb: AxisAlignedBoundingBox,
         objects: impl Iterator<Item = &'a dyn Object> + Clone,
-        lights: &[&dyn Light],
+        lights: impl Iterator<Item = &'a dyn Light> + Clone,
         max_texture_size: u32,
     ) {
         if !aabb.is_empty() {
@@ -203,7 +203,7 @@ impl ImpostersMaterial {
                     depth_texture.as_depth_target(),
                 )
                 .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))
-                .render(&camera, objects.clone(), lights);
+                .render(&camera, objects.clone(), lights.clone());
             }
         }
     }
