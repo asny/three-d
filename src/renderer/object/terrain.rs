@@ -1,8 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-const PATCH_SIZE: f32 = 16.0;
-const PATCHES_PER_SIDE: u32 = 33;
-const HALF_PATCHES_PER_SIDE: i32 = (PATCHES_PER_SIDE as i32 - 1) / 2;
 
 pub struct Terrain<M: Material> {
     context: Context,
@@ -10,45 +7,59 @@ pub struct Terrain<M: Material> {
     patches: Vec<Gm<TerrainPatch, M>>,
     material: M,
     height_map: Box<dyn Fn(f32, f32) -> f32>,
+    patch_size: f32,
+    patches_per_side: u32,
+    vertices_per_unit: u32,
 }
 impl<M: Material + Clone> Terrain<M> {
     pub fn new(
         context: &Context,
         material: M,
         height_map: Box<dyn Fn(f32, f32) -> f32>,
+        patch_size: f32,
+        patches_per_side: u32,
+        vertices_per_unit: u32,
         position: Vec3,
     ) -> Self {
-        let mut t = Self {
-            context: context.clone(),
-            center: Self::pos2patch(position),
-            patches: Vec::new(),
-            material: material.clone(),
-            height_map,
-        };
-        for ix in t.center.0 - HALF_PATCHES_PER_SIDE..t.center.0 + HALF_PATCHES_PER_SIDE + 1 {
-            for iy in t.center.1 - HALF_PATCHES_PER_SIDE..t.center.1 + HALF_PATCHES_PER_SIDE + 1 {
-                let patch = TerrainPatch::new(context, &t.height_map, ix, iy);
-                t.patches.push(Gm::new(patch, material.clone()));
+        let mut patches = Vec::new();
+        let center = Self::pos2patch(patch_size, position);
+        let half_patches_per_side = Self::half_patches_per_side(patches_per_side);
+        for ix in center.0 - half_patches_per_side..center.0 + half_patches_per_side + 1 {
+            for iy in center.1 - half_patches_per_side..center.1 + half_patches_per_side + 1 {
+                let patch =
+                    TerrainPatch::new(context, &height_map, ix, iy, patch_size, vertices_per_unit);
+                patches.push(Gm::new(patch, material.clone()));
             }
         }
-        t.update(position);
-        t
+        Self {
+            context: context.clone(),
+            center,
+            patches,
+            material: material.clone(),
+            height_map,
+            patch_size,
+            patches_per_side,
+            vertices_per_unit,
+        }
     }
 
     pub fn update(&mut self, position: Vec3) {
-        let (x0, y0) = Self::pos2patch(position);
+        let (x0, y0) = Self::pos2patch(self.patch_size, position);
+        let half_patches_per_side = Self::half_patches_per_side(self.patches_per_side);
 
         while x0 > self.center.0 {
             self.center.0 += 1;
             for iy in
-                self.center.1 - HALF_PATCHES_PER_SIDE..self.center.1 + HALF_PATCHES_PER_SIDE + 1
+                self.center.1 - half_patches_per_side..self.center.1 + half_patches_per_side + 1
             {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
                         &self.height_map,
-                        self.center.0 + HALF_PATCHES_PER_SIDE,
+                        self.center.0 + half_patches_per_side,
                         iy,
+                        self.patch_size,
+                        self.vertices_per_unit,
                     ),
                     self.material.clone(),
                 ));
@@ -58,14 +69,16 @@ impl<M: Material + Clone> Terrain<M> {
         while x0 < self.center.0 {
             self.center.0 -= 1;
             for iy in
-                self.center.1 - HALF_PATCHES_PER_SIDE..self.center.1 + HALF_PATCHES_PER_SIDE + 1
+                self.center.1 - half_patches_per_side..self.center.1 + half_patches_per_side + 1
             {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
                         &self.height_map,
-                        self.center.0 - HALF_PATCHES_PER_SIDE,
+                        self.center.0 - half_patches_per_side,
                         iy,
+                        self.patch_size,
+                        self.vertices_per_unit,
                     ),
                     self.material.clone(),
                 ));
@@ -74,14 +87,16 @@ impl<M: Material + Clone> Terrain<M> {
         while y0 > self.center.1 {
             self.center.1 += 1;
             for ix in
-                self.center.0 - HALF_PATCHES_PER_SIDE..self.center.0 + HALF_PATCHES_PER_SIDE + 1
+                self.center.0 - half_patches_per_side..self.center.0 + half_patches_per_side + 1
             {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
                         &self.height_map,
                         ix,
-                        self.center.1 + HALF_PATCHES_PER_SIDE,
+                        self.center.1 + half_patches_per_side,
+                        self.patch_size,
+                        self.vertices_per_unit,
                     ),
                     self.material.clone(),
                 ));
@@ -91,14 +106,16 @@ impl<M: Material + Clone> Terrain<M> {
         while y0 < self.center.1 {
             self.center.1 -= 1;
             for ix in
-                self.center.0 - HALF_PATCHES_PER_SIDE..self.center.0 + HALF_PATCHES_PER_SIDE + 1
+                self.center.0 - half_patches_per_side..self.center.0 + half_patches_per_side + 1
             {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
                         &self.height_map,
                         ix,
-                        self.center.1 - HALF_PATCHES_PER_SIDE,
+                        self.center.1 - half_patches_per_side,
+                        self.patch_size,
+                        self.vertices_per_unit,
                     ),
                     self.material.clone(),
                 ));
@@ -107,14 +124,18 @@ impl<M: Material + Clone> Terrain<M> {
 
         self.patches.retain(|p| {
             let (ix, iy) = p.index();
-            (x0 - ix).abs() <= HALF_PATCHES_PER_SIDE && (y0 - iy).abs() <= HALF_PATCHES_PER_SIDE
+            (x0 - ix).abs() <= half_patches_per_side && (y0 - iy).abs() <= half_patches_per_side
         });
     }
 
-    fn pos2patch(position: Vec3) -> (i32, i32) {
+    fn half_patches_per_side(patches_per_side: u32) -> i32 {
+        (patches_per_side as i32 - 1) / 2
+    }
+
+    fn pos2patch(patch_size: f32, position: Vec3) -> (i32, i32) {
         (
-            (position.x / PATCH_SIZE).floor() as i32,
-            (position.z / PATCH_SIZE).floor() as i32,
+            (position.x / patch_size).floor() as i32,
+            (position.z / patch_size).floor() as i32,
         )
     }
 

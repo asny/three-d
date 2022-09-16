@@ -64,7 +64,15 @@ pub async fn run() {
             ..Default::default()
         },
     ));
-    let mut terrain = Terrain::new(&context, terrain_material, height_map, vec3(0.0, 0.0, 0.0));
+    let mut terrain = Terrain::new(
+        &context,
+        terrain_material,
+        height_map,
+        16.0,
+        33,
+        4,
+        vec3(0.0, 0.0, 0.0),
+    );
 
     // main loop
     window.render_loop(move |mut frame_input| {
