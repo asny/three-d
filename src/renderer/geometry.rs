@@ -46,7 +46,7 @@ pub trait Geometry {
     ///
     /// Render the geometry with the given material.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
-    /// Use `std::iter::empty()` for the `lights` argument, if the material does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     ///
     fn render_with_material(&self, material: &dyn Material, camera: &Camera, lights: &[&dyn Light]);
 
