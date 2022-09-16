@@ -64,12 +64,7 @@ pub async fn run() {
             ..Default::default()
         },
     ));
-    let mut terrain = Terrain::new(
-        &context,
-        terrain_material.clone(),
-        &height_map,
-        vec3(0.0, 0.0, 0.0),
-    );
+    let mut terrain = Terrain::new(&context, terrain_material, &height_map, vec3(0.0, 0.0, 0.0));
 
     // main loop
     window.render_loop(move |mut frame_input| {
@@ -77,7 +72,7 @@ pub async fn run() {
         change |= camera.set_viewport(frame_input.viewport);
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
-        terrain.update(terrain_material.clone(), *camera.position(), &height_map);
+        terrain.update(&height_map, *camera.position());
 
         if change {
             frame_input
