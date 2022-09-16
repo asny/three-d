@@ -49,11 +49,11 @@ pub async fn run() {
     let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
 
     let noise_generator = SuperSimplex::new();
-    let height_map = move |x, y| {
+    let height_map = Box::new(move |x, y| {
         (noise_generator.get([x as f64 * 0.1, y as f64 * 0.1])
             + 0.25 * noise_generator.get([x as f64 * 0.5, y as f64 * 0.5])
             + 2.0 * noise_generator.get([x as f64 * 0.02, y as f64 * 0.02])) as f32
-    };
+    });
 
     let terrain_material = std::rc::Rc::new(PhysicalMaterial::new_opaque(
         &context,
@@ -64,7 +64,7 @@ pub async fn run() {
             ..Default::default()
         },
     ));
-    let mut terrain = Terrain::new(&context, terrain_material, &height_map, vec3(0.0, 0.0, 0.0));
+    let mut terrain = Terrain::new(&context, terrain_material, height_map, vec3(0.0, 0.0, 0.0));
 
     // main loop
     window.render_loop(move |mut frame_input| {
@@ -72,7 +72,7 @@ pub async fn run() {
         change |= camera.set_viewport(frame_input.viewport);
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
-        terrain.update(&height_map, *camera.position());
+        terrain.update(*camera.position());
 
         if change {
             frame_input
