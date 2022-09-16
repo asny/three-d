@@ -19,10 +19,10 @@ impl<M: Material + Clone> Terrain<M> {
         patch_size: f32,
         patches_per_side: u32,
         vertices_per_unit: u32,
-        position: Vec3,
+        initial_position: Vec3,
     ) -> Self {
         let mut patches = Vec::new();
-        let center = Self::pos2patch(patch_size, position);
+        let center = Self::pos2patch(patch_size, initial_position);
         let half_patches_per_side = Self::half_patches_per_side(patches_per_side);
         for ix in center.0 - half_patches_per_side..center.0 + half_patches_per_side + 1 {
             for iy in center.1 - half_patches_per_side..center.1 + half_patches_per_side + 1 {
@@ -141,14 +141,14 @@ impl<M: Material + Clone> Terrain<M> {
     }
 
     ///
-    /// Returns an iterator over the reference to the objects in this model which can be used as input to a render function, for example [RenderTarget::render].
+    /// Returns an iterator over the reference to the objects in this terrain which can be used as input to a render function, for example [RenderTarget::render].
     ///
     pub fn obj_iter(&self) -> impl Iterator<Item = &dyn Object> + Clone {
         self.patches.iter().map(|m| m as &dyn Object)
     }
 
     ///
-    /// Returns an iterator over the reference to the geometries in this model which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
+    /// Returns an iterator over the reference to the geometries in this terrain which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
     ///
     pub fn geo_iter(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
         self.patches.iter().map(|m| m as &dyn Geometry)
