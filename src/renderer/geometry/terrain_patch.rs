@@ -1,9 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-const PATCH_SIZE: f32 = 16.0;
-const VERTICES_PER_UNIT: usize = 4;
-const VERTICES_PER_SIDE: usize = (PATCH_SIZE + 1.0) as usize * VERTICES_PER_UNIT;
-const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
 pub struct TerrainPatch {
     context: Context,
@@ -14,19 +10,38 @@ pub struct TerrainPatch {
     very_coarse_index_buffer: ElementBuffer,
     positions_buffer: VertexBuffer,
     normals_buffer: VertexBuffer,
+    patch_size: f32,
 }
 
 impl TerrainPatch {
-    pub fn new(context: &Context, height_map: &impl Fn(f32, f32) -> f32, ix: i32, iy: i32) -> Self {
-        let offset = vec2(ix as f32 * PATCH_SIZE, iy as f32 * PATCH_SIZE);
-        let positions = Self::positions(height_map, offset);
-        let normals = Self::normals(height_map, offset, &positions);
+    pub fn new(
+        context: &Context,
+        height_map: &impl Fn(f32, f32) -> f32,
+        ix: i32,
+        iy: i32,
+        patch_size: f32,
+        vertices_per_unit: u32,
+    ) -> Self {
+        let vertices_per_side = (patch_size + 1.0) as usize * vertices_per_unit as usize;
+        let vertex_distance = 1.0 / vertices_per_unit as f32;
+        let offset = vec2(ix as f32 * patch_size, iy as f32 * patch_size);
+        let positions = Self::positions(height_map, offset, vertices_per_side, vertex_distance);
+        let normals = Self::normals(
+            height_map,
+            offset,
+            &positions,
+            vertices_per_side,
+            vertex_distance,
+        );
 
         let positions_buffer = VertexBuffer::new_with_data(context, &positions);
         let normals_buffer = VertexBuffer::new_with_data(context, &normals);
-        let index_buffer = ElementBuffer::new_with_data(context, &Self::indices(1));
-        let coarse_index_buffer = ElementBuffer::new_with_data(context, &Self::indices(4));
-        let very_coarse_index_buffer = ElementBuffer::new_with_data(context, &Self::indices(8));
+        let index_buffer =
+            ElementBuffer::new_with_data(context, &Self::indices(1, vertices_per_side));
+        let coarse_index_buffer =
+            ElementBuffer::new_with_data(context, &Self::indices(4, vertices_per_side));
+        let very_coarse_index_buffer =
+            ElementBuffer::new_with_data(context, &Self::indices(8, vertices_per_side));
         Self {
             context: context.clone(),
             ix,
@@ -36,6 +51,7 @@ impl TerrainPatch {
             very_coarse_index_buffer,
             positions_buffer,
             normals_buffer,
+            patch_size,
         }
     }
 
@@ -54,9 +70,9 @@ impl TerrainPatch {
         }
     }
 
-    fn indices(resolution: u32) -> Vec<u32> {
+    fn indices(resolution: u32, vertices_per_side: usize) -> Vec<u32> {
         let mut indices: Vec<u32> = Vec::new();
-        let stride = VERTICES_PER_SIDE as u32;
+        let stride = vertices_per_side as u32;
         let max = (stride - 1) / resolution;
         for r in 0..max {
             for c in 0..max {
@@ -71,13 +87,18 @@ impl TerrainPatch {
         indices
     }
 
-    fn positions(height_map: &impl Fn(f32, f32) -> f32, offset: Vec2) -> Vec<Vec3> {
-        let mut data = vec![vec3(0.0, 0.0, 0.0); VERTICES_PER_SIDE * VERTICES_PER_SIDE];
-        for r in 0..VERTICES_PER_SIDE {
-            for c in 0..VERTICES_PER_SIDE {
-                let vertex_id = r * VERTICES_PER_SIDE + c;
-                let x = offset.x + r as f32 * VERTEX_DISTANCE;
-                let z = offset.y + c as f32 * VERTEX_DISTANCE;
+    fn positions(
+        height_map: &impl Fn(f32, f32) -> f32,
+        offset: Vec2,
+        vertices_per_side: usize,
+        vertex_distance: f32,
+    ) -> Vec<Vec3> {
+        let mut data = vec![vec3(0.0, 0.0, 0.0); vertices_per_side * vertices_per_side];
+        for r in 0..vertices_per_side {
+            for c in 0..vertices_per_side {
+                let vertex_id = r * vertices_per_side + c;
+                let x = offset.x + r as f32 * vertex_distance;
+                let z = offset.y + c as f32 * vertex_distance;
                 data[vertex_id] = vec3(x, height_map(x, z), z);
             }
         }
@@ -88,25 +109,27 @@ impl TerrainPatch {
         height_map: &impl Fn(f32, f32) -> f32,
         offset: Vec2,
         positions: &Vec<Vec3>,
+        vertices_per_side: usize,
+        vertex_distance: f32,
     ) -> Vec<Vec3> {
-        let mut data = vec![vec3(0.0, 0.0, 0.0); VERTICES_PER_SIDE * VERTICES_PER_SIDE];
-        let h = VERTEX_DISTANCE;
-        for r in 0..VERTICES_PER_SIDE {
-            for c in 0..VERTICES_PER_SIDE {
-                let vertex_id = r * VERTICES_PER_SIDE + c;
-                let x = offset.x + r as f32 * VERTEX_DISTANCE;
-                let z = offset.y + c as f32 * VERTEX_DISTANCE;
-                let xp = if r == VERTICES_PER_SIDE - 1 {
+        let mut data = vec![vec3(0.0, 0.0, 0.0); vertices_per_side * vertices_per_side];
+        let h = vertex_distance;
+        for r in 0..vertices_per_side {
+            for c in 0..vertices_per_side {
+                let vertex_id = r * vertices_per_side + c;
+                let x = offset.x + r as f32 * vertex_distance;
+                let z = offset.y + c as f32 * vertex_distance;
+                let xp = if r == vertices_per_side - 1 {
                     height_map(x + h, z)
                 } else {
-                    positions[vertex_id + VERTICES_PER_SIDE][1]
+                    positions[vertex_id + vertices_per_side][1]
                 };
                 let xm = if r == 0 {
                     height_map(x - h, z)
                 } else {
-                    positions[vertex_id - VERTICES_PER_SIDE][1]
+                    positions[vertex_id - vertices_per_side][1]
                 };
-                let zp = if c == VERTICES_PER_SIDE - 1 {
+                let zp = if c == vertices_per_side - 1 {
                     height_map(x, z + h)
                 } else {
                     positions[vertex_id + 1][1]
@@ -132,8 +155,8 @@ impl Geometry for TerrainPatch {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let x0 = (camera.position().x / PATCH_SIZE).floor() as i32;
-        let y0 = (camera.position().z / PATCH_SIZE).floor() as i32;
+        let x0 = (camera.position().x / self.patch_size).floor() as i32;
+        let y0 = (camera.position().z / self.patch_size).floor() as i32;
         let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context
             .program(
@@ -172,14 +195,14 @@ impl Geometry for TerrainPatch {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::new_with_positions(&[
             vec3(
-                self.ix as f32 * PATCH_SIZE,
-                -PATCH_SIZE,
-                self.iy as f32 * PATCH_SIZE,
+                self.ix as f32 * self.patch_size,
+                -self.patch_size,
+                self.iy as f32 * self.patch_size,
             ),
             vec3(
-                (self.ix + 1) as f32 * PATCH_SIZE,
-                PATCH_SIZE,
-                (self.iy + 1) as f32 * PATCH_SIZE,
+                (self.ix + 1) as f32 * self.patch_size,
+                self.patch_size,
+                (self.iy + 1) as f32 * self.patch_size,
             ),
         ])
     }
