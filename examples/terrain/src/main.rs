@@ -68,7 +68,7 @@ pub async fn run() {
         &context,
         terrain_material,
         height_map,
-        16.0,
+        32.0,
         33,
         4,
         vec3(0.0, 0.0, 0.0),
