@@ -1,7 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
 
-const VERTICES_PER_SIDE: usize = 65;
+const VERTICES_PER_SIDE: usize = 17;
 
 pub struct TerrainPatch {
     context: Context,
@@ -49,9 +49,9 @@ impl TerrainPatch {
 
     fn index_buffer(&self, x0: i32, y0: i32) -> &ElementBuffer {
         let dist = (self.index.0 - x0).abs() + (self.index.1 - y0).abs();
-        if dist > 4 {
+        if dist > 16 {
             &self.very_coarse_index_buffer
-        } else if dist > 8 {
+        } else if dist > 32 {
             &self.coarse_index_buffer
         } else {
             &self.index_buffer
