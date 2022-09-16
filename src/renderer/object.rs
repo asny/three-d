@@ -41,6 +41,10 @@ mod imposters;
 #[doc(inline)]
 pub use imposters::*;
 
+mod terrain;
+#[doc(inline)]
+pub use terrain::*;
+
 mod axes;
 #[doc(inline)]
 pub use axes::*;
