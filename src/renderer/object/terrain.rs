@@ -11,6 +11,7 @@ pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
     patches: Vec<Gm<TerrainPatch, M>>,
+    material: M,
 }
 impl<M: Material + Clone> Terrain<M> {
     pub fn new(
@@ -19,22 +20,23 @@ impl<M: Material + Clone> Terrain<M> {
         height_map: &impl Fn(f32, f32) -> f32,
         position: Vec3,
     ) -> Self {
-        let (x0, y0) = Self::pos2patch(position);
-        let mut patches = Vec::new();
-        for ix in x0 - HALF_PATCHES_PER_SIDE..x0 + HALF_PATCHES_PER_SIDE + 1 {
-            for iy in y0 - HALF_PATCHES_PER_SIDE..y0 + HALF_PATCHES_PER_SIDE + 1 {
+        let mut t = Self {
+            context: context.clone(),
+            center: Self::pos2patch(position),
+            patches: Vec::new(),
+            material: material.clone(),
+        };
+        for ix in t.center.0 - HALF_PATCHES_PER_SIDE..t.center.0 + HALF_PATCHES_PER_SIDE + 1 {
+            for iy in t.center.1 - HALF_PATCHES_PER_SIDE..t.center.1 + HALF_PATCHES_PER_SIDE + 1 {
                 let patch = TerrainPatch::new(context, height_map, ix, iy);
-                patches.push(Gm::new(patch, material.clone()));
+                t.patches.push(Gm::new(patch, material.clone()));
             }
         }
-        Self {
-            context: context.clone(),
-            center: (x0, y0),
-            patches,
-        }
+        t.update(height_map, position);
+        t
     }
 
-    pub fn update(&mut self, material: M, position: Vec3, height_map: &impl Fn(f32, f32) -> f32) {
+    pub fn update(&mut self, height_map: &impl Fn(f32, f32) -> f32, position: Vec3) {
         let (x0, y0) = Self::pos2patch(position);
 
         while x0 > self.center.0 {
@@ -49,7 +51,7 @@ impl<M: Material + Clone> Terrain<M> {
                         self.center.0 + HALF_PATCHES_PER_SIDE,
                         iy,
                     ),
-                    material.clone(),
+                    self.material.clone(),
                 ));
             }
         }
@@ -66,7 +68,7 @@ impl<M: Material + Clone> Terrain<M> {
                         self.center.0 - HALF_PATCHES_PER_SIDE,
                         iy,
                     ),
-                    material.clone(),
+                    self.material.clone(),
                 ));
             }
         }
@@ -82,7 +84,7 @@ impl<M: Material + Clone> Terrain<M> {
                         ix,
                         self.center.1 + HALF_PATCHES_PER_SIDE,
                     ),
-                    material.clone(),
+                    self.material.clone(),
                 ));
             }
         }
@@ -99,7 +101,7 @@ impl<M: Material + Clone> Terrain<M> {
                         ix,
                         self.center.1 - HALF_PATCHES_PER_SIDE,
                     ),
-                    material.clone(),
+                    self.material.clone(),
                 ));
             }
         }
