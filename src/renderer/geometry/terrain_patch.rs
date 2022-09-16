@@ -3,8 +3,7 @@ use crate::renderer::*;
 
 pub struct TerrainPatch {
     context: Context,
-    ix: i32,
-    iy: i32,
+    index: (i32, i32),
     index_buffer: ElementBuffer,
     coarse_index_buffer: ElementBuffer,
     very_coarse_index_buffer: ElementBuffer,
@@ -17,14 +16,13 @@ impl TerrainPatch {
     pub fn new(
         context: &Context,
         height_map: &impl Fn(f32, f32) -> f32,
-        ix: i32,
-        iy: i32,
+        index: (i32, i32),
         patch_size: f32,
         vertices_per_unit: u32,
     ) -> Self {
         let vertices_per_side = (patch_size + 1.0) as usize * vertices_per_unit as usize;
         let vertex_distance = 1.0 / vertices_per_unit as f32;
-        let offset = vec2(ix as f32 * patch_size, iy as f32 * patch_size);
+        let offset = vec2(index.0 as f32 * patch_size, index.1 as f32 * patch_size);
         let positions = Self::positions(height_map, offset, vertices_per_side, vertex_distance);
         let normals = Self::normals(
             height_map,
@@ -44,8 +42,7 @@ impl TerrainPatch {
             ElementBuffer::new_with_data(context, &Self::indices(8, vertices_per_side));
         Self {
             context: context.clone(),
-            ix,
-            iy,
+            index,
             index_buffer,
             coarse_index_buffer,
             very_coarse_index_buffer,
@@ -56,11 +53,11 @@ impl TerrainPatch {
     }
 
     pub fn index(&self) -> (i32, i32) {
-        (self.ix, self.iy)
+        self.index
     }
 
     fn index_buffer(&self, x0: i32, y0: i32) -> &ElementBuffer {
-        let dist = (self.ix - x0).abs() + (self.iy - y0).abs();
+        let dist = (self.index.0 - x0).abs() + (self.index.1 - y0).abs();
         if dist > 4 {
             &self.very_coarse_index_buffer
         } else if dist > 8 {
@@ -195,14 +192,14 @@ impl Geometry for TerrainPatch {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::new_with_positions(&[
             vec3(
-                self.ix as f32 * self.patch_size,
+                self.index.0 as f32 * self.patch_size,
                 -self.patch_size,
-                self.iy as f32 * self.patch_size,
+                self.index.1 as f32 * self.patch_size,
             ),
             vec3(
-                (self.ix + 1) as f32 * self.patch_size,
+                (self.index.0 + 1) as f32 * self.patch_size,
                 self.patch_size,
-                (self.iy + 1) as f32 * self.patch_size,
+                (self.index.1 + 1) as f32 * self.patch_size,
             ),
         ])
     }
