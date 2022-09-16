@@ -26,8 +26,13 @@ impl<M: Material + Clone> Terrain<M> {
         let half_patches_per_side = Self::half_patches_per_side(patches_per_side);
         for ix in center.0 - half_patches_per_side..center.0 + half_patches_per_side + 1 {
             for iy in center.1 - half_patches_per_side..center.1 + half_patches_per_side + 1 {
-                let patch =
-                    TerrainPatch::new(context, &height_map, ix, iy, patch_size, vertices_per_unit);
+                let patch = TerrainPatch::new(
+                    context,
+                    &height_map,
+                    (ix, iy),
+                    patch_size,
+                    vertices_per_unit,
+                );
                 patches.push(Gm::new(patch, material.clone()));
             }
         }
@@ -56,8 +61,7 @@ impl<M: Material + Clone> Terrain<M> {
                     TerrainPatch::new(
                         &self.context,
                         &self.height_map,
-                        self.center.0 + half_patches_per_side,
-                        iy,
+                        (self.center.0 + half_patches_per_side, iy),
                         self.patch_size,
                         self.vertices_per_unit,
                     ),
@@ -75,8 +79,7 @@ impl<M: Material + Clone> Terrain<M> {
                     TerrainPatch::new(
                         &self.context,
                         &self.height_map,
-                        self.center.0 - half_patches_per_side,
-                        iy,
+                        (self.center.0 - half_patches_per_side, iy),
                         self.patch_size,
                         self.vertices_per_unit,
                     ),
@@ -93,8 +96,7 @@ impl<M: Material + Clone> Terrain<M> {
                     TerrainPatch::new(
                         &self.context,
                         &self.height_map,
-                        ix,
-                        self.center.1 + half_patches_per_side,
+                        (ix, self.center.1 + half_patches_per_side),
                         self.patch_size,
                         self.vertices_per_unit,
                     ),
@@ -112,8 +114,7 @@ impl<M: Material + Clone> Terrain<M> {
                     TerrainPatch::new(
                         &self.context,
                         &self.height_map,
-                        ix,
-                        self.center.1 - half_patches_per_side,
+                        (ix, self.center.1 - half_patches_per_side),
                         self.patch_size,
                         self.vertices_per_unit,
                     ),
