@@ -1,6 +1,8 @@
 use crate::core::*;
 use crate::renderer::*;
 
+const VERTICES_PER_SIDE: usize = 65;
+
 pub struct TerrainPatch {
     context: Context,
     index: (i32, i32),
@@ -18,28 +20,17 @@ impl TerrainPatch {
         height_map: &impl Fn(f32, f32) -> f32,
         index: (i32, i32),
         patch_size: f32,
-        vertices_per_unit: u32,
     ) -> Self {
-        let vertices_per_side = (patch_size + 1.0) as usize * vertices_per_unit as usize;
-        let vertex_distance = 1.0 / vertices_per_unit as f32;
+        let vertex_distance = patch_size / (VERTICES_PER_SIDE - 1) as f32;
         let offset = vec2(index.0 as f32 * patch_size, index.1 as f32 * patch_size);
-        let positions = Self::positions(height_map, offset, vertices_per_side, vertex_distance);
-        let normals = Self::normals(
-            height_map,
-            offset,
-            &positions,
-            vertices_per_side,
-            vertex_distance,
-        );
+        let positions = Self::positions(height_map, offset, vertex_distance);
+        let normals = Self::normals(height_map, offset, &positions, vertex_distance);
 
         let positions_buffer = VertexBuffer::new_with_data(context, &positions);
         let normals_buffer = VertexBuffer::new_with_data(context, &normals);
-        let index_buffer =
-            ElementBuffer::new_with_data(context, &Self::indices(1, vertices_per_side));
-        let coarse_index_buffer =
-            ElementBuffer::new_with_data(context, &Self::indices(4, vertices_per_side));
-        let very_coarse_index_buffer =
-            ElementBuffer::new_with_data(context, &Self::indices(8, vertices_per_side));
+        let index_buffer = ElementBuffer::new_with_data(context, &Self::indices(1));
+        let coarse_index_buffer = ElementBuffer::new_with_data(context, &Self::indices(4));
+        let very_coarse_index_buffer = ElementBuffer::new_with_data(context, &Self::indices(8));
         Self {
             context: context.clone(),
             index,
@@ -67,9 +58,9 @@ impl TerrainPatch {
         }
     }
 
-    fn indices(resolution: u32, vertices_per_side: usize) -> Vec<u32> {
+    fn indices(resolution: u32) -> Vec<u32> {
         let mut indices: Vec<u32> = Vec::new();
-        let stride = vertices_per_side as u32;
+        let stride = VERTICES_PER_SIDE as u32;
         let max = (stride - 1) / resolution;
         for r in 0..max {
             for c in 0..max {
@@ -87,13 +78,12 @@ impl TerrainPatch {
     fn positions(
         height_map: &impl Fn(f32, f32) -> f32,
         offset: Vec2,
-        vertices_per_side: usize,
         vertex_distance: f32,
     ) -> Vec<Vec3> {
-        let mut data = vec![vec3(0.0, 0.0, 0.0); vertices_per_side * vertices_per_side];
-        for r in 0..vertices_per_side {
-            for c in 0..vertices_per_side {
-                let vertex_id = r * vertices_per_side + c;
+        let mut data = vec![vec3(0.0, 0.0, 0.0); VERTICES_PER_SIDE * VERTICES_PER_SIDE];
+        for r in 0..VERTICES_PER_SIDE {
+            for c in 0..VERTICES_PER_SIDE {
+                let vertex_id = r * VERTICES_PER_SIDE + c;
                 let x = offset.x + r as f32 * vertex_distance;
                 let z = offset.y + c as f32 * vertex_distance;
                 data[vertex_id] = vec3(x, height_map(x, z), z);
@@ -106,27 +96,26 @@ impl TerrainPatch {
         height_map: &impl Fn(f32, f32) -> f32,
         offset: Vec2,
         positions: &Vec<Vec3>,
-        vertices_per_side: usize,
         vertex_distance: f32,
     ) -> Vec<Vec3> {
-        let mut data = vec![vec3(0.0, 0.0, 0.0); vertices_per_side * vertices_per_side];
+        let mut data = vec![vec3(0.0, 0.0, 0.0); VERTICES_PER_SIDE * VERTICES_PER_SIDE];
         let h = vertex_distance;
-        for r in 0..vertices_per_side {
-            for c in 0..vertices_per_side {
-                let vertex_id = r * vertices_per_side + c;
+        for r in 0..VERTICES_PER_SIDE {
+            for c in 0..VERTICES_PER_SIDE {
+                let vertex_id = r * VERTICES_PER_SIDE + c;
                 let x = offset.x + r as f32 * vertex_distance;
                 let z = offset.y + c as f32 * vertex_distance;
-                let xp = if r == vertices_per_side - 1 {
+                let xp = if r == VERTICES_PER_SIDE - 1 {
                     height_map(x + h, z)
                 } else {
-                    positions[vertex_id + vertices_per_side][1]
+                    positions[vertex_id + VERTICES_PER_SIDE][1]
                 };
                 let xm = if r == 0 {
                     height_map(x - h, z)
                 } else {
-                    positions[vertex_id - vertices_per_side][1]
+                    positions[vertex_id - VERTICES_PER_SIDE][1]
                 };
-                let zp = if c == vertices_per_side - 1 {
+                let zp = if c == VERTICES_PER_SIDE - 1 {
                     height_map(x, z + h)
                 } else {
                     positions[vertex_id + 1][1]
