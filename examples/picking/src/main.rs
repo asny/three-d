@@ -70,7 +70,7 @@ pub async fn run() {
                                 - frame_input.device_pixel_ratio * position.1)
                                 as f32,
                         );
-                        if let Some(pick) = pick(&context, &camera, pixel, monkey.geo_iter()) {
+                        if let Some(pick) = pick(&context, &camera, pixel, &mut monkey.geo_iter()) {
                             pick_mesh.set_transformation(Mat4::from_translation(pick));
                             change = true;
                         }
@@ -90,7 +90,7 @@ pub async fn run() {
                 .render(
                     &camera,
                     monkey.obj_iter().chain(pick_mesh.obj_iter()),
-                    &[&ambient, &directional],
+                    ambient.iter().chain(directional.iter()),
                 );
         }
 

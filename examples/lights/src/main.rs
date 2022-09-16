@@ -122,10 +122,7 @@ pub async fn run() {
             .render(
                 &camera,
                 lights.iter().map(|l| l.object()).chain(model.obj_iter()),
-                &lights
-                    .iter()
-                    .map(|l| &l.light as &dyn Light)
-                    .collect::<Vec<_>>(),
+                lights.iter().map(|l| l.light()),
             )
             .write(|| {
                 gui.render(frame_input.viewport);
@@ -194,5 +191,9 @@ impl Glow {
 
     pub fn object(&self) -> &dyn Object {
         &self.sphere
+    }
+
+    pub fn light(&self) -> &dyn Light {
+        &self.light
     }
 }

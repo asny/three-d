@@ -99,6 +99,13 @@ impl Terrain {
             (position.z / PATCH_SIZE).floor() as i32,
         )
     }
+
+    ///
+    /// Returns an iterator over the reference to the geometries in this model which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
+    ///
+    pub fn iter(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
+        self.patches.iter().map(|m| m as &dyn Geometry)
+    }
 }
 
 impl Geometry for Terrain {

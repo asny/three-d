@@ -73,7 +73,7 @@ pub async fn run() {
         &context,
         &positions,
         model.obj_iter(),
-        &[&ambient, &directional],
+        ambient.iter().chain(directional.iter()),
         256,
     );
 
@@ -124,7 +124,7 @@ pub async fn run() {
                         .obj_iter()
                         .chain(imposters.obj_iter())
                         .chain(plane.obj_iter()),
-                    &[&ambient, &directional],
+                    ambient.iter().chain(directional.iter()),
                 );
         }
 

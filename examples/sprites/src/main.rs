@@ -97,7 +97,7 @@ pub async fn run() {
                     },
                 ]
                 .into_iter(),
-                &[&ambient],
+                ambient.iter(),
             );
 
         FrameOutput::default()
