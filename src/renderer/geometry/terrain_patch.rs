@@ -1,8 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
 const PATCH_SIZE: f32 = 16.0;
-const PATCHES_PER_SIDE: u32 = 33;
-const HALF_PATCHES_PER_SIDE: i32 = (PATCHES_PER_SIDE as i32 - 1) / 2;
 const VERTICES_PER_UNIT: usize = 4;
 const VERTICES_PER_SIDE: usize = (PATCH_SIZE + 1.0) as usize * VERTICES_PER_UNIT;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;

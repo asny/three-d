@@ -3,21 +3,19 @@ use crate::renderer::*;
 const PATCH_SIZE: f32 = 16.0;
 const PATCHES_PER_SIDE: u32 = 33;
 const HALF_PATCHES_PER_SIDE: i32 = (PATCHES_PER_SIDE as i32 - 1) / 2;
-const VERTICES_PER_UNIT: usize = 4;
-const VERTICES_PER_SIDE: usize = (PATCH_SIZE + 1.0) as usize * VERTICES_PER_UNIT;
-const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
 pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
     patches: Vec<Gm<TerrainPatch, M>>,
     material: M,
+    height_map: Box<dyn Fn(f32, f32) -> f32>,
 }
 impl<M: Material + Clone> Terrain<M> {
     pub fn new(
         context: &Context,
         material: M,
-        height_map: &impl Fn(f32, f32) -> f32,
+        height_map: Box<dyn Fn(f32, f32) -> f32>,
         position: Vec3,
     ) -> Self {
         let mut t = Self {
@@ -25,18 +23,19 @@ impl<M: Material + Clone> Terrain<M> {
             center: Self::pos2patch(position),
             patches: Vec::new(),
             material: material.clone(),
+            height_map,
         };
         for ix in t.center.0 - HALF_PATCHES_PER_SIDE..t.center.0 + HALF_PATCHES_PER_SIDE + 1 {
             for iy in t.center.1 - HALF_PATCHES_PER_SIDE..t.center.1 + HALF_PATCHES_PER_SIDE + 1 {
-                let patch = TerrainPatch::new(context, height_map, ix, iy);
+                let patch = TerrainPatch::new(context, &t.height_map, ix, iy);
                 t.patches.push(Gm::new(patch, material.clone()));
             }
         }
-        t.update(height_map, position);
+        t.update(position);
         t
     }
 
-    pub fn update(&mut self, height_map: &impl Fn(f32, f32) -> f32, position: Vec3) {
+    pub fn update(&mut self, position: Vec3) {
         let (x0, y0) = Self::pos2patch(position);
 
         while x0 > self.center.0 {
@@ -47,7 +46,7 @@ impl<M: Material + Clone> Terrain<M> {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
-                        height_map,
+                        &self.height_map,
                         self.center.0 + HALF_PATCHES_PER_SIDE,
                         iy,
                     ),
@@ -64,7 +63,7 @@ impl<M: Material + Clone> Terrain<M> {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
-                        height_map,
+                        &self.height_map,
                         self.center.0 - HALF_PATCHES_PER_SIDE,
                         iy,
                     ),
@@ -80,7 +79,7 @@ impl<M: Material + Clone> Terrain<M> {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
-                        height_map,
+                        &self.height_map,
                         ix,
                         self.center.1 + HALF_PATCHES_PER_SIDE,
                     ),
@@ -97,7 +96,7 @@ impl<M: Material + Clone> Terrain<M> {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
-                        height_map,
+                        &self.height_map,
                         ix,
                         self.center.1 - HALF_PATCHES_PER_SIDE,
                     ),
