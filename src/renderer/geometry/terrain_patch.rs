@@ -1,17 +1,16 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::rc::Rc;
 
-const VERTICES_PER_SIDE: usize = 17;
+pub const VERTICES_PER_SIDE: usize = 17;
 
 pub struct TerrainPatch {
     context: Context,
     index: (i32, i32),
-    index_buffer: ElementBuffer,
-    coarse_index_buffer: ElementBuffer,
-    very_coarse_index_buffer: ElementBuffer,
     positions_buffer: VertexBuffer,
     normals_buffer: VertexBuffer,
     patch_size: f32,
+    pub index_buffer: Rc<ElementBuffer>,
 }
 
 impl TerrainPatch {
@@ -20,6 +19,7 @@ impl TerrainPatch {
         height_map: &impl Fn(f32, f32) -> f32,
         index: (i32, i32),
         patch_size: f32,
+        index_buffer: Rc<ElementBuffer>,
     ) -> Self {
         let vertex_distance = patch_size / (VERTICES_PER_SIDE - 1) as f32;
         let offset = vec2(index.0 as f32 * patch_size, index.1 as f32 * patch_size);
@@ -28,15 +28,10 @@ impl TerrainPatch {
 
         let positions_buffer = VertexBuffer::new_with_data(context, &positions);
         let normals_buffer = VertexBuffer::new_with_data(context, &normals);
-        let index_buffer = ElementBuffer::new_with_data(context, &Self::indices(1));
-        let coarse_index_buffer = ElementBuffer::new_with_data(context, &Self::indices(4));
-        let very_coarse_index_buffer = ElementBuffer::new_with_data(context, &Self::indices(8));
         Self {
             context: context.clone(),
             index,
             index_buffer,
-            coarse_index_buffer,
-            very_coarse_index_buffer,
             positions_buffer,
             normals_buffer,
             patch_size,
@@ -45,34 +40,6 @@ impl TerrainPatch {
 
     pub fn index(&self) -> (i32, i32) {
         self.index
-    }
-
-    fn index_buffer(&self, x0: i32, y0: i32) -> &ElementBuffer {
-        let dist = (self.index.0 - x0).abs() + (self.index.1 - y0).abs();
-        if dist > 16 {
-            &self.very_coarse_index_buffer
-        } else if dist > 32 {
-            &self.coarse_index_buffer
-        } else {
-            &self.index_buffer
-        }
-    }
-
-    fn indices(resolution: u32) -> Vec<u32> {
-        let mut indices: Vec<u32> = Vec::new();
-        let stride = VERTICES_PER_SIDE as u32;
-        let max = (stride - 1) / resolution;
-        for r in 0..max {
-            for c in 0..max {
-                indices.push(r * resolution + c * resolution * stride);
-                indices.push(r * resolution + resolution + c * resolution * stride);
-                indices.push(r * resolution + (c * resolution + resolution) * stride);
-                indices.push(r * resolution + (c * resolution + resolution) * stride);
-                indices.push(r * resolution + resolution + c * resolution * stride);
-                indices.push(r * resolution + resolution + (c * resolution + resolution) * stride);
-            }
-        }
-        indices
     }
 
     fn positions(
@@ -141,8 +108,6 @@ impl Geometry for TerrainPatch {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let x0 = (camera.position().x / self.patch_size).floor() as i32;
-        let y0 = (camera.position().z / self.patch_size).floor() as i32;
         let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context
             .program(
@@ -167,12 +132,7 @@ impl Geometry for TerrainPatch {
 
                     program.use_vertex_attribute("position", &self.positions_buffer);
                     program.use_vertex_attribute("normal", &self.normals_buffer);
-
-                    program.draw_elements(
-                        render_states,
-                        camera.viewport(),
-                        &self.index_buffer(x0, y0),
-                    );
+                    program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
                 },
             )
             .unwrap();
