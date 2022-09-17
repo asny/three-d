@@ -64,7 +64,7 @@ impl<'a> DepthTarget<'a> {
     pub fn render<'b>(
         &self,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl Iterator<Item = impl Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -79,7 +79,7 @@ impl<'a> DepthTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl Iterator<Item = impl Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.as_render_target()
@@ -142,7 +142,7 @@ impl<'a> ColorTarget<'a> {
     pub fn render<'b>(
         &self,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl Iterator<Item = impl Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -157,7 +157,7 @@ impl<'a> ColorTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl Iterator<Item = impl Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.as_render_target()
@@ -220,7 +220,7 @@ impl<'a> RenderTarget<'a> {
     pub fn render<'b>(
         &self,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl Iterator<Item = impl Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -235,14 +235,13 @@ impl<'a> RenderTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl Iterator<Item = impl Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         let lights = lights.collect::<Vec<_>>();
-        let (mut deferred_objects, mut forward_objects): (Vec<&dyn Object>, Vec<&dyn Object>) =
-            objects
-                .filter(|o| camera.in_frustum(&o.aabb()))
-                .partition(|o| o.material_type() == MaterialType::Deferred);
+        let (mut deferred_objects, mut forward_objects): (Vec<_>, Vec<_>) = objects
+            .filter(|o| camera.in_frustum(&o.aabb()))
+            .partition(|o| o.material_type() == MaterialType::Deferred);
 
         // Deferred
         if deferred_objects.len() > 0 {
