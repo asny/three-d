@@ -1,10 +1,14 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::rc::Rc;
 
 pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
     patches: Vec<Gm<TerrainPatch, M>>,
+    index_buffer: Rc<ElementBuffer>,
+    coarse_index_buffer: Rc<ElementBuffer>,
+    very_coarse_index_buffer: Rc<ElementBuffer>,
     material: M,
     height_map: Box<dyn Fn(f32, f32) -> f32>,
     patch_size: f32,
@@ -19,12 +23,19 @@ impl<M: Material + Clone> Terrain<M> {
         patches_per_side: u32,
         initial_position: Vec3,
     ) -> Self {
+        let index_buffer = Rc::new(ElementBuffer::new_with_data(context, &Self::indices(1)));
         let mut patches = Vec::new();
         let center = Self::pos2patch(patch_size, initial_position);
         let half_patches_per_side = Self::half_patches_per_side(patches_per_side);
         for ix in center.0 - half_patches_per_side..center.0 + half_patches_per_side + 1 {
             for iy in center.1 - half_patches_per_side..center.1 + half_patches_per_side + 1 {
-                let patch = TerrainPatch::new(context, &height_map, (ix, iy), patch_size);
+                let patch = TerrainPatch::new(
+                    context,
+                    &height_map,
+                    (ix, iy),
+                    patch_size,
+                    index_buffer.clone(),
+                );
                 patches.push(Gm::new(patch, material.clone()));
             }
         }
@@ -32,6 +43,12 @@ impl<M: Material + Clone> Terrain<M> {
             context: context.clone(),
             center,
             patches,
+            index_buffer,
+            coarse_index_buffer: Rc::new(ElementBuffer::new_with_data(context, &Self::indices(4))),
+            very_coarse_index_buffer: Rc::new(ElementBuffer::new_with_data(
+                context,
+                &Self::indices(8),
+            )),
             material: material.clone(),
             height_map,
             patch_size,
@@ -54,6 +71,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.height_map,
                         (self.center.0 + half_patches_per_side, iy),
                         self.patch_size,
+                        self.index_buffer.clone(),
                     ),
                     self.material.clone(),
                 ));
@@ -71,6 +89,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.height_map,
                         (self.center.0 - half_patches_per_side, iy),
                         self.patch_size,
+                        self.index_buffer.clone(),
                     ),
                     self.material.clone(),
                 ));
@@ -87,6 +106,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.height_map,
                         (ix, self.center.1 + half_patches_per_side),
                         self.patch_size,
+                        self.index_buffer.clone(),
                     ),
                     self.material.clone(),
                 ));
@@ -104,6 +124,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.height_map,
                         (ix, self.center.1 - half_patches_per_side),
                         self.patch_size,
+                        self.index_buffer.clone(),
                     ),
                     self.material.clone(),
                 ));
@@ -114,6 +135,35 @@ impl<M: Material + Clone> Terrain<M> {
             let (ix, iy) = p.index();
             (x0 - ix).abs() <= half_patches_per_side && (y0 - iy).abs() <= half_patches_per_side
         });
+
+        self.patches.iter_mut().for_each(|p| {
+            let (ix, iy) = p.index();
+            let dist = (ix - x0).abs() + (iy - y0).abs();
+            p.index_buffer = if dist > 16 {
+                self.very_coarse_index_buffer.clone()
+            } else if dist > 32 {
+                self.coarse_index_buffer.clone()
+            } else {
+                self.index_buffer.clone()
+            };
+        })
+    }
+
+    fn indices(resolution: u32) -> Vec<u32> {
+        let mut indices: Vec<u32> = Vec::new();
+        let stride = VERTICES_PER_SIDE as u32;
+        let max = (stride - 1) / resolution;
+        for r in 0..max {
+            for c in 0..max {
+                indices.push(r * resolution + c * resolution * stride);
+                indices.push(r * resolution + resolution + c * resolution * stride);
+                indices.push(r * resolution + (c * resolution + resolution) * stride);
+                indices.push(r * resolution + (c * resolution + resolution) * stride);
+                indices.push(r * resolution + resolution + c * resolution * stride);
+                indices.push(r * resolution + resolution + (c * resolution + resolution) * stride);
+            }
+        }
+        indices
     }
 
     fn half_patches_per_side(patches_per_side: u32) -> i32 {
