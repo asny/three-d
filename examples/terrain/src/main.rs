@@ -55,7 +55,7 @@ pub async fn run() {
             + 2.0 * noise_generator.get([x as f64 * 0.02, y as f64 * 0.02])) as f32
     });
 
-    let terrain_material = std::rc::Rc::new(PhysicalMaterial::new_opaque(
+    let terrain_material = PhysicalMaterial::new_opaque(
         &context,
         &CpuMaterial {
             roughness: 1.0,
@@ -63,7 +63,7 @@ pub async fn run() {
             albedo: Color::new_opaque(150, 170, 150),
             ..Default::default()
         },
-    ));
+    );
     let mut terrain = Terrain::new(
         &context,
         terrain_material,
