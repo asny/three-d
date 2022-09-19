@@ -69,7 +69,7 @@ pub async fn run() {
         terrain_material,
         height_map,
         512.0,
-        vec3(0.0, 0.0, 0.0),
+        vec2(0.0, 0.0),
     );
     terrain.set_lod(Box::new(|d| {
         if d > 256.0 {
@@ -87,7 +87,8 @@ pub async fn run() {
         change |= camera.set_viewport(frame_input.viewport);
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
-        terrain.update(*camera.position());
+        let p = *camera.position();
+        terrain.update(vec2(p.x, p.z));
 
         if change {
             frame_input
