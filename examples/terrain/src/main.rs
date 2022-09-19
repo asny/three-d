@@ -72,6 +72,15 @@ pub async fn run() {
         64,
         vec3(0.0, 0.0, 0.0),
     );
+    terrain.set_lod(Box::new(|d| {
+        if d > 256.0 {
+            TerrainLod::VeryCoarse
+        } else if d > 128.0 {
+            TerrainLod::Coarse
+        } else {
+            TerrainLod::Standard
+        }
+    }));
 
     // main loop
     window.render_loop(move |mut frame_input| {

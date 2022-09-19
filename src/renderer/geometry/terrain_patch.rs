@@ -10,6 +10,7 @@ pub struct TerrainPatch {
     positions_buffer: VertexBuffer,
     normals_buffer: VertexBuffer,
     patch_size: f32,
+    center: Vec3,
     pub index_buffer: Rc<ElementBuffer>,
 }
 
@@ -35,7 +36,16 @@ impl TerrainPatch {
             positions_buffer,
             normals_buffer,
             patch_size,
+            center: vec3(
+                offset.x + 0.5 * patch_size,
+                0.0,
+                offset.y + 0.5 * patch_size,
+            ),
         }
+    }
+
+    pub fn center(&self) -> Vec3 {
+        self.center
     }
 
     pub fn index(&self) -> (i32, i32) {
