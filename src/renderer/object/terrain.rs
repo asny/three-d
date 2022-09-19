@@ -2,6 +2,12 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
+pub enum TerrainLod {
+    Standard,
+    Coarse,
+    VeryCoarse,
+}
+
 pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
@@ -10,6 +16,7 @@ pub struct Terrain<M: Material> {
     coarse_index_buffer: Rc<ElementBuffer>,
     very_coarse_index_buffer: Rc<ElementBuffer>,
     material: M,
+    lod: Box<dyn Fn(f32) -> TerrainLod>,
     height_map: Box<dyn Fn(f32, f32) -> f32>,
     patch_size: f32,
     patches_per_side: u32,
@@ -49,11 +56,16 @@ impl<M: Material + Clone> Terrain<M> {
                 context,
                 &Self::indices(8),
             )),
+            lod: Box::new(|_| TerrainLod::Standard),
             material: material.clone(),
             height_map,
             patch_size,
             patches_per_side,
         }
+    }
+
+    pub fn set_lod(&mut self, lod: Box<dyn Fn(f32) -> TerrainLod>) {
+        self.lod = lod;
     }
 
     pub fn update(&mut self, position: Vec3) {
@@ -137,14 +149,11 @@ impl<M: Material + Clone> Terrain<M> {
         });
 
         self.patches.iter_mut().for_each(|p| {
-            let (ix, iy) = p.index();
-            let dist = (ix - x0).abs() + (iy - y0).abs();
-            p.index_buffer = if dist > 16 {
-                self.very_coarse_index_buffer.clone()
-            } else if dist > 32 {
-                self.coarse_index_buffer.clone()
-            } else {
-                self.index_buffer.clone()
+            let distance = p.center().distance(vec3(position.x, 0.0, position.z));
+            p.index_buffer = match (*self.lod)(distance) {
+                TerrainLod::VeryCoarse => self.very_coarse_index_buffer.clone(),
+                TerrainLod::Coarse => self.coarse_index_buffer.clone(),
+                TerrainLod::Standard => self.index_buffer.clone(),
             };
         })
     }
