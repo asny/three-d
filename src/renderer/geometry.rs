@@ -20,10 +20,6 @@ mod particles;
 #[doc(inline)]
 pub use particles::*;
 
-mod terrain_patch;
-#[doc(inline)]
-pub use terrain_patch::*;
-
 use crate::core::*;
 use crate::renderer::*;
 
