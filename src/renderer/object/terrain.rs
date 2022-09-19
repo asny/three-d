@@ -8,6 +8,9 @@ pub enum TerrainLod {
     VeryCoarse,
 }
 
+const VERTICES_PER_SIDE: usize = 17;
+const PATCH_SIZE: f32 = 8.0;
+
 pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
@@ -18,7 +21,6 @@ pub struct Terrain<M: Material> {
     material: M,
     lod: Box<dyn Fn(f32) -> TerrainLod>,
     height_map: Box<dyn Fn(f32, f32) -> f32>,
-    patch_size: f32,
     patches_per_side: u32,
 }
 impl<M: Material + Clone> Terrain<M> {
@@ -26,23 +28,17 @@ impl<M: Material + Clone> Terrain<M> {
         context: &Context,
         material: M,
         height_map: Box<dyn Fn(f32, f32) -> f32>,
-        patch_size: f32,
-        patches_per_side: u32,
-        initial_position: Vec3,
+        side_length: f32,
+        center: Vec3,
     ) -> Self {
+        let patches_per_side = (side_length / PATCH_SIZE).ceil() as u32;
         let index_buffer = Rc::new(ElementBuffer::new_with_data(context, &Self::indices(1)));
         let mut patches = Vec::new();
-        let center = Self::pos2patch(patch_size, initial_position);
+        let center = Self::pos2patch(center);
         let half_patches_per_side = Self::half_patches_per_side(patches_per_side);
         for ix in center.0 - half_patches_per_side..center.0 + half_patches_per_side + 1 {
             for iy in center.1 - half_patches_per_side..center.1 + half_patches_per_side + 1 {
-                let patch = TerrainPatch::new(
-                    context,
-                    &height_map,
-                    (ix, iy),
-                    patch_size,
-                    index_buffer.clone(),
-                );
+                let patch = TerrainPatch::new(context, &height_map, (ix, iy), index_buffer.clone());
                 patches.push(Gm::new(patch, material.clone()));
             }
         }
@@ -59,7 +55,6 @@ impl<M: Material + Clone> Terrain<M> {
             lod: Box::new(|_| TerrainLod::Standard),
             material: material.clone(),
             height_map,
-            patch_size,
             patches_per_side,
         }
     }
@@ -68,8 +63,8 @@ impl<M: Material + Clone> Terrain<M> {
         self.lod = lod;
     }
 
-    pub fn update(&mut self, position: Vec3) {
-        let (x0, y0) = Self::pos2patch(self.patch_size, position);
+    pub fn update(&mut self, center: Vec3) {
+        let (x0, y0) = Self::pos2patch(center);
         let half_patches_per_side = Self::half_patches_per_side(self.patches_per_side);
 
         while x0 > self.center.0 {
@@ -82,7 +77,6 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.context,
                         &self.height_map,
                         (self.center.0 + half_patches_per_side, iy),
-                        self.patch_size,
                         self.index_buffer.clone(),
                     ),
                     self.material.clone(),
@@ -100,7 +94,6 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.context,
                         &self.height_map,
                         (self.center.0 - half_patches_per_side, iy),
-                        self.patch_size,
                         self.index_buffer.clone(),
                     ),
                     self.material.clone(),
@@ -117,7 +110,6 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.context,
                         &self.height_map,
                         (ix, self.center.1 + half_patches_per_side),
-                        self.patch_size,
                         self.index_buffer.clone(),
                     ),
                     self.material.clone(),
@@ -135,7 +127,6 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.context,
                         &self.height_map,
                         (ix, self.center.1 - half_patches_per_side),
-                        self.patch_size,
                         self.index_buffer.clone(),
                     ),
                     self.material.clone(),
@@ -149,7 +140,7 @@ impl<M: Material + Clone> Terrain<M> {
         });
 
         self.patches.iter_mut().for_each(|p| {
-            let distance = p.center().distance(vec3(position.x, 0.0, position.z));
+            let distance = p.center().distance(vec3(center.x, 0.0, center.z));
             p.index_buffer = match (*self.lod)(distance) {
                 TerrainLod::VeryCoarse => self.very_coarse_index_buffer.clone(),
                 TerrainLod::Coarse => self.coarse_index_buffer.clone(),
@@ -179,10 +170,10 @@ impl<M: Material + Clone> Terrain<M> {
         (patches_per_side as i32 - 1) / 2
     }
 
-    fn pos2patch(patch_size: f32, position: Vec3) -> (i32, i32) {
+    fn pos2patch(position: Vec3) -> (i32, i32) {
         (
-            (position.x / patch_size).floor() as i32,
-            (position.z / patch_size).floor() as i32,
+            (position.x / PATCH_SIZE).floor() as i32,
+            (position.z / PATCH_SIZE).floor() as i32,
         )
     }
 
@@ -201,14 +192,11 @@ impl<M: Material + Clone> Terrain<M> {
     }
 }
 
-const VERTICES_PER_SIDE: usize = 17;
-
 struct TerrainPatch {
     context: Context,
     index: (i32, i32),
     positions_buffer: VertexBuffer,
     normals_buffer: VertexBuffer,
-    patch_size: f32,
     center: Vec3,
     pub index_buffer: Rc<ElementBuffer>,
 }
@@ -218,11 +206,10 @@ impl TerrainPatch {
         context: &Context,
         height_map: &impl Fn(f32, f32) -> f32,
         index: (i32, i32),
-        patch_size: f32,
         index_buffer: Rc<ElementBuffer>,
     ) -> Self {
-        let vertex_distance = patch_size / (VERTICES_PER_SIDE - 1) as f32;
-        let offset = vec2(index.0 as f32 * patch_size, index.1 as f32 * patch_size);
+        let vertex_distance = PATCH_SIZE / (VERTICES_PER_SIDE - 1) as f32;
+        let offset = vec2(index.0 as f32 * PATCH_SIZE, index.1 as f32 * PATCH_SIZE);
         let positions = Self::positions(height_map, offset, vertex_distance);
         let normals = Self::normals(height_map, offset, &positions, vertex_distance);
 
@@ -234,11 +221,10 @@ impl TerrainPatch {
             index_buffer,
             positions_buffer,
             normals_buffer,
-            patch_size,
             center: vec3(
-                offset.x + 0.5 * patch_size,
+                offset.x + 0.5 * PATCH_SIZE,
                 0.0,
-                offset.y + 0.5 * patch_size,
+                offset.y + 0.5 * PATCH_SIZE,
             ),
         }
     }
@@ -350,14 +336,14 @@ impl Geometry for TerrainPatch {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::new_with_positions(&[
             vec3(
-                self.index.0 as f32 * self.patch_size,
-                -self.patch_size,
-                self.index.1 as f32 * self.patch_size,
+                self.index.0 as f32 * PATCH_SIZE,
+                -PATCH_SIZE,
+                self.index.1 as f32 * PATCH_SIZE,
             ),
             vec3(
-                (self.index.0 + 1) as f32 * self.patch_size,
-                self.patch_size,
-                (self.index.1 + 1) as f32 * self.patch_size,
+                (self.index.0 + 1) as f32 * PATCH_SIZE,
+                PATCH_SIZE,
+                (self.index.1 + 1) as f32 * PATCH_SIZE,
             ),
         ])
     }
