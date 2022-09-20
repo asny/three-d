@@ -32,7 +32,7 @@ impl<M: Material + Clone> Terrain<M> {
         vertex_distance: f32,
         center: Vec2,
     ) -> Self {
-        let index_buffer = Rc::new(ElementBuffer::new_with_data(context, &Self::indices(1)));
+        let index_buffer = Self::indices(context, 1);
         let mut patches = Vec::new();
         let (x0, y0) = pos2patch(vertex_distance, center);
         let half_patches_per_side = half_patches_per_side(vertex_distance, side_length);
@@ -53,11 +53,8 @@ impl<M: Material + Clone> Terrain<M> {
             center: (x0, y0),
             patches,
             index_buffer,
-            coarse_index_buffer: Rc::new(ElementBuffer::new_with_data(context, &Self::indices(4))),
-            very_coarse_index_buffer: Rc::new(ElementBuffer::new_with_data(
-                context,
-                &Self::indices(8),
-            )),
+            coarse_index_buffer: Self::indices(context, 4),
+            very_coarse_index_buffer: Self::indices(context, 8),
             lod: Box::new(|_| TerrainLod::Standard),
             material: material.clone(),
             height_map,
@@ -160,7 +157,7 @@ impl<M: Material + Clone> Terrain<M> {
         })
     }
 
-    fn indices(resolution: u32) -> Vec<u32> {
+    fn indices(context: &Context, resolution: u32) -> Rc<ElementBuffer> {
         let mut indices: Vec<u32> = Vec::new();
         let stride = VERTICES_PER_SIDE as u32;
         let max = (stride - 1) / resolution;
@@ -174,7 +171,7 @@ impl<M: Material + Clone> Terrain<M> {
                 indices.push(r * resolution + resolution + (c * resolution + resolution) * stride);
             }
         }
-        indices
+        Rc::new(ElementBuffer::new_with_data(context, &indices))
     }
 
     ///
