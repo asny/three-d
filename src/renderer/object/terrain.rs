@@ -8,7 +8,7 @@ pub enum TerrainLod {
     VeryCoarse,
 }
 
-const VERTICES_PER_SIDE: usize = 17;
+const VERTICES_PER_SIDE: usize = 33;
 
 pub struct Terrain<M: Material> {
     context: Context,
