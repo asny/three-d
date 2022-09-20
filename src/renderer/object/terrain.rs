@@ -9,7 +9,6 @@ pub enum TerrainLod {
 }
 
 const VERTICES_PER_SIDE: usize = 17;
-const PATCH_SIZE: f32 = 8.0;
 
 pub struct Terrain<M: Material> {
     context: Context,
@@ -21,7 +20,8 @@ pub struct Terrain<M: Material> {
     material: M,
     lod: Box<dyn Fn(f32) -> TerrainLod>,
     height_map: Box<dyn Fn(f32, f32) -> f32>,
-    patches_per_side: u32,
+    side_length: f32,
+    vertex_distance: f32,
 }
 impl<M: Material + Clone> Terrain<M> {
     pub fn new(
@@ -29,16 +29,24 @@ impl<M: Material + Clone> Terrain<M> {
         material: M,
         height_map: Box<dyn Fn(f32, f32) -> f32>,
         side_length: f32,
+        vertex_distance: f32,
         center: Vec2,
     ) -> Self {
-        let patches_per_side = (side_length / PATCH_SIZE).ceil() as u32;
+        let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;
+        let patches_per_side = (side_length / patch_size).ceil() as u32;
         let index_buffer = Rc::new(ElementBuffer::new_with_data(context, &Self::indices(1)));
         let mut patches = Vec::new();
-        let (x0, y0) = Self::pos2patch(center);
-        let half_patches_per_side = Self::half_patches_per_side(patches_per_side);
+        let (x0, y0) = pos2patch(vertex_distance, center);
+        let half_patches_per_side = half_patches_per_side(vertex_distance, side_length);
         for ix in x0 - half_patches_per_side..x0 + half_patches_per_side + 1 {
             for iy in y0 - half_patches_per_side..y0 + half_patches_per_side + 1 {
-                let patch = TerrainPatch::new(context, &height_map, (ix, iy), index_buffer.clone());
+                let patch = TerrainPatch::new(
+                    context,
+                    &height_map,
+                    (ix, iy),
+                    index_buffer.clone(),
+                    vertex_distance,
+                );
                 patches.push(Gm::new(patch, material.clone()));
             }
         }
@@ -55,7 +63,8 @@ impl<M: Material + Clone> Terrain<M> {
             lod: Box::new(|_| TerrainLod::Standard),
             material: material.clone(),
             height_map,
-            patches_per_side,
+            side_length,
+            vertex_distance,
         }
     }
 
@@ -64,8 +73,8 @@ impl<M: Material + Clone> Terrain<M> {
     }
 
     pub fn update(&mut self, center: Vec2) {
-        let (x0, y0) = Self::pos2patch(center);
-        let half_patches_per_side = Self::half_patches_per_side(self.patches_per_side);
+        let (x0, y0) = pos2patch(self.vertex_distance, center);
+        let half_patches_per_side = half_patches_per_side(self.vertex_distance, self.side_length);
 
         while x0 > self.center.0 {
             self.center.0 += 1;
@@ -78,6 +87,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.height_map,
                         (self.center.0 + half_patches_per_side, iy),
                         self.index_buffer.clone(),
+                        self.vertex_distance,
                     ),
                     self.material.clone(),
                 ));
@@ -95,6 +105,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.height_map,
                         (self.center.0 - half_patches_per_side, iy),
                         self.index_buffer.clone(),
+                        self.vertex_distance,
                     ),
                     self.material.clone(),
                 ));
@@ -111,6 +122,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.height_map,
                         (ix, self.center.1 + half_patches_per_side),
                         self.index_buffer.clone(),
+                        self.vertex_distance,
                     ),
                     self.material.clone(),
                 ));
@@ -128,6 +140,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.height_map,
                         (ix, self.center.1 - half_patches_per_side),
                         self.index_buffer.clone(),
+                        self.vertex_distance,
                     ),
                     self.material.clone(),
                 ));
@@ -166,17 +179,6 @@ impl<M: Material + Clone> Terrain<M> {
         indices
     }
 
-    fn half_patches_per_side(patches_per_side: u32) -> i32 {
-        (patches_per_side as i32 - 1) / 2
-    }
-
-    fn pos2patch(position: Vec2) -> (i32, i32) {
-        (
-            (position.x / PATCH_SIZE).floor() as i32,
-            (position.y / PATCH_SIZE).floor() as i32,
-        )
-    }
-
     ///
     /// Returns an iterator over the reference to the objects in this terrain which can be used as input to a render function, for example [RenderTarget::render].
     ///
@@ -192,12 +194,31 @@ impl<M: Material + Clone> Terrain<M> {
     }
 }
 
+fn patch_size(vertex_distance: f32) -> f32 {
+    vertex_distance * (VERTICES_PER_SIDE - 1) as f32
+}
+
+fn half_patches_per_side(vertex_distance: f32, side_length: f32) -> i32 {
+    let patch_size = patch_size(vertex_distance);
+    let patches_per_side = (side_length / patch_size).ceil() as u32;
+    (patches_per_side as i32 - 1) / 2
+}
+
+fn pos2patch(vertex_distance: f32, position: Vec2) -> (i32, i32) {
+    let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;
+    (
+        (position.x / patch_size).floor() as i32,
+        (position.y / patch_size).floor() as i32,
+    )
+}
+
 struct TerrainPatch {
     context: Context,
     index: (i32, i32),
     positions_buffer: VertexBuffer,
     normals_buffer: VertexBuffer,
     center: Vec2,
+    aabb: AxisAlignedBoundingBox,
     pub index_buffer: Rc<ElementBuffer>,
 }
 
@@ -207,10 +228,12 @@ impl TerrainPatch {
         height_map: &impl Fn(f32, f32) -> f32,
         index: (i32, i32),
         index_buffer: Rc<ElementBuffer>,
+        vertex_distance: f32,
     ) -> Self {
-        let vertex_distance = PATCH_SIZE / (VERTICES_PER_SIDE - 1) as f32;
-        let offset = vec2(index.0 as f32 * PATCH_SIZE, index.1 as f32 * PATCH_SIZE);
+        let patch_size = patch_size(vertex_distance);
+        let offset = vec2(index.0 as f32 * patch_size, index.1 as f32 * patch_size);
         let positions = Self::positions(height_map, offset, vertex_distance);
+        let aabb = AxisAlignedBoundingBox::new_with_positions(&positions);
         let normals = Self::normals(height_map, offset, &positions, vertex_distance);
 
         let positions_buffer = VertexBuffer::new_with_data(context, &positions);
@@ -221,7 +244,8 @@ impl TerrainPatch {
             index_buffer,
             positions_buffer,
             normals_buffer,
-            center: offset + vec2(0.5 * PATCH_SIZE, 0.5 * PATCH_SIZE),
+            aabb,
+            center: offset + vec2(0.5 * patch_size, 0.5 * patch_size),
         }
     }
 
@@ -330,17 +354,6 @@ impl Geometry for TerrainPatch {
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_with_positions(&[
-            vec3(
-                self.index.0 as f32 * PATCH_SIZE,
-                -PATCH_SIZE,
-                self.index.1 as f32 * PATCH_SIZE,
-            ),
-            vec3(
-                (self.index.0 + 1) as f32 * PATCH_SIZE,
-                PATCH_SIZE,
-                (self.index.1 + 1) as f32 * PATCH_SIZE,
-            ),
-        ])
+        self.aabb
     }
 }
