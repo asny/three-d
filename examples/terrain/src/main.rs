@@ -69,6 +69,7 @@ pub async fn run() {
         terrain_material,
         height_map,
         512.0,
+        0.5,
         vec2(0.0, 0.0),
     );
     terrain.set_lod(Box::new(|d| {
