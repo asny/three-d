@@ -32,8 +32,6 @@ impl<M: Material + Clone> Terrain<M> {
         vertex_distance: f32,
         center: Vec2,
     ) -> Self {
-        let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;
-        let patches_per_side = (side_length / patch_size).ceil() as u32;
         let index_buffer = Rc::new(ElementBuffer::new_with_data(context, &Self::indices(1)));
         let mut patches = Vec::new();
         let (x0, y0) = pos2patch(vertex_distance, center);
