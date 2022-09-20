@@ -2,10 +2,10 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
-pub enum TerrainLod {
-    Standard,
-    Coarse,
-    VeryCoarse,
+pub enum Lod {
+    High,
+    Medium,
+    Low,
 }
 
 const VERTICES_PER_SIDE: usize = 33;
@@ -18,7 +18,7 @@ pub struct Terrain<M: Material> {
     index_buffer4: Rc<ElementBuffer>,
     index_buffer16: Rc<ElementBuffer>,
     material: M,
-    lod: Box<dyn Fn(f32) -> TerrainLod>,
+    lod: Box<dyn Fn(f32) -> Lod>,
     height_map: Box<dyn Fn(f32, f32) -> f32>,
     side_length: f32,
     vertex_distance: f32,
@@ -55,7 +55,7 @@ impl<M: Material + Clone> Terrain<M> {
             index_buffer1,
             index_buffer4: Self::indices(context, 4),
             index_buffer16: Self::indices(context, 16),
-            lod: Box::new(|_| TerrainLod::Standard),
+            lod: Box::new(|_| Lod::High),
             material: material.clone(),
             height_map,
             side_length,
@@ -63,7 +63,7 @@ impl<M: Material + Clone> Terrain<M> {
         }
     }
 
-    pub fn set_lod(&mut self, lod: Box<dyn Fn(f32) -> TerrainLod>) {
+    pub fn set_lod(&mut self, lod: Box<dyn Fn(f32) -> Lod>) {
         self.lod = lod;
     }
 
@@ -150,9 +150,9 @@ impl<M: Material + Clone> Terrain<M> {
         self.patches.iter_mut().for_each(|p| {
             let distance = p.center().distance(center);
             p.index_buffer = match (*self.lod)(distance) {
-                TerrainLod::VeryCoarse => self.index_buffer16.clone(),
-                TerrainLod::Coarse => self.index_buffer4.clone(),
-                TerrainLod::Standard => self.index_buffer1.clone(),
+                Lod::Low => self.index_buffer16.clone(),
+                Lod::Medium => self.index_buffer4.clone(),
+                Lod::High => self.index_buffer1.clone(),
             };
         })
     }

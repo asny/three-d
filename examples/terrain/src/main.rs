@@ -74,11 +74,11 @@ pub async fn run() {
     );
     terrain.set_lod(Box::new(|d| {
         if d > 256.0 {
-            TerrainLod::VeryCoarse
+            Lod::Low
         } else if d > 128.0 {
-            TerrainLod::Coarse
+            Lod::Medium
         } else {
-            TerrainLod::Standard
+            Lod::High
         }
     }));
 
