@@ -14,9 +14,9 @@ pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
     patches: Vec<Gm<TerrainPatch, M>>,
-    index_buffer: Rc<ElementBuffer>,
-    coarse_index_buffer: Rc<ElementBuffer>,
-    very_coarse_index_buffer: Rc<ElementBuffer>,
+    index_buffer1: Rc<ElementBuffer>,
+    index_buffer4: Rc<ElementBuffer>,
+    index_buffer16: Rc<ElementBuffer>,
     material: M,
     lod: Box<dyn Fn(f32) -> TerrainLod>,
     height_map: Box<dyn Fn(f32, f32) -> f32>,
@@ -32,7 +32,7 @@ impl<M: Material + Clone> Terrain<M> {
         vertex_distance: f32,
         center: Vec2,
     ) -> Self {
-        let index_buffer = Self::indices(context, 1);
+        let index_buffer1 = Self::indices(context, 1);
         let mut patches = Vec::new();
         let (x0, y0) = pos2patch(vertex_distance, center);
         let half_patches_per_side = half_patches_per_side(vertex_distance, side_length);
@@ -42,7 +42,7 @@ impl<M: Material + Clone> Terrain<M> {
                     context,
                     &height_map,
                     (ix, iy),
-                    index_buffer.clone(),
+                    index_buffer1.clone(),
                     vertex_distance,
                 );
                 patches.push(Gm::new(patch, material.clone()));
@@ -52,9 +52,9 @@ impl<M: Material + Clone> Terrain<M> {
             context: context.clone(),
             center: (x0, y0),
             patches,
-            index_buffer,
-            coarse_index_buffer: Self::indices(context, 4),
-            very_coarse_index_buffer: Self::indices(context, 8),
+            index_buffer1,
+            index_buffer4: Self::indices(context, 4),
+            index_buffer16: Self::indices(context, 16),
             lod: Box::new(|_| TerrainLod::Standard),
             material: material.clone(),
             height_map,
@@ -81,7 +81,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.context,
                         &self.height_map,
                         (self.center.0 + half_patches_per_side, iy),
-                        self.index_buffer.clone(),
+                        self.index_buffer1.clone(),
                         self.vertex_distance,
                     ),
                     self.material.clone(),
@@ -99,7 +99,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.context,
                         &self.height_map,
                         (self.center.0 - half_patches_per_side, iy),
-                        self.index_buffer.clone(),
+                        self.index_buffer1.clone(),
                         self.vertex_distance,
                     ),
                     self.material.clone(),
@@ -116,7 +116,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.context,
                         &self.height_map,
                         (ix, self.center.1 + half_patches_per_side),
-                        self.index_buffer.clone(),
+                        self.index_buffer1.clone(),
                         self.vertex_distance,
                     ),
                     self.material.clone(),
@@ -134,7 +134,7 @@ impl<M: Material + Clone> Terrain<M> {
                         &self.context,
                         &self.height_map,
                         (ix, self.center.1 - half_patches_per_side),
-                        self.index_buffer.clone(),
+                        self.index_buffer1.clone(),
                         self.vertex_distance,
                     ),
                     self.material.clone(),
@@ -150,9 +150,9 @@ impl<M: Material + Clone> Terrain<M> {
         self.patches.iter_mut().for_each(|p| {
             let distance = p.center().distance(center);
             p.index_buffer = match (*self.lod)(distance) {
-                TerrainLod::VeryCoarse => self.very_coarse_index_buffer.clone(),
-                TerrainLod::Coarse => self.coarse_index_buffer.clone(),
-                TerrainLod::Standard => self.index_buffer.clone(),
+                TerrainLod::VeryCoarse => self.index_buffer16.clone(),
+                TerrainLod::Coarse => self.index_buffer4.clone(),
+                TerrainLod::Standard => self.index_buffer1.clone(),
             };
         })
     }
