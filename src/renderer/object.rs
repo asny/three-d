@@ -45,6 +45,10 @@ mod terrain;
 #[doc(inline)]
 pub use terrain::*;
 
+mod water;
+#[doc(inline)]
+pub use water::*;
+
 mod axes;
 #[doc(inline)]
 pub use axes::*;
