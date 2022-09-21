@@ -1,21 +1,18 @@
 use crate::core::*;
 use crate::renderer::*;
 
-const VERTICES_PER_SIDE: usize = 33;
-
 pub struct Water {
     context: Context,
     time: f64,
     index_buffer: ElementBuffer,
     position_buffer: VertexBuffer,
     aabb: AxisAlignedBoundingBox,
-    side_length: f32,
-    vertex_distance: f32,
 }
 impl Water {
     pub fn new(context: &Context, side_length: f32, vertex_distance: f32) -> Self {
-        let index_buffer = Self::indices(context);
-        let positions = Self::positions(vec2(0.0, 0.0), vertex_distance);
+        let vertices_per_side = (side_length / vertex_distance).ceil() as u32 + 1;
+        let index_buffer = Self::indices(context, vertices_per_side);
+        let positions = Self::positions(side_length, vertex_distance, vertices_per_side);
         let aabb = AxisAlignedBoundingBox::new_with_positions(&positions);
         Self {
             context: context.clone(),
@@ -23,8 +20,6 @@ impl Water {
             index_buffer,
             position_buffer: VertexBuffer::new_with_data(context, &positions),
             aabb,
-            side_length,
-            vertex_distance,
         }
     }
 
@@ -32,9 +27,9 @@ impl Water {
         self.time = time;
     }
 
-    fn indices(context: &Context) -> ElementBuffer {
+    fn indices(context: &Context, vertices_per_side: u32) -> ElementBuffer {
         let mut indices: Vec<u32> = Vec::new();
-        let stride = VERTICES_PER_SIDE as u32;
+        let stride = vertices_per_side;
         let max = stride - 1;
         for r in 0..max {
             for c in 0..max {
@@ -49,14 +44,14 @@ impl Water {
         ElementBuffer::new_with_data(context, &indices)
     }
 
-    fn positions(offset: Vec2, vertex_distance: f32) -> Vec<Vec3> {
-        let mut data = vec![vec3(0.0, 0.0, 0.0); VERTICES_PER_SIDE * VERTICES_PER_SIDE];
-        for r in 0..VERTICES_PER_SIDE {
-            for c in 0..VERTICES_PER_SIDE {
-                let vertex_id = r * VERTICES_PER_SIDE + c;
-                let x = offset.x + r as f32 * vertex_distance;
-                let z = offset.y + c as f32 * vertex_distance;
-                data[vertex_id] = vec3(x, 0.0, z);
+    fn positions(side_length: f32, vertex_distance: f32, vertices_per_side: u32) -> Vec<Vec3> {
+        let mut data = vec![vec3(0.0, 0.0, 0.0); (vertices_per_side * vertices_per_side) as usize];
+        for r in 0..vertices_per_side {
+            for c in 0..vertices_per_side {
+                let vertex_id = r * vertices_per_side + c;
+                let x = r as f32 * vertex_distance - 0.5 * side_length;
+                let z = c as f32 * vertex_distance - 0.5 * side_length;
+                data[vertex_id as usize] = vec3(x, 0.0, z);
             }
         }
         data
