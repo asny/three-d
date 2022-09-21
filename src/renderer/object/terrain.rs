@@ -67,7 +67,7 @@ impl<M: Material + Clone> Terrain<M> {
         self.lod = lod;
     }
 
-    pub fn update(&mut self, center: Vec2) {
+    pub fn set_center(&mut self, center: Vec2) {
         let (x0, y0) = pos2patch(self.vertex_distance, center);
         let half_patches_per_side = half_patches_per_side(self.vertex_distance, self.side_length);
 
