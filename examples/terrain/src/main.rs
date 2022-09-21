@@ -78,7 +78,7 @@ pub async fn run() {
             Lod::High
         }
     }));
-    let mut water = Water::new(&context, 512.0, 0.25);
+    let mut water = Water::new(&context, 512.0, 0.25, vec2(0.0, 0.0));
 
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
         &context,
@@ -106,8 +106,9 @@ pub async fn run() {
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
         let p = *camera.position();
-        terrain.update(vec2(p.x, p.z));
-        water.update(frame_input.accumulated_time);
+        terrain.set_center(vec2(p.x, p.z));
+        water.set_center(vec2(p.x, p.z));
+        water.update_animation(frame_input.accumulated_time);
 
         if change {
             color_texture = Texture2D::new_empty::<[u8; 4]>(

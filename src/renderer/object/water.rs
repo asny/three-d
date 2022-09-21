@@ -7,9 +7,10 @@ pub struct Water {
     index_buffer: ElementBuffer,
     position_buffer: VertexBuffer,
     aabb: AxisAlignedBoundingBox,
+    center: Vec2,
 }
 impl Water {
-    pub fn new(context: &Context, side_length: f32, vertex_distance: f32) -> Self {
+    pub fn new(context: &Context, side_length: f32, vertex_distance: f32, center: Vec2) -> Self {
         let vertices_per_side = (side_length / vertex_distance).ceil() as u32 + 1;
         let index_buffer = Self::indices(context, vertices_per_side);
         let positions = Self::positions(side_length, vertex_distance, vertices_per_side);
@@ -20,10 +21,15 @@ impl Water {
             index_buffer,
             position_buffer: VertexBuffer::new_with_data(context, &positions),
             aabb,
+            center,
         }
     }
 
-    pub fn update(&mut self, time: f64) {
+    pub fn set_center(&mut self, center: Vec2) {
+        self.center = center
+    }
+
+    pub fn update_animation(&mut self, time: f64) {
         self.time = time;
     }
 
@@ -72,7 +78,8 @@ impl Geometry for Water {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    let transformation = Mat4::identity();
+                    let transformation =
+                        Mat4::from_translation(vec3(self.center.x, 0.0, self.center.y));
                     program.use_uniform("modelMatrix", &transformation);
                     program.use_uniform("projectionMatrix", camera.projection());
                     program.use_uniform("viewMatrix", camera.view());
@@ -91,6 +98,12 @@ impl Geometry for Water {
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.aabb
+        let mut aabb = self.aabb.clone();
+        aabb.transform(&Mat4::from_translation(vec3(
+            self.center.x,
+            0.0,
+            self.center.y,
+        )));
+        aabb
     }
 }
