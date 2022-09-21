@@ -35,6 +35,10 @@ mod uv_material;
 #[doc(inline)]
 pub use uv_material::*;
 
+mod water_material;
+#[doc(inline)]
+pub use water_material::*;
+
 mod physical_material;
 #[doc(inline)]
 pub use physical_material::*;
