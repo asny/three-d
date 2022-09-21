@@ -78,6 +78,26 @@ pub async fn run() {
             Lod::High
         }
     }));
+    let mut water = Water::new(&context, 512.0, 0.25);
+
+    let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
+        &context,
+        1,
+        1,
+        Interpolation::Nearest,
+        Interpolation::Nearest,
+        None,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+    );
+    let mut depth_texture = DepthTargetTexture2D::new(
+        &context,
+        1,
+        1,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+        DepthFormat::Depth32F,
+    );
 
     // main loop
     window.render_loop(move |mut frame_input| {
@@ -87,21 +107,57 @@ pub async fn run() {
 
         let p = *camera.position();
         terrain.update(vec2(p.x, p.z));
+        water.update(frame_input.accumulated_time);
 
         if change {
-            frame_input
-                .screen()
-                .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
-                .render(
-                    &camera,
-                    skybox.obj_iter().chain(terrain.obj_iter()),
-                    light.iter(),
-                );
+            color_texture = Texture2D::new_empty::<[u8; 4]>(
+                &context,
+                frame_input.viewport.width,
+                frame_input.viewport.height,
+                Interpolation::Nearest,
+                Interpolation::Nearest,
+                None,
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+            );
+            depth_texture = DepthTargetTexture2D::new(
+                &context,
+                frame_input.viewport.width,
+                frame_input.viewport.height,
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+                DepthFormat::Depth32F,
+            );
+            RenderTarget::new(
+                color_texture.as_color_target(None),
+                depth_texture.as_depth_target(),
+            )
+            .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
+            .render(
+                &camera,
+                skybox.obj_iter().chain(terrain.obj_iter()),
+                light.iter(),
+            );
         }
 
-        FrameOutput {
-            swap_buffers: change,
-            ..Default::default()
-        }
+        let water_object = Gm::new(
+            &water,
+            WaterMaterial {
+                environment_texture: skybox.texture(),
+                color_texture: &color_texture,
+                depth_texture: &depth_texture,
+            },
+        );
+        frame_input
+            .screen()
+            .copy_from(
+                Some(&color_texture),
+                Some(&depth_texture),
+                frame_input.viewport.into(),
+                WriteMask::default(),
+            )
+            .render(&camera, water_object.obj_iter(), light.iter());
+
+        FrameOutput::default()
     });
 }
