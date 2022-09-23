@@ -95,7 +95,7 @@ void main()
         float fresnel = mix(F, 1.f, pow(1. - max(cosAngle, 0.), FresnelPower));
         
         // Reflection
-        vec3 reflectColor = mix(reflect_color(incidentDir, normal), vec3(1., 1., 1.), 0.5);
+        vec3 reflectColor = reflect_color(incidentDir, normal);
         
         // Refraction
         vec3 refractColor = water(outColor.rgb, pos, backgroundPos);
