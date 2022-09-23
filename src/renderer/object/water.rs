@@ -15,16 +15,17 @@ impl<M: Material + Clone> Water<M> {
         vertex_distance: f32,
         center: Vec2,
     ) -> Self {
-        let patch_size = patch_size(vertex_distance);
-        let half_patches_per_side = half_patches_per_side(vertex_distance, side_length);
+        let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;
+        let patches_per_side = ((side_length / patch_size).ceil() as u32).max(1);
+        let half_side_length = 0.5 * patches_per_side as f32 * patch_size;
         let index_buffer = Self::indices(context);
         let position_buffer = Self::positions(context, vertex_distance);
         let mut patches = Vec::new();
-        for ix in -half_patches_per_side..half_patches_per_side + 1 {
-            for iy in -half_patches_per_side..half_patches_per_side + 1 {
+        for ix in 0..patches_per_side {
+            for iy in 0..patches_per_side {
                 let offset = vec2(
-                    (ix as f32 - 0.5) * patch_size,
-                    (iy as f32 - 0.5) * patch_size,
+                    (ix as f32) * patch_size - half_side_length,
+                    (iy as f32) * patch_size - half_side_length,
                 );
                 let patch = WaterPatch::new(
                     context,
@@ -91,16 +92,6 @@ impl<M: Material + Clone> Water<M> {
         }
         Rc::new(VertexBuffer::new_with_data(context, &data))
     }
-}
-
-fn patch_size(vertex_distance: f32) -> f32 {
-    vertex_distance * (VERTICES_PER_SIDE - 1) as f32
-}
-
-fn half_patches_per_side(vertex_distance: f32, side_length: f32) -> i32 {
-    let patch_size = patch_size(vertex_distance);
-    let patches_per_side = (side_length / patch_size).ceil() as u32;
-    (patches_per_side as i32 - 1) / 2
 }
 
 struct WaterPatch {
