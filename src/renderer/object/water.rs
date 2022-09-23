@@ -1,41 +1,70 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::rc::Rc;
 
-pub struct Water {
-    context: Context,
-    time: f64,
-    index_buffer: ElementBuffer,
-    position_buffer: VertexBuffer,
-    aabb: AxisAlignedBoundingBox,
-    center: Vec2,
+const VERTICES_PER_SIDE: usize = 33;
+
+pub struct Water<M: Material> {
+    patches: Vec<Gm<WaterPatch, M>>,
 }
-impl Water {
-    pub fn new(context: &Context, side_length: f32, vertex_distance: f32, center: Vec2) -> Self {
-        let vertices_per_side = (side_length / vertex_distance).ceil() as u32 + 1;
-        let index_buffer = Self::indices(context, vertices_per_side);
-        let positions = Self::positions(side_length, vertex_distance, vertices_per_side);
-        let aabb = AxisAlignedBoundingBox::new_with_positions(&positions);
-        Self {
-            context: context.clone(),
-            time: 0.0,
-            index_buffer,
-            position_buffer: VertexBuffer::new_with_data(context, &positions),
-            aabb,
-            center,
+impl<M: Material + Clone> Water<M> {
+    pub fn new(
+        context: &Context,
+        material: M,
+        side_length: f32,
+        vertex_distance: f32,
+        center: Vec2,
+    ) -> Self {
+        let patch_size = patch_size(vertex_distance);
+        let half_patches_per_side = half_patches_per_side(vertex_distance, side_length);
+        let index_buffer = Self::indices(context);
+        let position_buffer = Self::positions(context, vertex_distance);
+        let mut patches = Vec::new();
+        for ix in -half_patches_per_side..half_patches_per_side + 1 {
+            for iy in -half_patches_per_side..half_patches_per_side + 1 {
+                let offset = vec2(
+                    (ix as f32 - 0.5) * patch_size,
+                    (iy as f32 - 0.5) * patch_size,
+                );
+                let patch = WaterPatch::new(
+                    context,
+                    offset,
+                    vec2(patch_size, patch_size),
+                    position_buffer.clone(),
+                    index_buffer.clone(),
+                );
+                patches.push(Gm::new(patch, material.clone()));
+            }
         }
+
+        Self { patches }
     }
 
     pub fn set_center(&mut self, center: Vec2) {
-        self.center = center
+        self.patches.iter_mut().for_each(|m| m.center = center);
     }
 
     pub fn update_animation(&mut self, time: f64) {
-        self.time = time;
+        self.patches.iter_mut().for_each(|m| m.time = time);
     }
 
-    fn indices(context: &Context, vertices_per_side: u32) -> ElementBuffer {
+    ///
+    /// Returns an iterator over the reference to the objects in this terrain which can be used as input to a render function, for example [RenderTarget::render].
+    ///
+    pub fn obj_iter(&self) -> impl Iterator<Item = &dyn Object> + Clone {
+        self.patches.iter().map(|m| m as &dyn Object)
+    }
+
+    ///
+    /// Returns an iterator over the reference to the geometries in this terrain which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
+    ///
+    pub fn geo_iter(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
+        self.patches.iter().map(|m| m as &dyn Geometry)
+    }
+
+    fn indices(context: &Context) -> Rc<ElementBuffer> {
         let mut indices: Vec<u32> = Vec::new();
-        let stride = vertices_per_side;
+        let stride = VERTICES_PER_SIDE as u32;
         let max = stride - 1;
         for r in 0..max {
             for c in 0..max {
@@ -47,24 +76,64 @@ impl Water {
                 indices.push(r + 1 + (c + 1) * stride);
             }
         }
-        ElementBuffer::new_with_data(context, &indices)
+        Rc::new(ElementBuffer::new_with_data(context, &indices))
     }
 
-    fn positions(side_length: f32, vertex_distance: f32, vertices_per_side: u32) -> Vec<Vec3> {
-        let mut data = vec![vec3(0.0, 0.0, 0.0); (vertices_per_side * vertices_per_side) as usize];
-        for r in 0..vertices_per_side {
-            for c in 0..vertices_per_side {
-                let vertex_id = r * vertices_per_side + c;
-                let x = r as f32 * vertex_distance - 0.5 * side_length;
-                let z = c as f32 * vertex_distance - 0.5 * side_length;
+    fn positions(context: &Context, vertex_distance: f32) -> Rc<VertexBuffer> {
+        let mut data = vec![vec3(0.0, 0.0, 0.0); (VERTICES_PER_SIDE * VERTICES_PER_SIDE) as usize];
+        for r in 0..VERTICES_PER_SIDE {
+            for c in 0..VERTICES_PER_SIDE {
+                let vertex_id = r * VERTICES_PER_SIDE + c;
+                let x = r as f32 * vertex_distance;
+                let z = c as f32 * vertex_distance;
                 data[vertex_id as usize] = vec3(x, 0.0, z);
             }
         }
-        data
+        Rc::new(VertexBuffer::new_with_data(context, &data))
     }
 }
 
-impl Geometry for Water {
+fn patch_size(vertex_distance: f32) -> f32 {
+    vertex_distance * (VERTICES_PER_SIDE - 1) as f32
+}
+
+fn half_patches_per_side(vertex_distance: f32, side_length: f32) -> i32 {
+    let patch_size = patch_size(vertex_distance);
+    let patches_per_side = (side_length / patch_size).ceil() as u32;
+    (patches_per_side as i32 - 1) / 2
+}
+
+struct WaterPatch {
+    context: Context,
+    time: f64,
+    center: Vec2,
+    offset: Vec2,
+    size: Vec2,
+    position_buffer: Rc<VertexBuffer>,
+    index_buffer: Rc<ElementBuffer>,
+}
+
+impl WaterPatch {
+    pub fn new(
+        context: &Context,
+        offset: Vec2,
+        size: Vec2,
+        position_buffer: Rc<VertexBuffer>,
+        index_buffer: Rc<ElementBuffer>,
+    ) -> Self {
+        Self {
+            context: context.clone(),
+            time: 0.0,
+            center: vec2(0.0, 0.0),
+            offset,
+            size,
+            position_buffer,
+            index_buffer,
+        }
+    }
+}
+
+impl Geometry for WaterPatch {
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -78,8 +147,11 @@ impl Geometry for Water {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    let transformation =
-                        Mat4::from_translation(vec3(self.center.x, 0.0, self.center.y));
+                    let transformation = Mat4::from_translation(vec3(
+                        self.center.x + self.offset.x,
+                        0.0,
+                        self.center.y + self.offset.y,
+                    ));
                     program.use_uniform("modelMatrix", &transformation);
                     program.use_uniform("projectionMatrix", camera.projection());
                     program.use_uniform("viewMatrix", camera.view());
@@ -98,12 +170,17 @@ impl Geometry for Water {
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        let mut aabb = self.aabb.clone();
-        aabb.transform(&Mat4::from_translation(vec3(
-            self.center.x,
-            0.0,
-            self.center.y,
-        )));
-        aabb
+        AxisAlignedBoundingBox::new_with_positions(&[
+            vec3(
+                self.center.x + self.offset.x,
+                0.0,
+                self.center.y + self.offset.y,
+            ),
+            vec3(
+                self.center.x + self.offset.x + self.size.x,
+                0.0,
+                self.center.y + self.offset.y + self.size.y,
+            ),
+        ])
     }
 }

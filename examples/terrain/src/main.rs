@@ -78,7 +78,13 @@ pub async fn run() {
             Lod::High
         }
     }));
-    let mut water = Water::new(&context, 512.0, 0.25, vec2(0.0, 0.0));
+    let mut water = Water::new(
+        &context,
+        NormalMaterial::default(),
+        512.0,
+        0.25,
+        vec2(0.0, 0.0),
+    );
 
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
         &context,
@@ -140,15 +146,6 @@ pub async fn run() {
                 light.iter(),
             );
         }
-
-        let water_object = Gm::new(
-            &water,
-            WaterMaterial {
-                environment_texture: skybox.texture(),
-                color_texture: &color_texture,
-                depth_texture: &depth_texture,
-            },
-        );
         frame_input
             .screen()
             .copy_from(
@@ -157,7 +154,16 @@ pub async fn run() {
                 frame_input.viewport.into(),
                 WriteMask::default(),
             )
-            .render(&camera, water_object.obj_iter(), light.iter());
+            .render_with_material(
+                &WaterMaterial {
+                    environment_texture: skybox.texture(),
+                    color_texture: &color_texture,
+                    depth_texture: &depth_texture,
+                },
+                &camera,
+                water.geo_iter(),
+                light.iter(),
+            );
 
         FrameOutput::default()
     });
