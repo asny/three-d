@@ -9,7 +9,11 @@ pub struct WaterMaterial<'a> {
 
 impl Material for WaterMaterial<'_> {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        include_str!("shaders/water.frag").to_string()
+        format!(
+            "{}\n{}",
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/water.frag")
+        )
     }
 
     fn render_states(&self) -> RenderStates {
@@ -29,6 +33,14 @@ impl Material for WaterMaterial<'_> {
         program.use_uniform(
             "viewProjectionInverse",
             &(camera.projection() * camera.view()).invert().unwrap(),
+        );
+        program.use_uniform(
+            "isHDR",
+            if self.environment_texture.is_hdr() {
+                1
+            } else {
+                0
+            },
         );
         program.use_uniform("eyePosition", camera.position());
         program.use_uniform(

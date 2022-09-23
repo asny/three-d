@@ -3,6 +3,7 @@ uniform mat4 projectionMatrix;
 uniform mat4 viewProjectionInverse;
 
 uniform samplerCube environmentMap;
+uniform int isHDR;
 uniform vec3 eyePosition;
 
 uniform sampler2D depthMap;
@@ -48,10 +49,14 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
         float depth = distance(eyePosition, pos);
         if(depth < dist)
         {
-            return texture(colorMap, uv).xyz;
+            return rgb_from_srgb(texture(colorMap, uv).xyz);
         }
     }
-    return texture(environmentMap, reflectDir).xyz;
+    vec3 col = texture(environmentMap, reflectDir).xyz;
+    if(isHDR == 1) {
+        col = reinhard_tone_mapping(col);
+    }
+    return col;
 }
 
 vec3 water(vec3 col, vec3 p1, vec3 p2)
@@ -75,7 +80,7 @@ void main()
     screen_uv -= 0.05 * normal.xz; // Shift the water bottom/sky.
     float depth = texture(depthMap, screen_uv).x;
     vec3 backgroundPos = WorldPosFromDepth(depth, screen_uv);
-    outColor = vec4(texture(colorMap, screen_uv).xyz, 1.);
+    outColor = vec4(rgb_from_srgb(texture(colorMap, screen_uv).xyz), 1.);
     
     bool underWater = dot(normal, incidentDir) > 0.1 || dot(normal, incidentDir) > -0.1 && eyePosition.y < 0.0;
     
@@ -99,5 +104,6 @@ void main()
         outColor.rgb = mix(refractColor, reflectColor, fresnel);
     }
     
+    outColor.rgb = srgb_from_rgb(outColor.rgb);
     
 }
