@@ -82,21 +82,22 @@ void main()
     if(underWater)
     {
         outColor.rgb = water(outColor.rgb, eyePosition, pos);
-        return;
+    } else {
+        // Compute cosine to the incident angle
+        float cosAngle = dot(normal, -incidentDir);
+        
+        // Compute fresnel approximation
+        float fresnel = mix(F, 1.f, pow(1. - max(cosAngle, 0.), FresnelPower));
+        
+        // Reflection
+        vec3 reflectColor = mix(reflect_color(incidentDir, normal), vec3(1., 1., 1.), 0.5);
+        
+        // Refraction
+        vec3 refractColor = water(outColor.rgb, pos, backgroundPos);
+        
+        // Mix refraction and reflection
+        outColor.rgb = mix(refractColor, reflectColor, fresnel);
     }
     
-    // Compute cosine to the incident angle
-    float cosAngle = dot(normal, -incidentDir);
     
-    // Compute fresnel approximation
-    float fresnel = mix(F, 1.f, pow(1. - max(cosAngle, 0.), FresnelPower));
-    
-    // Reflection
-    vec3 reflectColor = mix(reflect_color(incidentDir, normal), vec3(1., 1., 1.), 0.5);
-    
-    // Refraction
-    vec3 refractColor = water(outColor.rgb, pos, backgroundPos);
-    
-    // Mix refraction and reflection
-    outColor.rgb = mix(refractColor, reflectColor, fresnel);
 }
