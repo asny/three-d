@@ -30,13 +30,17 @@ pub async fn run() {
     let mut control = FirstPersonControl::new(0.1);
 
     // Source: https://polyhaven.com/
-    let mut loaded = if let Ok(loaded) =
-        three_d_asset::io::load_async(&["../assets/syferfontein_18d_clear_4k.hdr"]).await
+    let mut loaded = if let Ok(loaded) = three_d_asset::io::load_async(&[
+        "../assets/syferfontein_18d_clear_4k.hdr",
+        "../assets/aerial_grass_rock_4k/aerial_grass_rock_4k.gltf",
+    ])
+    .await
     {
         loaded
     } else {
         three_d_asset::io::load_async(&[
             "https://asny.github.io/three-d/assets/syferfontein_18d_clear_4k.hdr",
+            "https://asny.github.io/three-d/assets/aerial_grass_rock_4k/aerial_grass_rock_4k.gltf",
         ])
         .await
         .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
@@ -52,15 +56,8 @@ pub async fn run() {
             + 2.0 * noise_generator.get([x as f64 * 0.02, y as f64 * 0.02])) as f32
     });
 
-    let terrain_material = PhysicalMaterial::new_opaque(
-        &context,
-        &CpuMaterial {
-            roughness: 1.0,
-            metallic: 0.2,
-            albedo: Color::new_opaque(150, 170, 150),
-            ..Default::default()
-        },
-    );
+    let model: CpuModel = loaded.deserialize(".gltf").unwrap();
+    let terrain_material = PhysicalMaterial::new_opaque(&context, &model.materials[0]);
     let mut terrain = Terrain::new(
         &context,
         terrain_material,
