@@ -24,7 +24,7 @@ impl Material for WaterMaterial<'_> {
     }
 
     fn material_type(&self) -> MaterialType {
-        MaterialType::Transparent
+        MaterialType::Opaque
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
