@@ -64,7 +64,7 @@ impl<'a> DepthTarget<'a> {
     pub fn render<'b>(
         &self,
         camera: &Camera,
-        objects: impl Iterator<Item = impl Object>,
+        objects: impl Iterator<Item = &'b dyn Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -79,7 +79,7 @@ impl<'a> DepthTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl Iterator<Item = impl Object>,
+        objects: impl Iterator<Item = &'b dyn Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.as_render_target()
@@ -142,7 +142,7 @@ impl<'a> ColorTarget<'a> {
     pub fn render<'b>(
         &self,
         camera: &Camera,
-        objects: impl Iterator<Item = impl Object>,
+        objects: impl Iterator<Item = &'b dyn Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -157,7 +157,7 @@ impl<'a> ColorTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl Iterator<Item = impl Object>,
+        objects: impl Iterator<Item = &'b dyn Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.as_render_target()
@@ -220,7 +220,7 @@ impl<'a> RenderTarget<'a> {
     pub fn render<'b>(
         &self,
         camera: &Camera,
-        objects: impl Iterator<Item = impl Object>,
+        objects: impl Iterator<Item = &'b dyn Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -235,7 +235,7 @@ impl<'a> RenderTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl Iterator<Item = impl Object>,
+        objects: impl Iterator<Item = &'b dyn Object>,
         lights: impl Iterator<Item = &'b dyn Light>,
     ) -> &Self {
         let lights = lights.collect::<Vec<_>>();
