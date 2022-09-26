@@ -97,7 +97,7 @@ pub async fn run() {
             .render(
                 &camera,
                 skybox.obj_iter().chain(model.obj_iter()),
-                &[&light],
+                light.iter(),
             )
             .write(|| gui.render(frame_input.viewport));
 
