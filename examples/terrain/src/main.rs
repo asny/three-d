@@ -121,13 +121,20 @@ pub async fn run() {
                     ui.set_min_width(200.0);
 
                     ui.add(
-                        Slider::new(&mut parameters.min_wavelength, 0.0..=5.0)
-                            .text("Min wavelength"),
+                        Slider::new(
+                            &mut parameters.min_wavelength,
+                            0.0..=parameters.max_wavelength,
+                        )
+                        .text("Min wavelength"),
                     );
                     ui.add(
-                        Slider::new(&mut parameters.max_wavelength, 0.0..=10.0)
-                            .text("Max wavelength"),
+                        Slider::new(
+                            &mut parameters.max_wavelength,
+                            parameters.min_wavelength..=10.0,
+                        )
+                        .text("Max wavelength"),
                     );
+                    ui.add(Slider::new(&mut parameters.speed, 0.0..=5.0).text("Speed"));
                 });
             },
         );
