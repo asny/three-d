@@ -42,7 +42,7 @@ impl Material for WaterMaterial<'_> {
                 0
             },
         );
-        program.use_uniform("eyePosition", camera.position());
+        program.use_uniform("cameraPosition", camera.position());
         program.use_uniform(
             "screenSize",
             &vec2(
