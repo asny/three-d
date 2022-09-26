@@ -1,13 +1,13 @@
 uniform mat4 viewProjection;
 uniform mat4 viewProjectionInverse;
+uniform vec3 cameraPosition;
+uniform vec2 screenSize;
 
 uniform samplerCube environmentMap;
-uniform int isHDR;
-uniform vec3 cameraPosition;
-
 uniform sampler2D depthMap;
 uniform sampler2D colorMap;
-uniform vec2 screenSize;
+uniform float metallic;
+uniform float roughness;
 
 in vec3 pos;
 in vec3 nor;
@@ -89,7 +89,7 @@ void main()
         // Mix refraction and reflection
         outColor.rgb = mix(refractColor, reflectColor, fresnel);
     }
-    outColor.rgb = calculate_lighting(cameraPosition, outColor.rgb, pos, normal, 1.0, 0.5, 1.0);
+    outColor.rgb = calculate_lighting(cameraPosition, outColor.rgb, pos, normal, metallic, roughness, 1.0);
     outColor.rgb = reinhard_tone_mapping(outColor.rgb);
     outColor.rgb = srgb_from_rgb(outColor.rgb);
     outColor.a = 1.0;

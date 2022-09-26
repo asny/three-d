@@ -156,6 +156,12 @@ pub async fn run() {
                     environment_texture: skybox.texture(),
                     color_texture: &color_texture,
                     depth_texture: &depth_texture,
+                    metallic: 1.0,
+                    roughness: 1.0,
+                    lighting_model: LightingModel::Cook(
+                        NormalDistributionFunction::TrowbridgeReitzGGX,
+                        GeometryFunction::SmithSchlickGGX,
+                    ),
                 },
                 &camera,
                 water.geo_iter(),
