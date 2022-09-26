@@ -33,7 +33,7 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
     {
         p_ray += stepDir;
         vec2 uv = uv_at(p_ray);
-        if(uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.)
+        if(uv.y < 0. || uv.y > 1.)
         {
             return texture(environmentMap, reflectDir).xyz;
         }
