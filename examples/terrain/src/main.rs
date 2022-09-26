@@ -81,6 +81,8 @@ pub async fn run() {
         512.0,
         0.3,
         vec2(0.0, 0.0),
+        0.5,
+        2.0,
     );
 
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
