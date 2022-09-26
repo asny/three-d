@@ -19,25 +19,26 @@ const float Eta = 1. / 1.5; // Ratio of indices of refraction
 const float FresnelPower = 5.0;
 const float F = ((1.0-Eta) * (1.0-Eta)) / ((1.0+Eta) * (1.0+Eta));
 
+vec2 uv_at(vec3 world_pos) {
+    vec4 p_s = viewProjection * vec4(world_pos, 1.);
+    return 0.5 + 0.5 * p_s.xy / p_s.w;
+}
+
 vec3 reflect_color(vec3 incidentDir, vec3 normal)
 {
     vec3 reflectDir = normalize(reflect(incidentDir, normal));
     vec3 stepDir = 0.5 * reflectDir;
-    vec3 p_w = pos;
+    vec3 p_ray = pos;
     for (int i = 0; i < 8; i++)
     {
-        p_w += stepDir;
-        vec4 p_s = viewProjection * vec4(p_w, 1.);
-        p_s /= p_s.w;
-        vec2 uv = 0.5 + 0.5 * p_s.xy;
+        p_ray += stepDir;
+        vec2 uv = uv_at(p_ray);
         if(uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.)
-            break;
-        float dist = distance(cameraPosition, p_w);
-
-        float d = texture(depthMap, uv).x;
-        vec3 pos = world_pos_from_depth(viewProjectionInverse, d, uv);
-        float depth = distance(cameraPosition, pos);
-        if(depth < dist)
+        {
+            return texture(environmentMap, reflectDir).xyz;
+        }
+        vec3 p = world_pos_from_depth(viewProjectionInverse, texture(depthMap, uv).x, uv);
+        if(distance(cameraPosition, p) < distance(cameraPosition, p_ray))
         {
             return inverse_reinhard_tone_mapping(rgb_from_srgb(texture(colorMap, uv).xyz));
         }
