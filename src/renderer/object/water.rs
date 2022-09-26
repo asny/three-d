@@ -8,6 +8,9 @@ pub struct Water<M: Material> {
     patches: Vec<Gm<WaterPatch, M>>,
 }
 impl<M: Material + Clone> Water<M> {
+    ///
+    /// Constructs a new [Water] object.
+    ///
     pub fn new(
         context: &Context,
         material: M,
@@ -42,10 +45,17 @@ impl<M: Material + Clone> Water<M> {
         Self { patches }
     }
 
+    ///
+    /// Set the center of the water.
+    /// To be able to move the water with the camera, thereby simulating infinite water.
+    ///
     pub fn set_center(&mut self, center: Vec2) {
         self.patches.iter_mut().for_each(|m| m.center = center);
     }
 
+    ///
+    /// For updating the animation. The time parameter should be some continious time, for example the time since start.
+    ///
     pub fn update_animation(&mut self, time: f64) {
         self.patches.iter_mut().for_each(|m| m.time = time);
     }
