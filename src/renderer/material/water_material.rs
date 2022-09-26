@@ -37,8 +37,7 @@ impl Material for WaterMaterial<'_> {
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);
         }
-        program.use_uniform("viewMatrix", camera.view());
-        program.use_uniform("projectionMatrix", camera.projection());
+        program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform(
             "viewProjectionInverse",
             &(camera.projection() * camera.view()).invert().unwrap(),
