@@ -4,7 +4,7 @@ uniform mat4 viewProjectionInverse;
 
 uniform samplerCube environmentMap;
 uniform int isHDR;
-uniform vec3 eyePosition;
+uniform vec3 cameraPosition;
 
 uniform sampler2D depthMap;
 uniform sampler2D colorMap;
@@ -42,11 +42,11 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
         vec2 uv = 0.5 + 0.5 * p_s.xy;
         if(uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.)
             break;
-        float dist = distance(eyePosition, p_w);
+        float dist = distance(cameraPosition, p_w);
 
         float d = texture(depthMap, uv).x;
         vec3 pos = WorldPosFromDepth(d, uv);
-        float depth = distance(eyePosition, pos);
+        float depth = distance(cameraPosition, pos);
         if(depth < dist)
         {
             return rgb_from_srgb(texture(colorMap, uv).xyz);
@@ -76,17 +76,17 @@ void main()
     vec2 screen_uv = gl_FragCoord.xy/screenSize;
     
     vec3 normal = normalize(nor);
-    vec3 incidentDir = normalize(pos - eyePosition);
+    vec3 incidentDir = normalize(pos - cameraPosition);
     screen_uv -= 0.05 * normal.xz; // Shift the water bottom/sky.
     float depth = texture(depthMap, screen_uv).x;
     vec3 backgroundPos = WorldPosFromDepth(depth, screen_uv);
     outColor = vec4(rgb_from_srgb(texture(colorMap, screen_uv).xyz), 1.);
     
-    bool underWater = dot(normal, incidentDir) > 0.1 || dot(normal, incidentDir) > -0.1 && eyePosition.y < 0.0;
+    bool underWater = dot(normal, incidentDir) > 0.1 || dot(normal, incidentDir) > -0.1 && cameraPosition.y < 0.0;
     
     if(underWater)
     {
-        outColor.rgb = water(outColor.rgb, eyePosition, pos);
+        outColor.rgb = water(outColor.rgb, cameraPosition, pos);
     } else {
         // Compute cosine to the incident angle
         float cosAngle = dot(normal, -incidentDir);
