@@ -195,8 +195,7 @@ impl Geometry for WaterPatch {
                         self.center.y + self.offset.y,
                     ));
                     program.use_uniform("modelMatrix", &transformation);
-                    program.use_uniform("projectionMatrix", camera.projection());
-                    program.use_uniform("viewMatrix", camera.view());
+                    program.use_uniform("viewProjection", camera.projection() * camera.view());
                     program.use_uniform("time", &(self.time as f32 * 0.001));
                     program.use_uniform("minWavelength", &self.parameters.min_wavelength);
                     program.use_uniform("maxWavelength", &self.parameters.max_wavelength);

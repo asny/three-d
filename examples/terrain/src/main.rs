@@ -117,9 +117,6 @@ pub async fn run() {
             |gui_context| {
                 use three_d::egui::*;
                 egui::Window::new("").vscroll(true).show(gui_context, |ui| {
-                    ui.set_max_width(200.0);
-                    ui.set_min_width(200.0);
-
                     ui.add(
                         Slider::new(
                             &mut parameters.min_wavelength,

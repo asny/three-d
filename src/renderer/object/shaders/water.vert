@@ -1,13 +1,12 @@
 uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+uniform mat4 viewProjection;
 uniform float time;
 
 uniform float minAmplitude;
 uniform float maxAmplitude;
 uniform float minWavelength;
 uniform float maxWavelength;
-uniform float speed = 0.5;
+uniform float speed;
 const float wind_variation = 0.1;
 const vec2 wind_direction = vec2(1.0, 0.0);
 
@@ -73,6 +72,6 @@ void main()
         nor.z -= dir.y * frequency * amplitude * cos_a;
     }
     
-    gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.);
+    gl_Position = viewProjection * vec4(pos, 1.);
     uvs = pos.xz;
 }
