@@ -20,6 +20,8 @@ impl<M: Material + Clone> Water<M> {
         side_length: f32,
         vertex_distance: f32,
         center: Vec2,
+        min_wavelength: f32,
+        max_wavelength: f32,
     ) -> Self {
         let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;
         let patches_per_side = ((side_length / patch_size).ceil() as u32).max(1);
@@ -36,6 +38,8 @@ impl<M: Material + Clone> Water<M> {
                 let patch = WaterPatch::new(
                     context,
                     center,
+                    min_wavelength,
+                    max_wavelength,
                     offset,
                     vec2(patch_size, patch_size),
                     position_buffer.clone(),
@@ -112,6 +116,8 @@ struct WaterPatch {
     context: Context,
     time: f64,
     center: Vec2,
+    min_wavelength: f32,
+    max_wavelength: f32,
     offset: Vec2,
     size: Vec2,
     position_buffer: Rc<VertexBuffer>,
@@ -122,6 +128,8 @@ impl WaterPatch {
     pub fn new(
         context: &Context,
         center: Vec2,
+        min_wavelength: f32,
+        max_wavelength: f32,
         offset: Vec2,
         size: Vec2,
         position_buffer: Rc<VertexBuffer>,
@@ -131,6 +139,8 @@ impl WaterPatch {
             context: context.clone(),
             time: 0.0,
             center,
+            min_wavelength,
+            max_wavelength,
             offset,
             size,
             position_buffer,
@@ -162,6 +172,8 @@ impl Geometry for WaterPatch {
                     program.use_uniform("projectionMatrix", camera.projection());
                     program.use_uniform("viewMatrix", camera.view());
                     program.use_uniform("time", &(self.time as f32 * 0.001));
+                    program.use_uniform("minWavelength", &self.min_wavelength);
+                    program.use_uniform("maxWavelength", &self.max_wavelength);
                     let render_states = RenderStates {
                         blend: Blend::TRANSPARENCY,
                         ..Default::default()

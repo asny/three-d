@@ -3,11 +3,11 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform float time;
 
-const float median_wavelength = 1.0;
+uniform float minWavelength;
+uniform float maxWavelength;
 const float speed = 0.5;
 const float wind_variation = 0.1;
 const vec2 wind_direction = vec2(1.0, 0.0);
-
 
 const int noWaves = 4;
 const float pi = 3.14159;
@@ -39,9 +39,7 @@ void main()
     // Offset position
     for (int i = 0; i < noWaves; ++i)
     {
-        float min_wavelength = 0.5 * median_wavelength;
-        float max_wavelength = 2.0 * median_wavelength;
-        float wavelength = mix(min_wavelength, max_wavelength, wavelength_var[i]);
+        float wavelength = mix(minWavelength, maxWavelength, wavelength_var[i]);
         
         float dir_angle = wind_variation * pi * (2.0 * direction_var[i] - 1.0);
         float cos_angle = cos(dir_angle);
