@@ -63,6 +63,10 @@ impl<M: Material + Clone> Terrain<M> {
         }
     }
 
+    pub fn height_at(&self, position: Vec2) -> f32 {
+        (*self.height_map)(position.x, position.y)
+    }
+
     pub fn set_lod(&mut self, lod: Box<dyn Fn(f32) -> Lod>) {
         self.lod = lod;
     }

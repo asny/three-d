@@ -16,6 +16,9 @@ impl FirstPersonControl {
                 left_drag_horizontal: CameraAction::Yaw {
                     speed: std::f32::consts::PI / 1800.0,
                 },
+                left_drag_vertical: CameraAction::Pitch {
+                    speed: std::f32::consts::PI / 1800.0,
+                },
                 scroll_vertical: CameraAction::Forward { speed },
                 ..Default::default()
             },
