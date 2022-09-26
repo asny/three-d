@@ -5,7 +5,7 @@ uniform float time;
 
 uniform float minWavelength;
 uniform float maxWavelength;
-const float speed = 0.5;
+uniform float speed = 0.5;
 const float wind_variation = 0.1;
 const vec2 wind_direction = vec2(1.0, 0.0);
 
