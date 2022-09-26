@@ -108,9 +108,17 @@ pub async fn run() {
         change |= camera.set_viewport(frame_input.viewport);
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
-        let p = *camera.position();
-        terrain.set_center(vec2(p.x, p.z));
-        water.set_center(vec2(p.x, p.z));
+        let p = vec2(camera.position().x, camera.position().z);
+        let y_new = terrain.height_at(p) + 3.0;
+        let target = vec3(
+            camera.target().x,
+            camera.target().y + y_new - camera.position().y,
+            camera.target().z,
+        );
+        camera.set_view(vec3(p.x, y_new, p.y), target, *camera.up());
+
+        terrain.set_center(p);
+        water.set_center(p);
         water.update_animation(frame_input.accumulated_time);
 
         if change {
