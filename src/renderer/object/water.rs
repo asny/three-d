@@ -4,6 +4,21 @@ use std::rc::Rc;
 
 const VERTICES_PER_SIDE: usize = 33;
 
+#[derive(Clone, Copy, Debug)]
+pub struct WaterParameters {
+    pub min_wavelength: f32,
+    pub max_wavelength: f32,
+}
+
+impl Default for WaterParameters {
+    fn default() -> Self {
+        Self {
+            min_wavelength: 0.5,
+            max_wavelength: 2.0,
+        }
+    }
+}
+
 ///
 /// A water geometry with an applied material.
 ///
@@ -20,8 +35,7 @@ impl<M: Material + Clone> Water<M> {
         side_length: f32,
         vertex_distance: f32,
         center: Vec2,
-        min_wavelength: f32,
-        max_wavelength: f32,
+        parameters: WaterParameters,
     ) -> Self {
         let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;
         let patches_per_side = ((side_length / patch_size).ceil() as u32).max(1);
@@ -38,8 +52,7 @@ impl<M: Material + Clone> Water<M> {
                 let patch = WaterPatch::new(
                     context,
                     center,
-                    min_wavelength,
-                    max_wavelength,
+                    parameters,
                     offset,
                     vec2(patch_size, patch_size),
                     position_buffer.clone(),
@@ -58,6 +71,16 @@ impl<M: Material + Clone> Water<M> {
     ///
     pub fn set_center(&mut self, center: Vec2) {
         self.patches.iter_mut().for_each(|m| m.center = center);
+    }
+
+    pub fn parameters(&self) -> WaterParameters {
+        self.patches[0].parameters
+    }
+
+    pub fn set_parameters(&mut self, parameters: WaterParameters) {
+        self.patches
+            .iter_mut()
+            .for_each(|p| p.parameters = parameters);
     }
 
     ///
@@ -116,8 +139,7 @@ struct WaterPatch {
     context: Context,
     time: f64,
     center: Vec2,
-    min_wavelength: f32,
-    max_wavelength: f32,
+    parameters: WaterParameters,
     offset: Vec2,
     size: Vec2,
     position_buffer: Rc<VertexBuffer>,
@@ -128,8 +150,7 @@ impl WaterPatch {
     pub fn new(
         context: &Context,
         center: Vec2,
-        min_wavelength: f32,
-        max_wavelength: f32,
+        parameters: WaterParameters,
         offset: Vec2,
         size: Vec2,
         position_buffer: Rc<VertexBuffer>,
@@ -139,8 +160,7 @@ impl WaterPatch {
             context: context.clone(),
             time: 0.0,
             center,
-            min_wavelength,
-            max_wavelength,
+            parameters,
             offset,
             size,
             position_buffer,
@@ -172,8 +192,8 @@ impl Geometry for WaterPatch {
                     program.use_uniform("projectionMatrix", camera.projection());
                     program.use_uniform("viewMatrix", camera.view());
                     program.use_uniform("time", &(self.time as f32 * 0.001));
-                    program.use_uniform("minWavelength", &self.min_wavelength);
-                    program.use_uniform("maxWavelength", &self.max_wavelength);
+                    program.use_uniform("minWavelength", &self.parameters.min_wavelength);
+                    program.use_uniform("maxWavelength", &self.parameters.max_wavelength);
                     let render_states = RenderStates {
                         blend: Blend::TRANSPARENCY,
                         ..Default::default()
