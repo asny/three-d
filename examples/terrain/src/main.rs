@@ -69,7 +69,7 @@ pub async fn run() {
     terrain.set_lod(Box::new(|d| {
         if d > 256.0 {
             Lod::Low
-        } else if d > 64.0 {
+        } else if d > 128.0 {
             Lod::Medium
         } else {
             Lod::High
@@ -156,7 +156,7 @@ pub async fn run() {
                     environment_texture: skybox.texture(),
                     color_texture: &color_texture,
                     depth_texture: &depth_texture,
-                    metallic: 1.0,
+                    metallic: 0.0,
                     roughness: 1.0,
                     lighting_model: LightingModel::Cook(
                         NormalDistributionFunction::TrowbridgeReitzGGX,
