@@ -38,6 +38,10 @@ vec3 reinhard_tone_mapping(vec3 color) {
     return color / (color + vec3(1.0));
 }
 
+vec3 inverse_reinhard_tone_mapping(vec3 color) {
+    return color / (vec3(1.0) - color);
+}
+
 // http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 // efficient VanDerCorpus calculation.
 float RadicalInverse_VdC(uint bits) 
