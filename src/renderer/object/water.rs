@@ -29,6 +29,7 @@ impl<M: Material + Clone> Water<M> {
                 );
                 let patch = WaterPatch::new(
                     context,
+                    center,
                     offset,
                     vec2(patch_size, patch_size),
                     position_buffer.clone(),
@@ -107,6 +108,7 @@ struct WaterPatch {
 impl WaterPatch {
     pub fn new(
         context: &Context,
+        center: Vec2,
         offset: Vec2,
         size: Vec2,
         position_buffer: Rc<VertexBuffer>,
@@ -115,7 +117,7 @@ impl WaterPatch {
         Self {
             context: context.clone(),
             time: 0.0,
-            center: vec2(0.0, 0.0),
+            center,
             offset,
             size,
             position_buffer,

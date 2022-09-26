@@ -2,9 +2,13 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
+/// Specifies the Level of Detail (LOD) for a geometry.
 pub enum Lod {
+    /// High number of triangles - looks good, but slow to render. Use this close to the camera.
     High,
+    /// Medium number of triangles.
     Medium,
+    /// Low number of triangles - looks bad, but fast to render. Use this far away from the camera.
     Low,
 }
 
@@ -24,6 +28,9 @@ pub struct Terrain<M: Material> {
     vertex_distance: f32,
 }
 impl<M: Material + Clone> Terrain<M> {
+    ///
+    /// Creates a new [Terrain].
+    ///
     pub fn new(
         context: &Context,
         material: M,
@@ -63,14 +70,25 @@ impl<M: Material + Clone> Terrain<M> {
         }
     }
 
+    ///
+    /// Returns the height at the given position.
+    ///
     pub fn height_at(&self, position: Vec2) -> f32 {
         (*self.height_map)(position.x, position.y)
     }
 
+    ///
+    /// Set the function that specifies when a certain level of detail [Lod] is uses.
+    /// The input to the function is the distance from the current camera to the center of a patch.
+    ///
     pub fn set_lod(&mut self, lod: Box<dyn Fn(f32) -> Lod>) {
         self.lod = lod;
     }
 
+    ///
+    /// Set the center of the terrain.
+    /// If there are more patches on one side of the center than another, new patches are generated where needed and removed from where they are not needed, thereby simulating infinite terrain.
+    ///
     pub fn set_center(&mut self, center: Vec2) {
         let (x0, y0) = pos2patch(self.vertex_distance, center);
         let half_patches_per_side = half_patches_per_side(self.vertex_distance, self.side_length);
@@ -179,14 +197,14 @@ impl<M: Material + Clone> Terrain<M> {
     }
 
     ///
-    /// Returns an iterator over the reference to the objects in this terrain which can be used as input to a render function, for example [RenderTarget::render].
+    /// Returns an iterator over the reference to the objects which can be used as input to a render function, for example [RenderTarget::render].
     ///
     pub fn obj_iter(&self) -> impl Iterator<Item = &dyn Object> + Clone {
         self.patches.iter().map(|m| m as &dyn Object)
     }
 
     ///
-    /// Returns an iterator over the reference to the geometries in this terrain which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
+    /// Returns an iterator over the reference to the geometries which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
     ///
     pub fn geo_iter(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
         self.patches.iter().map(|m| m as &dyn Geometry)
