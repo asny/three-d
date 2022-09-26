@@ -4,6 +4,9 @@ use std::rc::Rc;
 
 const VERTICES_PER_SIDE: usize = 33;
 
+///
+/// A water geometry with an applied material.
+///
 pub struct Water<M: Material> {
     patches: Vec<Gm<WaterPatch, M>>,
 }

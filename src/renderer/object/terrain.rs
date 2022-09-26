@@ -14,6 +14,9 @@ pub enum Lod {
 
 const VERTICES_PER_SIDE: usize = 33;
 
+///
+/// A terrain geometry based on a height map and with an applied material.
+///
 pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
@@ -30,6 +33,7 @@ pub struct Terrain<M: Material> {
 impl<M: Material + Clone> Terrain<M> {
     ///
     /// Creates a new [Terrain].
+    /// The height map is a function of the (x, z) coordinates which returns the height of the terrain y.
     ///
     pub fn new(
         context: &Context,
@@ -79,7 +83,7 @@ impl<M: Material + Clone> Terrain<M> {
 
     ///
     /// Set the function that specifies when a certain level of detail [Lod] is uses.
-    /// The input to the function is the distance from the current camera to the center of a patch.
+    /// The input to the function is the distance from the current camera to the center of a part of the terrain.
     ///
     pub fn set_lod(&mut self, lod: Box<dyn Fn(f32) -> Lod>) {
         self.lod = lod;
@@ -87,7 +91,7 @@ impl<M: Material + Clone> Terrain<M> {
 
     ///
     /// Set the center of the terrain.
-    /// If there are more patches on one side of the center than another, new patches are generated where needed and removed from where they are not needed, thereby simulating infinite terrain.
+    /// To be able to move the terrain with the camera, thereby simulating infinite terrain.
     ///
     pub fn set_center(&mut self, center: Vec2) {
         let (x0, y0) = pos2patch(self.vertex_distance, center);
