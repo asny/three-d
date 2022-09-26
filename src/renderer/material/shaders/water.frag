@@ -20,15 +20,6 @@ const float Eta = 1. / 1.5; // Ratio of indices of refraction
 const float FresnelPower = 5.0;
 const float F = ((1.0-Eta) * (1.0-Eta)) / ((1.0+Eta) * (1.0+Eta));
 
-vec3 WorldPosFromDepth(float depth, vec2 uv) {
-    float z = depth * 2.0 - 1.0;
-
-    vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, z, 1.0);
-    vec4 position = viewProjectionInverse * clipSpacePosition;
-
-    return position.xyz / position.w;// (viewInverse * viewSpacePosition).xyz;
-}
-
 vec3 reflect_color(vec3 incidentDir, vec3 normal)
 {
     vec3 reflectDir = normalize(reflect(incidentDir, normal));
@@ -45,7 +36,7 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
         float dist = distance(cameraPosition, p_w);
 
         float d = texture(depthMap, uv).x;
-        vec3 pos = WorldPosFromDepth(d, uv);
+        vec3 pos = world_pos_from_depth(viewProjectionInverse, d, uv);
         float depth = distance(cameraPosition, pos);
         if(depth < dist)
         {
@@ -75,7 +66,7 @@ void main()
     vec3 incidentDir = normalize(pos - cameraPosition);
     screen_uv -= 0.05 * normal.xz; // Shift the water bottom/sky.
     float depth = texture(depthMap, screen_uv).x;
-    vec3 backgroundPos = WorldPosFromDepth(depth, screen_uv);
+    vec3 backgroundPos = world_pos_from_depth(viewProjectionInverse, depth, screen_uv);
     outColor.rgb = inverse_reinhard_tone_mapping(rgb_from_srgb(texture(colorMap, screen_uv).xyz));
     
     bool underWater = dot(normal, incidentDir) > 0.1 || dot(normal, incidentDir) > -0.1 && cameraPosition.y < 0.0;
