@@ -2,10 +2,6 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform float time;
-/*uniform float median_wavelength;
-uniform float speed;
-uniform float wind_variation;
-uniform vec2 wind_direction;*/
 
 const float median_wavelength = 1.0;
 const float speed = 0.5;
