@@ -63,13 +63,13 @@ pub async fn run() {
         terrain_material,
         height_map,
         1024.0,
-        0.5,
+        0.3,
         vec2(0.0, 0.0),
     );
     terrain.set_lod(Box::new(|d| {
-        if d > 512.0 {
+        if d > 256.0 {
             Lod::Low
-        } else if d > 256.0 {
+        } else if d > 64.0 {
             Lod::Medium
         } else {
             Lod::High
@@ -79,7 +79,7 @@ pub async fn run() {
         &context,
         NormalMaterial::default(),
         512.0,
-        0.25,
+        0.3,
         vec2(0.0, 0.0),
     );
 
