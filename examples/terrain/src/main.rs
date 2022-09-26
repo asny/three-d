@@ -32,7 +32,7 @@ pub async fn run() {
     // Source: https://polyhaven.com/
     let mut loaded = if let Ok(loaded) = three_d_asset::io::load_async(&[
         "../assets/syferfontein_18d_clear_4k.hdr",
-        "../assets/aerial_grass_rock_4k/aerial_grass_rock_4k.gltf",
+        "../assets/rocks_ground_01_4k/rocks_ground_01_4k.gltf",
     ])
     .await
     {
@@ -40,7 +40,7 @@ pub async fn run() {
     } else {
         three_d_asset::io::load_async(&[
             "https://asny.github.io/three-d/assets/syferfontein_18d_clear_4k.hdr",
-            "https://asny.github.io/three-d/assets/aerial_grass_rock_4k/aerial_grass_rock_4k.gltf",
+            "https://asny.github.io/three-d/assets/rocks_ground_01_4k/rocks_ground_01_4k.gltf",
         ])
         .await
         .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
