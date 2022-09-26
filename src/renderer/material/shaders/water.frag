@@ -68,27 +68,21 @@ void main()
     vec3 backgroundPos = world_pos_from_depth(viewProjectionInverse, depth, screen_uv);
     outColor.rgb = inverse_reinhard_tone_mapping(rgb_from_srgb(texture(colorMap, screen_uv).xyz));
     
-    bool underWater = dot(normal, incidentDir) > 0.1 || dot(normal, incidentDir) > -0.1 && cameraPosition.y < 0.0;
+    // Compute cosine to the incident angle
+    float cosAngle = dot(normal, -incidentDir);
     
-    if(underWater)
-    {
-        outColor.rgb = water(outColor.rgb, cameraPosition, pos);
-    } else {
-        // Compute cosine to the incident angle
-        float cosAngle = dot(normal, -incidentDir);
-        
-        // Compute fresnel approximation
-        float fresnel = mix(F, 1.f, pow(1. - max(cosAngle, 0.), FresnelPower));
-        
-        // Reflection
-        vec3 reflectColor = reflect_color(incidentDir, normal);
-        
-        // Refraction
-        vec3 refractColor = water(outColor.rgb, pos, backgroundPos);
-        
-        // Mix refraction and reflection
-        outColor.rgb = mix(refractColor, reflectColor, fresnel);
-    }
+    // Compute fresnel approximation
+    float fresnel = mix(F, 1.f, pow(1. - max(cosAngle, 0.), FresnelPower));
+    
+    // Reflection
+    vec3 reflectColor = reflect_color(incidentDir, normal);
+    
+    // Refraction
+    vec3 refractColor = water(outColor.rgb, pos, backgroundPos);
+    
+    // Mix refraction and reflection
+    outColor.rgb = mix(refractColor, reflectColor, fresnel);
+
     outColor.rgb = calculate_lighting(cameraPosition, outColor.rgb, pos, normal, metallic, roughness, 1.0);
     outColor.rgb = reinhard_tone_mapping(outColor.rgb);
     outColor.rgb = srgb_from_rgb(outColor.rgb);
