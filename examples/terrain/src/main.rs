@@ -27,7 +27,7 @@ pub async fn run() {
         0.1,
         1000.0,
     );
-    let mut control = FirstPersonControl::new(0.1);
+    let mut control = FirstPersonControl::new(0.01);
 
     // Source: https://polyhaven.com/
     let mut loaded = if let Ok(loaded) = three_d_asset::io::load_async(&[
