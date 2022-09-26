@@ -49,14 +49,10 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
         float depth = distance(cameraPosition, pos);
         if(depth < dist)
         {
-            return rgb_from_srgb(texture(colorMap, uv).xyz);
+            return inverse_reinhard_tone_mapping(rgb_from_srgb(texture(colorMap, uv).xyz));
         }
     }
-    vec3 col = texture(environmentMap, reflectDir).xyz;
-    if(isHDR == 1) {
-        //col = reinhard_tone_mapping(col);
-    }
-    return col;
+    return texture(environmentMap, reflectDir).xyz;
 }
 
 vec3 water(vec3 col, vec3 p1, vec3 p2)
@@ -80,7 +76,7 @@ void main()
     screen_uv -= 0.05 * normal.xz; // Shift the water bottom/sky.
     float depth = texture(depthMap, screen_uv).x;
     vec3 backgroundPos = WorldPosFromDepth(depth, screen_uv);
-    outColor = vec4(rgb_from_srgb(texture(colorMap, screen_uv).xyz), 1.);
+    outColor.rgb = inverse_reinhard_tone_mapping(rgb_from_srgb(texture(colorMap, screen_uv).xyz));
     
     bool underWater = dot(normal, incidentDir) > 0.1 || dot(normal, incidentDir) > -0.1 && cameraPosition.y < 0.0;
     
@@ -106,5 +102,6 @@ void main()
     outColor.rgb = calculate_lighting(cameraPosition, outColor.rgb, pos, normal, 1.0, 0.5, 1.0);
     outColor.rgb = reinhard_tone_mapping(outColor.rgb);
     outColor.rgb = srgb_from_rgb(outColor.rgb);
+    outColor.a = 1.0;
     
 }

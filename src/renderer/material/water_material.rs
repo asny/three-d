@@ -43,14 +43,6 @@ impl Material for WaterMaterial<'_> {
             "viewProjectionInverse",
             &(camera.projection() * camera.view()).invert().unwrap(),
         );
-        program.use_uniform(
-            "isHDR",
-            if self.environment_texture.is_hdr() {
-                1
-            } else {
-                0
-            },
-        );
         program.use_uniform("cameraPosition", camera.position());
         program.use_uniform(
             "screenSize",
