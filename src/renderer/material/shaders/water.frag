@@ -54,7 +54,7 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
     }
     vec3 col = texture(environmentMap, reflectDir).xyz;
     if(isHDR == 1) {
-        col = reinhard_tone_mapping(col);
+        //col = reinhard_tone_mapping(col);
     }
     return col;
 }
@@ -103,7 +103,8 @@ void main()
         // Mix refraction and reflection
         outColor.rgb = mix(refractColor, reflectColor, fresnel);
     }
-    
+    outColor.rgb = calculate_lighting(cameraPosition, outColor.rgb, pos, normal, 1.0, 0.5, 1.0);
+    outColor.rgb = reinhard_tone_mapping(outColor.rgb);
     outColor.rgb = srgb_from_rgb(outColor.rgb);
     
 }

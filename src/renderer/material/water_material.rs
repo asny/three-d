@@ -8,10 +8,16 @@ pub struct WaterMaterial<'a> {
 }
 
 impl Material for WaterMaterial<'_> {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         format!(
             "{}\n{}",
-            include_str!("../../core/shared.frag"),
+            lights_shader_source(
+                lights,
+                LightingModel::Cook(
+                    NormalDistributionFunction::TrowbridgeReitzGGX,
+                    GeometryFunction::SmithSchlickGGX,
+                ),
+            ),
             include_str!("shaders/water.frag")
         )
     }
@@ -28,6 +34,9 @@ impl Material for WaterMaterial<'_> {
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
+        for (i, light) in lights.iter().enumerate() {
+            light.use_uniforms(program, i as u32);
+        }
         program.use_uniform("viewMatrix", camera.view());
         program.use_uniform("projectionMatrix", camera.projection());
         program.use_uniform(
