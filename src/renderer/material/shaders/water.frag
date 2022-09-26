@@ -33,10 +33,6 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
     {
         p_ray += stepDir;
         vec2 uv = uv_at(p_ray);
-        if(uv.y < 0. || uv.y > 1.)
-        {
-            return texture(environmentMap, reflectDir).xyz;
-        }
         vec3 p = world_pos_from_depth(viewProjectionInverse, texture(depthMap, uv).x, uv);
         if(distance(cameraPosition, p) < distance(cameraPosition, p_ray))
         {
