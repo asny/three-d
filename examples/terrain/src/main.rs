@@ -81,8 +81,7 @@ pub async fn run() {
         512.0,
         0.3,
         vec2(0.0, 0.0),
-        0.5,
-        2.0,
+        WaterParameters::default(),
     );
 
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
@@ -103,11 +102,37 @@ pub async fn run() {
         Wrapping::ClampToEdge,
         DepthFormat::Depth32F,
     );
+    let mut gui = GUI::new(&context);
 
+    let mut parameters = WaterParameters::default();
     // main loop
     window.render_loop(move |mut frame_input| {
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
+
+        change |= gui.update(
+            &mut frame_input.events,
+            frame_input.accumulated_time,
+            frame_input.device_pixel_ratio,
+            |gui_context| {
+                use three_d::egui::*;
+                egui::Window::new("").vscroll(true).show(gui_context, |ui| {
+                    ui.set_max_width(200.0);
+                    ui.set_min_width(200.0);
+
+                    ui.add(
+                        Slider::new(&mut parameters.min_wavelength, 0.0..=5.0)
+                            .text("Min wavelength"),
+                    );
+                    ui.add(
+                        Slider::new(&mut parameters.max_wavelength, 0.0..=10.0)
+                            .text("Max wavelength"),
+                    );
+                });
+            },
+        );
+        water.set_parameters(parameters);
+
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
         let p = vec2(camera.position().x, camera.position().z);
@@ -176,7 +201,10 @@ pub async fn run() {
                 &camera,
                 water.geo_iter(),
                 light.iter(),
-            );
+            )
+            .write(|| {
+                gui.render(frame_input.viewport);
+            });
 
         FrameOutput::default()
     });
