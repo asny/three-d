@@ -8,6 +8,8 @@ const VERTICES_PER_SIDE: usize = 33;
 pub struct WaterParameters {
     pub min_wavelength: f32,
     pub max_wavelength: f32,
+    pub min_amplitude: f32,
+    pub max_amplitude: f32,
     pub speed: f32,
 }
 
@@ -16,6 +18,8 @@ impl Default for WaterParameters {
         Self {
             min_wavelength: 0.5,
             max_wavelength: 2.0,
+            min_amplitude: 0.005,
+            max_amplitude: 0.02,
             speed: 0.5,
         }
     }
@@ -196,6 +200,8 @@ impl Geometry for WaterPatch {
                     program.use_uniform("time", &(self.time as f32 * 0.001));
                     program.use_uniform("minWavelength", &self.parameters.min_wavelength);
                     program.use_uniform("maxWavelength", &self.parameters.max_wavelength);
+                    program.use_uniform("minAmplitude", &self.parameters.min_amplitude);
+                    program.use_uniform("maxAmplitude", &self.parameters.max_amplitude);
                     program.use_uniform("speed", &self.parameters.speed);
                     let render_states = RenderStates {
                         blend: Blend::TRANSPARENCY,
