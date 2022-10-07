@@ -12,6 +12,7 @@ pub struct WaveParameters {
     pub amplitude: f32,
     /// The speed at which the waves move.
     pub speed: f32,
+    pub direction: Vec2,
 }
 
 impl Default for WaveParameters {
@@ -20,6 +21,7 @@ impl Default for WaveParameters {
             wavelength: 1.0,
             amplitude: 0.01,
             speed: 0.5,
+            direction: vec2(1.0, 0.0),
         }
     }
 }
@@ -224,8 +226,16 @@ impl Geometry for WaterPatch {
                             .collect::<Vec<_>>(),
                     );
                     program.use_uniform_array(
-                        "speed",
+                        "speeds",
                         &self.parameters.iter().map(|p| p.speed).collect::<Vec<_>>(),
+                    );
+                    program.use_uniform_array(
+                        "directions",
+                        &self
+                            .parameters
+                            .iter()
+                            .map(|p| p.direction)
+                            .collect::<Vec<_>>(),
                     );
                     let render_states = RenderStates {
                         blend: Blend::TRANSPARENCY,
