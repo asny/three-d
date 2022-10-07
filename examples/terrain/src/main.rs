@@ -109,7 +109,7 @@ pub async fn run() {
     let mut wavelength_variation = 0.5;
     let mut amplitude = 0.01;
     let mut amplitude_variation = 0.005;
-    let mut direction = vec2(1.0, 0.0);
+    let direction = vec2(1.0, 0.0);
     let mut direction_variation = 0.1;
     let mut speed = 0.5;
     let mut height = 0.0;
@@ -138,6 +138,10 @@ pub async fn run() {
                             .text("Amplitude variation"),
                     );
                     ui.add(Slider::new(&mut speed, 0.0..=5.0).text("Speed"));
+                    ui.add(
+                        Slider::new(&mut direction_variation, 0.0..=std::f32::consts::PI)
+                            .text("Direction variation"),
+                    );
                 });
             },
         );
@@ -150,7 +154,7 @@ pub async fn run() {
                 .into_iter()
                 .enumerate()
                 .for_each(|(i, x)| {
-                    let dir_angle = direction_variation * std::f32::consts::PI * (2.0 * x - 1.0);
+                    let dir_angle = direction_variation * (2.0 * x - 1.0);
                     let cos_angle = dir_angle.cos();
                     let sin_angle = dir_angle.sin();
                     parameters[i].direction = vec2(
@@ -163,8 +167,8 @@ pub async fn run() {
                 .into_iter()
                 .enumerate()
                 .for_each(|(i, x)| {
-                    parameters[i].wavelength = wavelength + wavelength_variation * 2.0 * (x - 0.5);
-                    parameters[i].amplitude = amplitude + amplitude_variation * 2.0 * (x - 0.5);
+                    parameters[i].wavelength = wavelength + wavelength_variation * (2.0 * x - 1.0);
+                    parameters[i].amplitude = amplitude + amplitude_variation * (2.0 * x - 1.0);
                 });
             water.set_parameters(parameters);
             water.set_height(height);
