@@ -81,22 +81,28 @@ pub async fn run() {
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             .render(
                 &camera,
-                [
-                    &axes as &dyn Object,
-                    &Gm {
-                        geometry: &billboards,
-                        material: &material,
-                    },
-                    &Gm {
-                        geometry: &sprites_up,
-                        material: &material,
-                    },
-                    &Gm {
-                        geometry: &sprites,
-                        material: &material,
-                    },
-                ]
-                .into_iter(),
+                axes.objects()
+                    .chain(
+                        Gm {
+                            geometry: &billboards,
+                            material: &material,
+                        }
+                        .objects(),
+                    )
+                    .chain(
+                        Gm {
+                            geometry: &sprites_up,
+                            material: &material,
+                        }
+                        .objects(),
+                    )
+                    .chain(
+                        Gm {
+                            geometry: &sprites,
+                            material: &material,
+                        }
+                        .objects(),
+                    ),
                 &[&ambient],
             );
 
