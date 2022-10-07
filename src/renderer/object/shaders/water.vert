@@ -1,4 +1,4 @@
-uniform mat4 modelMatrix;
+uniform vec3 offset;
 uniform mat4 viewProjection;
 uniform float time;
 
@@ -21,7 +21,7 @@ out vec3 pos;
 
 void main()
 {
-    pos = (modelMatrix * vec4(position, 1.)).xyz;
+    pos = position + offset;
     nor = vec3(0., 1., 0.);
     
     float wavelength_var[noWaves];
