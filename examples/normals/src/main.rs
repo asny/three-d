@@ -94,10 +94,10 @@ pub async fn run() {
             .render(
                 &camera,
                 model_with_computed_tangents
-                    .obj_iter()
-                    .chain(model_with_loaded_tangents.obj_iter())
-                    .chain(instanced_model_with_computed_tangents.obj_iter())
-                    .chain(instanced_model_with_loaded_tangents.obj_iter()),
+                    .objects()
+                    .chain(model_with_loaded_tangents.objects())
+                    .chain(instanced_model_with_computed_tangents.objects())
+                    .chain(instanced_model_with_loaded_tangents.objects()),
                 &[&ambient, &directional],
             );
         FrameOutput::default()

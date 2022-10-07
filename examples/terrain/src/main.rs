@@ -192,7 +192,7 @@ pub async fn run() {
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
             .render(
                 &camera,
-                skybox.obj_iter().chain(terrain.obj_iter()),
+                skybox.objects().chain(terrain.objects()),
                 &[&light],
             );
         }

@@ -92,9 +92,9 @@ pub async fn run() {
                 .render(
                     &camera,
                     model
-                        .obj_iter()
-                        .chain(vertices.obj_iter())
-                        .chain(edges.obj_iter()),
+                        .objects()
+                        .chain(vertices.objects())
+                        .chain(edges.objects()),
                     &[&ambient, &directional0, &directional1],
                 );
         }

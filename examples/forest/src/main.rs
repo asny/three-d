@@ -72,7 +72,7 @@ pub async fn run() {
     let imposters = Imposters::new(
         &context,
         &positions,
-        model.obj_iter(),
+        model.objects(),
         &[&ambient, &directional],
         256,
     );
@@ -121,9 +121,9 @@ pub async fn run() {
                 .render(
                     &camera,
                     model
-                        .obj_iter()
-                        .chain(imposters.obj_iter())
-                        .chain(plane.obj_iter()),
+                        .objects()
+                        .chain(imposters.objects())
+                        .chain(plane.objects()),
                     &[&ambient, &directional],
                 );
         }

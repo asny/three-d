@@ -79,7 +79,7 @@ pub async fn run() {
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
             .render(
                 &camera,
-                voxel_grid.obj_iter(),
+                voxel_grid.objects(),
                 &[&ambient, &directional1, &directional2],
             )
             .write(|| gui.render(frame_input.viewport));

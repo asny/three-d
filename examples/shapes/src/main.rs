@@ -108,13 +108,13 @@ pub fn main() {
             .render(
                 &camera,
                 sphere
-                    .obj_iter()
-                    .chain(cylinder.obj_iter())
-                    .chain(cube.obj_iter())
-                    .chain(axes.obj_iter())
-                    .chain(bounding_box_sphere.obj_iter())
-                    .chain(bounding_box_cube.obj_iter())
-                    .chain(bounding_box_cylinder.obj_iter()),
+                    .objects()
+                    .chain(cylinder.objects())
+                    .chain(cube.objects())
+                    .chain(axes.objects())
+                    .chain(bounding_box_sphere.objects())
+                    .chain(bounding_box_cube.objects())
+                    .chain(bounding_box_cylinder.objects()),
                 &[&light0, &light1],
             );
 

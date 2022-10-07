@@ -203,7 +203,7 @@ impl<M: Material + Clone> Terrain<M> {
     ///
     /// Returns an iterator over the reference to the objects which can be used as input to a render function, for example [RenderTarget::render].
     ///
-    pub fn obj_iter(&self) -> impl Iterator<Item = &dyn Object> + Clone {
+    pub fn objects(&self) -> impl Iterator<Item = &dyn Object> + Clone {
         self.patches.iter().map(|m| m as &dyn Object)
     }
 
