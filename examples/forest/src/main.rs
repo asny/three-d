@@ -69,13 +69,7 @@ pub async fn run() {
         }
     }
 
-    let imposters = Imposters::new(
-        &context,
-        &positions,
-        model.objects(),
-        &[&ambient, &directional],
-        256,
-    );
+    let imposters = Imposters::new(&context, &positions, &model, &[&ambient, &directional], 256);
 
     // Plane
     let mut plane = Gm::new(
@@ -120,10 +114,7 @@ pub async fn run() {
                 .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
                 .render(
                     &camera,
-                    model
-                        .objects()
-                        .chain(imposters.objects())
-                        .chain(plane.objects()),
+                    model.into_iter().chain(&imposters).chain(&plane),
                     &[&ambient, &directional],
                 );
         }

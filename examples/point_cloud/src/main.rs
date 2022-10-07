@@ -56,8 +56,8 @@ pub async fn run() {
                 .render(
                     &camera,
                     point_cloud
-                        .objects()
-                        .chain(Axes::new(&context, 0.01, 0.1).objects()),
+                        .into_iter()
+                        .chain(&Axes::new(&context, 0.01, 0.1)),
                     &[],
                 );
         }

@@ -151,7 +151,7 @@ pub fn run() {
         frame_input
             .screen()
             .clear(ClearState::color(0.0, 0.0, 0.0, 1.0))
-            .render(&camera, fireworks.objects(), &[]);
+            .render(&camera, &fireworks, &[]);
 
         FrameOutput::default()
     });

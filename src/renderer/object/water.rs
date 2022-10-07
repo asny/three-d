@@ -97,13 +97,6 @@ impl<M: Material + Clone> Water<M> {
     }
 
     ///
-    /// Returns an iterator over the reference to the objects which can be used as input to a render function, for example [RenderTarget::render].
-    ///
-    pub fn objects(&self) -> impl Iterator<Item = &dyn Object> + Clone {
-        self.patches.iter().map(|m| m as &dyn Object)
-    }
-
-    ///
     /// Returns an iterator over the reference to the geometries which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
     ///
     pub fn geometries(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
@@ -138,6 +131,19 @@ impl<M: Material + Clone> Water<M> {
             }
         }
         Arc::new(VertexBuffer::new_with_data(context, &data))
+    }
+}
+
+impl<'a, M: Material> IntoIterator for &'a Water<M> {
+    type Item = &'a dyn Object;
+    type IntoIter = std::vec::IntoIter<&'a dyn Object>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.patches
+            .iter()
+            .map(|m| m as &dyn Object)
+            .collect::<Vec<_>>()
+            .into_iter()
     }
 }
 

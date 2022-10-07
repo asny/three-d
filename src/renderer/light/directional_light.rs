@@ -54,7 +54,7 @@ impl DirectionalLight {
     pub fn generate_shadow_map<'a>(
         &mut self,
         texture_size: u32,
-        geometries: impl Iterator<Item = &'a dyn Geometry> + Clone,
+        geometries: impl IntoIterator<Item = &'a dyn Geometry> + Clone,
     ) {
         let up = compute_up_direction(self.direction);
 
@@ -99,7 +99,10 @@ impl DirectionalLight {
             .as_depth_target()
             .clear(ClearState::default())
             .write(|| {
-                for geometry in geometries.filter(|g| shadow_camera.in_frustum(&g.aabb())) {
+                for geometry in geometries
+                    .into_iter()
+                    .filter(|g| shadow_camera.in_frustum(&g.aabb()))
+                {
                     geometry.render_with_material(&depth_material, &shadow_camera, &[]);
                 }
             });

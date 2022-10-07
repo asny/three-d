@@ -121,7 +121,7 @@ pub async fn run() {
             .clear(ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0))
             .render(
                 &camera,
-                lights.iter().map(|l| l.object()).chain(model.objects()),
+                lights.iter().map(|l| l.object()).chain(&model),
                 &lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
             )
             .write(|| {
