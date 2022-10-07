@@ -51,10 +51,10 @@ impl DirectionalLight {
     /// If the shadows are too low resolution (the edges between shadow and non-shadow are pixelated) try to increase the texture size
     /// and/or split the scene by creating another light source with same parameters and let the two light sources shines on different parts of the scene.
     ///
-    pub fn generate_shadow_map<'a>(
+    pub fn generate_shadow_map(
         &mut self,
         texture_size: u32,
-        geometries: impl IntoIterator<Item = &'a dyn Geometry> + Clone,
+        geometries: impl IntoIterator<Item = impl Geometry> + Clone,
     ) {
         let up = compute_up_direction(self.direction);
 

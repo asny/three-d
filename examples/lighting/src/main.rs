@@ -243,9 +243,9 @@ pub async fn run() {
 
         // Draw
         if shadows_enabled {
-            directional0.generate_shadow_map(1024, model.geometries());
-            directional1.generate_shadow_map(1024, model.geometries());
-            spot0.generate_shadow_map(1024, model.geometries());
+            directional0.generate_shadow_map(1024, &model);
+            directional1.generate_shadow_map(1024, &model);
+            spot0.generate_shadow_map(1024, &model);
         }
 
         let lights = [
@@ -278,7 +278,7 @@ pub async fn run() {
                 screen.render_with_material(
                     &DepthMaterial::default(),
                     &camera,
-                    model.geometries().chain(plane.geometries()),
+                    model.into_iter().chain(&plane),
                     &lights,
                 );
             }
@@ -300,7 +300,7 @@ pub async fn run() {
                 screen.render_with_material(
                     &PositionMaterial::default(),
                     &camera,
-                    model.geometries().chain(plane.geometries()),
+                    model.into_iter().chain(&plane),
                     &lights,
                 );
             }
@@ -308,7 +308,7 @@ pub async fn run() {
                 screen.render_with_material(
                     &UVMaterial::default(),
                     &camera,
-                    model.geometries().chain(plane.geometries()),
+                    model.into_iter().chain(&plane),
                     &lights,
                 );
             }

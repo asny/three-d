@@ -5,15 +5,6 @@ use crate::renderer::*;
 ///
 pub struct InstancedModel<M: Material>(Vec<Gm<InstancedMesh, M>>);
 
-impl<M: Material> InstancedModel<M> {
-    ///
-    /// Returns an iterator over the reference to the geometries in this model which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
-    ///
-    pub fn geometries(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
-        self.iter().map(|m| m as &dyn Geometry)
-    }
-}
-
 impl<'a, M: Material> IntoIterator for &'a InstancedModel<M> {
     type Item = &'a dyn Object;
     type IntoIter = std::vec::IntoIter<&'a dyn Object>;

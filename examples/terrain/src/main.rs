@@ -213,7 +213,7 @@ pub async fn run() {
                     ),
                 },
                 &camera,
-                water.geometries(),
+                &water,
                 &[&light],
             )
             .write(|| {

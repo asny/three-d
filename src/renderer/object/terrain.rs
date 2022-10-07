@@ -199,13 +199,6 @@ impl<M: Material + Clone> Terrain<M> {
         }
         Arc::new(ElementBuffer::new_with_data(context, &indices))
     }
-
-    ///
-    /// Returns an iterator over the reference to the geometries which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
-    ///
-    pub fn geometries(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
-        self.patches.iter().map(|m| m as &dyn Geometry)
-    }
 }
 
 impl<'a, M: Material> IntoIterator for &'a Terrain<M> {
