@@ -210,7 +210,7 @@ impl<M: Material + Clone> Terrain<M> {
     ///
     /// Returns an iterator over the reference to the geometries which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
     ///
-    pub fn geo_iter(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
+    pub fn geometries(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
         self.patches.iter().map(|m| m as &dyn Geometry)
     }
 }

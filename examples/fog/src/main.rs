@@ -81,7 +81,7 @@ pub async fn run() {
                     .render_with_material(
                         &DepthMaterial::default(),
                         &camera,
-                        monkey.geo_iter(),
+                        monkey.geometries(),
                         &[],
                     );
             });
