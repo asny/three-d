@@ -50,7 +50,7 @@ pub async fn run() {
     let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
 
     let noise_generator = SuperSimplex::new();
-    let height_map = Box::new(move |x, y| {
+    let height_map = std::sync::Arc::new(move |x, y| {
         (noise_generator.get([x as f64 * 0.1, y as f64 * 0.1])
             + 0.25 * noise_generator.get([x as f64 * 0.5, y as f64 * 0.5])
             + 2.0 * noise_generator.get([x as f64 * 0.02, y as f64 * 0.02])) as f32
@@ -66,7 +66,7 @@ pub async fn run() {
         0.3,
         vec2(0.0, 0.0),
     );
-    terrain.set_lod(Box::new(|d| {
+    terrain.set_lod(std::sync::Arc::new(|d| {
         if d > 256.0 {
             Lod::Low
         } else if d > 128.0 {
