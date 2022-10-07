@@ -7,15 +7,6 @@ pub use three_d_asset::Model as CpuModel;
 ///
 pub struct Model<M: Material>(Vec<Gm<Mesh, M>>);
 
-impl<M: Material> Model<M> {
-    ///
-    /// Returns an iterator over the reference to the geometries in this model which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
-    ///
-    pub fn geometries(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
-        self.iter().map(|m| m as &dyn Geometry)
-    }
-}
-
 impl<'a, M: Material> IntoIterator for &'a Model<M> {
     type Item = &'a dyn Object;
     type IntoIter = std::vec::IntoIter<&'a dyn Object>;

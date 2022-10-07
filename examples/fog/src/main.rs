@@ -78,12 +78,7 @@ pub async fn run() {
             depth_texture.as_mut().map(|dt| {
                 dt.as_depth_target()
                     .clear(ClearState::default())
-                    .render_with_material(
-                        &DepthMaterial::default(),
-                        &camera,
-                        monkey.geometries(),
-                        &[],
-                    );
+                    .render_with_material(&DepthMaterial::default(), &camera, &monkey, &[]);
             });
         }
 

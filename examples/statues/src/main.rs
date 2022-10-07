@@ -99,19 +99,12 @@ pub async fn run() {
     );
     directional.generate_shadow_map(
         1024,
-        models
-            .iter()
-            .flat_map(|m| m.geometries())
-            .chain(fountain.geometries()),
+        models.iter().flat_map(|m| m.into_iter()).chain(&fountain),
     );
     // Bounding boxes
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     let mut bounding_boxes = Vec::new();
-    for geometry in models
-        .iter()
-        .flat_map(|m| m.geometries())
-        .chain(fountain.geometries())
-    {
+    for geometry in models.iter().flat_map(|m| m.into_iter()).chain(&fountain) {
         bounding_boxes.push(BoundingBox::new_with_material_and_thickness(
             &context,
             geometry.aabb(),

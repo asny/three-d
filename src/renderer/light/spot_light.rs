@@ -62,10 +62,10 @@ impl SpotLight {
     /// It is recomended that the texture size is power of 2.
     /// If the shadows are too low resolution (the edges between shadow and non-shadow are pixelated) try to increase the texture size.
     ///
-    pub fn generate_shadow_map<'a>(
+    pub fn generate_shadow_map(
         &mut self,
         texture_size: u32,
-        geometries: impl IntoIterator<Item = &'a dyn Geometry> + Clone,
+        geometries: impl IntoIterator<Item = impl Geometry> + Clone,
     ) {
         let position = self.position;
         let direction = self.direction;

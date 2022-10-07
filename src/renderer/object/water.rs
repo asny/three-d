@@ -96,13 +96,6 @@ impl<M: Material + Clone> Water<M> {
         self.patches.iter_mut().for_each(|m| m.time = time);
     }
 
-    ///
-    /// Returns an iterator over the reference to the geometries which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
-    ///
-    pub fn geometries(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
-        self.patches.iter().map(|m| m as &dyn Geometry)
-    }
-
     fn indices(context: &Context) -> Arc<ElementBuffer> {
         let mut indices: Vec<u32> = Vec::new();
         let stride = VERTICES_PER_SIDE as u32;

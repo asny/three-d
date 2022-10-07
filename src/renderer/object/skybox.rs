@@ -29,13 +29,6 @@ impl Skybox {
     }
 
     ///
-    /// Returns an iterator over a reference to the geometry which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
-    ///
-    pub fn geometries(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
-        std::iter::once(self as &dyn Geometry)
-    }
-
-    ///
     /// Creates a new skybox with a cube texture generated from the equirectangular texture given as input.
     ///
     pub fn new_from_equirectangular(context: &Context, cpu_texture: &CpuTexture) -> Self {
