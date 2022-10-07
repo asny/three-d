@@ -203,10 +203,8 @@ impl Geometry for WaterPatch {
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     program.use_uniform(
-                        "modelMatrix",
-                        &Mat4::from_translation(
-                            self.center + vec3(self.offset.x, 0.0, self.offset.y),
-                        ),
+                        "offset",
+                        &self.center + vec3(self.offset.x, 0.0, self.offset.y),
                     );
                     program.use_uniform("viewProjection", camera.projection() * camera.view());
                     program.use_uniform("time", &(self.time as f32 * 0.001));
