@@ -48,7 +48,7 @@ impl<M: Material + Clone> Water<M> {
         center: Vec2,
         side_length: f32,
         vertex_distance: f32,
-        parameters: &[WaveParameters],
+        parameters: impl IntoIterator<Item = WaveParameters> + Clone,
     ) -> Self {
         let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;
         let patches_per_side = ((side_length / patch_size).ceil() as u32).max(1);
@@ -100,12 +100,15 @@ impl<M: Material + Clone> Water<M> {
     ///
     /// Set the currently used [WaveParameters].
     ///
-    pub fn set_parameters(&mut self, parameters: &[WaveParameters]) {
-        if parameters.len() > MAX_WAVE_COUNT {
+    pub fn set_parameters(&mut self, parameters: impl IntoIterator<Item = WaveParameters> + Clone) {
+        if parameters.clone().into_iter().count() > MAX_WAVE_COUNT {
             panic!("Water only supports {} number of waves.", MAX_WAVE_COUNT);
         }
         let mut ps = [WaveParameters::default(); MAX_WAVE_COUNT];
-        parameters.iter().enumerate().for_each(|(i, p)| ps[i] = *p);
+        parameters
+            .into_iter()
+            .enumerate()
+            .for_each(|(i, p)| ps[i] = p);
         self.patches.iter_mut().for_each(|p| p.parameters = ps);
     }
 

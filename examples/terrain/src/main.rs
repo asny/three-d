@@ -82,7 +82,7 @@ pub async fn run() {
         vec2(0.0, 0.0),
         512.0,
         0.3,
-        &[],
+        [],
     );
 
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
@@ -166,7 +166,7 @@ pub async fn run() {
                     parameters[i].wavelength = wavelength + wavelength_variation * 2.0 * (x - 0.5);
                     parameters[i].amplitude = amplitude + amplitude_variation * 2.0 * (x - 0.5);
                 });
-            water.set_parameters(&parameters);
+            water.set_parameters(parameters);
             water.set_height(height);
         }
 
