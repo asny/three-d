@@ -136,19 +136,10 @@ pub async fn run() {
                         )
                         .text("Max wavelength"),
                     );
+                    ui.add(Slider::new(&mut parameters.amplitude, 0.0..=0.2).text("Amplitude"));
                     ui.add(
-                        Slider::new(
-                            &mut parameters.min_amplitude,
-                            0.0..=parameters.max_amplitude,
-                        )
-                        .text("Min amplitude"),
-                    );
-                    ui.add(
-                        Slider::new(
-                            &mut parameters.max_amplitude,
-                            parameters.min_amplitude..=0.2,
-                        )
-                        .text("Max amplitude"),
+                        Slider::new(&mut parameters.amplitude_variation, 0.0..=0.2)
+                            .text("Amplitude variation"),
                     );
                     ui.add(Slider::new(&mut parameters.speed, 0.0..=5.0).text("Speed"));
                 });
