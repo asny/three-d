@@ -124,6 +124,7 @@ path = "examples/fireworks/src/main.rs"
 [[example]]
 name = "terrain"
 path = "examples/terrain/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "statues"
