@@ -29,7 +29,7 @@ impl<M: Material> BoundingBox<M> {
     ///
     /// Returns an iterator over a reference to the geometry which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
     ///
-    pub fn geo_iter(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
+    pub fn geometries(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
         std::iter::once(self as &dyn Geometry)
     }
 

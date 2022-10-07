@@ -217,7 +217,7 @@ pub async fn run() {
                     ),
                 },
                 &camera,
-                water.geo_iter(),
+                water.geometries(),
                 &[&light],
             )
             .write(|| {

@@ -101,16 +101,16 @@ pub async fn run() {
         1024,
         models
             .iter()
-            .flat_map(|m| m.geo_iter())
-            .chain(fountain.geo_iter()),
+            .flat_map(|m| m.geometries())
+            .chain(fountain.geometries()),
     );
     // Bounding boxes
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     let mut bounding_boxes = Vec::new();
     for geometry in models
         .iter()
-        .flat_map(|m| m.geo_iter())
-        .chain(fountain.geo_iter())
+        .flat_map(|m| m.geometries())
+        .chain(fountain.geometries())
     {
         bounding_boxes.push(BoundingBox::new_with_material_and_thickness(
             &context,
