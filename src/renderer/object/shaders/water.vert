@@ -2,9 +2,8 @@ uniform vec3 offset;
 uniform mat4 viewProjection;
 uniform float time;
 
+uniform float wavelengths[4];
 uniform float amplitudes[4];
-uniform float minWavelength;
-uniform float maxWavelength;
 uniform float speed;
 const float wind_variation = 0.1;
 const vec2 wind_direction = vec2(1.0, 0.0);
@@ -23,12 +22,6 @@ void main()
     pos = position + offset;
     nor = vec3(0., 1., 0.);
     
-    float wavelength_var[noWaves];
-    wavelength_var[0] = 0.146;
-    wavelength_var[1] = 0.335;
-    wavelength_var[2] = 0.64632;
-    wavelength_var[3] = 0.73134;
-    
     float direction_var[noWaves];
     direction_var[0] = 0.821;
     direction_var[1] = 0.4572;
@@ -44,11 +37,11 @@ void main()
         vec2 dir = normalize(vec2( cos_angle * wind_direction.x - sin_angle * wind_direction.y,
                                   sin_angle * wind_direction.x + cos_angle * wind_direction.y));
         
-        float wavelength = mix(minWavelength, maxWavelength, wavelength_var[i]);
+        float wavelength = wavelengths[i];
         float amplitude = amplitudes[i];
         
         float frequency = wavelength > 0.001 ? 2.0 * pi / wavelength : 0.0;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
-        float steepness = amplitude > 0.001 && frequency > 0.001 ? wavelength_var[i]/(frequency * amplitude * float(noWaves)) : 0.0;
+        float steepness = amplitude > 0.001 && frequency > 0.001 ? wavelength / (frequency * amplitude * float(noWaves)) : 0.0;
         
         float phase = speed * frequency;
         float theta = dot(dir, pos.xz);

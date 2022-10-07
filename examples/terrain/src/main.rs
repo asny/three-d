@@ -122,23 +122,14 @@ pub async fn run() {
                     ui.add(Slider::new(&mut height, -5.0..=5.0).text("height"));
 
                     ui.label("Wave parameters");
+                    ui.add(Slider::new(&mut parameters.wavelength, 0.0..=10.0).text("Wavelength"));
                     ui.add(
-                        Slider::new(
-                            &mut parameters.min_wavelength,
-                            0.0..=parameters.max_wavelength,
-                        )
-                        .text("Min wavelength"),
-                    );
-                    ui.add(
-                        Slider::new(
-                            &mut parameters.max_wavelength,
-                            parameters.min_wavelength..=10.0,
-                        )
-                        .text("Max wavelength"),
+                        Slider::new(&mut parameters.wavelength_variation, 0.0..=5.0)
+                            .text("Wavelength variation"),
                     );
                     ui.add(Slider::new(&mut parameters.amplitude, 0.0..=0.2).text("Amplitude"));
                     ui.add(
-                        Slider::new(&mut parameters.amplitude_variation, 0.0..=0.2)
+                        Slider::new(&mut parameters.amplitude_variation, 0.0..=0.1)
                             .text("Amplitude variation"),
                     );
                     ui.add(Slider::new(&mut parameters.speed, 0.0..=5.0).text("Speed"));
