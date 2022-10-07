@@ -98,7 +98,7 @@ pub async fn run() {
                     .chain(model_with_loaded_tangents.obj_iter())
                     .chain(instanced_model_with_computed_tangents.obj_iter())
                     .chain(instanced_model_with_loaded_tangents.obj_iter()),
-                ambient.iter().chain(directional.iter()),
+                &[&ambient, &directional],
             );
         FrameOutput::default()
     });

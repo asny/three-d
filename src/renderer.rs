@@ -58,21 +58,21 @@ pub use control::*;
 impl<'a> DepthTarget<'a> {
     ///
     /// Render the objects using the given camera and lights into this depth target.
-    /// Use `std::iter::empty()` for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
     pub fn render<'b>(
         &self,
         camera: &Camera,
         objects: impl Iterator<Item = &'b dyn Object>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
     ///
     /// Render the objects using the given camera and lights into the part of this depth target defined by the scissor box.
-    /// Use `std::iter::empty()` for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_partially<'b>(
@@ -80,7 +80,7 @@ impl<'a> DepthTarget<'a> {
         scissor_box: ScissorBox,
         camera: &Camera,
         objects: impl Iterator<Item = &'b dyn Object>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target()
             .render_partially(scissor_box, camera, objects, lights);
@@ -89,7 +89,7 @@ impl<'a> DepthTarget<'a> {
 
     ///
     /// Render the geometries with the given material using the given camera and lights into this depth target.
-    /// Use `std::iter::empty()` for the `lights` argument, if the material does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_with_material<'b>(
@@ -97,7 +97,7 @@ impl<'a> DepthTarget<'a> {
         material: &dyn Material,
         camera: &Camera,
         geometries: impl Iterator<Item = &'b dyn Geometry>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially_with_material(
             self.scissor_box(),
@@ -111,7 +111,7 @@ impl<'a> DepthTarget<'a> {
 
     ///
     /// Render the geometries with the given material using the given camera and lights into the part of this depth target defined by the scissor box.
-    /// Use `std::iter::empty()` for the `lights` argument, if the material does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_partially_with_material<'b>(
@@ -120,7 +120,7 @@ impl<'a> DepthTarget<'a> {
         material: &dyn Material,
         camera: &Camera,
         geometries: impl Iterator<Item = &'b dyn Geometry>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target().render_partially_with_material(
             scissor_box,
@@ -136,21 +136,21 @@ impl<'a> DepthTarget<'a> {
 impl<'a> ColorTarget<'a> {
     ///
     /// Render the objects using the given camera and lights into this color target.
-    /// Use `std::iter::empty()` for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
     pub fn render<'b>(
         &self,
         camera: &Camera,
         objects: impl Iterator<Item = &'b dyn Object>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
     ///
     /// Render the objects using the given camera and lights into the part of this color target defined by the scissor box.
-    /// Use `std::iter::empty()` for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_partially<'b>(
@@ -158,7 +158,7 @@ impl<'a> ColorTarget<'a> {
         scissor_box: ScissorBox,
         camera: &Camera,
         objects: impl Iterator<Item = &'b dyn Object>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target()
             .render_partially(scissor_box, camera, objects, lights);
@@ -167,7 +167,7 @@ impl<'a> ColorTarget<'a> {
 
     ///
     /// Render the geometries with the given material using the given camera and lights into this color target.
-    /// Use `std::iter::empty()` for the `lights` argument, if the material does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_with_material<'b>(
@@ -175,7 +175,7 @@ impl<'a> ColorTarget<'a> {
         material: &dyn Material,
         camera: &Camera,
         geometries: impl Iterator<Item = &'b dyn Geometry>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially_with_material(
             self.scissor_box(),
@@ -189,7 +189,7 @@ impl<'a> ColorTarget<'a> {
 
     ///
     /// Render the geometries with the given material using the given camera and lights into the part of this color target defined by the scissor box.
-    /// Use `std::iter::empty()` for the `lights` argument, if the material does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_partially_with_material<'b>(
@@ -198,7 +198,7 @@ impl<'a> ColorTarget<'a> {
         material: &dyn Material,
         camera: &Camera,
         geometries: impl Iterator<Item = &'b dyn Geometry>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target().render_partially_with_material(
             scissor_box,
@@ -214,21 +214,21 @@ impl<'a> ColorTarget<'a> {
 impl<'a> RenderTarget<'a> {
     ///
     /// Render the objects using the given camera and lights into this render target.
-    /// Use `std::iter::empty()` for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
     pub fn render<'b>(
         &self,
         camera: &Camera,
         objects: impl Iterator<Item = &'b dyn Object>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
     }
 
     ///
     /// Render the objects using the given camera and lights into the part of this render target defined by the scissor box.
-    /// Use `std::iter::empty()` for the `lights` argument, if the objects does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_partially<'b>(
@@ -236,9 +236,8 @@ impl<'a> RenderTarget<'a> {
         scissor_box: ScissorBox,
         camera: &Camera,
         objects: impl Iterator<Item = &'b dyn Object>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
-        let lights = lights.collect::<Vec<_>>();
         let (mut deferred_objects, mut forward_objects): (Vec<_>, Vec<_>) = objects
             .filter(|o| camera.in_frustum(&o.aabb()))
             .partition(|o| o.material_type() == MaterialType::Deferred);
@@ -277,7 +276,7 @@ impl<'a> RenderTarget<'a> {
             .clear(ClearState::default())
             .write(|| {
                 for object in deferred_objects {
-                    object.render(&geometry_pass_camera, &lights);
+                    object.render(&geometry_pass_camera, lights);
                 }
             });
 
@@ -288,7 +287,7 @@ impl<'a> RenderTarget<'a> {
                     camera,
                     &geometry_pass_texture,
                     &geometry_pass_depth_texture,
-                    &lights,
+                    lights,
                 )
             });
         }
@@ -297,7 +296,7 @@ impl<'a> RenderTarget<'a> {
         forward_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
         self.write_partially(scissor_box, || {
             for object in forward_objects {
-                object.render(camera, &lights);
+                object.render(camera, lights);
             }
         });
         self
@@ -305,7 +304,7 @@ impl<'a> RenderTarget<'a> {
 
     ///
     /// Render the geometries with the given material using the given camera and lights into this render target.
-    /// Use `std::iter::empty()` for the `lights` argument, if the material does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_with_material<'b>(
@@ -313,7 +312,7 @@ impl<'a> RenderTarget<'a> {
         material: &dyn Material,
         camera: &Camera,
         geometries: impl Iterator<Item = &'b dyn Geometry>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially_with_material(
             self.scissor_box(),
@@ -326,7 +325,7 @@ impl<'a> RenderTarget<'a> {
 
     ///
     /// Render the geometries with the given material using the given camera and lights into the part of this render target defined by the scissor box.
-    /// Use `std::iter::empty()` for the `lights` argument, if the material does not require lights to be rendered.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_partially_with_material<'b>(
@@ -335,12 +334,11 @@ impl<'a> RenderTarget<'a> {
         material: &dyn Material,
         camera: &Camera,
         geometries: impl Iterator<Item = &'b dyn Geometry>,
-        lights: impl Iterator<Item = &'b dyn Light>,
+        lights: &[&dyn Light],
     ) -> &Self {
-        let lights = lights.collect::<Vec<_>>();
         self.write_partially(scissor_box, || {
             for object in geometries.filter(|o| camera.in_frustum(&o.aabb())) {
-                object.render_with_material(material, camera, &lights);
+                object.render_with_material(material, camera, lights);
             }
         });
         self

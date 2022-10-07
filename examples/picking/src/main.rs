@@ -90,7 +90,7 @@ pub async fn run() {
                 .render(
                     &camera,
                     monkey.obj_iter().chain(pick_mesh.obj_iter()),
-                    ambient.iter().chain(directional.iter()),
+                    &[&ambient, &directional],
                 );
         }
 
