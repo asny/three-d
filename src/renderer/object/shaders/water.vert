@@ -24,26 +24,29 @@ void main()
     // Offset position
     for (int i = 0; i < noWaves; ++i)
     {
-        vec2 dir = directions[i];
         float wavelength = wavelengths[i];
         float amplitude = amplitudes[i];
-        
-        float frequency = wavelength > 0.001 ? 2.0 * pi / wavelength : 0.0;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
-        float steepness = amplitude > 0.001 && frequency > 0.001 ? wavelength / (frequency * amplitude * float(noWaves)) : 0.0;
-        
-        float phase = speeds[i] * frequency;
-        float theta = dot(dir, pos.xz);
-        float a = theta * frequency + time * phase;
-        float sin_a = sin(a);
-        float cos_a = cos(a);
-        
-        pos.y += amplitude * sin_a;
-        pos.x += steepness * amplitude * dir.x * cos_a;
-        pos.z += steepness * amplitude * dir.y * cos_a;
-        
-        nor.y -= steepness * frequency * amplitude * sin_a;
-        nor.x -= dir.x * frequency * amplitude * cos_a;
-        nor.z -= dir.y * frequency * amplitude * cos_a;
+
+        if(wavelength > 0.001 && amplitude > 0.001) {
+
+            vec2 dir = directions[i];
+            
+            float frequency = 2.0 * pi / wavelength;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
+            float steepness = wavelength / (frequency * amplitude * float(noWaves));
+            float phase = speeds[i] * frequency;
+            float theta = dot(dir, pos.xz);
+            float a = theta * frequency + time * phase;
+            float sin_a = sin(a);
+            float cos_a = cos(a);
+            
+            pos.y += amplitude * sin_a;
+            pos.x += steepness * amplitude * dir.x * cos_a;
+            pos.z += steepness * amplitude * dir.y * cos_a;
+            
+            nor.y -= steepness * frequency * amplitude * sin_a;
+            nor.x -= dir.x * frequency * amplitude * cos_a;
+            nor.z -= dir.y * frequency * amplitude * cos_a;
+        }
     }
     
     gl_Position = viewProjection * vec4(pos, 1.);
