@@ -8,8 +8,9 @@ const VERTICES_PER_SIDE: usize = 33;
 pub struct WaveParameters {
     pub min_wavelength: f32,
     pub max_wavelength: f32,
-    pub min_amplitude: f32,
-    pub max_amplitude: f32,
+    pub amplitude: f32,
+    pub amplitude_variation: f32,
+    /// The speed at which the waves move.
     pub speed: f32,
 }
 
@@ -18,8 +19,8 @@ impl Default for WaveParameters {
         Self {
             min_wavelength: 0.5,
             max_wavelength: 2.0,
-            min_amplitude: 0.005,
-            max_amplitude: 0.02,
+            amplitude: 0.005,
+            amplitude_variation: 0.02,
             speed: 0.5,
         }
     }
@@ -199,6 +200,11 @@ impl Geometry for WaterPatch {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
+        let mut amplitudes = [0.146, 0.335, 0.64632, 0.73134];
+        amplitudes.iter_mut().for_each(|a| {
+            *a = self.parameters.amplitude + self.parameters.amplitude_variation * 2.0 * (*a - 0.5)
+        });
+
         let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context
             .program(
@@ -214,8 +220,7 @@ impl Geometry for WaterPatch {
                     program.use_uniform("time", &(self.time as f32 * 0.001));
                     program.use_uniform("minWavelength", &self.parameters.min_wavelength);
                     program.use_uniform("maxWavelength", &self.parameters.max_wavelength);
-                    program.use_uniform("minAmplitude", &self.parameters.min_amplitude);
-                    program.use_uniform("maxAmplitude", &self.parameters.max_amplitude);
+                    program.use_uniform_array("amplitudes", &amplitudes);
                     program.use_uniform("speed", &self.parameters.speed);
                     let render_states = RenderStates {
                         blend: Blend::TRANSPARENCY,
@@ -232,11 +237,16 @@ impl Geometry for WaterPatch {
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::new_with_positions(&[
-            self.center + vec3(self.offset.x, -self.parameters.max_amplitude, self.offset.y),
+            self.center
+                + vec3(
+                    self.offset.x,
+                    -self.parameters.amplitude - self.parameters.amplitude_variation,
+                    self.offset.y,
+                ),
             self.center
                 + vec3(
                     self.offset.x + self.size.x,
-                    self.parameters.max_amplitude,
+                    self.parameters.amplitude + self.parameters.amplitude_variation,
                     self.offset.y + self.size.y,
                 ),
         ])

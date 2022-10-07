@@ -2,8 +2,7 @@ uniform vec3 offset;
 uniform mat4 viewProjection;
 uniform float time;
 
-uniform float minAmplitude;
-uniform float maxAmplitude;
+uniform float amplitudes[4];
 uniform float minWavelength;
 uniform float maxWavelength;
 uniform float speed;
@@ -30,12 +29,6 @@ void main()
     wavelength_var[2] = 0.64632;
     wavelength_var[3] = 0.73134;
     
-    float amplitude_var[noWaves];
-    amplitude_var[0] = 0.146;
-    amplitude_var[1] = 0.335;
-    amplitude_var[2] = 0.64632;
-    amplitude_var[3] = 0.73134;
-    
     float direction_var[noWaves];
     direction_var[0] = 0.821;
     direction_var[1] = 0.4572;
@@ -52,7 +45,7 @@ void main()
                                   sin_angle * wind_direction.x + cos_angle * wind_direction.y));
         
         float wavelength = mix(minWavelength, maxWavelength, wavelength_var[i]);
-        float amplitude = mix(minAmplitude, maxAmplitude, amplitude_var[i]);
+        float amplitude = amplitudes[i];
         
         float frequency = wavelength > 0.001 ? 2.0 * pi / wavelength : 0.0;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
         float steepness = amplitude > 0.001 && frequency > 0.001 ? wavelength_var[i]/(frequency * amplitude * float(noWaves)) : 0.0;
