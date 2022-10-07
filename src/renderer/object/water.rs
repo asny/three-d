@@ -32,7 +32,7 @@ pub struct Water<M: Material> {
 }
 impl<M: Material + Clone> Water<M> {
     ///
-    /// Constructs a new [Water] object at the given height.
+    /// Constructs a new [Water] object with the given material and at the given height.
     ///
     /// The `center` is the center of the visualized water surface, which can be updated using [Self::set_center] to simualte an infinite water surface.
     /// The `side_length` is the length of one side of the visualized water surface.
@@ -86,6 +86,9 @@ impl<M: Material + Clone> Water<M> {
         });
     }
 
+    ///
+    /// Set the average height of the water.
+    ///
     pub fn set_height(&mut self, height: f32) {
         self.patches.iter_mut().for_each(|m| m.center.y = height);
     }
