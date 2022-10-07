@@ -19,8 +19,8 @@ impl Default for WaveParameters {
     fn default() -> Self {
         Self {
             wavelength: 1.0,
-            amplitude: 0.01,
-            speed: 0.5,
+            amplitude: 0.0,
+            speed: 1.0,
             direction: vec2(1.0, 0.0),
         }
     }
