@@ -6,40 +6,19 @@ const VERTICES_PER_SIDE: usize = 33;
 
 #[derive(Clone, Copy, Debug)]
 pub struct WaveParameters {
+    /// The distance between each top of the wave.
     pub wavelength: f32,
-    pub wavelength_variation: f32,
-    /// The average distance from the top of the waves to the average water height.
+    /// The distance from the top or bottom of the wave to the average water height.
     pub amplitude: f32,
-    /// The variation of the [Self::amplitude] for each wave.
-    pub amplitude_variation: f32,
     /// The speed at which the waves move.
     pub speed: f32,
-}
-
-impl WaveParameters {
-    fn amplitudes(&self) -> [f32; 4] {
-        let mut array = [0.146, 0.335, 0.64632, 0.73134];
-        array
-            .iter_mut()
-            .for_each(|x| *x = self.amplitude + self.amplitude_variation * 2.0 * (*x - 0.5));
-        array
-    }
-    fn wavelengths(&self) -> [f32; 4] {
-        let mut array = [0.146, 0.335, 0.64632, 0.73134];
-        array
-            .iter_mut()
-            .for_each(|x| *x = self.wavelength + self.wavelength_variation * 2.0 * (*x - 0.5));
-        array
-    }
 }
 
 impl Default for WaveParameters {
     fn default() -> Self {
         Self {
             wavelength: 1.0,
-            wavelength_variation: 0.5,
             amplitude: 0.01,
-            amplitude_variation: 0.005,
             speed: 0.5,
         }
     }
@@ -66,7 +45,7 @@ impl<M: Material + Clone> Water<M> {
         center: Vec2,
         side_length: f32,
         vertex_distance: f32,
-        parameters: WaveParameters,
+        parameters: [WaveParameters; 4],
     ) -> Self {
         let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;
         let patches_per_side = ((side_length / patch_size).ceil() as u32).max(1);
@@ -114,12 +93,10 @@ impl<M: Material + Clone> Water<M> {
     ///
     /// Set the currently used [WaveParameters].
     ///
-    pub fn set_parameters(&mut self, parameters: WaveParameters) {
-        self.patches.iter_mut().for_each(|p| {
-            p.speed = parameters.speed;
-            p.wavelengths = parameters.wavelengths();
-            p.amplitudes = parameters.amplitudes();
-        });
+    pub fn set_parameters(&mut self, parameters: [WaveParameters; 4]) {
+        self.patches
+            .iter_mut()
+            .for_each(|p| p.parameters = parameters);
     }
 
     ///
@@ -177,9 +154,7 @@ struct WaterPatch {
     context: Context,
     time: f64,
     center: Vec3,
-    speed: f32,
-    amplitudes: [f32; 4],
-    wavelengths: [f32; 4],
+    parameters: [WaveParameters; 4],
     offset: Vec2,
     size: Vec2,
     position_buffer: Arc<VertexBuffer>,
@@ -190,7 +165,7 @@ impl WaterPatch {
     pub fn new(
         context: &Context,
         center: Vec3,
-        parameters: WaveParameters,
+        parameters: [WaveParameters; 4],
         offset: Vec2,
         size: Vec2,
         position_buffer: Arc<VertexBuffer>,
@@ -200,9 +175,7 @@ impl WaterPatch {
             context: context.clone(),
             time: 0.0,
             center,
-            speed: parameters.speed,
-            amplitudes: parameters.amplitudes(),
-            wavelengths: parameters.wavelengths(),
+            parameters,
             offset,
             size,
             position_buffer,
@@ -231,9 +204,26 @@ impl Geometry for WaterPatch {
                     );
                     program.use_uniform("viewProjection", camera.projection() * camera.view());
                     program.use_uniform("time", &(self.time as f32 * 0.001));
-                    program.use_uniform_array("wavelengths", &self.wavelengths);
-                    program.use_uniform_array("amplitudes", &self.amplitudes);
-                    program.use_uniform("speed", &self.speed);
+                    program.use_uniform_array(
+                        "wavelengths",
+                        &self
+                            .parameters
+                            .iter()
+                            .map(|p| p.wavelength)
+                            .collect::<Vec<_>>(),
+                    );
+                    program.use_uniform_array(
+                        "amplitudes",
+                        &self
+                            .parameters
+                            .iter()
+                            .map(|p| p.amplitude)
+                            .collect::<Vec<_>>(),
+                    );
+                    program.use_uniform_array(
+                        "speed",
+                        &self.parameters.iter().map(|p| p.speed).collect::<Vec<_>>(),
+                    );
                     let render_states = RenderStates {
                         blend: Blend::TRANSPARENCY,
                         ..Default::default()
@@ -248,7 +238,12 @@ impl Geometry for WaterPatch {
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        let m = self.amplitudes.into_iter().reduce(f32::max).unwrap();
+        let m = self
+            .parameters
+            .map(|p| p.amplitude)
+            .into_iter()
+            .reduce(f32::max)
+            .unwrap();
         AxisAlignedBoundingBox::new_with_positions(&[
             self.center + vec3(self.offset.x, -m, self.offset.y),
             self.center + vec3(self.offset.x + self.size.x, m, self.offset.y + self.size.y),

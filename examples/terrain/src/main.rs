@@ -82,7 +82,7 @@ pub async fn run() {
         vec2(0.0, 0.0),
         512.0,
         0.3,
-        WaveParameters::default(),
+        [WaveParameters::default(); 4],
     );
 
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
@@ -105,13 +105,16 @@ pub async fn run() {
     );
     let mut gui = GUI::new(&context);
 
-    let mut parameters = WaveParameters::default();
+    let mut wavelength = 1.0;
+    let mut wavelength_variation = 0.5;
+    let mut amplitude = 0.01;
+    let mut amplitude_variation = 0.005;
+    let mut speed = 0.5;
     let mut height = 0.0;
     // main loop
     window.render_loop(move |mut frame_input| {
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
-
         change |= gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
@@ -122,22 +125,32 @@ pub async fn run() {
                     ui.add(Slider::new(&mut height, -5.0..=5.0).text("height"));
 
                     ui.label("Wave parameters");
-                    ui.add(Slider::new(&mut parameters.wavelength, 0.0..=10.0).text("Wavelength"));
+                    ui.add(Slider::new(&mut wavelength, 0.0..=10.0).text("Wavelength"));
                     ui.add(
-                        Slider::new(&mut parameters.wavelength_variation, 0.0..=5.0)
+                        Slider::new(&mut wavelength_variation, 0.0..=5.0)
                             .text("Wavelength variation"),
                     );
-                    ui.add(Slider::new(&mut parameters.amplitude, 0.0..=0.2).text("Amplitude"));
+                    ui.add(Slider::new(&mut amplitude, 0.0..=0.2).text("Amplitude"));
                     ui.add(
-                        Slider::new(&mut parameters.amplitude_variation, 0.0..=0.1)
+                        Slider::new(&mut amplitude_variation, 0.0..=0.1)
                             .text("Amplitude variation"),
                     );
-                    ui.add(Slider::new(&mut parameters.speed, 0.0..=5.0).text("Speed"));
+                    ui.add(Slider::new(&mut speed, 0.0..=5.0).text("Speed"));
                 });
             },
         );
-        water.set_parameters(parameters);
-        water.set_height(height);
+        if change {
+            let mut parameters = [WaveParameters::default(); 4];
+            for (i, x) in [0.146, 0.335, 0.64632, 0.73134].into_iter().enumerate() {
+                parameters[i] = WaveParameters {
+                    speed,
+                    wavelength: wavelength + wavelength_variation * 2.0 * (x - 0.5),
+                    amplitude: amplitude + amplitude_variation * 2.0 * (x - 0.5),
+                };
+            }
+            water.set_parameters(parameters);
+            water.set_height(height);
+        }
 
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
