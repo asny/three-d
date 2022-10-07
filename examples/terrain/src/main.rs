@@ -20,8 +20,8 @@ pub async fn run() {
 
     let mut camera = Camera::new_perspective(
         window.viewport(),
-        vec3(-3.0, 3.0, 2.5),
-        vec3(0.0, 3.0, 0.0),
+        vec3(22.0, 3.0, -8.0),
+        vec3(22.75, 3.0, -7.4),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
@@ -154,6 +154,8 @@ pub async fn run() {
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
         let p = vec2(camera.position().x, camera.position().z);
+        dbg!(&p);
+        dbg!(camera.view_direction());
         let y_new = terrain.height_at(p) + 3.0;
         let target = vec3(
             camera.target().x,
