@@ -81,9 +81,9 @@ pub async fn run() {
             frame_input.screen().clear(ClearState::default()).render(
                 &camera,
                 penguin
-                    .obj_iter()
-                    .chain(box_object.obj_iter())
-                    .chain(skybox.obj_iter()),
+                    .objects()
+                    .chain(box_object.objects())
+                    .chain(skybox.objects()),
                 &[&ambient, &directional],
             );
         }

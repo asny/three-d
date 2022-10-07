@@ -90,7 +90,7 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::default())
-            .render(&camera, monkey.obj_iter(), &[&ambient, &directional])
+            .render(&camera, monkey.objects(), &[&ambient, &directional])
             .write(|| {
                 if fog_enabled {
                     if let Some(ref depth_texture) = depth_texture {

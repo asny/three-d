@@ -58,7 +58,7 @@ pub fn main() {
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             // Render the triangle with the color material which uses the per vertex colors defined at construction
             .render(
-                &camera, model.obj_iter(), &[]
+                &camera, model.objects(), &[]
             );
 
         // Returns default frame output to end the frame

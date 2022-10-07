@@ -84,7 +84,7 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-            .render(&camera, model.obj_iter(), &[&light]);
+            .render(&camera, model.objects(), &[&light]);
 
         FrameOutput::default()
     });

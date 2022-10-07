@@ -327,12 +327,12 @@ pub async fn run() {
                 });
             }
             MaterialType::Forward => {
-                screen.render(&camera, model.obj_iter().chain(plane.obj_iter()), &lights);
+                screen.render(&camera, model.objects().chain(plane.objects()), &lights);
             }
             MaterialType::Deferred => {
                 screen.render(
                     &camera,
-                    deferred_model.obj_iter().chain(deferred_plane.obj_iter()),
+                    deferred_model.objects().chain(deferred_plane.objects()),
                     &lights,
                 );
             }

@@ -177,8 +177,8 @@ pub async fn run() {
                 };
                 for object in models
                     .iter()
-                    .flat_map(|m| m.obj_iter())
-                    .chain(fountain.obj_iter())
+                    .flat_map(|m| m.objects())
+                    .chain(fountain.objects())
                     .filter(|o| primary_camera.in_frustum(&o.aabb()))
                 {
                     object.render(camera, &[&ambient, &directional]);
