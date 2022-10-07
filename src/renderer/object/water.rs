@@ -5,7 +5,7 @@ use std::sync::Arc;
 const VERTICES_PER_SIDE: usize = 33;
 
 #[derive(Clone, Copy, Debug)]
-pub struct WaterParameters {
+pub struct WaveParameters {
     pub min_wavelength: f32,
     pub max_wavelength: f32,
     pub min_amplitude: f32,
@@ -13,7 +13,7 @@ pub struct WaterParameters {
     pub speed: f32,
 }
 
-impl Default for WaterParameters {
+impl Default for WaveParameters {
     fn default() -> Self {
         Self {
             min_wavelength: 0.5,
@@ -41,7 +41,8 @@ impl<M: Material + Clone> Water<M> {
         side_length: f32,
         vertex_distance: f32,
         center: Vec2,
-        parameters: WaterParameters,
+        height: f32,
+        parameters: WaveParameters,
     ) -> Self {
         let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;
         let patches_per_side = ((side_length / patch_size).ceil() as u32).max(1);
@@ -57,7 +58,7 @@ impl<M: Material + Clone> Water<M> {
                 );
                 let patch = WaterPatch::new(
                     context,
-                    center,
+                    vec3(center.x, height, center.y),
                     parameters,
                     offset,
                     vec2(patch_size, patch_size),
@@ -76,14 +77,27 @@ impl<M: Material + Clone> Water<M> {
     /// To be able to move the water with the camera, thereby simulating infinite water.
     ///
     pub fn set_center(&mut self, center: Vec2) {
-        self.patches.iter_mut().for_each(|m| m.center = center);
+        self.patches.iter_mut().for_each(|m| {
+            m.center.x = center.x;
+            m.center.z = center.y;
+        });
     }
 
-    pub fn parameters(&self) -> WaterParameters {
+    pub fn set_height(&mut self, height: f32) {
+        self.patches.iter_mut().for_each(|m| m.center.y = height);
+    }
+
+    ///
+    /// Get the currently used [WaveParameters].
+    ///
+    pub fn parameters(&self) -> WaveParameters {
         self.patches[0].parameters
     }
 
-    pub fn set_parameters(&mut self, parameters: WaterParameters) {
+    ///
+    /// Set the currently used [WaveParameters].
+    ///
+    pub fn set_parameters(&mut self, parameters: WaveParameters) {
         self.patches
             .iter_mut()
             .for_each(|p| p.parameters = parameters);
@@ -143,8 +157,8 @@ impl<'a, M: Material> IntoIterator for &'a Water<M> {
 struct WaterPatch {
     context: Context,
     time: f64,
-    center: Vec2,
-    parameters: WaterParameters,
+    center: Vec3,
+    parameters: WaveParameters,
     offset: Vec2,
     size: Vec2,
     position_buffer: Arc<VertexBuffer>,
@@ -154,8 +168,8 @@ struct WaterPatch {
 impl WaterPatch {
     pub fn new(
         context: &Context,
-        center: Vec2,
-        parameters: WaterParameters,
+        center: Vec3,
+        parameters: WaveParameters,
         offset: Vec2,
         size: Vec2,
         position_buffer: Arc<VertexBuffer>,
@@ -188,12 +202,12 @@ impl Geometry for WaterPatch {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    let transformation = Mat4::from_translation(vec3(
-                        self.center.x + self.offset.x,
-                        0.0,
-                        self.center.y + self.offset.y,
-                    ));
-                    program.use_uniform("modelMatrix", &transformation);
+                    program.use_uniform(
+                        "modelMatrix",
+                        &Mat4::from_translation(
+                            self.center + vec3(self.offset.x, 0.0, self.offset.y),
+                        ),
+                    );
                     program.use_uniform("viewProjection", camera.projection() * camera.view());
                     program.use_uniform("time", &(self.time as f32 * 0.001));
                     program.use_uniform("minWavelength", &self.parameters.min_wavelength);
@@ -216,16 +230,13 @@ impl Geometry for WaterPatch {
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::new_with_positions(&[
-            vec3(
-                self.center.x + self.offset.x,
-                0.0,
-                self.center.y + self.offset.y,
-            ),
-            vec3(
-                self.center.x + self.offset.x + self.size.x,
-                0.0,
-                self.center.y + self.offset.y + self.size.y,
-            ),
+            self.center + vec3(self.offset.x, -self.parameters.max_amplitude, self.offset.y),
+            self.center
+                + vec3(
+                    self.offset.x + self.size.x,
+                    self.parameters.max_amplitude,
+                    self.offset.y + self.size.y,
+                ),
         ])
     }
 }

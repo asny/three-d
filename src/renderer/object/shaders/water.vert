@@ -22,7 +22,6 @@ out vec3 pos;
 void main()
 {
     pos = (modelMatrix * vec4(position, 1.)).xyz;
-    pos.y = 0.;
     nor = vec3(0., 1., 0.);
     
     float wavelength_var[noWaves];

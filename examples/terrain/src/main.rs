@@ -81,7 +81,8 @@ pub async fn run() {
         512.0,
         0.3,
         vec2(0.0, 0.0),
-        WaterParameters::default(),
+        0.0,
+        WaveParameters::default(),
     );
 
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
@@ -104,7 +105,8 @@ pub async fn run() {
     );
     let mut gui = GUI::new(&context);
 
-    let mut parameters = WaterParameters::default();
+    let mut parameters = WaveParameters::default();
+    let mut height = 0.0;
     // main loop
     window.render_loop(move |mut frame_input| {
         let mut change = frame_input.first_frame;
@@ -117,6 +119,9 @@ pub async fn run() {
             |gui_context| {
                 use three_d::egui::*;
                 egui::Window::new("").vscroll(true).show(gui_context, |ui| {
+                    ui.add(Slider::new(&mut height, -5.0..=5.0).text("height"));
+
+                    ui.label("Wave parameters");
                     ui.add(
                         Slider::new(
                             &mut parameters.min_wavelength,
@@ -150,6 +155,7 @@ pub async fn run() {
             },
         );
         water.set_parameters(parameters);
+        water.set_height(height);
 
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
