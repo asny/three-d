@@ -109,6 +109,8 @@ pub async fn run() {
     let mut wavelength_variation = 0.5;
     let mut amplitude = 0.01;
     let mut amplitude_variation = 0.005;
+    let mut direction = vec2(1.0, 0.0);
+    let mut direction_variation = 0.1;
     let mut speed = 0.5;
     let mut height = 0.0;
     // main loop
@@ -140,14 +142,30 @@ pub async fn run() {
             },
         );
         if change {
-            let mut parameters = [WaveParameters::default(); 4];
-            for (i, x) in [0.146, 0.335, 0.64632, 0.73134].into_iter().enumerate() {
-                parameters[i] = WaveParameters {
-                    speed,
-                    wavelength: wavelength + wavelength_variation * 2.0 * (x - 0.5),
-                    amplitude: amplitude + amplitude_variation * 2.0 * (x - 0.5),
-                };
-            }
+            let mut parameters = [WaveParameters {
+                speed,
+                ..Default::default()
+            }; 4];
+            [0.821, 0.4572, 0.014, 0.71]
+                .into_iter()
+                .enumerate()
+                .for_each(|(i, x)| {
+                    let dir_angle = direction_variation * std::f32::consts::PI * (2.0 * x - 1.0);
+                    let cos_angle = dir_angle.cos();
+                    let sin_angle = dir_angle.sin();
+                    parameters[i].direction = vec2(
+                        cos_angle * direction.x - sin_angle * direction.y,
+                        sin_angle * direction.x + cos_angle * direction.y,
+                    )
+                    .normalize();
+                });
+            [0.146, 0.335, 0.64632, 0.73134]
+                .into_iter()
+                .enumerate()
+                .for_each(|(i, x)| {
+                    parameters[i].wavelength = wavelength + wavelength_variation * 2.0 * (x - 0.5);
+                    parameters[i].amplitude = amplitude + amplitude_variation * 2.0 * (x - 0.5);
+                });
             water.set_parameters(parameters);
             water.set_height(height);
         }
