@@ -29,13 +29,6 @@ impl Skybox {
     }
 
     ///
-    /// Returns an iterator over a reference to the object which can be used as input to a render function, for example [RenderTarget::render].
-    ///
-    pub fn objects(&self) -> impl Iterator<Item = &dyn Object> + Clone {
-        std::iter::once(self as &dyn Object)
-    }
-
-    ///
     /// Returns an iterator over a reference to the geometry which can be used as input to for example [pick], [RenderTarget::render_with_material] or [DirectionalLight::generate_shadow_map].
     ///
     pub fn geometries(&self) -> impl Iterator<Item = &dyn Geometry> + Clone {
@@ -128,6 +121,15 @@ impl Skybox {
     ///
     pub fn texture(&self) -> &TextureCubeMap {
         &self.material.texture
+    }
+}
+
+impl<'a> IntoIterator for &'a Skybox {
+    type Item = &'a dyn Object;
+    type IntoIter = std::iter::Once<&'a dyn Object>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
     }
 }
 

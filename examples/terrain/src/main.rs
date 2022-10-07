@@ -192,11 +192,7 @@ pub async fn run() {
                 depth_texture.as_depth_target(),
             )
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
-            .render(
-                &camera,
-                skybox.objects().chain(terrain.objects()),
-                &[&light],
-            );
+            .render(&camera, skybox.into_iter().chain(&terrain), &[&light]);
         }
         frame_input
             .screen()

@@ -102,19 +102,20 @@ pub fn main() {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 
+        //let i: ObjectIterator = (&axes as &dyn Object).into();
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             .render(
                 &camera,
                 sphere
-                    .objects()
-                    .chain(cylinder.objects())
-                    .chain(cube.objects())
-                    .chain(axes.objects())
-                    .chain(bounding_box_sphere.objects())
-                    .chain(bounding_box_cube.objects())
-                    .chain(bounding_box_cylinder.objects()),
+                    .into_iter()
+                    .chain(&cylinder)
+                    .chain(&cube)
+                    .chain(&axes)
+                    .chain(&bounding_box_sphere)
+                    .chain(&bounding_box_cube)
+                    .chain(&bounding_box_cylinder),
                 &[&light0, &light1],
             );
 

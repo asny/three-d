@@ -64,7 +64,7 @@ impl<'a> DepthTarget<'a> {
     pub fn render<'b>(
         &self,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = &'b dyn Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -79,7 +79,7 @@ impl<'a> DepthTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = &'b dyn Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target()
@@ -96,7 +96,7 @@ impl<'a> DepthTarget<'a> {
         &self,
         material: &dyn Material,
         camera: &Camera,
-        geometries: impl Iterator<Item = &'b dyn Geometry>,
+        geometries: impl IntoIterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially_with_material(
@@ -119,7 +119,7 @@ impl<'a> DepthTarget<'a> {
         scissor_box: ScissorBox,
         material: &dyn Material,
         camera: &Camera,
-        geometries: impl Iterator<Item = &'b dyn Geometry>,
+        geometries: impl IntoIterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target().render_partially_with_material(
@@ -142,7 +142,7 @@ impl<'a> ColorTarget<'a> {
     pub fn render<'b>(
         &self,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = &'b dyn Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -157,7 +157,7 @@ impl<'a> ColorTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = &'b dyn Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target()
@@ -174,7 +174,7 @@ impl<'a> ColorTarget<'a> {
         &self,
         material: &dyn Material,
         camera: &Camera,
-        geometries: impl Iterator<Item = &'b dyn Geometry>,
+        geometries: impl IntoIterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially_with_material(
@@ -197,7 +197,7 @@ impl<'a> ColorTarget<'a> {
         scissor_box: ScissorBox,
         material: &dyn Material,
         camera: &Camera,
-        geometries: impl Iterator<Item = &'b dyn Geometry>,
+        geometries: impl IntoIterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target().render_partially_with_material(
@@ -220,7 +220,7 @@ impl<'a> RenderTarget<'a> {
     pub fn render<'b>(
         &self,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = &'b dyn Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -235,10 +235,11 @@ impl<'a> RenderTarget<'a> {
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl Iterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = &'b dyn Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         let (mut deferred_objects, mut forward_objects): (Vec<_>, Vec<_>) = objects
+            .into_iter()
             .filter(|o| camera.in_frustum(&o.aabb()))
             .partition(|o| o.material_type() == MaterialType::Deferred);
 
@@ -311,7 +312,7 @@ impl<'a> RenderTarget<'a> {
         &self,
         material: &dyn Material,
         camera: &Camera,
-        geometries: impl Iterator<Item = &'b dyn Geometry>,
+        geometries: impl IntoIterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially_with_material(
@@ -333,11 +334,14 @@ impl<'a> RenderTarget<'a> {
         scissor_box: ScissorBox,
         material: &dyn Material,
         camera: &Camera,
-        geometries: impl Iterator<Item = &'b dyn Geometry>,
+        geometries: impl IntoIterator<Item = &'b dyn Geometry>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            for object in geometries.filter(|o| camera.in_frustum(&o.aabb())) {
+            for object in geometries
+                .into_iter()
+                .filter(|o| camera.in_frustum(&o.aabb()))
+            {
                 object.render_with_material(material, camera, lights);
             }
         });
@@ -386,7 +390,7 @@ pub fn pick<'b>(
     context: &Context,
     camera: &Camera,
     pixel: (f32, f32),
-    geometries: impl Iterator<Item = &'b dyn Geometry>,
+    geometries: impl IntoIterator<Item = &'b dyn Geometry>,
 ) -> Option<Vec3> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
@@ -408,7 +412,7 @@ pub fn ray_intersect<'b>(
     position: Vec3,
     direction: Vec3,
     max_depth: f32,
-    geometries: impl Iterator<Item = &'b dyn Geometry>,
+    geometries: impl IntoIterator<Item = &'b dyn Geometry>,
 ) -> Option<Vec3> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);

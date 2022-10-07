@@ -23,13 +23,14 @@ impl Imposters {
     pub fn new<'a>(
         context: &Context,
         positions: &[Vec3],
-        objects: impl Iterator<Item = &'a dyn Object> + Clone,
+        objects: impl IntoIterator<Item = &'a dyn Object> + Clone,
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) -> Self {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         objects
             .clone()
+            .into_iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
         let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)));
         sprites.set_transformation(get_sprite_transform(aabb));
@@ -37,13 +38,6 @@ impl Imposters {
             sprites,
             material: ImpostersMaterial::new(context, aabb, objects, lights, max_texture_size),
         }
-    }
-
-    ///
-    /// Returns an iterator over a reference to the object which can be used as input to a render function, for example [RenderTarget::render].
-    ///
-    pub fn objects(&self) -> impl Iterator<Item = &dyn Object> + Clone {
-        std::iter::once(self as &dyn Object)
     }
 
     ///
@@ -66,13 +60,14 @@ impl Imposters {
     ///
     pub fn update_texture<'a>(
         &mut self,
-        objects: impl Iterator<Item = &'a dyn Object> + Clone,
+        objects: impl IntoIterator<Item = &'a dyn Object> + Clone,
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         objects
             .clone()
+            .into_iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
         self.sprites.set_transformation(get_sprite_transform(aabb));
         self.material
@@ -89,6 +84,15 @@ fn get_sprite_transform(aabb: AxisAlignedBoundingBox) -> Mat4 {
         let height = max.y - min.y;
         let center = 0.5 * min + 0.5 * max;
         Mat4::from_translation(center) * Mat4::from_nonuniform_scale(0.5 * width, 0.5 * height, 0.0)
+    }
+}
+
+impl<'a> IntoIterator for &'a Imposters {
+    type Item = &'a dyn Object;
+    type IntoIter = std::iter::Once<&'a dyn Object>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
     }
 }
 
@@ -126,7 +130,7 @@ impl ImpostersMaterial {
     pub fn new<'a>(
         context: &Context,
         aabb: AxisAlignedBoundingBox,
-        objects: impl Iterator<Item = &'a dyn Object> + Clone,
+        objects: impl IntoIterator<Item = &'a dyn Object> + Clone,
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) -> Self {
@@ -150,7 +154,7 @@ impl ImpostersMaterial {
     pub fn update<'a>(
         &mut self,
         aabb: AxisAlignedBoundingBox,
-        objects: impl Iterator<Item = &'a dyn Object> + Clone,
+        objects: impl IntoIterator<Item = &'a dyn Object> + Clone,
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) {

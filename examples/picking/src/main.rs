@@ -90,7 +90,7 @@ pub async fn run() {
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
                 .render(
                     &camera,
-                    monkey.objects().chain(pick_mesh.objects()),
+                    monkey.into_iter().chain(&pick_mesh),
                     &[&ambient, &directional],
                 );
         }

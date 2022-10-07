@@ -94,7 +94,7 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
-            .render(&camera, skybox.objects().chain(model.objects()), &[&light])
+            .render(&camera, skybox.into_iter().chain(&model), &[&light])
             .write(|| gui.render(frame_input.viewport));
 
         FrameOutput::default()

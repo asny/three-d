@@ -91,10 +91,7 @@ pub async fn run() {
                 .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
                 .render(
                     &camera,
-                    model
-                        .objects()
-                        .chain(vertices.objects())
-                        .chain(edges.objects()),
+                    model.into_iter().chain(&vertices).chain(&edges),
                     &[&ambient, &directional0, &directional1],
                 );
         }

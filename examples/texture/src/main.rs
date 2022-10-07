@@ -80,10 +80,7 @@ pub async fn run() {
         if redraw {
             frame_input.screen().clear(ClearState::default()).render(
                 &camera,
-                penguin
-                    .objects()
-                    .chain(box_object.objects())
-                    .chain(skybox.objects()),
+                penguin.into_iter().chain(&box_object).chain(&skybox),
                 &[&ambient, &directional],
             );
         }
