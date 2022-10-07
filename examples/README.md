@@ -97,6 +97,10 @@ This is the recomended starting point for a gentle introduction to `three-d`.
 
 ![Fog example](https://asny.github.io/three-d/0.14/fog.png)
 
+## Terrain [[code](https://github.com/asny/three-d/tree/master/examples/terrain/src/main.rs)] [[demo](https://asny.github.io/three-d/0.14/terrain.html)]
+
+![Terrain example](https://asny.github.io/three-d/0.14/terrain.png)
+
 ## Fireworks [[code](https://github.com/asny/three-d/tree/master/examples/fireworks/src/main.rs)] [[demo](https://asny.github.io/three-d/0.14/fireworks.html)]
 
 ![Fireworks example](https://asny.github.io/three-d/0.14/fireworks.png)
