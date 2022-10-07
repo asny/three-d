@@ -52,11 +52,12 @@ void main()
                                   sin_angle * wind_direction.x + cos_angle * wind_direction.y));
         
         float wavelength = mix(minWavelength, maxWavelength, wavelength_var[i]);
-        float frequency = 2.0 * pi / wavelength;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
         float amplitude = mix(minAmplitude, maxAmplitude, amplitude_var[i]);
-        float steepness = wavelength_var[i]/(frequency * amplitude * float(noWaves));
-        float phase = speed * frequency;
         
+        float frequency = wavelength > 0.001 ? 2.0 * pi / wavelength : 0.0;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
+        float steepness = amplitude > 0.001 && frequency > 0.001 ? wavelength_var[i]/(frequency * amplitude * float(noWaves)) : 0.0;
+        
+        float phase = speed * frequency;
         float theta = dot(dir, pos.xz);
         float a = theta * frequency + time * phase;
         float sin_a = sin(a);
