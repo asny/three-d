@@ -154,8 +154,6 @@ pub async fn run() {
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
         let p = vec2(camera.position().x, camera.position().z);
-        dbg!(&p);
-        dbg!(camera.view_direction());
         let y_new = terrain.height_at(p) + 3.0;
         let target = vec3(
             camera.target().x,
