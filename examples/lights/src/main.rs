@@ -122,7 +122,7 @@ pub async fn run() {
             .render(
                 &camera,
                 lights.iter().map(|l| l.object()).chain(model.obj_iter()),
-                lights.iter().map(|l| l.light()),
+                &lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
             )
             .write(|| {
                 gui.render(frame_input.viewport);

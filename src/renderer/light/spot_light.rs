@@ -49,13 +49,6 @@ impl SpotLight {
     }
 
     ///
-    /// Returns an iterator over a reference to the light which can be used as input to a render function, for example [RenderTarget::render].
-    ///
-    pub fn iter(&self) -> impl Iterator<Item = &dyn Light> + Clone {
-        std::iter::once(self as &dyn Light)
-    }
-
-    ///
     /// Clear the shadow map, effectively disable the shadow.
     /// Only necessary if you want to disable the shadow, if you want to update the shadow, just use [SpotLight::generate_shadow_map].
     ///

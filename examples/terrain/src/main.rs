@@ -193,7 +193,7 @@ pub async fn run() {
             .render(
                 &camera,
                 skybox.obj_iter().chain(terrain.obj_iter()),
-                light.iter(),
+                &[&light],
             );
         }
         frame_input
@@ -218,7 +218,7 @@ pub async fn run() {
                 },
                 &camera,
                 water.geo_iter(),
-                light.iter(),
+                &[&light],
             )
             .write(|| {
                 gui.render(frame_input.viewport);

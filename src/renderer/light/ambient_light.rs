@@ -37,13 +37,6 @@ impl AmbientLight {
             environment: Some(Environment::new(context, environment_map)),
         }
     }
-
-    ///
-    /// Returns an iterator over a reference to the light which can be used as input to a render function, for example [RenderTarget::render].
-    ///
-    pub fn iter(&self) -> impl Iterator<Item = &dyn Light> + Clone {
-        std::iter::once(self as &dyn Light)
-    }
 }
 
 impl Light for AmbientLight {

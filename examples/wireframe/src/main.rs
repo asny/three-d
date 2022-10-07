@@ -76,10 +76,8 @@ pub async fn run() {
     );
 
     let ambient = AmbientLight::new(&context, 0.7, Color::WHITE);
-    let directional = vec![
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)),
-        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)),
-    ];
+    let directional0 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
+    let directional1 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0));
 
     // main loop
     window.render_loop(move |mut frame_input| {
@@ -97,9 +95,7 @@ pub async fn run() {
                         .obj_iter()
                         .chain(vertices.obj_iter())
                         .chain(edges.obj_iter()),
-                    ambient
-                        .iter()
-                        .chain(directional.iter().map(|l| l as &dyn Light)),
+                    &[&ambient, &directional0, &directional1],
                 );
         }
 

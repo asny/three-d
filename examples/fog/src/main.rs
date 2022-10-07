@@ -82,7 +82,7 @@ pub async fn run() {
                         &DepthMaterial::default(),
                         &camera,
                         monkey.geo_iter(),
-                        std::iter::empty(),
+                        &[],
                     );
             });
         }
@@ -90,11 +90,7 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::default())
-            .render(
-                &camera,
-                monkey.obj_iter(),
-                ambient.iter().chain(directional.iter()),
-            )
+            .render(&camera, monkey.obj_iter(), &[&ambient, &directional])
             .write(|| {
                 if fog_enabled {
                     if let Some(ref depth_texture) = depth_texture {

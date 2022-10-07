@@ -84,7 +84,7 @@ pub async fn run() {
                     .obj_iter()
                     .chain(box_object.obj_iter())
                     .chain(skybox.obj_iter()),
-                ambient.iter().chain(directional.iter()),
+                &[&ambient, &directional],
             );
         }
 
