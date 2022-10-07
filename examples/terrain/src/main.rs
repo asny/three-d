@@ -115,6 +115,7 @@ pub async fn run() {
     let mut height = 0.0;
     // main loop
     window.render_loop(move |mut frame_input| {
+        let mut parameter_change = frame_input.first_frame;
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
         change |= gui.update(
@@ -127,25 +128,39 @@ pub async fn run() {
                     ui.add(Slider::new(&mut height, -5.0..=5.0).text("height"));
 
                     ui.label("Wave parameters");
-                    ui.add(Slider::new(&mut wavelength, 0.0..=10.0).text("Wavelength"));
-                    ui.add(
-                        Slider::new(&mut wavelength_variation, 0.0..=5.0)
-                            .text("Wavelength variation"),
-                    );
-                    ui.add(Slider::new(&mut amplitude, 0.0..=0.2).text("Amplitude"));
-                    ui.add(
-                        Slider::new(&mut amplitude_variation, 0.0..=0.1)
-                            .text("Amplitude variation"),
-                    );
-                    ui.add(Slider::new(&mut speed, 0.0..=5.0).text("Speed"));
-                    ui.add(
-                        Slider::new(&mut direction_variation, 0.0..=std::f32::consts::PI)
-                            .text("Direction variation"),
-                    );
+                    parameter_change |= ui
+                        .add(Slider::new(&mut wavelength, 0.0..=10.0).text("Wavelength"))
+                        .changed();
+                    parameter_change |= ui
+                        .add(
+                            Slider::new(&mut wavelength_variation, 0.0..=5.0)
+                                .text("Wavelength variation"),
+                        )
+                        .changed();
+                    parameter_change |= ui
+                        .add(Slider::new(&mut amplitude, 0.0..=0.2).text("Amplitude"))
+                        .changed();
+                    parameter_change |= ui
+                        .add(
+                            Slider::new(&mut amplitude_variation, 0.0..=0.1)
+                                .text("Amplitude variation"),
+                        )
+                        .changed();
+                    parameter_change |= ui
+                        .add(Slider::new(&mut speed, 0.0..=5.0).text("Speed"))
+                        .changed();
+                    parameter_change |= ui
+                        .add(
+                            Slider::new(&mut direction_variation, 0.0..=std::f32::consts::PI)
+                                .text("Direction variation"),
+                        )
+                        .changed();
                 });
             },
         );
-        if change {
+        change |= control.handle_events(&mut camera, &mut frame_input.events);
+
+        if parameter_change {
             let mut parameters = [WaveParameters {
                 speed,
                 ..Default::default()
@@ -171,10 +186,8 @@ pub async fn run() {
                     parameters[i].amplitude = amplitude + amplitude_variation * (2.0 * x - 1.0);
                 });
             water.set_parameters(parameters);
-            water.set_height(height);
         }
-
-        change |= control.handle_events(&mut camera, &mut frame_input.events);
+        water.set_height(height);
 
         let p = vec2(camera.position().x, camera.position().z);
         let y_new = terrain.height_at(p) + 3.0;
