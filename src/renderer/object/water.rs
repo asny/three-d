@@ -33,15 +33,19 @@ pub struct Water<M: Material> {
 }
 impl<M: Material + Clone> Water<M> {
     ///
-    /// Constructs a new [Water] object.
+    /// Constructs a new [Water] object at the given height.
+    ///
+    /// The `center` is the center of the visualized water surface, which can be updated using [Self::set_center] to simualte an infinite water surface.
+    /// The `side_length` is the length of one side of the visualized water surface.
+    /// The `vertex_distance` is the distance between vertices.
     ///
     pub fn new(
         context: &Context,
         material: M,
+        height: f32,
+        center: Vec2,
         side_length: f32,
         vertex_distance: f32,
-        center: Vec2,
-        height: f32,
         parameters: WaveParameters,
     ) -> Self {
         let patch_size = vertex_distance * (VERTICES_PER_SIDE - 1) as f32;

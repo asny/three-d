@@ -78,10 +78,10 @@ pub async fn run() {
     let mut water = Water::new(
         &context,
         NormalMaterial::default(),
+        0.0,
+        vec2(0.0, 0.0),
         512.0,
         0.3,
-        vec2(0.0, 0.0),
-        0.0,
         WaveParameters::default(),
     );
 
