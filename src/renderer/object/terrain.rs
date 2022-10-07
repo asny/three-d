@@ -1,6 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::rc::Rc;
+use std::sync::Arc;
 
 /// Specifies the Level of Detail (LOD) for a geometry.
 pub enum Lod {
@@ -21,12 +21,12 @@ pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
     patches: Vec<Gm<TerrainPatch, M>>,
-    index_buffer1: Rc<ElementBuffer>,
-    index_buffer4: Rc<ElementBuffer>,
-    index_buffer16: Rc<ElementBuffer>,
+    index_buffer1: Arc<ElementBuffer>,
+    index_buffer4: Arc<ElementBuffer>,
+    index_buffer16: Arc<ElementBuffer>,
     material: M,
-    lod: Box<dyn Fn(f32) -> Lod>,
-    height_map: Box<dyn Fn(f32, f32) -> f32>,
+    lod: Arc<dyn Fn(f32) -> Lod + Send + Sync>,
+    height_map: Arc<dyn Fn(f32, f32) -> f32 + Send + Sync>,
     side_length: f32,
     vertex_distance: f32,
 }
@@ -38,7 +38,7 @@ impl<M: Material + Clone> Terrain<M> {
     pub fn new(
         context: &Context,
         material: M,
-        height_map: Box<dyn Fn(f32, f32) -> f32>,
+        height_map: Arc<dyn Fn(f32, f32) -> f32 + Send + Sync>,
         side_length: f32,
         vertex_distance: f32,
         center: Vec2,
@@ -51,7 +51,7 @@ impl<M: Material + Clone> Terrain<M> {
             for iy in y0 - half_patches_per_side..y0 + half_patches_per_side + 1 {
                 let patch = TerrainPatch::new(
                     context,
-                    &height_map,
+                    &*height_map.clone(),
                     (ix, iy),
                     index_buffer1.clone(),
                     vertex_distance,
@@ -66,7 +66,7 @@ impl<M: Material + Clone> Terrain<M> {
             index_buffer1,
             index_buffer4: Self::indices(context, 4),
             index_buffer16: Self::indices(context, 16),
-            lod: Box::new(|_| Lod::High),
+            lod: Arc::new(|_| Lod::High),
             material: material.clone(),
             height_map,
             side_length,
@@ -85,7 +85,7 @@ impl<M: Material + Clone> Terrain<M> {
     /// Set the function that specifies when a certain level of detail [Lod] is uses.
     /// The input to the function is the distance from the current camera to the center of a part of the terrain.
     ///
-    pub fn set_lod(&mut self, lod: Box<dyn Fn(f32) -> Lod>) {
+    pub fn set_lod(&mut self, lod: Arc<dyn Fn(f32) -> Lod + Send + Sync>) {
         self.lod = lod;
     }
 
@@ -105,7 +105,7 @@ impl<M: Material + Clone> Terrain<M> {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
-                        &self.height_map,
+                        &*self.height_map.clone(),
                         (self.center.0 + half_patches_per_side, iy),
                         self.index_buffer1.clone(),
                         self.vertex_distance,
@@ -123,7 +123,7 @@ impl<M: Material + Clone> Terrain<M> {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
-                        &self.height_map,
+                        &*self.height_map.clone(),
                         (self.center.0 - half_patches_per_side, iy),
                         self.index_buffer1.clone(),
                         self.vertex_distance,
@@ -140,7 +140,7 @@ impl<M: Material + Clone> Terrain<M> {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
-                        &self.height_map,
+                        &*self.height_map.clone(),
                         (ix, self.center.1 + half_patches_per_side),
                         self.index_buffer1.clone(),
                         self.vertex_distance,
@@ -158,7 +158,7 @@ impl<M: Material + Clone> Terrain<M> {
                 self.patches.push(Gm::new(
                     TerrainPatch::new(
                         &self.context,
-                        &self.height_map,
+                        &*self.height_map.clone(),
                         (ix, self.center.1 - half_patches_per_side),
                         self.index_buffer1.clone(),
                         self.vertex_distance,
@@ -183,7 +183,7 @@ impl<M: Material + Clone> Terrain<M> {
         })
     }
 
-    fn indices(context: &Context, resolution: u32) -> Rc<ElementBuffer> {
+    fn indices(context: &Context, resolution: u32) -> Arc<ElementBuffer> {
         let mut indices: Vec<u32> = Vec::new();
         let stride = VERTICES_PER_SIDE as u32;
         let max = (stride - 1) / resolution;
@@ -197,7 +197,7 @@ impl<M: Material + Clone> Terrain<M> {
                 indices.push(r * resolution + resolution + (c * resolution + resolution) * stride);
             }
         }
-        Rc::new(ElementBuffer::new_with_data(context, &indices))
+        Arc::new(ElementBuffer::new_with_data(context, &indices))
     }
 
     ///
@@ -240,20 +240,20 @@ struct TerrainPatch {
     normals_buffer: VertexBuffer,
     center: Vec2,
     aabb: AxisAlignedBoundingBox,
-    pub index_buffer: Rc<ElementBuffer>,
+    pub index_buffer: Arc<ElementBuffer>,
 }
 
 impl TerrainPatch {
     pub fn new(
         context: &Context,
-        height_map: &impl Fn(f32, f32) -> f32,
+        height_map: impl Fn(f32, f32) -> f32 + Clone,
         index: (i32, i32),
-        index_buffer: Rc<ElementBuffer>,
+        index_buffer: Arc<ElementBuffer>,
         vertex_distance: f32,
     ) -> Self {
         let patch_size = patch_size(vertex_distance);
         let offset = vec2(index.0 as f32 * patch_size, index.1 as f32 * patch_size);
-        let positions = Self::positions(height_map, offset, vertex_distance);
+        let positions = Self::positions(height_map.clone(), offset, vertex_distance);
         let aabb = AxisAlignedBoundingBox::new_with_positions(&positions);
         let normals = Self::normals(height_map, offset, &positions, vertex_distance);
 
@@ -279,7 +279,7 @@ impl TerrainPatch {
     }
 
     fn positions(
-        height_map: &impl Fn(f32, f32) -> f32,
+        height_map: impl Fn(f32, f32) -> f32,
         offset: Vec2,
         vertex_distance: f32,
     ) -> Vec<Vec3> {
@@ -296,7 +296,7 @@ impl TerrainPatch {
     }
 
     fn normals(
-        height_map: &impl Fn(f32, f32) -> f32,
+        height_map: impl Fn(f32, f32) -> f32,
         offset: Vec2,
         positions: &Vec<Vec3>,
         vertex_distance: f32,

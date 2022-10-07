@@ -1,6 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::rc::Rc;
+use std::sync::Arc;
 
 const VERTICES_PER_SIDE: usize = 33;
 
@@ -110,7 +110,7 @@ impl<M: Material + Clone> Water<M> {
         self.patches.iter().map(|m| m as &dyn Geometry)
     }
 
-    fn indices(context: &Context) -> Rc<ElementBuffer> {
+    fn indices(context: &Context) -> Arc<ElementBuffer> {
         let mut indices: Vec<u32> = Vec::new();
         let stride = VERTICES_PER_SIDE as u32;
         let max = stride - 1;
@@ -124,10 +124,10 @@ impl<M: Material + Clone> Water<M> {
                 indices.push(r + 1 + (c + 1) * stride);
             }
         }
-        Rc::new(ElementBuffer::new_with_data(context, &indices))
+        Arc::new(ElementBuffer::new_with_data(context, &indices))
     }
 
-    fn positions(context: &Context, vertex_distance: f32) -> Rc<VertexBuffer> {
+    fn positions(context: &Context, vertex_distance: f32) -> Arc<VertexBuffer> {
         let mut data = vec![vec3(0.0, 0.0, 0.0); (VERTICES_PER_SIDE * VERTICES_PER_SIDE) as usize];
         for r in 0..VERTICES_PER_SIDE {
             for c in 0..VERTICES_PER_SIDE {
@@ -137,7 +137,7 @@ impl<M: Material + Clone> Water<M> {
                 data[vertex_id as usize] = vec3(x, 0.0, z);
             }
         }
-        Rc::new(VertexBuffer::new_with_data(context, &data))
+        Arc::new(VertexBuffer::new_with_data(context, &data))
     }
 }
 
@@ -148,8 +148,8 @@ struct WaterPatch {
     parameters: WaterParameters,
     offset: Vec2,
     size: Vec2,
-    position_buffer: Rc<VertexBuffer>,
-    index_buffer: Rc<ElementBuffer>,
+    position_buffer: Arc<VertexBuffer>,
+    index_buffer: Arc<ElementBuffer>,
 }
 
 impl WaterPatch {
@@ -159,8 +159,8 @@ impl WaterPatch {
         parameters: WaterParameters,
         offset: Vec2,
         size: Vec2,
-        position_buffer: Rc<VertexBuffer>,
-        index_buffer: Rc<ElementBuffer>,
+        position_buffer: Arc<VertexBuffer>,
+        index_buffer: Arc<ElementBuffer>,
     ) -> Self {
         Self {
             context: context.clone(),
