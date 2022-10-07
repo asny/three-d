@@ -32,6 +32,7 @@ impl Default for WaveParameters {
 ///
 pub struct Water<M: Material> {
     patches: Vec<Gm<WaterPatch, M>>,
+    vertex_distance: f32,
 }
 impl<M: Material + Clone> Water<M> {
     ///
@@ -64,7 +65,6 @@ impl<M: Material + Clone> Water<M> {
                 );
                 let patch = WaterPatch::new(
                     context,
-                    vec3(center.x, height, center.y),
                     offset,
                     vec2(patch_size, patch_size),
                     position_buffer.clone(),
@@ -74,8 +74,13 @@ impl<M: Material + Clone> Water<M> {
             }
         }
 
-        let mut s = Self { patches };
+        let mut s = Self {
+            patches,
+            vertex_distance,
+        };
         s.set_parameters(parameters);
+        s.set_center(center);
+        s.set_height(height);
         s
     }
 
@@ -84,9 +89,11 @@ impl<M: Material + Clone> Water<M> {
     /// To be able to move the water with the camera, thereby simulating infinite water.
     ///
     pub fn set_center(&mut self, center: Vec2) {
-        self.patches.iter_mut().for_each(|m| {
-            m.center.x = center.x;
-            m.center.z = center.y;
+        let x = (center.x / self.vertex_distance).floor() * self.vertex_distance;
+        let z = (center.y / self.vertex_distance).floor() * self.vertex_distance;
+        self.patches.iter_mut().for_each(|p| {
+            p.center.x = x;
+            p.center.z = z;
         });
     }
 
@@ -94,7 +101,7 @@ impl<M: Material + Clone> Water<M> {
     /// Set the average height of the water.
     ///
     pub fn set_height(&mut self, height: f32) {
-        self.patches.iter_mut().for_each(|m| m.center.y = height);
+        self.patches.iter_mut().for_each(|p| p.center.y = height);
     }
 
     ///
@@ -177,7 +184,6 @@ struct WaterPatch {
 impl WaterPatch {
     pub fn new(
         context: &Context,
-        center: Vec3,
         offset: Vec2,
         size: Vec2,
         position_buffer: Arc<VertexBuffer>,
@@ -186,7 +192,7 @@ impl WaterPatch {
         Self {
             context: context.clone(),
             time: 0.0,
-            center,
+            center: vec3(0.0, 0.0, 0.0),
             parameters: [WaveParameters::default(); MAX_WAVE_COUNT],
             offset,
             size,
