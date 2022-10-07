@@ -55,16 +55,16 @@ pub use object::*;
 pub mod control;
 pub use control::*;
 
-impl<'a> DepthTarget<'a> {
+impl DepthTarget<'_> {
     ///
     /// Render the objects using the given camera and lights into this depth target.
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render<'b>(
+    pub fn render(
         &self,
         camera: &Camera,
-        objects: impl IntoIterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = impl Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -75,11 +75,11 @@ impl<'a> DepthTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_partially<'b>(
+    pub fn render_partially(
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl IntoIterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = impl Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target()
@@ -133,16 +133,16 @@ impl<'a> DepthTarget<'a> {
     }
 }
 
-impl<'a> ColorTarget<'a> {
+impl ColorTarget<'_> {
     ///
     /// Render the objects using the given camera and lights into this color target.
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render<'b>(
+    pub fn render(
         &self,
         camera: &Camera,
-        objects: impl IntoIterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = impl Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -153,11 +153,11 @@ impl<'a> ColorTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_partially<'b>(
+    pub fn render_partially(
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl IntoIterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = impl Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.as_render_target()
@@ -211,16 +211,16 @@ impl<'a> ColorTarget<'a> {
     }
 }
 
-impl<'a> RenderTarget<'a> {
+impl RenderTarget<'_> {
     ///
     /// Render the objects using the given camera and lights into this render target.
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render<'b>(
+    pub fn render(
         &self,
         camera: &Camera,
-        objects: impl IntoIterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = impl Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         self.render_partially(self.scissor_box(), camera, objects, lights)
@@ -231,11 +231,11 @@ impl<'a> RenderTarget<'a> {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
     ///
-    pub fn render_partially<'b>(
+    pub fn render_partially(
         &self,
         scissor_box: ScissorBox,
         camera: &Camera,
-        objects: impl IntoIterator<Item = &'b dyn Object>,
+        objects: impl IntoIterator<Item = impl Object>,
         lights: &[&dyn Light],
     ) -> &Self {
         let (mut deferred_objects, mut forward_objects): (Vec<_>, Vec<_>) = objects
