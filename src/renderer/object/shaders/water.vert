@@ -4,7 +4,7 @@ uniform float time;
 
 uniform float wavelengths[4];
 uniform float amplitudes[4];
-uniform float speed;
+uniform float speed[4];
 const float wind_variation = 0.1;
 const vec2 wind_direction = vec2(1.0, 0.0);
 
@@ -43,7 +43,7 @@ void main()
         float frequency = wavelength > 0.001 ? 2.0 * pi / wavelength : 0.0;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
         float steepness = amplitude > 0.001 && frequency > 0.001 ? wavelength / (frequency * amplitude * float(noWaves)) : 0.0;
         
-        float phase = speed * frequency;
+        float phase = speed[i] * frequency;
         float theta = dot(dir, pos.xz);
         float a = theta * frequency + time * phase;
         float sin_a = sin(a);
