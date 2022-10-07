@@ -23,7 +23,7 @@ impl Imposters {
     pub fn new<'a>(
         context: &Context,
         positions: &[Vec3],
-        objects: impl IntoIterator<Item = &'a dyn Object> + Clone,
+        objects: impl IntoIterator<Item = impl Object> + Clone,
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) -> Self {
@@ -53,7 +53,7 @@ impl Imposters {
     ///
     pub fn update_texture<'a>(
         &mut self,
-        objects: impl IntoIterator<Item = &'a dyn Object> + Clone,
+        objects: impl IntoIterator<Item = impl Object> + Clone,
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) {
@@ -123,7 +123,7 @@ impl ImpostersMaterial {
     pub fn new<'a>(
         context: &Context,
         aabb: AxisAlignedBoundingBox,
-        objects: impl IntoIterator<Item = &'a dyn Object> + Clone,
+        objects: impl IntoIterator<Item = impl Object> + Clone,
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) -> Self {
@@ -147,7 +147,7 @@ impl ImpostersMaterial {
     pub fn update<'a>(
         &mut self,
         aabb: AxisAlignedBoundingBox,
-        objects: impl IntoIterator<Item = &'a dyn Object> + Clone,
+        objects: impl IntoIterator<Item = impl Object> + Clone,
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) {
