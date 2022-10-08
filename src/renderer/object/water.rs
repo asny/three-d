@@ -13,6 +13,7 @@ pub struct WaveParameters {
     pub amplitude: f32,
     /// The speed at which the waves move.
     pub speed: f32,
+    pub steepness: f32,
     pub direction: Vec2,
 }
 
@@ -22,6 +23,7 @@ impl Default for WaveParameters {
             wavelength: 1.0,
             amplitude: 0.0,
             speed: 1.0,
+            steepness: 0.0,
             direction: vec2(1.0, 0.0),
         }
     }
@@ -236,6 +238,14 @@ impl Geometry for WaterPatch {
                             .parameters
                             .iter()
                             .map(|p| p.amplitude)
+                            .collect::<Vec<_>>(),
+                    );
+                    program.use_uniform_array(
+                        "steepnesses",
+                        &self
+                            .parameters
+                            .iter()
+                            .map(|p| p.steepness)
                             .collect::<Vec<_>>(),
                     );
                     program.use_uniform_array(

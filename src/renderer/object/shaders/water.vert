@@ -4,6 +4,7 @@ uniform float time;
 
 uniform float wavelengths[4];
 uniform float amplitudes[4];
+uniform float steepnesses[4];
 uniform float speeds[4];
 uniform vec2 directions[4];
 
@@ -32,7 +33,7 @@ void main()
             vec2 dir = directions[i];
             
             float frequency = 2.0 * pi / wavelength;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
-            float steepness = wavelength / (frequency * amplitude * float(noWaves));
+            float steepness = steepnesses[i];
             float phase = speeds[i] * frequency;
             float theta = dot(dir, pos.xz);
             float a = theta * frequency + time * phase;
