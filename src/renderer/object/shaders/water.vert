@@ -34,9 +34,9 @@ void main()
             
             float frequency = 2.0 * pi / wavelength;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
             float steepness = steepnesses[i];
-            float phase = speeds[i] * frequency;
+            float phase = time * speeds[i];
             float theta = dot(dir, pos.xz);
-            float a = theta * frequency + time * phase;
+            float a = theta * frequency + phase;
             float sin_a = sin(a);
             float cos_a = cos(a);
             
