@@ -109,6 +109,8 @@ pub async fn run() {
     let mut wavelength_variation = 0.5;
     let mut amplitude = 0.01;
     let mut amplitude_variation = 0.005;
+    let mut steepness = 5.0;
+    let mut steepness_variation = 2.0;
     let direction = vec2(1.0, 0.0);
     let mut direction_variation = 0.1;
     let mut speed = 0.5;
@@ -144,6 +146,15 @@ pub async fn run() {
                         .add(
                             Slider::new(&mut amplitude_variation, 0.0..=0.1)
                                 .text("Amplitude variation"),
+                        )
+                        .changed();
+                    parameter_change |= ui
+                        .add(Slider::new(&mut steepness, 0.0..=10.0).text("Steepness"))
+                        .changed();
+                    parameter_change |= ui
+                        .add(
+                            Slider::new(&mut steepness_variation, 0.0..=5.0)
+                                .text("Steepness variation"),
                         )
                         .changed();
                     parameter_change |= ui
@@ -184,6 +195,7 @@ pub async fn run() {
                 .for_each(|(i, x)| {
                     parameters[i].wavelength = wavelength + wavelength_variation * (2.0 * x - 1.0);
                     parameters[i].amplitude = amplitude + amplitude_variation * (2.0 * x - 1.0);
+                    parameters[i].steepness = steepness + steepness_variation * (2.0 * x - 1.0);
                 });
             water.set_parameters(parameters);
         }
