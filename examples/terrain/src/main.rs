@@ -109,11 +109,11 @@ pub async fn run() {
     let mut wavelength_variation = 0.5;
     let mut amplitude = 0.01;
     let mut amplitude_variation = 0.005;
-    let mut steepness = 5.0;
-    let mut steepness_variation = 2.0;
+    let mut steepness = 2.0;
+    let mut steepness_variation = 1.0;
     let direction = vec2(1.0, 0.0);
     let mut direction_variation = 0.1;
-    let mut speed = 0.5;
+    let mut speed = 3.0;
     let mut height = 0.0;
     // main loop
     window.render_loop(move |mut frame_input| {
@@ -158,7 +158,7 @@ pub async fn run() {
                         )
                         .changed();
                     parameter_change |= ui
-                        .add(Slider::new(&mut speed, 0.0..=5.0).text("Speed"))
+                        .add(Slider::new(&mut speed, 0.0..=20.0).text("Speed"))
                         .changed();
                     parameter_change |= ui
                         .add(
