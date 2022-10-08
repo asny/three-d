@@ -31,12 +31,12 @@ void main()
         if(wavelength > 0.001 && amplitude > 0.001) {
 
             vec2 dir = directions[i];
+            float speed = speeds[i];
+            float steepness = steepnesses[i];
             
             float frequency = 2.0 * pi / wavelength;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
-            float steepness = steepnesses[i];
-            float phase = time * speeds[i];
             float theta = dot(dir, pos.xz);
-            float a = theta * frequency + phase;
+            float a = theta * frequency + time * speed;
             float sin_a = sin(a);
             float cos_a = cos(a);
             
