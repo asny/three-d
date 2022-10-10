@@ -3,6 +3,7 @@ use crate::renderer::*;
 use std::sync::Arc;
 
 const VERTICES_PER_SIDE: usize = 33;
+/// The maximum number of waves.
 pub const MAX_WAVE_COUNT: usize = 4;
 
 #[derive(Clone, Copy, Debug)]
@@ -13,7 +14,9 @@ pub struct WaveParameters {
     pub amplitude: f32,
     /// The speed at which the waves move.
     pub speed: f32,
+    /// The steepness of the wave, which specifies how pointy the wave top will be.
     pub steepness: f32,
+    /// The direction of the wave.
     pub direction: Vec2,
 }
 
