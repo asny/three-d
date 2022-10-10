@@ -2,10 +2,7 @@ uniform vec3 offset;
 uniform mat4 viewProjection;
 uniform float time;
 
-uniform float wavelengths[4];
-uniform float amplitudes[4];
-uniform float steepnesses[4];
-uniform float speeds[4];
+uniform vec4 waveParameters[4];
 uniform vec2 directions[4];
 
 const int noWaves = 4;
@@ -25,14 +22,15 @@ void main()
     // Offset position
     for (int i = 0; i < noWaves; ++i)
     {
-        float wavelength = wavelengths[i];
-        float amplitude = amplitudes[i];
+        vec4 parameters = waveParameters[i];
+        float wavelength = parameters.x;
+        float amplitude = parameters.y;
 
         if(wavelength > 0.001 && amplitude > 0.001) {
 
             vec2 dir = directions[i];
-            float speed = speeds[i];
-            float steepness = steepnesses[i];
+            float steepness = parameters.z;
+            float speed = parameters.w;
             
             float frequency = 2.0 * pi / wavelength;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
             float theta = dot(dir, pos.xz);

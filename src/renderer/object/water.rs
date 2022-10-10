@@ -228,32 +228,12 @@ impl Geometry for WaterPatch {
                     program.use_uniform("viewProjection", camera.projection() * camera.view());
                     program.use_uniform("time", &(self.time as f32 * 0.001));
                     program.use_uniform_array(
-                        "wavelengths",
+                        "waveParameters",
                         &self
                             .parameters
                             .iter()
-                            .map(|p| p.wavelength)
+                            .map(|p| vec4(p.wavelength, p.amplitude, p.steepness, p.speed))
                             .collect::<Vec<_>>(),
-                    );
-                    program.use_uniform_array(
-                        "amplitudes",
-                        &self
-                            .parameters
-                            .iter()
-                            .map(|p| p.amplitude)
-                            .collect::<Vec<_>>(),
-                    );
-                    program.use_uniform_array(
-                        "steepnesses",
-                        &self
-                            .parameters
-                            .iter()
-                            .map(|p| p.steepness)
-                            .collect::<Vec<_>>(),
-                    );
-                    program.use_uniform_array(
-                        "speeds",
-                        &self.parameters.iter().map(|p| p.speed).collect::<Vec<_>>(),
                     );
                     program.use_uniform_array(
                         "directions",
