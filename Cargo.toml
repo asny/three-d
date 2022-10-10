@@ -41,7 +41,7 @@ web-sys = { version = "0.3", features = ['Document', 'HtmlCollection', 'HtmlCanv
 instant = "0.1.12"
 
 [dev-dependencies]
-rand = "0.8"
+rand = "0.7"
 three-d-asset = {git="https://github.com/asny/three-d-asset", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 noise = {version = "0.6", default-features = false}
