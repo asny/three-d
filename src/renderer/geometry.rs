@@ -260,13 +260,10 @@ fn vertex_buffers_from_mesh(
 }
 
 fn index_buffer_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Option<ElementBuffer> {
-    if let Some(ref indices) = cpu_mesh.indices {
-        Some(match indices {
-            Indices::U8(ind) => ElementBuffer::new_with_data(context, ind),
-            Indices::U16(ind) => ElementBuffer::new_with_data(context, ind),
-            Indices::U32(ind) => ElementBuffer::new_with_data(context, ind),
-        })
-    } else {
-        None
+    match &cpu_mesh.indices {
+        Indices::U8(ind) => Some(ElementBuffer::new_with_data(context, ind)),
+        Indices::U16(ind) => Some(ElementBuffer::new_with_data(context, ind)),
+        Indices::U32(ind) => Some(ElementBuffer::new_with_data(context, ind)),
+        Indices::None(_) => None,
     }
 }
