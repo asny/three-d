@@ -121,7 +121,7 @@ pub async fn run() {
         let mut parameter_change = frame_input.first_frame;
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
-        change |= gui.update(
+        gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
             frame_input.device_pixel_ratio,
@@ -170,6 +170,7 @@ pub async fn run() {
                 });
             },
         );
+        change |= parameter_change;
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
         if parameter_change {
