@@ -39,14 +39,16 @@ void main()
             float a = theta * frequency + time * speed;
             float sin_a = sin(a);
             float cos_a = cos(a);
+            vec2 b = amplitude * cos_a * dir;
+            float c = amplitude * sin_a;
             
-            pos.y += amplitude * sin_a;
-            pos.x += steepness * amplitude * dir.x * cos_a;
-            pos.z += steepness * amplitude * dir.y * cos_a;
+            pos.y += c;
+            pos.x += steepness * b.x;
+            pos.z += steepness * b.y;
             
-            nor.y -= steepness * frequency * amplitude * sin_a;
-            nor.x -= dir.x * frequency * amplitude * cos_a;
-            nor.z -= dir.y * frequency * amplitude * cos_a;
+            nor.y -= steepness * frequency * c;
+            nor.x -= frequency * b.x;
+            nor.z -= frequency * b.y;
         }
     }
     
