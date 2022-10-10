@@ -18,7 +18,7 @@ impl Material for WaterMaterial<'_> {
         format!(
             "{}\n{}",
             lights_shader_source(lights, self.lighting_model),
-            include_str!("shaders/water.frag")
+            include_str!("shaders/water_material.frag")
         )
     }
 
