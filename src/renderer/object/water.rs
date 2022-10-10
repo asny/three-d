@@ -39,10 +39,11 @@ impl Default for WaveParameters {
 /// A water geometry with an applied material.
 ///
 pub struct Water<M: Material> {
-    patches: Vec<Gm<WaterPatch, M>>,
+    patches: Vec<WaterPatch>,
     vertex_distance: f32,
+    material: M,
 }
-impl<M: Material + Clone> Water<M> {
+impl<M: Material> Water<M> {
     ///
     /// Constructs a new [Water] object with the given material and at the given height.
     ///
@@ -71,20 +72,20 @@ impl<M: Material + Clone> Water<M> {
                     (ix as f32) * patch_size - half_side_length,
                     (iy as f32) * patch_size - half_side_length,
                 );
-                let patch = WaterPatch::new(
+                patches.push(WaterPatch::new(
                     context,
                     offset,
                     vec2(patch_size, patch_size),
                     position_buffer.clone(),
                     index_buffer.clone(),
-                );
-                patches.push(Gm::new(patch, material.clone()));
+                ));
             }
         }
 
         let mut s = Self {
             patches,
             vertex_distance,
+            material,
         };
         s.set_parameters(parameters);
         s.set_center(center);
@@ -166,13 +167,13 @@ impl<M: Material + Clone> Water<M> {
 }
 
 impl<'a, M: Material> IntoIterator for &'a Water<M> {
-    type Item = &'a dyn Object;
-    type IntoIter = std::vec::IntoIter<&'a dyn Object>;
+    type Item = Gm<&'a dyn Geometry, &'a M>;
+    type IntoIter = std::vec::IntoIter<Gm<&'a dyn Geometry, &'a M>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.patches
             .iter()
-            .map(|m| m as &dyn Object)
+            .map(|m| Gm::new(m as &dyn Geometry, &self.material))
             .collect::<Vec<_>>()
             .into_iter()
     }

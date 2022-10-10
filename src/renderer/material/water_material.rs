@@ -6,6 +6,7 @@ use crate::renderer::*;
 /// This material needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections/refractions.
 /// Therefore, the material needs to be updated/constructed each frame.
 ///
+#[derive(Clone)]
 pub struct WaterMaterial<'a> {
     /// A reference to the environnment texture of the scene which is used for reflections.
     pub environment_texture: &'a TextureCubeMap,
