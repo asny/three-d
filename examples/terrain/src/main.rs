@@ -106,14 +106,14 @@ pub async fn run() {
     );
     let mut gui = GUI::new(&context);
 
-    let mut wavelength = 1.0;
+    let mut wavelength = 3.0;
     let mut wavelength_variation = 0.5;
-    let mut amplitude = 0.01;
+    let mut amplitude = 0.03;
     let mut amplitude_variation = 0.005;
     let mut steepness = 2.0;
-    let mut steepness_variation = 1.0;
+    let mut steepness_variation = 0.5;
     let direction = vec2(1.0, 0.0);
-    let mut direction_variation = 0.1;
+    let mut direction_variation = 0.125 * std::f32::consts::PI;
     let mut speed = 3.0;
     let mut height = 0.0;
     // main loop
