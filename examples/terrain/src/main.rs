@@ -116,6 +116,8 @@ pub async fn run() {
     let mut direction_variation = 0.125 * std::f32::consts::PI;
     let mut speed = 3.0;
     let mut height = 0.0;
+    let mut metallic = 0.0;
+    let mut roughness = 1.0;
     // main loop
     window.render_loop(move |mut frame_input| {
         let mut parameter_change = frame_input.first_frame;
@@ -128,7 +130,10 @@ pub async fn run() {
             |gui_context| {
                 use three_d::egui::*;
                 egui::Window::new("").vscroll(true).show(gui_context, |ui| {
+                    ui.label("Water parameters");
                     ui.add(Slider::new(&mut height, -5.0..=5.0).text("height"));
+                    ui.add(Slider::new(&mut metallic, 0.0..=1.0).text("metallic"));
+                    ui.add(Slider::new(&mut roughness, 0.0..=1.0).text("roughness"));
 
                     ui.label("Wave parameters");
                     parameter_change |= ui
@@ -266,8 +271,8 @@ pub async fn run() {
                     environment_texture: skybox.texture(),
                     color_texture: &color_texture,
                     depth_texture: &depth_texture,
-                    metallic: 0.0,
-                    roughness: 1.0,
+                    metallic,
+                    roughness,
                     lighting_model: LightingModel::Cook(
                         NormalDistributionFunction::TrowbridgeReitzGGX,
                         GeometryFunction::SmithSchlickGGX,
