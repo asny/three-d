@@ -6,6 +6,7 @@ async fn main() {
 }
 
 use noise::{NoiseFn, SuperSimplex};
+use rand::prelude::*;
 use three_d::*;
 
 pub async fn run() {
@@ -172,11 +173,12 @@ pub async fn run() {
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
         if parameter_change {
+            let mut rng = rand::thread_rng();
             let mut parameters = [WaveParameters {
                 speed,
                 ..Default::default()
             }; 4];
-            [0.821, 0.4572, 0.014, 0.71]
+            rng.gen::<[f32; 4]>()
                 .into_iter()
                 .enumerate()
                 .for_each(|(i, x)| {
@@ -189,12 +191,22 @@ pub async fn run() {
                     )
                     .normalize();
                 });
-            [0.146, 0.335, 0.64632, 0.73134]
+            rng.gen::<[f32; 4]>()
                 .into_iter()
                 .enumerate()
                 .for_each(|(i, x)| {
                     parameters[i].wavelength = wavelength + wavelength_variation * (2.0 * x - 1.0);
+                });
+            rng.gen::<[f32; 4]>()
+                .into_iter()
+                .enumerate()
+                .for_each(|(i, x)| {
                     parameters[i].amplitude = amplitude + amplitude_variation * (2.0 * x - 1.0);
+                });
+            rng.gen::<[f32; 4]>()
+                .into_iter()
+                .enumerate()
+                .for_each(|(i, x)| {
                     parameters[i].steepness = steepness + steepness_variation * (2.0 * x - 1.0);
                 });
             water.set_parameters(parameters);
