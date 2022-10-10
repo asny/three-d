@@ -1,9 +1,17 @@
 use crate::core::*;
 use crate::renderer::*;
 
+///
+/// A material that simulates a water surface.
+/// This material needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections/refractions.
+/// Therefore, the material needs to be updated/constructed each frame.
+///
 pub struct WaterMaterial<'a> {
+    /// A reference to the environnment texture of the scene which is used for reflections.
     pub environment_texture: &'a TextureCubeMap,
+    /// A reference to a color texture that contains a render of the entire scene without the water surface. Used for reflections/refractions.
     pub color_texture: &'a Texture2D,
+    /// A reference to a depth texture that contains a render of the entire scene without the water surface. Used for reflections/refractions.
     pub depth_texture: &'a DepthTargetTexture2D,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,
