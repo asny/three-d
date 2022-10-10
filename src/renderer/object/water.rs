@@ -6,6 +6,9 @@ const VERTICES_PER_SIDE: usize = 33;
 /// The maximum number of waves.
 pub const MAX_WAVE_COUNT: usize = 4;
 
+///
+/// A set of parameters that defines one wave of the water surface.
+///
 #[derive(Clone, Copy, Debug)]
 pub struct WaveParameters {
     /// The distance between each top of the wave.
