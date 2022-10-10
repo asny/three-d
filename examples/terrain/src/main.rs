@@ -112,7 +112,7 @@ pub async fn run() {
     let mut amplitude_variation = 0.005;
     let mut steepness = 2.0;
     let mut steepness_variation = 0.5;
-    let direction = vec2(1.0, 0.0);
+    let mut direction_angle = 0.0;
     let mut direction_variation = 0.125 * std::f32::consts::PI;
     let mut speed = 3.0;
     let mut height = 0.0;
@@ -163,6 +163,12 @@ pub async fn run() {
                         .changed();
                     parameter_change |= ui
                         .add(
+                            Slider::new(&mut direction_angle, 0.0..=2.0 * std::f32::consts::PI)
+                                .text("Direction angle"),
+                        )
+                        .changed();
+                    parameter_change |= ui
+                        .add(
                             Slider::new(&mut direction_variation, 0.0..=std::f32::consts::PI)
                                 .text("Direction variation"),
                         )
@@ -183,14 +189,8 @@ pub async fn run() {
                 .into_iter()
                 .enumerate()
                 .for_each(|(i, x)| {
-                    let dir_angle = direction_variation * (2.0 * x - 1.0);
-                    let cos_angle = dir_angle.cos();
-                    let sin_angle = dir_angle.sin();
-                    parameters[i].direction = vec2(
-                        cos_angle * direction.x - sin_angle * direction.y,
-                        sin_angle * direction.x + cos_angle * direction.y,
-                    )
-                    .normalize();
+                    let angle = direction_angle + direction_variation * (2.0 * x - 1.0);
+                    parameters[i].direction = vec2(angle.cos(), angle.sin()).normalize();
                 });
             rng.gen::<[f32; 4]>()
                 .into_iter()
