@@ -111,7 +111,7 @@ fn vertex_transformations(cpu_mesh: &CpuMesh) -> Instances {
 }
 
 fn edge_transformations(cpu_mesh: &CpuMesh) -> Instances {
-    let indices = cpu_mesh.indices.as_ref().unwrap().to_u32();
+    let indices = cpu_mesh.indices.to_u32().unwrap();
     let positions = cpu_mesh.positions.to_f32();
     let mut translations = Vec::new();
     let mut rotations = Vec::new();

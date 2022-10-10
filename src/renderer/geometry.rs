@@ -264,6 +264,6 @@ fn index_buffer_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Option<Eleme
         Indices::U8(ind) => Some(ElementBuffer::new_with_data(context, ind)),
         Indices::U16(ind) => Some(ElementBuffer::new_with_data(context, ind)),
         Indices::U32(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-        Indices::None(_) => None,
+        Indices::None => None,
     }
 }
