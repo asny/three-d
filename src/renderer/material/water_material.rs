@@ -10,10 +10,6 @@ use crate::renderer::*;
 pub struct WaterMaterial<'a> {
     /// A reference to the environnment texture of the scene which is used for reflections.
     pub environment_texture: &'a TextureCubeMap,
-    /// A reference to a color texture that contains a render of the entire scene without the water surface. Used for reflections/refractions.
-    pub color_texture: &'a Texture2D,
-    /// A reference to a depth texture that contains a render of the entire scene without the water surface. Used for reflections/refractions.
-    pub depth_texture: &'a DepthTargetTexture2D,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the surface is.
@@ -22,8 +18,8 @@ pub struct WaterMaterial<'a> {
     pub lighting_model: LightingModel,
 }
 
-impl Material for WaterMaterial<'_> {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+impl EffectMaterial for WaterMaterial<'_> {
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         format!(
             "{}\n{}",
             lights_shader_source(lights, self.lighting_model),
@@ -38,11 +34,14 @@ impl Material for WaterMaterial<'_> {
         }
     }
 
-    fn material_type(&self) -> MaterialType {
-        MaterialType::Opaque
-    }
-
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);
         }
@@ -61,8 +60,14 @@ impl Material for WaterMaterial<'_> {
         );
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);
-        program.use_texture("colorMap", self.color_texture);
-        program.use_depth_texture("depthMap", self.depth_texture);
+        program.use_texture(
+            "colorMap",
+            color_texture.expect("Must supply a color texture to apply a water effect"),
+        );
+        program.use_depth_texture(
+            "depthMap",
+            depth_texture.expect("Must supply a depth texture to apply a water effect"),
+        );
         program.use_texture_cube("environmentMap", self.environment_texture);
     }
 }
