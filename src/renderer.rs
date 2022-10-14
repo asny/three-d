@@ -131,6 +131,47 @@ impl DepthTarget<'_> {
         );
         self
     }
+
+    pub fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) -> &Self {
+        self.render_with_effect_partially(
+            self.scissor_box(),
+            effect,
+            camera,
+            geometries,
+            lights,
+            color_texture,
+            depth_texture,
+        )
+    }
+
+    pub fn render_with_effect_partially(
+        &self,
+        scissor_box: ScissorBox,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) -> &Self {
+        self.write_partially(scissor_box, || {
+            for object in geometries
+                .into_iter()
+                .filter(|o| camera.in_frustum(&o.aabb()))
+            {
+                object.render_with_effect(effect, camera, lights, color_texture, depth_texture);
+            }
+        });
+        self
+    }
 }
 
 impl ColorTarget<'_> {
@@ -207,6 +248,47 @@ impl ColorTarget<'_> {
             geometries,
             lights,
         );
+        self
+    }
+
+    pub fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) -> &Self {
+        self.render_with_effect_partially(
+            self.scissor_box(),
+            effect,
+            camera,
+            geometries,
+            lights,
+            color_texture,
+            depth_texture,
+        )
+    }
+
+    pub fn render_with_effect_partially(
+        &self,
+        scissor_box: ScissorBox,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) -> &Self {
+        self.write_partially(scissor_box, || {
+            for object in geometries
+                .into_iter()
+                .filter(|o| camera.in_frustum(&o.aabb()))
+            {
+                object.render_with_effect(effect, camera, lights, color_texture, depth_texture);
+            }
+        });
         self
     }
 }
@@ -343,6 +425,47 @@ impl RenderTarget<'_> {
                 .filter(|o| camera.in_frustum(&o.aabb()))
             {
                 object.render_with_material(material, camera, lights);
+            }
+        });
+        self
+    }
+
+    pub fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) -> &Self {
+        self.render_with_effect_partially(
+            self.scissor_box(),
+            effect,
+            camera,
+            geometries,
+            lights,
+            color_texture,
+            depth_texture,
+        )
+    }
+
+    pub fn render_with_effect_partially(
+        &self,
+        scissor_box: ScissorBox,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) -> &Self {
+        self.write_partially(scissor_box, || {
+            for object in geometries
+                .into_iter()
+                .filter(|o| camera.in_frustum(&o.aabb()))
+            {
+                object.render_with_effect(effect, camera, lights, color_texture, depth_texture);
             }
         });
         self
