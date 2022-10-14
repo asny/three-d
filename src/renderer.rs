@@ -348,19 +348,19 @@ impl RenderTarget<'_> {
         self
     }
 
-    pub fn render_with_effect(
+    pub fn render_with_post_material(
         &self,
         geometries: impl IntoIterator<Item = impl Geometry>,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) -> &Self {
-        self.render_partially_with_effect(
+        self.render_partially_with_post_material(
             self.scissor_box(),
             geometries,
-            effect,
+            material,
             camera,
             lights,
             color_texture,
@@ -368,11 +368,11 @@ impl RenderTarget<'_> {
         )
     }
 
-    pub fn render_partially_with_effect(
+    pub fn render_partially_with_post_material(
         &self,
         scissor_box: ScissorBox,
         geometries: impl IntoIterator<Item = impl Geometry>,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -383,7 +383,7 @@ impl RenderTarget<'_> {
                 .into_iter()
                 .filter(|o| camera.in_frustum(&o.aabb()))
             {
-                object.render_with_effect(effect, camera, lights, color_texture, depth_texture);
+                object.render_with_post_material(material, camera, lights, color_texture, depth_texture);
             }
         });
         self

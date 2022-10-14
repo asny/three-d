@@ -100,7 +100,7 @@ impl Geometry for Axes {
             .render_with_material(material, camera, lights);
     }
 
-    fn render_with_effect(
+    fn render_with_post_material(
         &self,
         effect: &dyn PostMaterial,
         camera: &Camera,

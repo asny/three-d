@@ -64,7 +64,7 @@ impl<M: Material> Geometry for VoxelGrid<M> {
         self.0.render_with_material(material, camera, lights)
     }
 
-    fn render_with_effect(
+    fn render_with_post_material(
         &self,
         effect: &dyn PostMaterial,
         camera: &Camera,
@@ -73,7 +73,7 @@ impl<M: Material> Geometry for VoxelGrid<M> {
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.0
-            .render_with_effect(effect, camera, lights, color_texture, depth_texture)
+            .render_with_post_material(effect, camera, lights, color_texture, depth_texture)
     }
 }
 

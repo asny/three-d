@@ -91,7 +91,7 @@ pub async fn run() {
 
         if fog_enabled {
             fog_effect.time = frame_input.accumulated_time;
-            frame_input.screen().render_with_effect(
+            frame_input.screen().render_with_post_material(
                 &screen_quad,
                 &fog_effect,
                 &camera,

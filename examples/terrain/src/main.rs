@@ -268,7 +268,7 @@ pub async fn run() {
         }
         frame_input
             .screen()
-            .render_with_effect(
+            .render_with_post_material(
                 &screen_quad,
                 &CopyEffect {
                     write_mask: WriteMask::default(),
@@ -278,7 +278,7 @@ pub async fn run() {
                 Some(&color_texture),
                 Some(&depth_texture),
             )
-            .render_with_effect(
+            .render_with_post_material(
                 &water,
                 &water_material,
                 &camera,

@@ -318,7 +318,7 @@ impl Geometry for ParticleSystem {
         ).expect("Failed compiling shader")
     }
 
-    fn render_with_effect(
+    fn render_with_post_material(
         &self,
         effect: &dyn PostMaterial,
         camera: &Camera,

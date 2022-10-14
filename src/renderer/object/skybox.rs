@@ -154,7 +154,7 @@ impl Geometry for Skybox {
             .unwrap();
     }
 
-    fn render_with_effect(
+    fn render_with_post_material(
         &self,
         effect: &dyn PostMaterial,
         camera: &Camera,
