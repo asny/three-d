@@ -255,6 +255,15 @@ impl InstancedMesh {
     }
 }
 
+impl<'a> IntoIterator for &'a InstancedMesh {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
+    }
+}
+
 impl Geometry for InstancedMesh {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb

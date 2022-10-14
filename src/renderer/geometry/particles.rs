@@ -233,6 +233,15 @@ impl ParticleSystem {
     }
 }
 
+impl<'a> IntoIterator for &'a ParticleSystem {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
+    }
+}
+
 impl Geometry for ParticleSystem {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::INFINITE

@@ -84,6 +84,15 @@ impl Sprites {
     }
 }
 
+impl<'a> IntoIterator for &'a Sprites {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
+    }
+}
+
 impl Geometry for Sprites {
     fn render_with_material(
         &self,
