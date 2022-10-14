@@ -43,7 +43,7 @@ pub async fn run() {
 
     // Fog
     let screen_quad = ScreenQuad::new(&context);
-    let mut fog_effect = FogEffect::new(&context, Color::new_opaque(200, 200, 200), 0.2, 0.1);
+    let mut fog_material = FogMaterial::new(Color::new_opaque(200, 200, 200), 0.2, 0.1);
     let mut fog_enabled = true;
 
     // main loop
@@ -90,10 +90,10 @@ pub async fn run() {
         );
 
         if fog_enabled {
-            fog_effect.time = frame_input.accumulated_time;
+            fog_material.time = frame_input.accumulated_time;
             frame_input.screen().render_with_post_material(
                 &screen_quad,
-                &fog_effect,
+                &fog_material,
                 &camera,
                 &[&ambient, &directional],
                 None,

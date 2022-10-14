@@ -55,6 +55,10 @@ mod isosurface_material;
 #[doc(inline)]
 pub use isosurface_material::*;
 
+mod fog_material;
+#[doc(inline)]
+pub use fog_material::*;
+
 ///
 /// Defines the material type which is needed to render the objects in the correct order.
 /// For example, transparent objects need to be rendered back to front, whereas opaque objects need to be rendered front to back.

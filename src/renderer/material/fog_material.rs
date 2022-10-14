@@ -1,9 +1,10 @@
 use crate::renderer::*;
 
 ///
-/// An effect that simulates fog, ie. the area where it is applied gets hazy when objects are far away.
+/// A material that simulates fog, ie. the area where it is applied gets hazy when objects are far away.
 ///
-pub struct FogEffect {
+#[derive(Clone)]
+pub struct FogMaterial {
     /// The color of the fog.
     pub color: Color,
     /// The density of the fog.
@@ -13,12 +14,12 @@ pub struct FogEffect {
     pub time: f64,
 }
 
-impl FogEffect {
+impl FogMaterial {
     ///
-    /// Constructs a new fog effect.
+    /// Constructs a new fog material.
     ///
-    pub fn new(context: &Context, color: Color, density: f32, animation: f32) -> FogEffect {
-        FogEffect {
+    pub fn new(color: Color, density: f32, animation: f32) -> Self {
+        Self {
             color,
             density,
             animation,
@@ -27,7 +28,7 @@ impl FogEffect {
     }
 }
 
-impl PostMaterial for FogEffect {
+impl PostMaterial for FogMaterial {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
@@ -37,7 +38,7 @@ impl PostMaterial for FogEffect {
         format!(
             "{}{}",
             include_str!("../../core/shared.frag"),
-            include_str!("shaders/fog.frag")
+            include_str!("shaders/fog_material.frag")
         )
     }
 
