@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::sync::Arc;
 
 ///
 /// A material that simulates a water surface.
@@ -7,9 +8,9 @@ use crate::renderer::*;
 /// Therefore, the material needs to be updated/constructed each frame.
 ///
 #[derive(Clone)]
-pub struct WaterMaterial<'a> {
+pub struct WaterMaterial {
     /// A reference to the environnment texture of the scene which is used for reflections.
-    pub environment_texture: &'a TextureCubeMap,
+    pub environment_texture: Arc<TextureCubeMap>,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the surface is.
@@ -18,7 +19,7 @@ pub struct WaterMaterial<'a> {
     pub lighting_model: LightingModel,
 }
 
-impl EffectMaterial for WaterMaterial<'_> {
+impl EffectMaterial for WaterMaterial {
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         format!(
             "{}\n{}",
@@ -68,6 +69,6 @@ impl EffectMaterial for WaterMaterial<'_> {
             "depthMap",
             depth_texture.expect("Must supply a depth texture to apply a water effect"),
         );
-        program.use_texture_cube("environmentMap", self.environment_texture);
+        program.use_texture_cube("environmentMap", &self.environment_texture);
     }
 }

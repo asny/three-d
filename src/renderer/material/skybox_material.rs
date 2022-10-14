@@ -1,8 +1,9 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::sync::Arc;
 
 pub struct SkyboxMaterial {
-    pub texture: TextureCubeMap,
+    pub texture: Arc<TextureCubeMap>,
 }
 
 impl Material for SkyboxMaterial {

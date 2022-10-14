@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::sync::Arc;
 
 ///
 /// An illusion of a sky.
@@ -25,7 +26,7 @@ impl Skybox {
         back: &CpuTexture,
     ) -> Self {
         let texture = TextureCubeMap::new(&context, right, left, top, bottom, front, back);
-        Self::new_with_texture(context, texture)
+        Self::new_with_texture(context, Arc::new(texture))
     }
 
     ///
@@ -53,13 +54,13 @@ impl Skybox {
             }
         };
 
-        Self::new_with_texture(context, texture)
+        Self::new_with_texture(context, Arc::new(texture))
     }
 
     ///
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
-    pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> Self {
+    pub fn new_with_texture(context: &Context, texture: Arc<TextureCubeMap>) -> Self {
         let vertex_buffer = VertexBuffer::new_with_data(
             context,
             &[
@@ -112,7 +113,7 @@ impl Skybox {
     ///
     /// Returns a reference to the cube map texture
     ///
-    pub fn texture(&self) -> &TextureCubeMap {
+    pub fn texture(&self) -> &Arc<TextureCubeMap> {
         &self.material.texture
     }
 }
