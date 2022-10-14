@@ -33,11 +33,13 @@ pub async fn run() {
 
     let mut gui = GUI::new(&context);
 
-    let mut image_viewer = ImageViewer {
-        image,
-        tone_mapping: 1.0,
-    };
-    let mut screen_quad = ScreenQuad::new(&context);
+    let mut image_viewer = Gm::new(
+        ScreenQuad::new(&context),
+        ImageMaterial {
+            image,
+            tone_mapping: 1.0,
+        },
+    );
 
     // main loop
     let mut texture_transform_scale = 1.0;
@@ -54,7 +56,7 @@ pub async fn run() {
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
                     ui.add(
-                        Slider::new(&mut image_viewer.tone_mapping, 0.0..=50.0)
+                        Slider::new(&mut image_viewer.material.tone_mapping, 0.0..=50.0)
                             .text("Tone mapping"),
                     );
                     ui.add(
@@ -74,7 +76,7 @@ pub async fn run() {
             },
         );
 
-        screen_quad.set_texture_transform(
+        image_viewer.geometry.set_texture_transform(
             Mat3::from_scale(texture_transform_scale)
                 * Mat3::from_translation(vec2(texture_transform_x, texture_transform_y)),
         );
@@ -90,7 +92,7 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::default())
-            .render_with_material(&image_viewer, &camera2d(viewport), &screen_quad, &[])
+            .render(&camera2d(viewport), &image_viewer, &[])
             .write(|| {
                 gui.render(frame_input.viewport);
             });
@@ -99,12 +101,12 @@ pub async fn run() {
     });
 }
 
-struct ImageViewer {
+struct ImageMaterial {
     pub image: Texture2D,
     pub tone_mapping: f32,
 }
 
-impl Material for ImageViewer {
+impl Material for ImageMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         include_str!("shader.frag").to_owned()
     }
