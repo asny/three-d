@@ -18,7 +18,7 @@ use crate::renderer::*;
 
 pub trait PostMaterial {
     ///
-    /// Returns the fragment shader source for this effect. Should output the final fragment color.
+    /// Returns the fragment shader source for this material. Should output the final fragment color.
     ///
     fn fragment_shader_source(
         &self,
@@ -28,7 +28,7 @@ pub trait PostMaterial {
     ) -> String;
 
     ///
-    /// Sends the uniform data needed for this effect to the fragment shader.
+    /// Sends the uniform data needed for this material to the fragment shader.
     ///
     fn use_uniforms(
         &self,
@@ -40,7 +40,7 @@ pub trait PostMaterial {
     );
 
     ///
-    /// Returns the render states needed to render with this effect.
+    /// Returns the render states needed to render with this material.
     ///
     fn render_states(&self) -> RenderStates;
 }
