@@ -375,7 +375,7 @@ impl Geometry for TerrainPatch {
 
     fn render_with_effect(
         &self,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,

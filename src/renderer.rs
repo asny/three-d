@@ -351,7 +351,7 @@ impl RenderTarget<'_> {
     pub fn render_with_effect(
         &self,
         geometries: impl IntoIterator<Item = impl Geometry>,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -372,7 +372,7 @@ impl RenderTarget<'_> {
         &self,
         scissor_box: ScissorBox,
         geometries: impl IntoIterator<Item = impl Geometry>,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,

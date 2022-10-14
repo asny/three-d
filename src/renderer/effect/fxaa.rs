@@ -6,7 +6,7 @@ use crate::renderer::*;
 ///
 pub struct FXAAEffect {}
 
-impl EffectMaterial for FXAAEffect {
+impl PostMaterial for FXAAEffect {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],

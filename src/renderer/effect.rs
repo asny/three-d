@@ -16,7 +16,7 @@ pub use copy::*;
 
 use crate::renderer::*;
 
-pub trait EffectMaterial {
+pub trait PostMaterial {
     ///
     /// Returns the fragment shader source for this effect. Should output the final fragment color.
     ///

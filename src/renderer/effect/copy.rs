@@ -8,7 +8,7 @@ pub struct CopyEffect {
     pub write_mask: WriteMask,
 }
 
-impl EffectMaterial for CopyEffect {
+impl PostMaterial for CopyEffect {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],

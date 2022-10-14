@@ -52,7 +52,7 @@ pub trait Geometry {
 
     fn render_with_effect(
         &self,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -77,7 +77,7 @@ impl<T: Geometry + ?Sized> Geometry for &T {
 
     fn render_with_effect(
         &self,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -103,7 +103,7 @@ impl<T: Geometry + ?Sized> Geometry for &mut T {
 
     fn render_with_effect(
         &self,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -129,7 +129,7 @@ impl<T: Geometry> Geometry for Box<T> {
 
     fn render_with_effect(
         &self,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -156,7 +156,7 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
 
     fn render_with_effect(
         &self,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -183,7 +183,7 @@ impl<T: Geometry> Geometry for std::sync::Arc<T> {
 
     fn render_with_effect(
         &self,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -210,7 +210,7 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
 
     fn render_with_effect(
         &self,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -239,7 +239,7 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
 
     fn render_with_effect(
         &self,
-        effect: &dyn EffectMaterial,
+        effect: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
