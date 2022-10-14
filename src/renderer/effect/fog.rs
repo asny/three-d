@@ -1,16 +1,17 @@
-use crate::core::*;
+use crate::renderer::*;
 
 ///
 /// An effect that simulates fog, ie. the area where it is applied gets hazy when objects are far away.
 ///
 pub struct FogEffect {
+    context: Context,
     /// The color of the fog.
     pub color: Color,
     /// The density of the fog.
     pub density: f32,
     /// Determines the variation on the density as a function of time.
     pub animation: f32,
-    image_effect: ImageEffect,
+    pub time: f64,
 }
 
 impl FogEffect {
@@ -19,46 +20,53 @@ impl FogEffect {
     ///
     pub fn new(context: &Context, color: Color, density: f32, animation: f32) -> FogEffect {
         FogEffect {
+            context: context.clone(),
             color,
             density,
             animation,
-            image_effect: ImageEffect::new(
-                context,
-                &format!(
-                    "{}{}",
-                    include_str!("../../core/shared.frag"),
-                    include_str!("shaders/fog.frag")
-                ),
-            )
-            .unwrap(),
+            time: 0.0,
         }
     }
+}
 
-    ///
-    /// Apply the fog effect on the current render target based on the given depth map.
-    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
-    ///
-    pub fn apply(&self, camera: &Camera, depth_texture: &DepthTargetTexture2D, time: f32) {
-        let render_states = RenderStates {
+impl EffectMaterial for FogEffect {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}",
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/fog.frag")
+        )
+    }
+
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        _lights: &[&dyn Light],
+        _color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        program.use_depth_texture(
+            "depthMap",
+            depth_texture.expect("Must supply a depth texture to apply a fog effect"),
+        );
+        program.use_uniform(
+            "viewProjectionInverse",
+            (camera.projection() * camera.view()).invert().unwrap(),
+        );
+        program.use_uniform("fogColor", self.color);
+        program.use_uniform("fogDensity", self.density);
+        program.use_uniform("animation", self.animation);
+        program.use_uniform("time", 0.001 * self.time as f32);
+        program.use_uniform("eyePosition", camera.position());
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates {
             write_mask: WriteMask::COLOR,
             blend: Blend::TRANSPARENCY,
             cull: Cull::Back,
             ..Default::default()
-        };
-
-        self.image_effect
-            .use_depth_texture("depthMap", depth_texture);
-        self.image_effect.use_uniform(
-            "viewProjectionInverse",
-            (camera.projection() * camera.view()).invert().unwrap(),
-        );
-        self.image_effect.use_uniform("fogColor", self.color);
-        self.image_effect.use_uniform("fogDensity", self.density);
-        self.image_effect.use_uniform("animation", self.animation);
-        self.image_effect.use_uniform("time", 0.001 * time);
-        self.image_effect
-            .use_uniform("eyePosition", camera.position());
-
-        self.image_effect.apply(render_states, camera.viewport());
+        }
     }
 }
