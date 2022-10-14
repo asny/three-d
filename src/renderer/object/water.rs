@@ -209,6 +209,39 @@ impl WaterPatch {
             index_buffer,
         }
     }
+
+    fn draw(&self, program: &Program, camera: &Camera) {
+        program.use_uniform(
+            "offset",
+            &self.center + vec3(self.offset.x, 0.0, self.offset.y),
+        );
+        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("time", &(self.time as f32 * 0.001));
+        program.use_uniform_array(
+            "waveParameters",
+            &self
+                .parameters
+                .iter()
+                .map(|p| vec4(p.wavelength, p.amplitude, p.steepness, p.speed))
+                .collect::<Vec<_>>(),
+        );
+        program.use_uniform_array(
+            "directions",
+            &self
+                .parameters
+                .iter()
+                .map(|p| p.direction)
+                .collect::<Vec<_>>(),
+        );
+        let render_states = RenderStates {
+            blend: Blend::TRANSPARENCY,
+            ..Default::default()
+        };
+
+        program.use_vertex_attribute("position", &self.position_buffer);
+
+        program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
+    }
 }
 
 impl Geometry for WaterPatch {
@@ -225,36 +258,28 @@ impl Geometry for WaterPatch {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    program.use_uniform(
-                        "offset",
-                        &self.center + vec3(self.offset.x, 0.0, self.offset.y),
-                    );
-                    program.use_uniform("viewProjection", camera.projection() * camera.view());
-                    program.use_uniform("time", &(self.time as f32 * 0.001));
-                    program.use_uniform_array(
-                        "waveParameters",
-                        &self
-                            .parameters
-                            .iter()
-                            .map(|p| vec4(p.wavelength, p.amplitude, p.steepness, p.speed))
-                            .collect::<Vec<_>>(),
-                    );
-                    program.use_uniform_array(
-                        "directions",
-                        &self
-                            .parameters
-                            .iter()
-                            .map(|p| p.direction)
-                            .collect::<Vec<_>>(),
-                    );
-                    let render_states = RenderStates {
-                        blend: Blend::TRANSPARENCY,
-                        ..Default::default()
-                    };
+                    self.draw(program, camera);
+                },
+            )
+            .unwrap();
+    }
 
-                    program.use_vertex_attribute("position", &self.position_buffer);
-
-                    program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        let fragment_shader_source = effect.fragment_shader_source(lights);
+        self.context
+            .program(
+                &include_str!("shaders/water.vert"),
+                &fragment_shader_source,
+                |program| {
+                    effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                    self.draw(program, camera);
                 },
             )
             .unwrap();
