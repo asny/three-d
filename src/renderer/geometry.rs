@@ -20,6 +20,10 @@ mod particles;
 #[doc(inline)]
 pub use particles::*;
 
+mod screen_quad;
+#[doc(inline)]
+pub use screen_quad::*;
+
 use crate::core::*;
 use crate::renderer::*;
 
