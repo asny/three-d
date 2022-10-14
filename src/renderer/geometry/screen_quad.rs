@@ -3,7 +3,6 @@ use crate::renderer::*;
 pub struct ScreenQuad {
     context: Context,
     position_buffer: VertexBuffer,
-    uv_buffer: VertexBuffer,
     texture_transform: Mat3,
 }
 
@@ -18,10 +17,6 @@ impl ScreenQuad {
                     vec3(3.0, -1.0, 0.0),
                     vec3(0.0, 2.0, 0.0),
                 ],
-            ),
-            uv_buffer: VertexBuffer::new_with_data(
-                &context,
-                &[vec2(-1.0, 0.0), vec2(2.0, 0.0), vec2(0.5, 1.5)],
             ),
             texture_transform: Mat3::identity(),
         }
@@ -43,7 +38,6 @@ impl ScreenQuad {
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_vertex_attribute("position", &self.position_buffer);
-        program.use_vertex_attribute("uv_coordinates", &self.uv_buffer);
         program.use_uniform("textureTransform", &self.texture_transform);
         program.draw_arrays(render_states, camera.viewport(), 3);
     }
