@@ -85,6 +85,15 @@ pub async fn run() {
         0.3,
         [],
     );
+    let mut water_material = WaterMaterial {
+        environment_texture: skybox.texture().clone(),
+        metallic: 0.0,
+        roughness: 1.0,
+        lighting_model: LightingModel::Cook(
+            NormalDistributionFunction::TrowbridgeReitzGGX,
+            GeometryFunction::SmithSchlickGGX,
+        ),
+    };
 
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
         &context,
@@ -116,8 +125,6 @@ pub async fn run() {
     let mut direction_variation = 0.125 * std::f32::consts::PI;
     let mut speed = 3.0;
     let mut height = 0.0;
-    let mut metallic = 0.0;
-    let mut roughness = 1.0;
     // main loop
     window.render_loop(move |mut frame_input| {
         let mut parameter_change = frame_input.first_frame;
@@ -132,8 +139,8 @@ pub async fn run() {
                 egui::Window::new("").vscroll(true).show(gui_context, |ui| {
                     ui.label("Water parameters");
                     ui.add(Slider::new(&mut height, -5.0..=5.0).text("height"));
-                    ui.add(Slider::new(&mut metallic, 0.0..=1.0).text("metallic"));
-                    ui.add(Slider::new(&mut roughness, 0.0..=1.0).text("roughness"));
+                    ui.add(Slider::new(&mut water_material.metallic, 0.0..=1.0).text("metallic"));
+                    ui.add(Slider::new(&mut water_material.roughness, 0.0..=1.0).text("roughness"));
 
                     ui.label("Wave parameters");
                     parameter_change |= ui
@@ -266,21 +273,13 @@ pub async fn run() {
                 frame_input.viewport.into(),
                 WriteMask::default(),
             )
-            .render_with_material(
-                &WaterMaterial {
-                    environment_texture: skybox.texture(),
-                    color_texture: &color_texture,
-                    depth_texture: &depth_texture,
-                    metallic,
-                    roughness,
-                    lighting_model: LightingModel::Cook(
-                        NormalDistributionFunction::TrowbridgeReitzGGX,
-                        GeometryFunction::SmithSchlickGGX,
-                    ),
-                },
+            .render_with_effect(
+                &water_material,
                 &camera,
                 &water,
                 &[&light],
+                Some(&color_texture),
+                Some(&depth_texture),
             )
             .write(|| {
                 gui.render(frame_input.viewport);

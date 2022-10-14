@@ -42,7 +42,8 @@ pub async fn run() {
     let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Fog
-    let fog_effect = FogEffect::new(&context, Color::new_opaque(200, 200, 200), 0.2, 0.1);
+    let screen_quad = ScreenQuad::new(&context);
+    let mut fog_effect = FogEffect::new(&context, Color::new_opaque(200, 200, 200), 0.2, 0.1);
     let mut fog_enabled = true;
 
     // main loop
@@ -82,21 +83,23 @@ pub async fn run() {
             });
         }
 
-        frame_input
-            .screen()
-            .clear(ClearState::default())
-            .render(&camera, &monkey, &[&ambient, &directional])
-            .write(|| {
-                if fog_enabled {
-                    if let Some(ref depth_texture) = depth_texture {
-                        fog_effect.apply(
-                            &camera,
-                            depth_texture,
-                            frame_input.accumulated_time as f32,
-                        );
-                    }
-                }
-            });
+        frame_input.screen().clear(ClearState::default()).render(
+            &camera,
+            &monkey,
+            &[&ambient, &directional],
+        );
+
+        if fog_enabled {
+            fog_effect.time = frame_input.accumulated_time;
+            frame_input.screen().render_with_effect(
+                &fog_effect,
+                &camera,
+                &screen_quad,
+                &[&ambient, &directional],
+                None,
+                depth_texture.as_ref(),
+            );
+        }
 
         FrameOutput::default()
     });
