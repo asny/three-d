@@ -152,6 +152,17 @@ impl Geometry for Skybox {
             )
             .unwrap();
     }
+
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        unimplemented!()
+    }
 }
 
 impl Object for Skybox {

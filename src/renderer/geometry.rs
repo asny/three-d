@@ -46,6 +46,15 @@ pub trait Geometry {
     ///
     fn render_with_material(&self, material: &dyn Material, camera: &Camera, lights: &[&dyn Light]);
 
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    );
+
     ///
     /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
     ///
@@ -60,6 +69,17 @@ impl<T: Geometry + ?Sized> Geometry for &T {
         lights: &[&dyn Light],
     ) {
         (*self).render_with_material(material, camera, lights)
+    }
+
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        (*self).render_with_effect(effect, camera, lights, color_texture, depth_texture)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -77,6 +97,17 @@ impl<T: Geometry + ?Sized> Geometry for &mut T {
         (**self).render_with_material(material, camera, lights)
     }
 
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        (**self).render_with_effect(effect, camera, lights, color_texture, depth_texture)
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         (**self).aabb()
     }
@@ -90,6 +121,18 @@ impl<T: Geometry> Geometry for Box<T> {
         lights: &[&dyn Light],
     ) {
         self.as_ref().render_with_material(material, camera, lights)
+    }
+
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        self.as_ref()
+            .render_with_effect(effect, camera, lights, color_texture, depth_texture)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -107,6 +150,18 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
         self.as_ref().render_with_material(material, camera, lights)
     }
 
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        self.as_ref()
+            .render_with_effect(effect, camera, lights, color_texture, depth_texture)
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.as_ref().aabb()
     }
@@ -120,6 +175,18 @@ impl<T: Geometry> Geometry for std::sync::Arc<T> {
         lights: &[&dyn Light],
     ) {
         self.as_ref().render_with_material(material, camera, lights)
+    }
+
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        self.as_ref()
+            .render_with_effect(effect, camera, lights, color_texture, depth_texture)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -137,6 +204,18 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
         self.borrow().render_with_material(material, camera, lights)
     }
 
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        self.borrow()
+            .render_with_effect(effect, camera, lights, color_texture, depth_texture)
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.borrow().aabb()
     }
@@ -152,6 +231,23 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
         self.read()
             .unwrap()
             .render_with_material(material, camera, lights)
+    }
+
+    fn render_with_effect(
+        &self,
+        effect: &dyn EffectMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        self.read().unwrap().render_with_effect(
+            effect,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
