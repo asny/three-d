@@ -86,7 +86,8 @@ impl Geometry for ScreenQuad {
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
-        let fragment_shader_source = effect.fragment_shader_source(lights);
+        let fragment_shader_source =
+            effect.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
             .program(
                 &include_str!("shaders/screen_quad.vert"),

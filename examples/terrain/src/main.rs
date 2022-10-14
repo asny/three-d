@@ -95,6 +95,7 @@ pub async fn run() {
         ),
     };
 
+    let screen_quad = ScreenQuad::new(&context);
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
         &context,
         1,
@@ -267,11 +268,15 @@ pub async fn run() {
         }
         frame_input
             .screen()
-            .copy_from(
+            .render_with_effect(
+                &CopyEffect {
+                    write_mask: WriteMask::default(),
+                },
+                &camera,
+                &screen_quad,
+                &[&light],
                 Some(&color_texture),
                 Some(&depth_texture),
-                frame_input.viewport.into(),
-                WriteMask::default(),
             )
             .render_with_effect(
                 &water_material,

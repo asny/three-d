@@ -4,7 +4,6 @@ use crate::renderer::*;
 /// An effect that simulates fog, ie. the area where it is applied gets hazy when objects are far away.
 ///
 pub struct FogEffect {
-    context: Context,
     /// The color of the fog.
     pub color: Color,
     /// The density of the fog.
@@ -20,7 +19,6 @@ impl FogEffect {
     ///
     pub fn new(context: &Context, color: Color, density: f32, animation: f32) -> FogEffect {
         FogEffect {
-            context: context.clone(),
             color,
             density,
             animation,
@@ -30,7 +28,12 @@ impl FogEffect {
 }
 
 impl EffectMaterial for FogEffect {
-    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        _lights: &[&dyn Light],
+        _color_texture: Option<&Texture2D>,
+        _depth_texture: Option<&DepthTargetTexture2D>,
+    ) -> String {
         format!(
             "{}{}",
             include_str!("../../core/shared.frag"),

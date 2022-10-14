@@ -20,7 +20,12 @@ pub struct WaterMaterial {
 }
 
 impl EffectMaterial for WaterMaterial {
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) -> String {
         format!(
             "{}\n{}",
             lights_shader_source(lights, self.lighting_model),

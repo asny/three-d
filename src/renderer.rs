@@ -390,28 +390,6 @@ impl RenderTarget<'_> {
     }
 
     ///
-    /// Copies the content of the color and depth texture to the specified scissor box of this render target.
-    /// Only copies the channels given by the write mask.
-    ///
-    pub fn copy_from(
-        &self,
-        color_texture: Option<&Texture2D>,
-        depth_texture: Option<&DepthTargetTexture2D>,
-        scissor_box: ScissorBox,
-        write_mask: WriteMask,
-    ) -> &Self {
-        self.write(|| {
-            copy_from(
-                &self.context,
-                color_texture,
-                depth_texture,
-                scissor_box.into(),
-                write_mask,
-            )
-        })
-    }
-
-    ///
     /// Copies the content of the given layers of the color and depth array textures to the specified viewport of this render target.
     /// Only copies the channels given by the write mask.
     ///
@@ -558,71 +536,6 @@ pub fn ray_intersect(
         Some(position + direction * depth * max_depth)
     } else {
         None
-    }
-}
-
-fn copy_from(
-    context: &Context,
-    color_texture: Option<&Texture2D>,
-    depth_texture: Option<&DepthTargetTexture2D>,
-    viewport: Viewport,
-    write_mask: WriteMask,
-) {
-    if color_texture.is_some() || depth_texture.is_some() {
-        let fragment_shader_source = if color_texture.is_some() && depth_texture.is_some() {
-            "
-            uniform sampler2D colorMap;
-            uniform sampler2D depthMap;
-            in vec2 uv;
-            layout (location = 0) out vec4 color;
-            void main()
-            {
-                color = texture(colorMap, uv);
-                gl_FragDepth = texture(depthMap, uv).r;
-            }"
-        } else if color_texture.is_some() {
-            "
-            uniform sampler2D colorMap;
-            in vec2 uv;
-            layout (location = 0) out vec4 color;
-            void main()
-            {
-                color = texture(colorMap, uv);
-            }"
-        } else {
-            "
-            uniform sampler2D depthMap;
-            in vec2 uv;
-            layout (location = 0) out vec4 color;
-            void main()
-            {
-                gl_FragDepth = texture(depthMap, uv).r;
-            }"
-        };
-        context
-            .effect(fragment_shader_source, |effect| {
-                if let Some(tex) = color_texture {
-                    effect.use_texture("colorMap", tex);
-                }
-                if let Some(tex) = depth_texture {
-                    effect.use_depth_texture("depthMap", tex);
-                }
-                effect.apply(
-                    RenderStates {
-                        depth_test: DepthTest::Always,
-                        write_mask: WriteMask {
-                            red: color_texture.is_some() && write_mask.red,
-                            green: color_texture.is_some() && write_mask.green,
-                            blue: color_texture.is_some() && write_mask.blue,
-                            alpha: color_texture.is_some() && write_mask.alpha,
-                            depth: depth_texture.is_some() && write_mask.depth,
-                        },
-                        ..Default::default()
-                    },
-                    viewport,
-                )
-            })
-            .unwrap();
     }
 }
 

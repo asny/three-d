@@ -10,13 +10,22 @@ mod fxaa;
 #[doc(inline)]
 pub use fxaa::*;
 
+mod copy;
+#[doc(inline)]
+pub use copy::*;
+
 use crate::renderer::*;
 
 pub trait EffectMaterial {
     ///
     /// Returns the fragment shader source for this effect. Should output the final fragment color.
     ///
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String;
+    fn fragment_shader_source(
+        &self,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) -> String;
 
     ///
     /// Sends the uniform data needed for this effect to the fragment shader.
