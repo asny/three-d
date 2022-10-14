@@ -40,6 +40,13 @@ impl ScreenQuad {
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }
+
+    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+        program.use_vertex_attribute("position", &self.position_buffer);
+        program.use_vertex_attribute("uv_coordinates", &self.uv_buffer);
+        program.use_uniform("textureTransform", &self.texture_transform);
+        program.draw_arrays(render_states, camera.viewport(), 3);
+    }
 }
 
 impl<'a> IntoIterator for &'a ScreenQuad {
@@ -65,10 +72,7 @@ impl Geometry for ScreenQuad {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    program.use_vertex_attribute("position", &self.position_buffer);
-                    program.use_vertex_attribute("uv_coordinates", &self.uv_buffer);
-                    program.use_uniform("textureTransform", &self.texture_transform);
-                    program.draw_arrays(material.render_states(), camera.viewport(), 3);
+                    self.draw(program, material.render_states(), camera);
                 },
             )
             .expect("Failed compiling shader")
@@ -82,7 +86,17 @@ impl Geometry for ScreenQuad {
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
-        unimplemented!()
+        let fragment_shader_source = effect.fragment_shader_source(lights);
+        self.context
+            .program(
+                &include_str!("shaders/screen_quad.vert"),
+                &fragment_shader_source,
+                |program| {
+                    effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                    self.draw(program, effect.render_states(), camera);
+                },
+            )
+            .expect("Failed compiling shader")
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
