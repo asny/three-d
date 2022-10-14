@@ -210,7 +210,7 @@ impl WaterPatch {
         }
     }
 
-    fn draw(&self, program: &Program, camera: &Camera) {
+    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform(
             "offset",
             &self.center + vec3(self.offset.x, 0.0, self.offset.y),
@@ -233,13 +233,8 @@ impl WaterPatch {
                 .map(|p| p.direction)
                 .collect::<Vec<_>>(),
         );
-        let render_states = RenderStates {
-            blend: Blend::TRANSPARENCY,
-            ..Default::default()
-        };
 
         program.use_vertex_attribute("position", &self.position_buffer);
-
         program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
     }
 }
@@ -258,7 +253,7 @@ impl Geometry for WaterPatch {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    self.draw(program, camera);
+                    self.draw(program, material.render_states(), camera);
                 },
             )
             .unwrap();
@@ -279,7 +274,7 @@ impl Geometry for WaterPatch {
                 &fragment_shader_source,
                 |program| {
                     effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, camera);
+                    self.draw(program, effect.render_states(), camera);
                 },
             )
             .unwrap();
