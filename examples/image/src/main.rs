@@ -90,12 +90,7 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::default())
-            .render_with_material(
-                &image_viewer,
-                &camera2d(frame_input.viewport),
-                &screen_quad,
-                &[],
-            )
+            .render_with_material(&image_viewer, &camera2d(viewport), &screen_quad, &[])
             .write(|| {
                 gui.render(frame_input.viewport);
             });
@@ -110,11 +105,11 @@ struct ImageViewer {
 }
 
 impl Material for ImageViewer {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         include_str!("shader.frag").to_owned()
     }
 
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_texture("image", &self.image);
         program.use_uniform("parameter", self.tone_mapping);
     }
