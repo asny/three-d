@@ -268,15 +268,11 @@ pub async fn run() {
         }
         frame_input
             .screen()
-            .render_with_post_material(
-                &CopyEffect {
-                    write_mask: WriteMask::default(),
-                },
-                &camera2d(camera.viewport()),
-                &screen_quad,
-                &[&light],
+            .copy_from(
                 Some(&color_texture),
                 Some(&depth_texture),
+                camera.viewport().into(),
+                WriteMask::default(),
             )
             .render_with_post_material(
                 &water_material,
