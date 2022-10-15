@@ -3,29 +3,23 @@ use crate::renderer::*;
 ///
 /// A line 2D object which can be rendered.
 ///
-pub struct Line<M: Material> {
-    model: Gm<Mesh, M>,
+pub struct Line {
+    mesh: Mesh,
     pixel0: Vec2,
     pixel1: Vec2,
     thickness: f32,
 }
 
-impl<M: Material> Line<M> {
+impl Line {
     ///
-    /// Constructs a new line object with the given material.
+    /// Constructs a new line geometry.
     ///
-    pub fn new_with_material(
-        context: &Context,
-        pixel0: Vec2,
-        pixel1: Vec2,
-        thickness: f32,
-        material: M,
-    ) -> Self {
+    pub fn new(context: &Context, pixel0: Vec2, pixel1: Vec2, thickness: f32) -> Self {
         let mut mesh = CpuMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))
             .unwrap();
         let mut line = Self {
-            model: Gm::new(Mesh::new(context, &mesh), material),
+            mesh: Mesh::new(context, &mesh),
             pixel0,
             pixel1,
             thickness,
@@ -68,7 +62,7 @@ impl<M: Material> Line<M> {
         let c = dx / length;
         let s = dy / length;
         let rot = Mat3::new(c, s, 0.0, -s, c, 0.0, 0.0, 0.0, 1.0);
-        self.model.set_transformation_2d(
+        self.mesh.set_transformation_2d(
             Mat3::from_translation(self.pixel0)
                 * rot
                 * Mat3::from_nonuniform_scale(length, self.thickness),
@@ -76,19 +70,43 @@ impl<M: Material> Line<M> {
     }
 }
 
-impl<M: Material> Geometry2D for Line<M> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.model
-            .render_with_material(material, &camera2d(viewport), &[])
+impl Geometry for Line {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) {
+        self.mesh.render_with_material(material, camera, lights)
+    }
+
+    fn render_with_post_material(
+        &self,
+        effect: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        unimplemented!()
+    }
+
+    ///
+    /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
+    ///
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_with_positions(&[
+            self.pixel0.extend(0.0),
+            self.pixel1.extend(0.0),
+        ])
     }
 }
 
-impl<M: Material> Object2D for Line<M> {
-    fn render(&self, viewport: Viewport) {
-        self.model.render(&camera2d(viewport), &[])
-    }
+impl<'a> IntoIterator for &'a Line {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
 
-    fn material_type(&self) -> MaterialType {
-        self.model.material_type()
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
     }
 }

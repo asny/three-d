@@ -14,13 +14,6 @@
 //! Objects can be rendered directly using [Object::render] or used in a render call, for example [RenderTarget::render].
 //! Geometries can be rendered with a given material using [Geometry::render_with_material] or combined into an object using the [Gm] struct and again used in a render call.
 //!
-//! There are also two 2D specific traits
-//! - [Geometry2D] - a geometric representation in 2D space
-//! - [Object2D] - an object in 2D space
-//!
-//! These traits are similar to their 3D counterpart and work together with the [Material] trait in a similar manner.
-//! The main difference is that the render methods do not need a [Camera], but only a [Viewport], ie. the 2D area of where to draw.
-//!
 
 pub use crate::core::*;
 
@@ -383,7 +376,13 @@ impl RenderTarget<'_> {
                 .into_iter()
                 .filter(|o| camera.in_frustum(&o.aabb()))
             {
-                object.render_with_post_material(material, camera, lights, color_texture, depth_texture);
+                object.render_with_post_material(
+                    material,
+                    camera,
+                    lights,
+                    color_texture,
+                    depth_texture,
+                );
             }
         });
         self

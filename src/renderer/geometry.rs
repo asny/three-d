@@ -279,61 +279,6 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     }
 }
 
-///
-/// Represents a 2D geometry that is possible to render with a [Material].
-///
-pub trait Geometry2D {
-    ///
-    /// Render the object with the given material.
-    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
-    ///
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport);
-}
-
-impl<T: Geometry2D + ?Sized> Geometry2D for &T {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        (*self).render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D + ?Sized> Geometry2D for &mut T {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        (**self).render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for Box<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.as_ref().render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for std::rc::Rc<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.as_ref().render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for std::sync::Arc<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.as_ref().render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for std::cell::RefCell<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.borrow().render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for std::sync::RwLock<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.read()
-            .unwrap()
-            .render_with_material(material, viewport)
-    }
-}
-
 use std::collections::HashMap;
 fn vertex_buffers_from_mesh(
     context: &Context,

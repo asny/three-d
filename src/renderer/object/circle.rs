@@ -3,20 +3,20 @@ use crate::renderer::*;
 ///
 /// A circle 2D object which can be rendered.
 ///
-pub struct Circle<M: Material> {
-    model: Gm<Mesh, M>,
+pub struct Circle {
+    mesh: Mesh,
     radius: f32,
     center: Vec2,
 }
 
-impl<M: Material> Circle<M> {
+impl Circle {
     ///
     /// Constructs a new circle object with the given material.
     ///
-    pub fn new_with_material(context: &Context, center: Vec2, radius: f32, material: M) -> Self {
+    pub fn new_with_material(context: &Context, center: Vec2, radius: f32) -> Self {
         let mesh = CpuMesh::circle(64);
         let mut circle = Self {
-            model: Gm::new(Mesh::new(context, &mesh), material),
+            mesh: Mesh::new(context, &mesh),
             center,
             radius,
         };
@@ -47,25 +47,49 @@ impl<M: Material> Circle<M> {
     }
 
     fn update(&mut self) {
-        self.model.set_transformation_2d(
+        self.mesh.set_transformation_2d(
             Mat3::from_translation(self.center) * Mat3::from_scale(self.radius),
         );
     }
 }
 
-impl<M: Material> Geometry2D for Circle<M> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.model
-            .render_with_material(material, &camera2d(viewport), &[])
+impl Geometry for Circle {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) {
+        self.mesh.render_with_material(material, camera, lights)
+    }
+
+    fn render_with_post_material(
+        &self,
+        effect: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<&Texture2D>,
+        depth_texture: Option<&DepthTargetTexture2D>,
+    ) {
+        unimplemented!()
+    }
+
+    ///
+    /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
+    ///
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_with_positions(&[
+            (self.center - vec2(self.radius, self.radius)).extend(0.0),
+            (self.center + vec2(self.radius, self.radius)).extend(0.0),
+        ])
     }
 }
 
-impl<M: Material> Object2D for Circle<M> {
-    fn render(&self, viewport: Viewport) {
-        self.model.render(&camera2d(viewport), &[])
-    }
+impl<'a> IntoIterator for &'a Circle {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
 
-    fn material_type(&self) -> MaterialType {
-        self.model.material_type()
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
     }
 }
