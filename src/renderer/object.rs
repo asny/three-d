@@ -21,18 +21,6 @@ mod voxel_grid;
 #[doc(inline)]
 pub use voxel_grid::*;
 
-mod line;
-#[doc(inline)]
-pub use line::*;
-
-mod rectangle;
-#[doc(inline)]
-pub use rectangle::*;
-
-mod circle;
-#[doc(inline)]
-pub use circle::*;
-
 mod skybox;
 #[doc(inline)]
 pub use skybox::*;

@@ -24,6 +24,18 @@ mod screen_quad;
 #[doc(inline)]
 pub use screen_quad::*;
 
+mod line;
+#[doc(inline)]
+pub use line::*;
+
+mod rectangle;
+#[doc(inline)]
+pub use rectangle::*;
+
+mod circle;
+#[doc(inline)]
+pub use circle::*;
+
 use crate::core::*;
 use crate::renderer::*;
 
