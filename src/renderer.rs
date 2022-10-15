@@ -343,18 +343,18 @@ impl RenderTarget<'_> {
 
     pub fn render_with_post_material(
         &self,
-        geometries: impl IntoIterator<Item = impl Geometry>,
         material: &dyn PostMaterial,
         camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) -> &Self {
         self.render_partially_with_post_material(
             self.scissor_box(),
-            geometries,
             material,
             camera,
+            geometries,
             lights,
             color_texture,
             depth_texture,
@@ -364,9 +364,9 @@ impl RenderTarget<'_> {
     pub fn render_partially_with_post_material(
         &self,
         scissor_box: ScissorBox,
-        geometries: impl IntoIterator<Item = impl Geometry>,
         material: &dyn PostMaterial,
         camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,

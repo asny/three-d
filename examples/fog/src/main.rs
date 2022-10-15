@@ -92,9 +92,9 @@ pub async fn run() {
         if fog_enabled {
             fog_material.time = frame_input.accumulated_time;
             frame_input.screen().render_with_post_material(
-                &screen_quad,
                 &fog_material,
                 &camera,
+                &screen_quad,
                 &[&ambient, &directional],
                 None,
                 depth_texture.as_ref(),
