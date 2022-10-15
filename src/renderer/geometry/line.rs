@@ -88,7 +88,8 @@ impl Geometry for Line {
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
-        unimplemented!()
+        self.mesh
+            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
     }
 
     ///
