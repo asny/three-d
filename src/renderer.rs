@@ -412,6 +412,29 @@ impl RenderTarget<'_> {
 }
 
 ///
+/// Returns a camera for viewing 2D content.
+///
+pub fn camera2d(viewport: Viewport) -> Camera {
+    Camera::new_orthographic(
+        viewport,
+        vec3(
+            viewport.width as f32 * 0.5,
+            viewport.height as f32 * 0.5,
+            -1.0,
+        ),
+        vec3(
+            viewport.width as f32 * 0.5,
+            viewport.height as f32 * 0.5,
+            0.0,
+        ),
+        vec3(0.0, -1.0, 0.0),
+        viewport.height as f32,
+        0.0,
+        10.0,
+    )
+}
+
+///
 /// Compare function for sorting objects based on distance from the camera.
 /// The order is opaque objects from nearest to farthest away from the camera,
 /// then transparent objects from farthest away to closest to the camera.
