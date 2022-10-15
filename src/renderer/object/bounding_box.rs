@@ -118,14 +118,14 @@ impl<M: Material> Geometry for BoundingBox<M> {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.model
-            .render_with_post_material(effect, camera, lights, color_texture, depth_texture)
+            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
     }
 }
 

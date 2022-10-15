@@ -320,7 +320,7 @@ impl Geometry for ParticleSystem {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,

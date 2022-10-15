@@ -64,7 +64,7 @@ pub trait Geometry {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
@@ -89,13 +89,13 @@ impl<T: Geometry + ?Sized> Geometry for &T {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
-        (*self).render_with_post_material(effect, camera, lights, color_texture, depth_texture)
+        (*self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -115,13 +115,13 @@ impl<T: Geometry + ?Sized> Geometry for &mut T {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
-        (**self).render_with_post_material(effect, camera, lights, color_texture, depth_texture)
+        (**self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -141,14 +141,14 @@ impl<T: Geometry> Geometry for Box<T> {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.as_ref().render_with_post_material(
-            effect,
+            material,
             camera,
             lights,
             color_texture,
@@ -173,14 +173,14 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.as_ref().render_with_post_material(
-            effect,
+            material,
             camera,
             lights,
             color_texture,
@@ -205,14 +205,14 @@ impl<T: Geometry> Geometry for std::sync::Arc<T> {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.as_ref().render_with_post_material(
-            effect,
+            material,
             camera,
             lights,
             color_texture,
@@ -237,14 +237,14 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.borrow().render_with_post_material(
-            effect,
+            material,
             camera,
             lights,
             color_texture,
@@ -271,14 +271,14 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.read().unwrap().render_with_post_material(
-            effect,
+            material,
             camera,
             lights,
             color_texture,

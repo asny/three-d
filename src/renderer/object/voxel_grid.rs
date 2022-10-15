@@ -66,14 +66,14 @@ impl<M: Material> Geometry for VoxelGrid<M> {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.0
-            .render_with_post_material(effect, camera, lights, color_texture, depth_texture)
+            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
     }
 }
 

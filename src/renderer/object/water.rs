@@ -261,21 +261,21 @@ impl Geometry for WaterPatch {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         let fragment_shader_source =
-            effect.fragment_shader_source(lights, color_texture, depth_texture);
+            material.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
             .program(
                 &include_str!("shaders/water.vert"),
                 &fragment_shader_source,
                 |program| {
-                    effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, effect.render_states(), camera);
+                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                    self.draw(program, material.render_states(), camera);
                 },
             )
             .unwrap();

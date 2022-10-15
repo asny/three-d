@@ -1,7 +1,7 @@
 use crate::renderer::*;
 
 ///
-/// A quad geometry that covers the entire screen. Can be rendered using the [camera2d] camera.
+/// A quad geometry that covers the entire screen.
 ///
 pub struct ScreenQuad {
     context: Context,
@@ -26,14 +26,14 @@ impl ScreenQuad {
     }
 
     ///
-    /// Get the texture transform applied to the uv coordinates of the image effect.
+    /// Get the texture transform applied to the uv coordinates.
     ///
     pub fn texture_transform(&mut self) -> &Mat3 {
         &self.texture_transform
     }
 
     ///
-    /// Set the texture transform applied to the uv coordinates of the image effect.
+    /// Set the texture transform applied to the uv coordinates.
     ///
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
@@ -77,21 +77,21 @@ impl Geometry for ScreenQuad {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         let fragment_shader_source =
-            effect.fragment_shader_source(lights, color_texture, depth_texture);
+            material.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
             .program(
                 &include_str!("shaders/screen_quad.vert"),
                 &fragment_shader_source,
                 |program| {
-                    effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, effect.render_states(), camera);
+                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                    self.draw(program, material.render_states(), camera);
                 },
             )
             .expect("Failed compiling shader")

@@ -46,14 +46,14 @@ impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
 
     fn render_with_post_material(
         &self,
-        effect: &dyn PostMaterial,
+        material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.geometry.render_with_post_material(
-            effect,
+            material,
             camera,
             lights,
             color_texture,
