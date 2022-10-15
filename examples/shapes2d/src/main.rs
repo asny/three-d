@@ -10,14 +10,14 @@ pub fn main() {
     let context = window.gl();
 
     let mut rectangle = Gm::new(
-        Rectangle::new_with_material(&context, vec2(200.0, 200.0), degrees(45.0), 100.0, 200.0),
+        Rectangle::new(&context, vec2(200.0, 200.0), degrees(45.0), 100.0, 200.0),
         ColorMaterial {
             color: Color::RED,
             ..Default::default()
         },
     );
     let mut circle = Gm::new(
-        Circle::new_with_material(&context, vec2(500.0, 500.0), 200.0),
+        Circle::new(&context, vec2(500.0, 500.0), 200.0),
         ColorMaterial {
             color: Color::BLUE,
             ..Default::default()

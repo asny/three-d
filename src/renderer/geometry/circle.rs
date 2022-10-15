@@ -1,7 +1,7 @@
 use crate::renderer::*;
 
 ///
-/// A circle 2D object which can be rendered.
+/// A circle 2D geometry which can be rendered using the [camera2d] camera.
 ///
 pub struct Circle {
     mesh: Mesh,
@@ -11,9 +11,9 @@ pub struct Circle {
 
 impl Circle {
     ///
-    /// Constructs a new circle object with the given material.
+    /// Constructs a new circle geometry.
     ///
-    pub fn new_with_material(context: &Context, center: Vec2, radius: f32) -> Self {
+    pub fn new(context: &Context, center: Vec2, radius: f32) -> Self {
         let mesh = CpuMesh::circle(64);
         let mut circle = Self {
             mesh: Mesh::new(context, &mesh),

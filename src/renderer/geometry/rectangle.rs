@@ -1,7 +1,7 @@
 use crate::renderer::*;
 
 ///
-/// A rectangle 2D object which can be rendered.
+/// A rectangle 2D geometry which can be rendered using the [camera2d] camera.
 ///
 pub struct Rectangle {
     mesh: Mesh,
@@ -13,9 +13,9 @@ pub struct Rectangle {
 
 impl Rectangle {
     ///
-    /// Constructs a new rectangle object with the given material.
+    /// Constructs a new rectangle geometry.
     ///
-    pub fn new_with_material(
+    pub fn new(
         context: &Context,
         center: Vec2,
         rotation: impl Into<Radians>,

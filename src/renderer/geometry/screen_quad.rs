@@ -1,5 +1,8 @@
 use crate::renderer::*;
 
+///
+/// A quad geometry that covers the entire screen. Can be rendered using the [camera2d] camera.
+///
 pub struct ScreenQuad {
     context: Context,
     position_buffer: VertexBuffer,

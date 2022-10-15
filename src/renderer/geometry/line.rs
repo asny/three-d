@@ -1,7 +1,7 @@
 use crate::renderer::*;
 
 ///
-/// A line 2D object which can be rendered.
+/// A rectangle 2D geometry which can be rendered using the [camera2d] camera.
 ///
 pub struct Line {
     mesh: Mesh,
