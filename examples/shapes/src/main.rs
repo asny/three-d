@@ -70,25 +70,22 @@ pub fn main() {
     );
     cube.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 1.3)) * Mat4::from_scale(0.2));
     let axes = Axes::new(&context, 0.1, 2.0);
-    let bounding_box_sphere = BoundingBox::new_with_material(
-        &context,
-        sphere.aabb(),
+    let bounding_box_sphere = Gm::new(
+        BoundingBox::new(&context, sphere.aabb()),
         ColorMaterial {
             color: Color::BLACK,
             ..Default::default()
         },
     );
-    let bounding_box_cube = BoundingBox::new_with_material(
-        &context,
-        cube.aabb(),
+    let bounding_box_cube = Gm::new(
+        BoundingBox::new(&context, cube.aabb()),
         ColorMaterial {
             color: Color::BLACK,
             ..Default::default()
         },
     );
-    let bounding_box_cylinder = BoundingBox::new_with_material(
-        &context,
-        cylinder.aabb(),
+    let bounding_box_cylinder = Gm::new(
+        BoundingBox::new(&context, cylinder.aabb()),
         ColorMaterial {
             color: Color::BLACK,
             ..Default::default()

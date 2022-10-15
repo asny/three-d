@@ -272,7 +272,7 @@ pub async fn run() {
                 &CopyEffect {
                     write_mask: WriteMask::default(),
                 },
-                &camera,
+                &camera2d(camera.viewport()),
                 &screen_quad,
                 &[&light],
                 Some(&color_texture),

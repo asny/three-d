@@ -1,32 +1,31 @@
 use crate::renderer::*;
 
 ///
-/// A bounding box object used for visualising an [AxisAlignedBoundingBox].
+/// A bounding box geometry used for visualising an [AxisAlignedBoundingBox].
 ///
-pub struct BoundingBox<M: Material> {
-    model: Gm<InstancedMesh, M>,
+pub struct BoundingBox {
+    mesh: InstancedMesh,
     aabb: AxisAlignedBoundingBox,
 }
 
-impl<M: Material> BoundingBox<M> {
+impl BoundingBox {
     ///
-    /// Creates a bounding box object from an axis aligned bounding box.
+    /// Creates a bounding box geometry from an axis aligned bounding box.
     ///
-    pub fn new_with_material(context: &Context, aabb: AxisAlignedBoundingBox, material: M) -> Self {
+    pub fn new(context: &Context, aabb: AxisAlignedBoundingBox) -> Self {
         let size = aabb.size();
         let thickness = 0.02 * size.x.max(size.y).max(size.z);
 
-        Self::new_with_material_and_thickness(context, aabb, material, thickness)
+        Self::new_with_thickness(context, aabb, thickness)
     }
 
     ///
     /// Creates a bounding box object from an axis aligned bounding box with a specified line
     /// thickness.
     ///
-    pub fn new_with_material_and_thickness(
+    pub fn new_with_thickness(
         context: &Context,
         aabb: AxisAlignedBoundingBox,
-        material: M,
         thickness: f32,
     ) -> Self {
         let max = aabb.max();
@@ -76,33 +75,30 @@ impl<M: Material> BoundingBox<M> {
             vec3(size.z, thickness, thickness),
             vec3(size.z, thickness, thickness),
         ];
-        let model = Gm::new(
-            InstancedMesh::new(
-                context,
-                &Instances {
-                    translations,
-                    rotations: Some(rotations),
-                    scales: Some(scales),
-                    ..Default::default()
-                },
-                &CpuMesh::cylinder(16),
-            ),
-            material,
+        let mesh = InstancedMesh::new(
+            context,
+            &Instances {
+                translations,
+                rotations: Some(rotations),
+                scales: Some(scales),
+                ..Default::default()
+            },
+            &CpuMesh::cylinder(16),
         );
-        Self { model, aabb }
+        Self { mesh, aabb }
     }
 }
 
-impl<'a, M: Material> IntoIterator for &'a BoundingBox<M> {
-    type Item = &'a dyn Object;
-    type IntoIter = std::iter::Once<&'a dyn Object>;
+impl<'a> IntoIterator for &'a BoundingBox {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
 
     fn into_iter(self) -> Self::IntoIter {
         std::iter::once(self)
     }
 }
 
-impl<M: Material> Geometry for BoundingBox<M> {
+impl Geometry for BoundingBox {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb
     }
@@ -113,7 +109,7 @@ impl<M: Material> Geometry for BoundingBox<M> {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        self.model.render_with_material(material, camera, lights)
+        self.mesh.render_with_material(material, camera, lights)
     }
 
     fn render_with_post_material(
@@ -124,17 +120,7 @@ impl<M: Material> Geometry for BoundingBox<M> {
         color_texture: Option<&Texture2D>,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
-        self.model
+        self.mesh
             .render_with_post_material(material, camera, lights, color_texture, depth_texture)
-    }
-}
-
-impl<M: Material> Object for BoundingBox<M> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.model.render(camera, lights)
-    }
-
-    fn material_type(&self) -> MaterialType {
-        MaterialType::Opaque
     }
 }

@@ -20,6 +20,10 @@ mod particles;
 #[doc(inline)]
 pub use particles::*;
 
+mod bounding_box;
+#[doc(inline)]
+pub use bounding_box::*;
+
 mod screen_quad;
 #[doc(inline)]
 pub use screen_quad::*;

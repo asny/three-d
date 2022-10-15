@@ -105,25 +105,21 @@ pub async fn run() {
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     let mut bounding_boxes = Vec::new();
     for geometry in models.iter().flat_map(|m| m.into_iter()).chain(&fountain) {
-        bounding_boxes.push(BoundingBox::new_with_material_and_thickness(
-            &context,
-            geometry.aabb(),
+        bounding_boxes.push(Gm::new(
+            BoundingBox::new_with_thickness(&context, geometry.aabb(), 0.5),
             ColorMaterial {
                 color: Color::RED,
                 ..Default::default()
             },
-            0.5,
         ));
         aabb.expand_with_aabb(&geometry.aabb());
     }
-    bounding_boxes.push(BoundingBox::new_with_material_and_thickness(
-        &context,
-        aabb,
+    bounding_boxes.push(Gm::new(
+        BoundingBox::new_with_thickness(&context, aabb, 3.0),
         ColorMaterial {
             color: Color::BLACK,
             ..Default::default()
         },
-        3.0,
     ));
 
     let mut gui = three_d::GUI::new(&context);

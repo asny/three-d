@@ -41,10 +41,6 @@ mod axes;
 #[doc(inline)]
 pub use axes::*;
 
-mod bounding_box;
-#[doc(inline)]
-pub use bounding_box::*;
-
 use crate::core::*;
 use crate::renderer::*;
 
