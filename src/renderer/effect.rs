@@ -21,7 +21,7 @@ pub enum ColorTexture<'a> {
 
 impl ColorTexture<'_> {
     ///
-    /// Returns the fragment shader source for using this in a shader.
+    /// Returns the fragment shader source for using this texture in a shader.
     ///
     pub fn fragment_shader_source(&self) -> Option<String> {
         match self {
@@ -49,7 +49,7 @@ impl ColorTexture<'_> {
     }
 
     ///
-    /// Sends the uniform data needed for this material to the fragment shader.
+    /// Sends the uniform data needed for this texture to the fragment shader.
     ///
     pub fn use_uniforms(&self, program: &Program) {
         match self {
