@@ -58,13 +58,14 @@ pub use isosurface_material::*;
 mod fog_material;
 #[doc(inline)]
 pub use fog_material::*;
-mod fxaa;
-#[doc(inline)]
-pub use fxaa::*;
 
-mod copy;
+mod fxaa_material;
 #[doc(inline)]
-pub use copy::*;
+pub use fxaa_material::*;
+
+mod copy_material;
+#[doc(inline)]
+pub use copy_material::*;
 
 ///
 /// Defines the material type which is needed to render the objects in the correct order.

@@ -4,9 +4,9 @@ use crate::renderer::*;
 /// A simple anti-aliasing approach which smooths otherwise jagged edges (for example lines) but also
 /// smooths the rest of the image.
 ///
-pub struct FXAAEffect {}
+pub struct FxaaMaterial {}
 
-impl PostMaterial for FXAAEffect {
+impl PostMaterial for FxaaMaterial {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
@@ -18,7 +18,7 @@ impl PostMaterial for FXAAEffect {
             color_texture
                 .fragment_shader_source()
                 .expect("Must supply a color texture to apply a FXAA effect"),
-            include_str!("shaders/fxaa.frag")
+            include_str!("shaders/fxaa_material.frag")
         )
     }
 

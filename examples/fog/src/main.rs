@@ -117,7 +117,7 @@ pub async fn run() {
             frame_input
                 .screen()
                 .render_with_post_material(
-                    &CopyEffect {
+                    &CopyMaterial {
                         write_mask: WriteMask::default(),
                     },
                     &camera,
@@ -137,7 +137,7 @@ pub async fn run() {
         } else if change {
             // If a change has happened and no fog is applied, copy the result to the screen
             frame_input.screen().render_with_post_material(
-                &CopyEffect {
+                &CopyMaterial {
                     write_mask: WriteMask::default(),
                 },
                 &camera,

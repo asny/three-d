@@ -3,12 +3,12 @@ use crate::renderer::*;
 ///
 /// Copies the content of a color and depth texture.
 ///
-pub struct CopyEffect {
+pub struct CopyMaterial {
     /// Only copies the channels given by this write mask.
     pub write_mask: WriteMask,
 }
 
-impl PostMaterial for CopyEffect {
+impl PostMaterial for CopyMaterial {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
