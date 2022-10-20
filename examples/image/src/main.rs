@@ -44,10 +44,11 @@ pub async fn run() {
         gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
+            frame_input.viewport,
             frame_input.device_pixel_ratio,
             |gui_context| {
                 use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
+                SidePanel::right("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
                     ui.add(Slider::new(&mut tone_mapping, 0.0..=50.0).text("Tone mapping"));
                     ui.add(
@@ -63,7 +64,7 @@ pub async fn run() {
                             .text("Texture transform y"),
                     );
                 });
-                panel_width = gui_context.used_size().x as f64;
+                panel_width = gui_context.used_rect().width() as f64;
             },
         );
 
@@ -72,19 +73,16 @@ pub async fn run() {
                 * Mat3::from_translation(vec2(texture_transform_x, texture_transform_y)),
         );
 
-        let viewport = Viewport {
-            x: (panel_width * frame_input.device_pixel_ratio) as i32,
-            y: 0,
-            width: frame_input.viewport.width
-                - (panel_width * frame_input.device_pixel_ratio) as u32,
-            height: frame_input.viewport.height,
-        };
+        let viewport = Viewport::new_at_origo(
+            frame_input.viewport.width - (panel_width * frame_input.device_pixel_ratio) as u32,
+            frame_input.viewport.height,
+        );
 
         frame_input.screen().clear(ClearState::default()).write(|| {
             image_effect.use_texture("image", &image);
             image_effect.use_uniform("parameter", tone_mapping);
             image_effect.apply(RenderStates::default(), viewport);
-            gui.render(frame_input.viewport);
+            gui.render();
         });
 
         FrameOutput::default()

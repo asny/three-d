@@ -126,6 +126,7 @@ pub async fn run() {
         gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
+            frame_input.viewport,
             frame_input.device_pixel_ratio,
             |gui_context| {
                 use three_d::egui::*;
@@ -283,7 +284,7 @@ pub async fn run() {
                 &[&light],
             )
             .write(|| {
-                gui.render(frame_input.viewport);
+                gui.render();
             });
 
         FrameOutput::default()
