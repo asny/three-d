@@ -11,21 +11,21 @@ use super::*;
 #[derive(Clone)]
 pub struct ColorTarget<'a> {
     pub(crate) context: Context,
-    target: CT<'a>,
+    target: ColorTexture<'a>,
 }
 
-#[derive(Clone)]
-enum CT<'a> {
-    Texture2D {
+#[derive(Clone, Copy)]
+enum ColorTexture<'a> {
+    Single {
         texture: &'a Texture2D,
         mip_level: Option<u32>,
     },
-    Texture2DArray {
+    Array {
         texture: &'a Texture2DArray,
         layers: &'a [u32],
         mip_level: Option<u32>,
     },
-    TextureCubeMap {
+    CubeMap {
         texture: &'a TextureCubeMap,
         side: CubeMapSide,
         mip_level: Option<u32>,
@@ -40,7 +40,7 @@ impl<'a> ColorTarget<'a> {
     ) -> Self {
         ColorTarget {
             context: context.clone(),
-            target: CT::Texture2D { texture, mip_level },
+            target: ColorTexture::Single { texture, mip_level },
         }
     }
 
@@ -52,7 +52,7 @@ impl<'a> ColorTarget<'a> {
     ) -> Self {
         ColorTarget {
             context: context.clone(),
-            target: CT::TextureCubeMap {
+            target: ColorTexture::CubeMap {
                 texture,
                 side,
                 mip_level,
@@ -68,7 +68,7 @@ impl<'a> ColorTarget<'a> {
     ) -> Self {
         ColorTarget {
             context: context.clone(),
-            target: CT::Texture2DArray {
+            target: ColorTexture::Array {
                 texture,
                 layers,
                 mip_level,
@@ -138,11 +138,13 @@ impl<'a> ColorTarget<'a> {
     ///
     pub fn width(&self) -> u32 {
         match self.target {
-            CT::Texture2D { texture, mip_level } => size_with_mip(texture.width(), mip_level),
-            CT::Texture2DArray {
+            ColorTexture::Single { texture, mip_level } => {
+                size_with_mip(texture.width(), mip_level)
+            }
+            ColorTexture::Array {
                 texture, mip_level, ..
             } => size_with_mip(texture.width(), mip_level),
-            CT::TextureCubeMap {
+            ColorTexture::CubeMap {
                 texture, mip_level, ..
             } => size_with_mip(texture.width(), mip_level),
         }
@@ -154,11 +156,13 @@ impl<'a> ColorTarget<'a> {
     ///
     pub fn height(&self) -> u32 {
         match self.target {
-            CT::Texture2D { texture, mip_level } => size_with_mip(texture.height(), mip_level),
-            CT::Texture2DArray {
+            ColorTexture::Single { texture, mip_level } => {
+                size_with_mip(texture.height(), mip_level)
+            }
+            ColorTexture::Array {
                 texture, mip_level, ..
             } => size_with_mip(texture.height(), mip_level),
-            CT::TextureCubeMap {
+            ColorTexture::CubeMap {
                 texture, mip_level, ..
             } => size_with_mip(texture.height(), mip_level),
         }
@@ -177,19 +181,19 @@ impl<'a> ColorTarget<'a> {
 
     pub(super) fn generate_mip_maps(&self) {
         match self.target {
-            CT::Texture2D { texture, mip_level } => {
+            ColorTexture::Single { texture, mip_level } => {
                 if mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
             }
-            CT::Texture2DArray {
+            ColorTexture::Array {
                 texture, mip_level, ..
             } => {
                 if mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
             }
-            CT::TextureCubeMap {
+            ColorTexture::CubeMap {
                 texture, mip_level, ..
             } => {
                 if mip_level.is_none() {
@@ -201,11 +205,11 @@ impl<'a> ColorTarget<'a> {
 
     pub(super) fn bind(&self, context: &Context) {
         match self.target {
-            CT::Texture2D { texture, mip_level } => unsafe {
+            ColorTexture::Single { texture, mip_level } => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
                 texture.bind_as_color_target(0, mip_level.unwrap_or(0));
             },
-            CT::Texture2DArray {
+            ColorTexture::Array {
                 texture,
                 layers,
                 mip_level,
@@ -223,7 +227,7 @@ impl<'a> ColorTarget<'a> {
                     );
                 }
             },
-            CT::TextureCubeMap {
+            ColorTexture::CubeMap {
                 texture,
                 side,
                 mip_level,
