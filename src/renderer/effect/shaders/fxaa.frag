@@ -1,7 +1,7 @@
 
 uniform vec2 resolution;
 
-in vec2 uv;
+in vec2 uvs;
 
 layout (location = 0) out vec4 color;
 
@@ -121,8 +121,8 @@ void main() {
 	mediump vec2 v_rgbM;
 
 	//compute the texture coords
-	texcoords(uv * resolution, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
+	texcoords(uvs * resolution, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
 
 	//compute FXAA
-	color = fxaa(uv * resolution, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
+	color = fxaa(uvs * resolution, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
 }

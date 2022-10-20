@@ -25,32 +25,32 @@ impl PostMaterial for CopyEffect {
             if depth_texture.is_some() {
                 let source = "
                     uniform sampler2D depthMap;
-                    in vec2 uv;
+                    in vec2 uvs;
                     layout (location = 0) out vec4 color;
                     void main()
                     {
-                        color = sample_color(uv);
-                        gl_FragDepth = texture(depthMap, uv).r;
+                        color = sample_color(uvs);
+                        gl_FragDepth = texture(depthMap, uvs).r;
                     }";
                 format!("{}\n{}", color_source, source)
             } else {
                 let source = "
                     uniform sampler2D colorMap;
-                    in vec2 uv;
+                    in vec2 uvs;
                     layout (location = 0) out vec4 color;
                     void main()
                     {
-                        color = texture(colorMap, uv);
+                        color = texture(colorMap, uvs);
                     }";
                 format!("{}\n{}", color_source, source)
             }
         } else {
             "
             uniform sampler2D depthMap;
-            in vec2 uv;
+            in vec2 uvs;
             void main()
             {
-                gl_FragDepth = texture(depthMap, uv).r;
+                gl_FragDepth = texture(depthMap, uvs).r;
             }"
             .to_owned()
         }

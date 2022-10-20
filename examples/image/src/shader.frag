@@ -1,7 +1,7 @@
 uniform sampler2D image;
 uniform float parameter;
 
-in vec2 uv;
+in vec2 uvs;
 
 layout (location = 0) out vec4 outColor;
 
@@ -22,7 +22,7 @@ vec3 reinhard_tone_mapping(vec3 color) {
 
 void main()
 {
-    outColor = texture(image, uv);
+    outColor = texture(image, uvs);
     outColor.rgb = reinhard_tone_mapping(outColor.rgb);
     outColor.rgb = srgb_from_rgb(outColor.rgb);
 }

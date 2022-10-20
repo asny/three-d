@@ -7,26 +7,26 @@ uniform float zFar;
 uniform vec3 cameraPosition;
 uniform int debug_type;
 
-in vec2 uv;
+in vec2 uvs;
 
 layout (location = 0) out vec4 outColor;
 
 void main()
 {
-    float depth = texture(depthMap, uv).r;
+    float depth = texture(depthMap, uvs).r;
     if(depth > 0.99999)
     {
         discard;
     }
     gl_FragDepth = depth;
 
-    vec3 position = world_pos_from_depth(viewProjectionInverse, depth, uv);
+    vec3 position = world_pos_from_depth(viewProjectionInverse, depth, uvs);
    	
-    vec4 c = texture(gbuffer, vec3(uv, 0));
+    vec4 c = texture(gbuffer, vec3(uvs, 0));
     vec4 surface_color = vec4(c.rgb, 1.0);
     float metallic_factor = c.w;
 
-    vec4 n = texture(gbuffer, vec3(uv, 1));
+    vec4 n = texture(gbuffer, vec3(uvs, 1));
     vec2 n2 = n.xy*2.0 - 1.0;
     float z = 1.0 - n2.x * n2.x - n2.y * n2.y;
     if (z > 0.0001) {
@@ -35,7 +35,7 @@ void main()
     vec3 normal = normalize(vec3(n2.x, n2.y, (int(floor(n.z * 255.0)) & 128) == 128 ? z: -z));
     float roughness_factor = n.w;
     float occlusion = float(int(floor(n.z * 255.0)) & 127) / 127.0;
-    vec3 total_emissive = texture(gbuffer, vec3(uv, 2)).rgb;
+    vec3 total_emissive = texture(gbuffer, vec3(uvs, 2)).rgb;
 
     if(debug_type == 0) // Position
     {
@@ -60,7 +60,7 @@ void main()
     }
     else if(debug_type == 5) // UV
     {
-        outColor = vec4(uv, 0., 1.);
+        outColor = vec4(uvs, 0., 1.);
     }
     else { // None
         outColor.rgb = total_emissive + calculate_lighting(cameraPosition, surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);

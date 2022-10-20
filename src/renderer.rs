@@ -597,32 +597,32 @@ fn copy_from_array(
             uniform sampler2DArray depthMap;
             uniform int colorLayer;
             uniform int depthLayer;
-            in vec2 uv;
+            in vec2 uvs;
             layout (location = 0) out vec4 color;
             void main()
             {
-                color = texture(colorMap, vec3(uv, colorLayer));
-                gl_FragDepth = texture(depthMap, vec3(uv, depthLayer)).r;
+                color = texture(colorMap, vec3(uvs, colorLayer));
+                gl_FragDepth = texture(depthMap, vec3(uvs, depthLayer)).r;
             }"
         } else if color_texture.is_some() {
             "
             uniform sampler2DArray colorMap;
             uniform int colorLayer;
-            in vec2 uv;
+            in vec2 uvs;
             layout (location = 0) out vec4 color;
             void main()
             {
-                color = texture(colorMap, vec3(uv, colorLayer));
+                color = texture(colorMap, vec3(uvs, colorLayer));
             }"
         } else {
             "
             uniform sampler2DArray depthMap;
             uniform int depthLayer;
-            in vec2 uv;
+            in vec2 uvs;
             layout (location = 0) out vec4 color;
             void main()
             {
-                gl_FragDepth = texture(depthMap, vec3(uv, depthLayer)).r;
+                gl_FragDepth = texture(depthMap, vec3(uvs, depthLayer)).r;
             }"
         };
         context
