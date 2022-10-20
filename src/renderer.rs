@@ -387,50 +387,6 @@ impl RenderTarget<'_> {
         });
         self
     }
-
-    ///
-    /// Copies the content of the color and depth texture to the specified scissor box of this render target.
-    /// Only copies the channels given by the write mask.
-    ///
-    pub fn copy_from(
-        &self,
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
-        scissor_box: ScissorBox,
-        write_mask: WriteMask,
-    ) -> &Self {
-        self.render_partially_with_post_material(
-            scissor_box,
-            &CopyEffect { write_mask },
-            &camera2d(self.scissor_box().into()),
-            &ScreenQuad::new(&self.context),
-            &[],
-            color_texture,
-            depth_texture,
-        )
-    }
-
-    ///
-    /// Copies the content of the given layers of the color and depth array textures to the specified viewport of this render target.
-    /// Only copies the channels given by the write mask.
-    ///
-    pub fn copy_from_array(
-        &self,
-        color_texture: Option<(&Texture2DArray, u32)>,
-        depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
-        scissor_box: ScissorBox,
-        write_mask: WriteMask,
-    ) -> &Self {
-        self.write(|| {
-            copy_from_array(
-                &self.context,
-                color_texture,
-                depth_texture,
-                scissor_box.into(),
-                write_mask,
-            )
-        })
-    }
 }
 
 ///
@@ -580,76 +536,5 @@ pub fn ray_intersect(
         Some(position + direction * depth * max_depth)
     } else {
         None
-    }
-}
-
-fn copy_from_array(
-    context: &Context,
-    color_texture: Option<(&Texture2DArray, u32)>,
-    depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
-    viewport: Viewport,
-    write_mask: WriteMask,
-) {
-    if color_texture.is_some() || depth_texture.is_some() {
-        let fragment_shader_source = if color_texture.is_some() && depth_texture.is_some() {
-            "
-            uniform sampler2DArray colorMap;
-            uniform sampler2DArray depthMap;
-            uniform int colorLayer;
-            uniform int depthLayer;
-            in vec2 uvs;
-            layout (location = 0) out vec4 color;
-            void main()
-            {
-                color = texture(colorMap, vec3(uvs, colorLayer));
-                gl_FragDepth = texture(depthMap, vec3(uvs, depthLayer)).r;
-            }"
-        } else if color_texture.is_some() {
-            "
-            uniform sampler2DArray colorMap;
-            uniform int colorLayer;
-            in vec2 uvs;
-            layout (location = 0) out vec4 color;
-            void main()
-            {
-                color = texture(colorMap, vec3(uvs, colorLayer));
-            }"
-        } else {
-            "
-            uniform sampler2DArray depthMap;
-            uniform int depthLayer;
-            in vec2 uvs;
-            layout (location = 0) out vec4 color;
-            void main()
-            {
-                gl_FragDepth = texture(depthMap, vec3(uvs, depthLayer)).r;
-            }"
-        };
-        context
-            .effect(fragment_shader_source, |effect| {
-                if let Some((tex, layer)) = color_texture {
-                    effect.use_texture_array("colorMap", tex);
-                    effect.use_uniform("colorLayer", layer as i32);
-                }
-                if let Some((tex, layer)) = depth_texture {
-                    effect.use_depth_texture_array("depthMap", tex);
-                    effect.use_uniform("depthLayer", layer as i32);
-                }
-                effect.apply(
-                    RenderStates {
-                        depth_test: DepthTest::Always,
-                        write_mask: WriteMask {
-                            red: color_texture.is_some() && write_mask.red,
-                            green: color_texture.is_some() && write_mask.green,
-                            blue: color_texture.is_some() && write_mask.blue,
-                            alpha: color_texture.is_some() && write_mask.alpha,
-                            depth: depth_texture.is_some() && write_mask.depth,
-                        },
-                        ..Default::default()
-                    },
-                    viewport,
-                );
-            })
-            .unwrap()
     }
 }
