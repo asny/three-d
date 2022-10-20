@@ -33,9 +33,6 @@ pub enum RendererError {
 pub mod material;
 pub use material::*;
 
-pub mod effect;
-pub use effect::*;
-
 pub mod light;
 pub use light::*;
 
