@@ -1,7 +1,8 @@
 //!
-//! A collection of materials implementing the [Material] trait.
+//! A collection of materials implementing the [Material] and/or [PostMaterial] trait.
 //!
-//! A material together with a [geometry] can be rendered directly, or combined into an [object] (see [Gm]) that can be used in a render call, for example [RenderTarget::render].
+//! A material together with a [geometry] can be rendered directly (using `render_with_material` or `render_with_post_material`).
+//! A [Material] can also be combined into an [object] (see [Gm]) and be used in a render call, for example [RenderTarget::render].
 //!
 
 use crate::renderer::*;
@@ -260,10 +261,16 @@ fn is_transparent(cpu_material: &CpuMaterial) -> bool {
             .unwrap_or(false)
 }
 
+///
+/// A reference to a texture containing colors.
+///
 #[derive(Clone, Copy)]
 pub enum ColorTexture<'a> {
+    /// No texture
     None,
+    /// A single texture 2D texture
     Single(&'a Texture2D),
+    /// An array 2D textures and an index into the array
     Array(&'a Texture2DArray, u32),
 }
 
@@ -310,6 +317,9 @@ impl ColorTexture<'_> {
         }
     }
 
+    ///
+    /// The resolution of the underlying texture if there is any.
+    ///
     pub fn resolution(&self) -> Option<(u32, u32)> {
         match self {
             Self::None => None,
@@ -319,10 +329,16 @@ impl ColorTexture<'_> {
     }
 }
 
+///
+/// A reference to a texture containing depths.
+///
 #[derive(Clone, Copy)]
 pub enum DepthTexture<'a> {
+    /// No texture
     None,
+    /// A single texture 2D texture
     Single(&'a DepthTargetTexture2D),
+    /// An array 2D textures and an index into the array
     Array(&'a DepthTargetTexture2DArray, u32),
 }
 
@@ -369,6 +385,9 @@ impl DepthTexture<'_> {
         }
     }
 
+    ///
+    /// The resolution of the underlying texture if there is any.
+    ///
     pub fn resolution(&self) -> Option<(u32, u32)> {
         match self {
             Self::None => None,
@@ -378,6 +397,11 @@ impl DepthTexture<'_> {
     }
 }
 
+///
+/// Similar to [Material], the difference is that this type of material needs the rendered color texture and/or depth texture of the scene to be applied.
+/// Therefore this type of material is always applied one at a time and after the scene has been rendered with the regular [Material].
+/// A typical example is to apply a full screen effect after the scene has been rendered. To do this, apply this material to a [ScreenQuad].
+///
 pub trait PostMaterial {
     ///
     /// Returns the fragment shader source for this material. Should output the final fragment color.
