@@ -10,7 +10,7 @@ use std::sync::Arc;
 /// The [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods all support the two stages required by this material, so just pass the [Object] with this material applied into one of these methods.
 /// However, it is not possible to use the a [Object::render] method to render a [Geometry] with this material directly to the screen.
 /// Instead render the object into a [RenderTarget] consisting of a [Texture2DArray] with three RGBA u8 layers as color target and a [DepthTargetTexture2D] as depth target.
-/// Then call the [DeferredPhysicalMaterial::lighting_pass] method with these textures to render the screen.
+/// Then render this [PostMaterial] with the textures from the previous step onto a [ScreenQuad].
 ///
 #[derive(Clone)]
 pub struct DeferredPhysicalMaterial {
@@ -136,19 +136,15 @@ impl DeferredPhysicalMaterial {
             },
         }
     }
+}
 
-    ///
-    /// The second stage of a deferred render call.
-    /// Use the [Object::render] method to render the objects with this material into a [RenderTarget] and then call this method with these textures to render to the screen.
-    /// See [DeferredPhysicalMaterial] for more information.
-    ///
-    pub fn lighting_pass(
-        context: &Context,
-        camera: &Camera,
-        geometry_pass_texture: &Texture2DArray,
-        geometry_pass_depth_texture: &DepthTargetTexture2D,
+impl PostMaterial for DeferredPhysicalMaterial {
+    fn fragment_shader_source(
+        &self,
         lights: &[&dyn Light],
-    ) {
+        color_texture: ColorTexture,
+        depth_texture: DepthTexture,
+    ) -> String {
         let mut fragment_shader = lights_shader_source(
             lights,
             LightingModel::Cook(
@@ -156,30 +152,35 @@ impl DeferredPhysicalMaterial {
                 GeometryFunction::SmithSchlickGGX,
             ),
         );
+        fragment_shader.push_str(&color_texture.fragment_shader_source().unwrap());
+        fragment_shader.push_str(&depth_texture.fragment_shader_source().unwrap());
         fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
+        fragment_shader
+    }
 
-        context
-            .effect(&fragment_shader, |effect| {
-                effect.use_uniform_if_required("cameraPosition", camera.position());
-                for (i, light) in lights.iter().enumerate() {
-                    light.use_uniforms(effect, i as u32);
-                }
-                effect.use_texture_array("gbuffer", geometry_pass_texture);
-                effect.use_depth_texture("depthMap", geometry_pass_depth_texture);
-                effect.use_uniform_if_required(
-                    "viewProjectionInverse",
-                    (camera.projection() * camera.view()).invert().unwrap(),
-                );
-                effect.use_uniform("debug_type", DebugType::NONE as i32);
-                effect.apply(
-                    RenderStates {
-                        depth_test: DepthTest::LessOrEqual,
-                        ..Default::default()
-                    },
-                    camera.viewport(),
-                );
-            })
-            .unwrap()
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: ColorTexture,
+        depth_texture: DepthTexture,
+    ) {
+        color_texture.use_uniforms(program);
+        depth_texture.use_uniforms(program);
+        program.use_uniform_if_required("cameraPosition", camera.position());
+        for (i, light) in lights.iter().enumerate() {
+            light.use_uniforms(program, i as u32);
+        }
+        program.use_uniform_if_required(
+            "viewProjectionInverse",
+            (camera.projection() * camera.view()).invert().unwrap(),
+        );
+        program.use_uniform("debug_type", DebugType::NONE as i32);
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates::default()
     }
 }
 

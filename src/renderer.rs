@@ -275,15 +275,15 @@ impl RenderTarget<'_> {
             });
 
             // Lighting pass
-            self.write_partially(scissor_box, || {
-                DeferredPhysicalMaterial::lighting_pass(
-                    &self.context,
-                    camera,
-                    &geometry_pass_texture,
-                    &geometry_pass_depth_texture,
-                    lights,
-                )
-            });
+            self.render_partially_with_post_material(
+                scissor_box,
+                &DeferredPhysicalMaterial::new(&self.context, &CpuMaterial::default()),
+                camera,
+                &ScreenQuad::new(&self.context),
+                lights,
+                ColorTexture::Array(&geometry_pass_texture, 0),
+                DepthTexture::Single(&geometry_pass_depth_texture),
+            );
         }
 
         // Forward
