@@ -24,13 +24,16 @@ impl PostMaterial for WaterMaterial {
         &self,
         lights: &[&dyn Light],
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) -> String {
         format!(
-            "{}\n{}\n{}",
+            "{}\n{}\n{}\n{}",
             color_texture
                 .fragment_shader_source()
                 .expect("Must supply a color texture to apply a water effect"),
+            depth_texture
+                .fragment_shader_source()
+                .expect("Must supply a depth texture to apply a water effect"),
             lights_shader_source(lights, self.lighting_model),
             include_str!("shaders/water_material.frag")
         )
@@ -49,9 +52,10 @@ impl PostMaterial for WaterMaterial {
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) {
         color_texture.use_uniforms(program);
+        depth_texture.use_uniforms(program);
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);
         }
@@ -70,10 +74,6 @@ impl PostMaterial for WaterMaterial {
         );
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);
-        program.use_depth_texture(
-            "depthMap",
-            depth_texture.expect("Must supply a depth texture to apply a water effect"),
-        );
         program.use_texture_cube("environmentMap", &self.environment_texture);
     }
 }

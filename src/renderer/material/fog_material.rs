@@ -33,11 +33,14 @@ impl PostMaterial for FogMaterial {
         &self,
         _lights: &[&dyn Light],
         _color_texture: ColorTexture,
-        _depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) -> String {
         format!(
-            "{}{}",
+            "{}\n{}\n{}",
             include_str!("../../core/shared.frag"),
+            depth_texture
+                .fragment_shader_source()
+                .expect("Must supply a depth texture to apply a fog effect"),
             include_str!("shaders/fog_material.frag")
         )
     }
@@ -48,12 +51,9 @@ impl PostMaterial for FogMaterial {
         camera: &Camera,
         _lights: &[&dyn Light],
         _color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) {
-        program.use_depth_texture(
-            "depthMap",
-            depth_texture.expect("Must supply a depth texture to apply a fog effect"),
-        );
+        depth_texture.use_uniforms(program);
         program.use_uniform(
             "viewProjectionInverse",
             (camera.projection() * camera.view()).invert().unwrap(),

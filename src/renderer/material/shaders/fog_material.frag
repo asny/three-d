@@ -1,6 +1,4 @@
 
-uniform sampler2D depthMap;
-
 uniform mat4 viewProjectionInverse;
 
 uniform float time;
@@ -129,7 +127,7 @@ float snoise(vec3 v)
 // factor: 1 == full fog, 0 == no fog
 void main()
 {
-    float depth = texture(depthMap, uvs).x;
+    float depth = sample_depth(uvs);
     vec3 pos = world_pos_from_depth(viewProjectionInverse, depth, uvs);
 
     // Distance

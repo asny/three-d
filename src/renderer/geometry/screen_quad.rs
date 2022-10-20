@@ -81,7 +81,7 @@ impl Geometry for ScreenQuad {
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) {
         let fragment_shader_source =
             material.fragment_shader_source(lights, color_texture, depth_texture);

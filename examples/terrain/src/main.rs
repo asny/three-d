@@ -269,7 +269,7 @@ pub async fn run() {
             .screen()
             .copy_from(
                 ColorTexture::Single(&color_texture),
-                Some(&depth_texture),
+                DepthTexture::Single(&depth_texture),
                 camera.viewport().into(),
                 WriteMask::default(),
             )
@@ -279,7 +279,7 @@ pub async fn run() {
                 &water,
                 &[&light],
                 ColorTexture::Single(&color_texture),
-                Some(&depth_texture),
+                DepthTexture::Single(&depth_texture),
             )
             .write(|| {
                 gui.render(frame_input.viewport);

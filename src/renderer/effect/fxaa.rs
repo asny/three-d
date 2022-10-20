@@ -11,7 +11,7 @@ impl PostMaterial for FXAAEffect {
         &self,
         _lights: &[&dyn Light],
         color_texture: ColorTexture,
-        _depth_texture: Option<&DepthTargetTexture2D>,
+        _depth_texture: DepthTexture,
     ) -> String {
         format!(
             "{}\n{}",
@@ -28,7 +28,7 @@ impl PostMaterial for FXAAEffect {
         _camera: &Camera,
         _lights: &[&dyn Light],
         color_texture: ColorTexture,
-        _depth_texture: Option<&DepthTargetTexture2D>,
+        _depth_texture: DepthTexture,
     ) {
         color_texture.use_uniforms(program);
         let (w, h) = color_texture

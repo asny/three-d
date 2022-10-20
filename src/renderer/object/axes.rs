@@ -106,7 +106,7 @@ impl Geometry for Axes {
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) {
         unimplemented!()
     }

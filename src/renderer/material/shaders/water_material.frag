@@ -4,7 +4,6 @@ uniform vec3 cameraPosition;
 uniform vec2 screenSize;
 
 uniform samplerCube environmentMap;
-uniform sampler2D depthMap;
 uniform float metallic;
 uniform float roughness;
 
@@ -60,7 +59,7 @@ void main()
     vec3 normal = normalize(nor);
     vec3 incidentDir = normalize(pos - cameraPosition);
     screen_uv -= 0.05 * normal.xz; // Shift the water bottom/sky.
-    float depth = texture(depthMap, screen_uv).x;
+    float depth = sample_depth(screen_uv);
     vec3 backgroundPos = world_pos_from_depth(viewProjectionInverse, depth, screen_uv);
     outColor.rgb = inverse_reinhard_tone_mapping(rgb_from_srgb(sample_color(screen_uv).rgb));
     

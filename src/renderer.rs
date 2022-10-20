@@ -348,7 +348,7 @@ impl RenderTarget<'_> {
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) -> &Self {
         self.render_partially_with_post_material(
             self.scissor_box(),
@@ -369,7 +369,7 @@ impl RenderTarget<'_> {
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) -> &Self {
         self.write_partially(scissor_box, || {
             for object in geometries
@@ -395,7 +395,7 @@ impl RenderTarget<'_> {
     pub fn copy_from(
         &self,
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
         scissor_box: ScissorBox,
         write_mask: WriteMask,
     ) -> &Self {

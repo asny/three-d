@@ -86,7 +86,7 @@ impl Geometry for Line {
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) {
         self.mesh
             .render_with_post_material(material, camera, lights, color_texture, depth_texture)

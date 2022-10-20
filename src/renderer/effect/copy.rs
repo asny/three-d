@@ -13,26 +13,22 @@ impl PostMaterial for CopyEffect {
         &self,
         _lights: &[&dyn Light],
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) -> String {
         let color_source = color_texture.fragment_shader_source();
-
-        if color_source.is_none() && depth_texture.is_none() {
-            panic!("Must supply a color or depth texture to apply a copy effect")
-        }
+        let depth_source = depth_texture.fragment_shader_source();
 
         if let Some(color_source) = color_source {
-            if depth_texture.is_some() {
+            if let Some(depth_source) = depth_source {
                 let source = "
-                    uniform sampler2D depthMap;
                     in vec2 uvs;
                     layout (location = 0) out vec4 color;
                     void main()
                     {
                         color = sample_color(uvs);
-                        gl_FragDepth = texture(depthMap, uvs).r;
+                        gl_FragDepth = sample_depth(uvs);
                     }";
-                format!("{}\n{}", color_source, source)
+                format!("{}\n{}\n{}", color_source, depth_source, source)
             } else {
                 let source = "
                     uniform sampler2D colorMap;
@@ -45,14 +41,17 @@ impl PostMaterial for CopyEffect {
                 format!("{}\n{}", color_source, source)
             }
         } else {
-            "
-            uniform sampler2D depthMap;
-            in vec2 uvs;
-            void main()
-            {
-                gl_FragDepth = texture(depthMap, uvs).r;
-            }"
-            .to_owned()
+            if let Some(depth_source) = depth_source {
+                let source = "
+                    in vec2 uvs;
+                    void main()
+                    {
+                        gl_FragDepth = sample_depth(uvs);
+                    }";
+                format!("{}\n{}", depth_source, source)
+            } else {
+                panic!("Must supply a color or depth texture to apply a copy effect")
+            }
         }
     }
 
@@ -62,12 +61,10 @@ impl PostMaterial for CopyEffect {
         _camera: &Camera,
         _lights: &[&dyn Light],
         color_texture: ColorTexture,
-        depth_texture: Option<&DepthTargetTexture2D>,
+        depth_texture: DepthTexture,
     ) {
         color_texture.use_uniforms(program);
-        if let Some(tex) = depth_texture {
-            program.use_depth_texture("depthMap", tex);
-        }
+        depth_texture.use_uniforms(program);
     }
 
     fn render_states(&self) -> RenderStates {

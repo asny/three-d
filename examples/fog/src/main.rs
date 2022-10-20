@@ -47,7 +47,14 @@ pub async fn run() {
     let mut fog_enabled = true;
 
     // main loop
-    let mut depth_texture = None;
+    let mut depth_texture = DepthTargetTexture2D::new(
+        &context,
+        1,
+        1,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+        DepthFormat::Depth32F,
+    );
     window.render_loop(move |mut frame_input| {
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
@@ -68,19 +75,18 @@ pub async fn run() {
 
         // draw
         if change && fog_enabled {
-            depth_texture = Some(DepthTargetTexture2D::new(
+            depth_texture = DepthTargetTexture2D::new(
                 &context,
                 frame_input.viewport.width,
                 frame_input.viewport.height,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
                 DepthFormat::Depth32F,
-            ));
-            depth_texture.as_mut().map(|dt| {
-                dt.as_depth_target()
-                    .clear(ClearState::default())
-                    .render_with_material(&DepthMaterial::default(), &camera, &monkey, &[]);
-            });
+            );
+            depth_texture
+                .as_depth_target()
+                .clear(ClearState::default())
+                .render_with_material(&DepthMaterial::default(), &camera, &monkey, &[]);
         }
 
         frame_input.screen().clear(ClearState::default()).render(
@@ -97,7 +103,7 @@ pub async fn run() {
                 &screen_quad,
                 &[&ambient, &directional],
                 ColorTexture::None,
-                depth_texture.as_ref(),
+                DepthTexture::Single(&depth_texture),
             );
         }
 
