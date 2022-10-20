@@ -85,6 +85,36 @@ impl Mesh {
         self.texture_transform = texture_transform;
     }
 
+    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("modelMatrix", &self.transformation);
+        program.use_uniform_if_required("textureTransform", &self.texture_transform);
+        program.use_uniform_if_required(
+            "normalMatrix",
+            &self.transformation.invert().unwrap().transpose(),
+        );
+
+        for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
+            if program.requires_attribute(attribute_name) {
+                program.use_vertex_attribute(
+                    attribute_name,
+                    self.vertex_buffers
+                        .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
+                );
+            }
+        }
+
+        if let Some(ref index_buffer) = self.index_buffer {
+            program.draw_elements(render_states, camera.viewport(), index_buffer)
+        } else {
+            program.draw_arrays(
+                render_states,
+                camera.viewport(),
+                self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
+            )
+        }
+    }
+
     fn vertex_shader_source(fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
@@ -145,40 +175,16 @@ impl Geometry for Mesh {
     ) {
         let fragment_shader_source =
             material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
-        self.context.program(
-            &Self::vertex_shader_source(&fragment_shader_source),
-            &fragment_shader_source,
-            |program| {
-                material.use_uniforms(program, camera, lights);
-                program.use_uniform("viewProjection", camera.projection() * camera.view());
-                program.use_uniform("modelMatrix", &self.transformation);
-                program.use_uniform_if_required("textureTransform", &self.texture_transform);
-                program.use_uniform_if_required(
-                    "normalMatrix",
-                    &self.transformation.invert().unwrap().transpose(),
-                );
-
-                for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
-                    if program.requires_attribute(attribute_name) {
-                        program.use_vertex_attribute(
-                            attribute_name,
-                            self.vertex_buffers
-                                .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                        );
-                    }
-                }
-
-                if let Some(ref index_buffer) = self.index_buffer {
-                    program.draw_elements(material.render_states(), camera.viewport(), index_buffer)
-                } else {
-                    program.draw_arrays(
-                        material.render_states(),
-                        camera.viewport(),
-                        self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
-                    )
-                }
-            },
-        ).expect("Failed compiling shader")
+        self.context
+            .program(
+                &Self::vertex_shader_source(&fragment_shader_source),
+                &fragment_shader_source,
+                |program| {
+                    material.use_uniforms(program, camera, lights);
+                    self.draw(program, material.render_states(), camera);
+                },
+            )
+            .expect("Failed compiling shader")
     }
 
     fn render_with_post_material(
@@ -189,6 +195,17 @@ impl Geometry for Mesh {
         color_texture: ColorTexture,
         depth_texture: DepthTexture,
     ) {
-        unimplemented!()
+        let fragment_shader_source =
+            material.fragment_shader_source(lights, color_texture, depth_texture);
+        self.context
+            .program(
+                &Self::vertex_shader_source(&fragment_shader_source),
+                &fragment_shader_source,
+                |program| {
+                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                    self.draw(program, material.render_states(), camera);
+                },
+            )
+            .expect("Failed compiling shader")
     }
 }

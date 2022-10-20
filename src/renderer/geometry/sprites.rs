@@ -82,6 +82,22 @@ impl Sprites {
     pub fn set_centers(&mut self, centers: &[Vec3]) {
         self.center_buffer.fill(centers);
     }
+
+    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+        program.use_uniform("eye", camera.position());
+        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("transformation", self.transformation);
+        program.use_vertex_attribute("position", &self.position_buffer);
+        program.use_vertex_attribute("uv_coordinate", &self.uv_buffer);
+        program.use_instance_attribute("center", &self.center_buffer);
+        program.use_uniform("direction", self.direction.unwrap_or(vec3(0.0, 0.0, 0.0)));
+        program.draw_arrays_instanced(
+            render_states,
+            camera.viewport(),
+            6,
+            self.center_buffer.instance_count(),
+        )
+    }
 }
 
 impl<'a> IntoIterator for &'a Sprites {
@@ -107,19 +123,7 @@ impl Geometry for Sprites {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    program.use_uniform("eye", camera.position());
-                    program.use_uniform("viewProjection", camera.projection() * camera.view());
-                    program.use_uniform("transformation", self.transformation);
-                    program.use_vertex_attribute("position", &self.position_buffer);
-                    program.use_vertex_attribute("uv_coordinate", &self.uv_buffer);
-                    program.use_instance_attribute("center", &self.center_buffer);
-                    program.use_uniform("direction", self.direction.unwrap_or(vec3(0.0, 0.0, 0.0)));
-                    program.draw_arrays_instanced(
-                        material.render_states(),
-                        camera.viewport(),
-                        6,
-                        self.center_buffer.instance_count(),
-                    )
+                    self.draw(program, material.render_states(), camera);
                 },
             )
             .expect("Failed compiling shader")
@@ -133,7 +137,18 @@ impl Geometry for Sprites {
         color_texture: ColorTexture,
         depth_texture: DepthTexture,
     ) {
-        unimplemented!()
+        let fragment_shader_source =
+            material.fragment_shader_source(lights, color_texture, depth_texture);
+        self.context
+            .program(
+                &include_str!("shaders/sprites.vert"),
+                &fragment_shader_source,
+                |program| {
+                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                    self.draw(program, material.render_states(), camera);
+                },
+            )
+            .expect("Failed compiling shader")
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

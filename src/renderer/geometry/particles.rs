@@ -182,6 +182,60 @@ impl ParticleSystem {
         }
     }
 
+    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("modelMatrix", &self.transformation);
+        program.use_uniform("acceleration", &self.acceleration);
+        program.use_uniform("time", &self.time);
+        program.use_uniform_if_required("textureTransform", &self.texture_transform);
+        program.use_uniform_if_required(
+            "normalMatrix",
+            &self.transformation.invert().unwrap().transpose(),
+        );
+
+        for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
+            if program.requires_attribute(attribute_name) {
+                program.use_vertex_attribute(
+                    attribute_name,
+                    self.vertex_buffers
+                        .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
+                );
+            }
+        }
+
+        for attribute_name in [
+            "start_position",
+            "start_velocity",
+            "tex_transform_row1",
+            "tex_transform_row2",
+            "instance_color",
+        ] {
+            if program.requires_attribute(attribute_name) {
+                program.use_instance_attribute(
+                    attribute_name,
+                    self.instance_buffers
+                    .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
+                );
+            }
+        }
+
+        if let Some(ref index_buffer) = self.index_buffer {
+            program.draw_elements_instanced(
+                render_states,
+                camera.viewport(),
+                index_buffer,
+                self.instance_count,
+            )
+        } else {
+            program.draw_arrays_instanced(
+                render_states,
+                camera.viewport(),
+                self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
+                self.instance_count,
+            )
+        }
+    }
+
     fn vertex_shader_source(&self, fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
@@ -258,64 +312,16 @@ impl Geometry for ParticleSystem {
                 || self.instance_buffers.contains_key("instance_color"),
             lights,
         );
-        self.context.program(
-            &self.vertex_shader_source(&fragment_shader_source),
-            &fragment_shader_source,
-            |program| {
-                material.use_uniforms(program, camera, lights);
-                program.use_uniform("viewProjection", camera.projection() * camera.view());
-                program.use_uniform("modelMatrix", &self.transformation);
-                program.use_uniform("acceleration", &self.acceleration);
-                program.use_uniform("time", &self.time);
-                program.use_uniform_if_required("textureTransform", &self.texture_transform);
-                program.use_uniform_if_required(
-                    "normalMatrix",
-                    &self.transformation.invert().unwrap().transpose(),
-                );
-
-                for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
-                    if program.requires_attribute(attribute_name) {
-                        program.use_vertex_attribute(
-                            attribute_name,
-                            self.vertex_buffers
-                                .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                        );
-                    }
-                }
-
-                for attribute_name in [
-                    "start_position",
-                    "start_velocity",
-                    "tex_transform_row1",
-                    "tex_transform_row2",
-                    "instance_color",
-                ] {
-                    if program.requires_attribute(attribute_name) {
-                        program.use_instance_attribute(
-                            attribute_name,
-                            self.instance_buffers
-                            .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
-                        );
-                    }
-                }
-
-                if let Some(ref index_buffer) = self.index_buffer {
-                    program.draw_elements_instanced(
-                        material.render_states(),
-                        camera.viewport(),
-                        index_buffer,
-                        self.instance_count,
-                    )
-                } else {
-                    program.draw_arrays_instanced(
-                        material.render_states(),
-                        camera.viewport(),
-                        self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
-                        self.instance_count,
-                    )
-                }
-            },
-        ).expect("Failed compiling shader")
+        self.context
+            .program(
+                &self.vertex_shader_source(&fragment_shader_source),
+                &fragment_shader_source,
+                |program| {
+                    material.use_uniforms(program, camera, lights);
+                    self.draw(program, material.render_states(), camera);
+                },
+            )
+            .expect("Failed compiling shader")
     }
 
     fn render_with_post_material(
@@ -326,6 +332,17 @@ impl Geometry for ParticleSystem {
         color_texture: ColorTexture,
         depth_texture: DepthTexture,
     ) {
-        unimplemented!()
+        let fragment_shader_source =
+            material.fragment_shader_source(lights, color_texture, depth_texture);
+        self.context
+            .program(
+                &self.vertex_shader_source(&fragment_shader_source),
+                &fragment_shader_source,
+                |program| {
+                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                    self.draw(program, material.render_states(), camera);
+                },
+            )
+            .expect("Failed compiling shader")
     }
 }
