@@ -47,6 +47,16 @@ pub async fn run() {
     let mut fog_enabled = true;
 
     // main loop
+    let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
+        &context,
+        1,
+        1,
+        Interpolation::Nearest,
+        Interpolation::Nearest,
+        None,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+    );
     let mut depth_texture = DepthTargetTexture2D::new(
         &context,
         1,
@@ -73,8 +83,18 @@ pub async fn run() {
             }
         }
 
-        // draw
-        if change && fog_enabled {
+        if change {
+            // Draw the scene to a render target if a change has occured
+            color_texture = Texture2D::new_empty::<[u8; 4]>(
+                &context,
+                frame_input.viewport.width,
+                frame_input.viewport.height,
+                Interpolation::Nearest,
+                Interpolation::Nearest,
+                None,
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+            );
             depth_texture = DepthTargetTexture2D::new(
                 &context,
                 frame_input.viewport.width,
@@ -83,30 +103,54 @@ pub async fn run() {
                 Wrapping::ClampToEdge,
                 DepthFormat::Depth32F,
             );
-            depth_texture
-                .as_depth_target()
-                .clear(ClearState::default())
-                .render_with_material(&DepthMaterial::default(), &camera, &monkey, &[]);
+            RenderTarget::new(
+                color_texture.as_color_target(None),
+                depth_texture.as_depth_target(),
+            )
+            .clear(ClearState::default())
+            .render(&camera, &monkey, &[&ambient, &directional]);
         }
 
-        frame_input.screen().clear(ClearState::default()).render(
-            &camera,
-            &monkey,
-            &[&ambient, &directional],
-        );
-
         if fog_enabled {
+            // Apply fog nomatter if a change has occured since it contain animation.
             fog_material.time = frame_input.accumulated_time;
+            frame_input
+                .screen()
+                .render_with_post_material(
+                    &CopyEffect {
+                        write_mask: WriteMask::default(),
+                    },
+                    &camera,
+                    &ScreenQuad::new(&context),
+                    &[],
+                    ColorTexture::Single(&color_texture),
+                    DepthTexture::Single(&depth_texture),
+                )
+                .render_with_post_material(
+                    &fog_material,
+                    &camera,
+                    &screen_quad,
+                    &[&ambient, &directional],
+                    ColorTexture::None,
+                    DepthTexture::Single(&depth_texture),
+                );
+        } else if change {
+            // If a change has happened and no fog is applied, copy the result to the screen
             frame_input.screen().render_with_post_material(
-                &fog_material,
+                &CopyEffect {
+                    write_mask: WriteMask::default(),
+                },
                 &camera,
-                &screen_quad,
-                &[&ambient, &directional],
-                ColorTexture::None,
+                &ScreenQuad::new(&context),
+                &[],
+                ColorTexture::Single(&color_texture),
                 DepthTexture::Single(&depth_texture),
             );
         }
 
-        FrameOutput::default()
+        FrameOutput {
+            swap_buffers: change || fog_enabled,
+            ..Default::default()
+        }
     });
 }
