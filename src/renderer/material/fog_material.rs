@@ -11,6 +11,7 @@ pub struct FogMaterial {
     pub density: f32,
     /// Determines the variation on the density as a function of time.
     pub animation: f32,
+    /// The time parameter that continuously increases to enable animation.
     pub time: f64,
 }
 

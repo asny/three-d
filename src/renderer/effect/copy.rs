@@ -2,9 +2,9 @@ use crate::renderer::*;
 
 ///
 /// Copies the content of a color and depth texture.
-/// Only copies the channels given by the write mask.
 ///
 pub struct CopyEffect {
+    /// Only copies the channels given by this write mask.
     pub write_mask: WriteMask,
 }
 

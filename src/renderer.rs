@@ -81,9 +81,8 @@ impl DepthTarget<'_> {
     }
 
     ///
-    /// Render the geometries with the given material using the given camera and lights into this depth target.
+    /// Render the geometries with the given [Material] using the given camera and lights into this depth target.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
-    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_with_material(
         &self,
@@ -103,9 +102,8 @@ impl DepthTarget<'_> {
     }
 
     ///
-    /// Render the geometries with the given material using the given camera and lights into the part of this depth target defined by the scissor box.
+    /// Render the geometries with the given [Material] using the given camera and lights into the part of this depth target defined by the scissor box.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
-    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_partially_with_material(
         &self,
@@ -121,6 +119,56 @@ impl DepthTarget<'_> {
             camera,
             geometries,
             lights,
+        );
+        self
+    }
+
+    ///
+    /// Render the geometries with the given [PostMaterial] using the given camera and lights into this depth target.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    ///
+    pub fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: ColorTexture,
+        depth_texture: DepthTexture,
+    ) -> &Self {
+        self.render_partially_with_post_material(
+            self.scissor_box(),
+            material,
+            camera,
+            geometries,
+            lights,
+            color_texture,
+            depth_texture,
+        )
+    }
+
+    ///
+    /// Render the geometries with the given [PostMaterial] using the given camera and lights into the part of this depth target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    ///
+    pub fn render_partially_with_post_material(
+        &self,
+        scissor_box: ScissorBox,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: ColorTexture,
+        depth_texture: DepthTexture,
+    ) -> &Self {
+        self.as_render_target().render_partially_with_post_material(
+            scissor_box,
+            material,
+            camera,
+            geometries,
+            lights,
+            color_texture,
+            depth_texture,
         );
         self
     }
@@ -159,9 +207,8 @@ impl ColorTarget<'_> {
     }
 
     ///
-    /// Render the geometries with the given material using the given camera and lights into this color target.
+    /// Render the geometries with the given [Material] using the given camera and lights into this color target.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
-    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_with_material(
         &self,
@@ -181,9 +228,8 @@ impl ColorTarget<'_> {
     }
 
     ///
-    /// Render the geometries with the given material using the given camera and lights into the part of this color target defined by the scissor box.
+    /// Render the geometries with the given [Material] using the given camera and lights into the part of this color target defined by the scissor box.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
-    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_partially_with_material(
         &self,
@@ -199,6 +245,56 @@ impl ColorTarget<'_> {
             camera,
             geometries,
             lights,
+        );
+        self
+    }
+
+    ///
+    /// Render the geometries with the given [PostMaterial] using the given camera and lights into this color target.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    ///
+    pub fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: ColorTexture,
+        depth_texture: DepthTexture,
+    ) -> &Self {
+        self.render_partially_with_post_material(
+            self.scissor_box(),
+            material,
+            camera,
+            geometries,
+            lights,
+            color_texture,
+            depth_texture,
+        )
+    }
+
+    ///
+    /// Render the geometries with the given [PostMaterial] using the given camera and lights into the part of this color target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    ///
+    pub fn render_partially_with_post_material(
+        &self,
+        scissor_box: ScissorBox,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+        lights: &[&dyn Light],
+        color_texture: ColorTexture,
+        depth_texture: DepthTexture,
+    ) -> &Self {
+        self.as_render_target().render_partially_with_post_material(
+            scissor_box,
+            material,
+            camera,
+            geometries,
+            lights,
+            color_texture,
+            depth_texture,
         );
         self
     }
@@ -297,9 +393,8 @@ impl RenderTarget<'_> {
     }
 
     ///
-    /// Render the geometries with the given material using the given camera and lights into this render target.
+    /// Render the geometries with the given [Material] using the given camera and lights into this render target.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
-    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_with_material(
         &self,
@@ -318,9 +413,8 @@ impl RenderTarget<'_> {
     }
 
     ///
-    /// Render the geometries with the given material using the given camera and lights into the part of this render target defined by the scissor box.
+    /// Render the geometries with the given [Material] using the given camera and lights into the part of this render target defined by the scissor box.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
-    /// Also, geometries outside the camera frustum are not rendered and the geometries are rendered in the order given by [cmp_render_order].
     ///
     pub fn render_partially_with_material(
         &self,
@@ -341,6 +435,10 @@ impl RenderTarget<'_> {
         self
     }
 
+    ///
+    /// Render the geometries with the given [PostMaterial] using the given camera and lights into this render target.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    ///
     pub fn render_with_post_material(
         &self,
         material: &dyn PostMaterial,
@@ -361,6 +459,10 @@ impl RenderTarget<'_> {
         )
     }
 
+    ///
+    /// Render the geometries with the given [PostMaterial] using the given camera and lights into the part of this render target defined by the scissor box.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    ///
     pub fn render_partially_with_post_material(
         &self,
         scissor_box: ScissorBox,

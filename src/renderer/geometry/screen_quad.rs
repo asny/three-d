@@ -2,6 +2,7 @@ use crate::renderer::*;
 
 ///
 /// A quad geometry that covers the entire screen.
+/// Can be created each frame if needed.
 ///
 pub struct ScreenQuad {
     context: Context,
@@ -10,6 +11,9 @@ pub struct ScreenQuad {
 }
 
 impl ScreenQuad {
+    ///
+    /// Constructs a new screen quad.
+    ///
     pub fn new(context: &Context) -> Self {
         Self {
             context: context.clone(),

@@ -60,12 +60,17 @@ pub use three_d_asset::{Indices, PointCloud, Positions, TriMesh as CpuMesh};
 ///
 pub trait Geometry {
     ///
-    /// Render the geometry with the given material.
+    /// Render the geometry with the given [Material].
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     ///
     fn render_with_material(&self, material: &dyn Material, camera: &Camera, lights: &[&dyn Light]);
 
+    ///
+    /// Render the geometry with the given [PostMaterial].
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    ///
     fn render_with_post_material(
         &self,
         material: &dyn PostMaterial,
