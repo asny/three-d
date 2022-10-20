@@ -104,7 +104,7 @@ impl Geometry for Imposters {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.sprites.render_with_post_material(

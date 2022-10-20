@@ -32,7 +32,7 @@ impl PostMaterial for FogMaterial {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
-        _color_texture: Option<&Texture2D>,
+        _color_texture: ColorTexture,
         _depth_texture: Option<&DepthTargetTexture2D>,
     ) -> String {
         format!(
@@ -47,7 +47,7 @@ impl PostMaterial for FogMaterial {
         program: &Program,
         camera: &Camera,
         _lights: &[&dyn Light],
-        _color_texture: Option<&Texture2D>,
+        _color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         program.use_depth_texture(

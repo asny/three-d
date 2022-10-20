@@ -96,7 +96,7 @@ pub async fn run() {
                 &camera,
                 &screen_quad,
                 &[&ambient, &directional],
-                None,
+                ColorTexture::None,
                 depth_texture.as_ref(),
             );
         }

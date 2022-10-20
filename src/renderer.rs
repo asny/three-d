@@ -347,7 +347,7 @@ impl RenderTarget<'_> {
         camera: &Camera,
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) -> &Self {
         self.render_partially_with_post_material(
@@ -368,7 +368,7 @@ impl RenderTarget<'_> {
         camera: &Camera,
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) -> &Self {
         self.write_partially(scissor_box, || {
@@ -394,7 +394,7 @@ impl RenderTarget<'_> {
     ///
     pub fn copy_from(
         &self,
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
         scissor_box: ScissorBox,
         write_mask: WriteMask,

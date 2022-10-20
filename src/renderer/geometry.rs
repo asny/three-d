@@ -71,7 +71,7 @@ pub trait Geometry {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     );
 
@@ -96,7 +96,7 @@ impl<T: Geometry + ?Sized> Geometry for &T {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         (*self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
@@ -122,7 +122,7 @@ impl<T: Geometry + ?Sized> Geometry for &mut T {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         (**self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
@@ -148,7 +148,7 @@ impl<T: Geometry> Geometry for Box<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.as_ref().render_with_post_material(
@@ -180,7 +180,7 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.as_ref().render_with_post_material(
@@ -212,7 +212,7 @@ impl<T: Geometry> Geometry for std::sync::Arc<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.as_ref().render_with_post_material(
@@ -244,7 +244,7 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.borrow().render_with_post_material(
@@ -278,7 +278,7 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
         self.read().unwrap().render_with_post_material(

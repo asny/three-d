@@ -10,10 +10,16 @@ impl PostMaterial for FXAAEffect {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
-        _color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         _depth_texture: Option<&DepthTargetTexture2D>,
     ) -> String {
-        include_str!("shaders/fxaa.frag").to_owned()
+        format!(
+            "{}\n{}",
+            color_texture
+                .fragment_shader_source()
+                .expect("Must supply a color texture to apply a FXAA effect"),
+            include_str!("shaders/fxaa.frag")
+        )
     }
 
     fn use_uniforms(
@@ -21,15 +27,14 @@ impl PostMaterial for FXAAEffect {
         program: &Program,
         _camera: &Camera,
         _lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         _depth_texture: Option<&DepthTargetTexture2D>,
     ) {
-        let texture = color_texture.expect("Must supply a color texture to apply a fog effect");
-        program.use_texture("colorMap", texture);
-        program.use_uniform(
-            "resolution",
-            vec2(texture.width() as f32, texture.height() as f32),
-        );
+        color_texture.use_uniforms(program);
+        let (w, h) = color_texture
+            .resolution()
+            .expect("Must supply a color texture to apply a FXAA effect");
+        program.use_uniform("resolution", vec2(w as f32, h as f32));
     }
 
     fn render_states(&self) -> RenderStates {

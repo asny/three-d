@@ -268,7 +268,7 @@ pub async fn run() {
         frame_input
             .screen()
             .copy_from(
-                Some(&color_texture),
+                ColorTexture::Single(&color_texture),
                 Some(&depth_texture),
                 camera.viewport().into(),
                 WriteMask::default(),
@@ -278,7 +278,7 @@ pub async fn run() {
                 &camera,
                 &water,
                 &[&light],
-                Some(&color_texture),
+                ColorTexture::Single(&color_texture),
                 Some(&depth_texture),
             )
             .write(|| {

@@ -12,44 +12,48 @@ impl PostMaterial for CopyEffect {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) -> String {
-        if color_texture.is_none() && depth_texture.is_none() {
+        let color_source = color_texture.fragment_shader_source();
+
+        if color_source.is_none() && depth_texture.is_none() {
             panic!("Must supply a color or depth texture to apply a copy effect")
         }
 
-        if color_texture.is_some() && depth_texture.is_some() {
-            "
-            uniform sampler2D colorMap;
-            uniform sampler2D depthMap;
-            in vec2 uv;
-            layout (location = 0) out vec4 color;
-            void main()
-            {
-                color = texture(colorMap, uv);
-                gl_FragDepth = texture(depthMap, uv).r;
-            }"
-        } else if color_texture.is_some() {
-            "
-            uniform sampler2D colorMap;
-            in vec2 uv;
-            layout (location = 0) out vec4 color;
-            void main()
-            {
-                color = texture(colorMap, uv);
-            }"
+        if let Some(color_source) = color_source {
+            if depth_texture.is_some() {
+                let source = "
+                    uniform sampler2D depthMap;
+                    in vec2 uv;
+                    layout (location = 0) out vec4 color;
+                    void main()
+                    {
+                        color = sample_color(uv);
+                        gl_FragDepth = texture(depthMap, uv).r;
+                    }";
+                format!("{}\n{}", color_source, source)
+            } else {
+                let source = "
+                    uniform sampler2D colorMap;
+                    in vec2 uv;
+                    layout (location = 0) out vec4 color;
+                    void main()
+                    {
+                        color = texture(colorMap, uv);
+                    }";
+                format!("{}\n{}", color_source, source)
+            }
         } else {
             "
             uniform sampler2D depthMap;
             in vec2 uv;
-            layout (location = 0) out vec4 color;
             void main()
             {
                 gl_FragDepth = texture(depthMap, uv).r;
             }"
+            .to_owned()
         }
-        .to_owned()
     }
 
     fn use_uniforms(
@@ -57,12 +61,10 @@ impl PostMaterial for CopyEffect {
         program: &Program,
         _camera: &Camera,
         _lights: &[&dyn Light],
-        color_texture: Option<&Texture2D>,
+        color_texture: ColorTexture,
         depth_texture: Option<&DepthTargetTexture2D>,
     ) {
-        if let Some(tex) = color_texture {
-            program.use_texture("colorMap", tex);
-        }
+        color_texture.use_uniforms(program);
         if let Some(tex) = depth_texture {
             program.use_depth_texture("depthMap", tex);
         }
