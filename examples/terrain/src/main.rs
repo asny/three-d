@@ -95,7 +95,6 @@ pub async fn run() {
         ),
     };
 
-    let screen_quad = ScreenQuad::new(&context);
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
         &context,
         1,
