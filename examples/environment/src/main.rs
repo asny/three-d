@@ -67,6 +67,7 @@ pub async fn run() {
         gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
+            frame_input.viewport,
             frame_input.device_pixel_ratio,
             |gui_context| {
                 use three_d::egui::*;
@@ -76,7 +77,7 @@ pub async fn run() {
                     ui.add(Slider::new(&mut model.material.roughness, 0.0..=1.0).text("Roughness"));
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
-                panel_width = gui_context.used_size().x as f64;
+                panel_width = gui_context.used_rect().width() as f64;
             },
         );
         model.material.albedo = Color::from_rgba_slice(&color);
@@ -95,7 +96,7 @@ pub async fn run() {
             .screen()
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
             .render(&camera, skybox.into_iter().chain(&model), &[&light])
-            .write(|| gui.render(frame_input.viewport));
+            .write(|| gui.render());
 
         FrameOutput::default()
     });

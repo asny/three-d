@@ -70,6 +70,7 @@ pub async fn run() {
         gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
+            frame_input.viewport,
             frame_input.device_pixel_ratio,
             |gui_context| {
                 use three_d::egui::*;
@@ -81,7 +82,7 @@ pub async fn run() {
                     ui.checkbox(&mut occlusion_map_enabled, "Occlusion map");
                     ui.checkbox(&mut emissive_map_enabled, "Emissive map");
                 });
-                panel_width = gui_context.used_size().x as f64;
+                panel_width = gui_context.used_rect().width() as f64;
             },
         );
 
@@ -145,7 +146,7 @@ pub async fn run() {
                     ),
                 };
                 model.render_with_material(&material, &camera, &[&light]);
-                gui.render(frame_input.viewport);
+                gui.render();
             });
 
         FrameOutput::default()

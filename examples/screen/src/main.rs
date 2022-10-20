@@ -47,6 +47,7 @@ pub fn main() {
         gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
+            frame_input.viewport,
             frame_input.device_pixel_ratio,
             |gui_context| {
                 use three_d::egui::*;
@@ -56,7 +57,7 @@ pub fn main() {
                     ui.add(Slider::new(&mut viewport_zoom, 0.01..=1.0).text("Viewport"));
                     ui.add(Slider::new(&mut scissor_zoom, 0.01..=1.0).text("Scissor"));
                 });
-                panel_width = gui_context.used_size().x as f64;
+                panel_width = gui_context.used_rect().width() as f64;
             },
         );
 
@@ -93,7 +94,7 @@ pub fn main() {
                 ClearState::color(0.5, 0.5, 0.5, 1.0),
             )
             .render_partially(scissor_box_zoomed, &camera, &model, &[])
-            .write(|| gui.render(frame_input.viewport));
+            .write(|| gui.render());
 
         // Secondary view
         let secondary_viewport = Viewport {

@@ -66,6 +66,7 @@ pub async fn run() {
         gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
+            frame_input.viewport,
             frame_input.device_pixel_ratio,
             |gui_context| {
                 use three_d::egui::*;
@@ -83,7 +84,7 @@ pub async fn run() {
                     );
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
-                panel_width = gui_context.used_size().x as f64;
+                panel_width = gui_context.used_rect().width() as f64;
             },
         );
         while lights.len() < light_count {
@@ -125,7 +126,7 @@ pub async fn run() {
                 &lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
             )
             .write(|| {
-                gui.render(frame_input.viewport);
+                gui.render();
             });
 
         FrameOutput::default()

@@ -13,6 +13,7 @@ pub struct GUI {
     painter: RefCell<Painter>,
     egui_context: egui::Context,
     output: RefCell<Option<egui::FullOutput>>,
+    viewport: Viewport,
     modifiers: Modifiers,
 }
 
@@ -33,6 +34,7 @@ impl GUI {
             egui_context: egui::Context::default(),
             painter: RefCell::new(Painter::new(context, None, "").unwrap()),
             output: RefCell::new(None),
+            viewport: Viewport::new_at_origo(1, 1),
             modifiers: Modifiers::default(),
         }
     }
@@ -46,10 +48,24 @@ impl GUI {
         &mut self,
         events: &mut [Event],
         accumulated_time_in_ms: f64,
+        viewport: Viewport,
         device_pixel_ratio: f64,
         callback: impl FnOnce(&egui::Context),
     ) -> bool {
+        self.viewport = viewport;
         let egui_input = egui::RawInput {
+            screen_rect: Some(egui::Rect {
+                min: egui::Pos2 {
+                    x: viewport.x as f32 / device_pixel_ratio as f32,
+                    y: viewport.y as f32 / device_pixel_ratio as f32,
+                },
+                max: egui::Pos2 {
+                    x: viewport.x as f32 / device_pixel_ratio as f32
+                        + viewport.width as f32 / device_pixel_ratio as f32,
+                    y: viewport.y as f32 / device_pixel_ratio as f32
+                        + viewport.height as f32 / device_pixel_ratio as f32,
+                },
+            }),
             pixels_per_point: Some(device_pixel_ratio as f32),
             time: Some(accumulated_time_in_ms * 0.001),
             modifiers: (&self.modifiers).into(),
@@ -213,7 +229,7 @@ impl GUI {
     /// Render the GUI defined in the [update](Self::update) function.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn render(&self, viewport: Viewport) {
+    pub fn render(&self) {
         let output = self
             .output
             .borrow_mut()
@@ -222,7 +238,7 @@ impl GUI {
         let clipped_meshes = self.egui_context.tessellate(output.shapes);
         let scale = self.egui_context.pixels_per_point();
         self.painter.borrow_mut().paint_and_update_textures(
-            [viewport.width, viewport.height],
+            [self.viewport.width, self.viewport.height],
             scale,
             &clipped_meshes,
             &output.textures_delta,
