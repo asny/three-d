@@ -18,7 +18,7 @@ pub struct DepthTarget<'a> {
 #[derive(Clone, Copy)]
 pub enum DepthTexture<'a> {
     /// A single 2D texture.
-    Single { texture: &'a DepthTargetTexture2D },
+    Single(&'a DepthTargetTexture2D),
     /// An array of 2D textures and an index into the array.
     Array {
         texture: &'a DepthTargetTexture2DArray,
@@ -38,7 +38,7 @@ impl<'a> DepthTarget<'a> {
     ) -> Self {
         Self {
             context: context.clone(),
-            target: DepthTexture::Single { texture },
+            target: DepthTexture::Single(texture),
         }
     }
 
@@ -125,7 +125,7 @@ impl<'a> DepthTarget<'a> {
     ///
     pub fn width(&self) -> u32 {
         match &self.target {
-            DepthTexture::Single { texture, .. } => texture.width(),
+            DepthTexture::Single(texture) => texture.width(),
             DepthTexture::Array { texture, .. } => texture.width(),
             DepthTexture::CubeMap { texture, .. } => texture.width(),
         }
@@ -136,7 +136,7 @@ impl<'a> DepthTarget<'a> {
     ///
     pub fn height(&self) -> u32 {
         match &self.target {
-            DepthTexture::Single { texture, .. } => texture.height(),
+            DepthTexture::Single(texture) => texture.height(),
             DepthTexture::Array { texture, .. } => texture.height(),
             DepthTexture::CubeMap { texture, .. } => texture.height(),
         }
@@ -151,7 +151,7 @@ impl<'a> DepthTarget<'a> {
 
     pub(super) fn bind(&self) {
         match &self.target {
-            DepthTexture::Single { texture } => {
+            DepthTexture::Single(texture) => {
                 texture.bind_as_depth_target();
             }
             DepthTexture::Array { texture, layer } => {

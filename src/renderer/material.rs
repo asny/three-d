@@ -268,7 +268,7 @@ impl ColorTexture<'_> {
     ///
     pub fn fragment_shader_source(&self) -> String {
         match self {
-            Self::Single { .. } => "
+            Self::Single(_) => "
                 uniform sampler2D colorMap;
                 vec4 sample_color(vec2 uv)
                 {
@@ -296,14 +296,14 @@ impl ColorTexture<'_> {
     ///
     pub fn use_uniforms(&self, program: &Program) {
         match self {
-            Self::Single { texture } => program.use_texture("colorMap", texture),
+            Self::Single(texture) => program.use_texture("colorMap", texture),
             Self::Array { texture, layers } => {
                 let mut la: [i32; 4] = [0; 4];
                 layers
                     .iter()
                     .enumerate()
                     .for_each(|(i, l)| la[i] = *l as i32);
-                program.use_uniform("colorLayers", la);
+                program.use_uniform_array("colorLayers", &la);
                 program.use_texture_array("colorMap", texture);
             }
             Self::CubeMap { .. } => unimplemented!(),
@@ -315,7 +315,7 @@ impl ColorTexture<'_> {
     ///
     pub fn resolution(&self) -> (u32, u32) {
         match self {
-            Self::Single { texture, .. } => (texture.width(), texture.height()),
+            Self::Single(texture) => (texture.width(), texture.height()),
             Self::Array { texture, .. } => (texture.width(), texture.height()),
             Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
         }
@@ -354,7 +354,7 @@ impl DepthTexture<'_> {
     ///
     pub fn use_uniforms(&self, program: &Program) {
         match self {
-            Self::Single { texture } => program.use_depth_texture("depthMap", texture),
+            Self::Single(texture) => program.use_depth_texture("depthMap", texture),
             Self::Array { texture, layer } => {
                 program.use_uniform("depthLayer", layer);
                 program.use_depth_texture_array("depthMap", texture);
@@ -368,7 +368,7 @@ impl DepthTexture<'_> {
     ///
     pub fn resolution(&self) -> (u32, u32) {
         match self {
-            Self::Single { texture, .. } => (texture.width(), texture.height()),
+            Self::Single(texture) => (texture.width(), texture.height()),
             Self::Array { texture, .. } => (texture.width(), texture.height()),
             Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
         }

@@ -21,7 +21,7 @@ pub struct ColorTarget<'a> {
 #[derive(Clone, Copy)]
 pub enum ColorTexture<'a> {
     /// A single 2D texture.
-    Single { texture: &'a Texture2D },
+    Single(&'a Texture2D),
     /// An array of 2D textures and a set of indices into the array.
     Array {
         texture: &'a Texture2DArray,
@@ -43,7 +43,7 @@ impl<'a> ColorTarget<'a> {
         ColorTarget {
             context: context.clone(),
             mip_level,
-            target: ColorTexture::Single { texture },
+            target: ColorTexture::Single(texture),
         }
     }
 
@@ -135,7 +135,7 @@ impl<'a> ColorTarget<'a> {
     ///
     pub fn width(&self) -> u32 {
         match self.target {
-            ColorTexture::Single { texture } => size_with_mip(texture.width(), self.mip_level),
+            ColorTexture::Single(texture) => size_with_mip(texture.width(), self.mip_level),
             ColorTexture::Array { texture, .. } => size_with_mip(texture.width(), self.mip_level),
             ColorTexture::CubeMap { texture, .. } => size_with_mip(texture.width(), self.mip_level),
         }
@@ -147,7 +147,7 @@ impl<'a> ColorTarget<'a> {
     ///
     pub fn height(&self) -> u32 {
         match self.target {
-            ColorTexture::Single { texture } => size_with_mip(texture.height(), self.mip_level),
+            ColorTexture::Single(texture) => size_with_mip(texture.height(), self.mip_level),
             ColorTexture::Array { texture, .. } => size_with_mip(texture.height(), self.mip_level),
             ColorTexture::CubeMap { texture, .. } => {
                 size_with_mip(texture.height(), self.mip_level)
@@ -168,7 +168,7 @@ impl<'a> ColorTarget<'a> {
 
     pub(super) fn generate_mip_maps(&self) {
         match self.target {
-            ColorTexture::Single { texture } => {
+            ColorTexture::Single(texture) => {
                 if self.mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
@@ -188,7 +188,7 @@ impl<'a> ColorTarget<'a> {
 
     pub(super) fn bind(&self, context: &Context) {
         match self.target {
-            ColorTexture::Single { texture } => unsafe {
+            ColorTexture::Single(texture) => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
                 texture.bind_as_color_target(0, self.mip_level.unwrap_or(0));
             },

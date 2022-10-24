@@ -123,16 +123,16 @@ pub async fn run() {
                     &camera,
                     &ScreenQuad::new(&context),
                     &[],
-                    ColorTexture::Single(&color_texture),
-                    DepthTexture::Single(&depth_texture),
+                    Some(ColorTexture::Single(&color_texture)),
+                    Some(DepthTexture::Single(&depth_texture)),
                 )
                 .render_with_post_material(
                     &fog_material,
                     &camera,
                     &screen_quad,
                     &[&ambient, &directional],
-                    ColorTexture::None,
-                    DepthTexture::Single(&depth_texture),
+                    None,
+                    Some(DepthTexture::Single(&depth_texture)),
                 );
         } else if change {
             // If a change has happened and no fog is applied, copy the result to the screen
@@ -143,8 +143,8 @@ pub async fn run() {
                 &camera,
                 &ScreenQuad::new(&context),
                 &[],
-                ColorTexture::Single(&color_texture),
-                DepthTexture::Single(&depth_texture),
+                Some(ColorTexture::Single(&color_texture)),
+                Some(DepthTexture::Single(&depth_texture)),
             );
         }
 

@@ -379,9 +379,7 @@ impl RenderTarget<'_> {
                     texture: &geometry_pass_texture,
                     layers: &gbuffer_layers,
                 }),
-                Some(DepthTexture::Single {
-                    texture: &geometry_pass_depth_texture,
-                }),
+                Some(DepthTexture::Single(&geometry_pass_depth_texture)),
             );
         }
 
