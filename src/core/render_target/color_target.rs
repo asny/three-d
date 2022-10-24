@@ -19,6 +19,7 @@ pub struct ColorTarget<'a> {
 /// A reference to some type of texture containing colors.
 ///
 #[derive(Clone, Copy)]
+#[allow(missing_docs)]
 pub enum ColorTexture<'a> {
     /// A single 2D texture.
     Single(&'a Texture2D),

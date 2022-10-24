@@ -16,6 +16,7 @@ pub struct DepthTarget<'a> {
 /// A reference to some type of texture containing depths.
 ///
 #[derive(Clone, Copy)]
+#[allow(missing_docs)]
 pub enum DepthTexture<'a> {
     /// A single 2D texture.
     Single(&'a DepthTargetTexture2D),
