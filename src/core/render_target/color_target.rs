@@ -11,6 +11,7 @@ use super::*;
 #[derive(Clone)]
 pub struct ColorTarget<'a> {
     pub(crate) context: Context,
+    mip_level: Option<u32>,
     target: ColorTexture<'a>,
 }
 
@@ -18,17 +19,14 @@ pub struct ColorTarget<'a> {
 enum ColorTexture<'a> {
     Single {
         texture: &'a Texture2D,
-        mip_level: Option<u32>,
     },
     Array {
         texture: &'a Texture2DArray,
         layers: &'a [u32],
-        mip_level: Option<u32>,
     },
     CubeMap {
         texture: &'a TextureCubeMap,
         side: CubeMapSide,
-        mip_level: Option<u32>,
     },
 }
 
@@ -40,7 +38,8 @@ impl<'a> ColorTarget<'a> {
     ) -> Self {
         ColorTarget {
             context: context.clone(),
-            target: ColorTexture::Single { texture, mip_level },
+            mip_level,
+            target: ColorTexture::Single { texture },
         }
     }
 
@@ -52,11 +51,8 @@ impl<'a> ColorTarget<'a> {
     ) -> Self {
         ColorTarget {
             context: context.clone(),
-            target: ColorTexture::CubeMap {
-                texture,
-                side,
-                mip_level,
-            },
+            mip_level,
+            target: ColorTexture::CubeMap { texture, side },
         }
     }
 
@@ -68,11 +64,8 @@ impl<'a> ColorTarget<'a> {
     ) -> Self {
         ColorTarget {
             context: context.clone(),
-            target: ColorTexture::Array {
-                texture,
-                layers,
-                mip_level,
-            },
+            mip_level,
+            target: ColorTexture::Array { texture, layers },
         }
     }
 
@@ -138,15 +131,9 @@ impl<'a> ColorTarget<'a> {
     ///
     pub fn width(&self) -> u32 {
         match self.target {
-            ColorTexture::Single { texture, mip_level } => {
-                size_with_mip(texture.width(), mip_level)
-            }
-            ColorTexture::Array {
-                texture, mip_level, ..
-            } => size_with_mip(texture.width(), mip_level),
-            ColorTexture::CubeMap {
-                texture, mip_level, ..
-            } => size_with_mip(texture.width(), mip_level),
+            ColorTexture::Single { texture } => size_with_mip(texture.width(), self.mip_level),
+            ColorTexture::Array { texture, .. } => size_with_mip(texture.width(), self.mip_level),
+            ColorTexture::CubeMap { texture, .. } => size_with_mip(texture.width(), self.mip_level),
         }
     }
 
@@ -156,15 +143,11 @@ impl<'a> ColorTarget<'a> {
     ///
     pub fn height(&self) -> u32 {
         match self.target {
-            ColorTexture::Single { texture, mip_level } => {
-                size_with_mip(texture.height(), mip_level)
+            ColorTexture::Single { texture } => size_with_mip(texture.height(), self.mip_level),
+            ColorTexture::Array { texture, .. } => size_with_mip(texture.height(), self.mip_level),
+            ColorTexture::CubeMap { texture, .. } => {
+                size_with_mip(texture.height(), self.mip_level)
             }
-            ColorTexture::Array {
-                texture, mip_level, ..
-            } => size_with_mip(texture.height(), mip_level),
-            ColorTexture::CubeMap {
-                texture, mip_level, ..
-            } => size_with_mip(texture.height(), mip_level),
         }
     }
 
@@ -181,22 +164,18 @@ impl<'a> ColorTarget<'a> {
 
     pub(super) fn generate_mip_maps(&self) {
         match self.target {
-            ColorTexture::Single { texture, mip_level } => {
-                if mip_level.is_none() {
+            ColorTexture::Single { texture } => {
+                if self.mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
             }
-            ColorTexture::Array {
-                texture, mip_level, ..
-            } => {
-                if mip_level.is_none() {
+            ColorTexture::Array { texture, .. } => {
+                if self.mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
             }
-            ColorTexture::CubeMap {
-                texture, mip_level, ..
-            } => {
-                if mip_level.is_none() {
+            ColorTexture::CubeMap { texture, .. } => {
+                if self.mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
             }
@@ -205,15 +184,11 @@ impl<'a> ColorTarget<'a> {
 
     pub(super) fn bind(&self, context: &Context) {
         match self.target {
-            ColorTexture::Single { texture, mip_level } => unsafe {
+            ColorTexture::Single { texture } => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-                texture.bind_as_color_target(0, mip_level.unwrap_or(0));
+                texture.bind_as_color_target(0, self.mip_level.unwrap_or(0));
             },
-            ColorTexture::Array {
-                texture,
-                layers,
-                mip_level,
-            } => unsafe {
+            ColorTexture::Array { texture, layers } => unsafe {
                 context.draw_buffers(
                     &(0..layers.len())
                         .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
@@ -223,17 +198,13 @@ impl<'a> ColorTarget<'a> {
                     texture.bind_as_color_target(
                         layers[channel],
                         channel as u32,
-                        mip_level.unwrap_or(0),
+                        self.mip_level.unwrap_or(0),
                     );
                 }
             },
-            ColorTexture::CubeMap {
-                texture,
-                side,
-                mip_level,
-            } => unsafe {
+            ColorTexture::CubeMap { texture, side } => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-                texture.bind_as_color_target(side, 0, mip_level.unwrap_or(0));
+                texture.bind_as_color_target(side, 0, self.mip_level.unwrap_or(0));
             },
         }
     }
