@@ -26,7 +26,7 @@ enum ColorTexture<'a> {
     },
     CubeMap {
         texture: &'a TextureCubeMap,
-        side: CubeMapSide,
+        sides: &'a [CubeMapSide],
     },
 }
 
@@ -46,13 +46,13 @@ impl<'a> ColorTarget<'a> {
     pub(in crate::core) fn new_texture_cube_map(
         context: &Context,
         texture: &'a TextureCubeMap,
-        side: CubeMapSide,
+        sides: &'a [CubeMapSide],
         mip_level: Option<u32>,
     ) -> Self {
         ColorTarget {
             context: context.clone(),
             mip_level,
-            target: ColorTexture::CubeMap { texture, side },
+            target: ColorTexture::CubeMap { texture, sides },
         }
     }
 
@@ -202,9 +202,19 @@ impl<'a> ColorTarget<'a> {
                     );
                 }
             },
-            ColorTexture::CubeMap { texture, side } => unsafe {
-                context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-                texture.bind_as_color_target(side, 0, self.mip_level.unwrap_or(0));
+            ColorTexture::CubeMap { texture, sides } => unsafe {
+                context.draw_buffers(
+                    &(0..sides.len())
+                        .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
+                        .collect::<Vec<u32>>(),
+                );
+                for channel in 0..sides.len() {
+                    texture.bind_as_color_target(
+                        sides[channel],
+                        channel as u32,
+                        self.mip_level.unwrap_or(0),
+                    );
+                }
             },
         }
     }

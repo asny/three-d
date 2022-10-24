@@ -488,7 +488,7 @@ impl TextureCubeMap {
                 effect.use_texture("equirectangularMap", &map);
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
-                    .as_color_target(side, None)
+                    .as_color_target(&[side], None)
                     .clear(ClearState::default())
                     .write(|| {
                         effect.render(side, RenderStates::default(), viewport);
@@ -508,10 +508,10 @@ impl TextureCubeMap {
     ///
     pub fn as_color_target<'a>(
         &'a mut self,
-        side: CubeMapSide,
+        sides: &'a [CubeMapSide],
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {
-        ColorTarget::new_texture_cube_map(&self.context, self, side, mip_level)
+        ColorTarget::new_texture_cube_map(&self.context, self, sides, mip_level)
     }
 
     /// The width of this texture.
