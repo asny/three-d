@@ -262,45 +262,32 @@ fn is_transparent(cpu_material: &CpuMaterial) -> bool {
             .unwrap_or(false)
 }
 
-///
-/// A reference to a texture containing colors.
-///
-#[derive(Clone, Copy)]
-pub enum ColorTexture<'a> {
-    /// No texture
-    None,
-    /// A single texture 2D texture
-    Single(&'a Texture2D),
-    /// An array 2D textures and an index into the array
-    Array(&'a Texture2DArray, u32),
-}
-
 impl ColorTexture<'_> {
     ///
     /// Returns the fragment shader source for using this texture in a shader.
     ///
-    pub fn fragment_shader_source(&self) -> Option<String> {
+    pub fn fragment_shader_source(&self) -> String {
         match self {
-            Self::None => None,
-            Self::Single(_) => Some(
-                "
+            Self::Single { .. } => "
                 uniform sampler2D colorMap;
                 vec4 sample_color(vec2 uv)
                 {
                     return texture(colorMap, uv);
                 }"
-                .to_owned(),
-            ),
-            Self::Array(_, _) => Some(
-                "
+            .to_owned(),
+            Self::Array { .. } => "
                 uniform sampler2DArray colorMap;
-                uniform int colorLayer;
+                uniform int colorLayers[4];
                 vec4 sample_color(vec2 uv)
                 {
-                    return texture(colorMap, vec3(uv, colorLayer));
+                    return texture(colorMap, vec3(uv, colorLayers[0]));
+                }
+                vec4 sample_layer(vec2 uv, int index)
+                {
+                    return texture(colorMap, vec3(uv, colorLayers[index]));
                 }"
-                .to_owned(),
-            ),
+            .to_owned(),
+            Self::CubeMap { .. } => unimplemented!(),
         }
     }
 
@@ -309,66 +296,56 @@ impl ColorTexture<'_> {
     ///
     pub fn use_uniforms(&self, program: &Program) {
         match self {
-            Self::None => {}
-            Self::Single(tex) => program.use_texture("colorMap", tex),
-            Self::Array(tex, layer) => {
-                program.use_uniform("colorLayer", layer);
-                program.use_texture_array("colorMap", tex);
+            Self::Single { texture } => program.use_texture("colorMap", texture),
+            Self::Array { texture, layers } => {
+                let mut la: [i32; 4] = [0; 4];
+                layers
+                    .iter()
+                    .enumerate()
+                    .for_each(|(i, l)| la[i] = *l as i32);
+                program.use_uniform("colorLayers", la);
+                program.use_texture_array("colorMap", texture);
             }
+            Self::CubeMap { .. } => unimplemented!(),
         }
     }
 
     ///
     /// The resolution of the underlying texture if there is any.
     ///
-    pub fn resolution(&self) -> Option<(u32, u32)> {
+    pub fn resolution(&self) -> (u32, u32) {
         match self {
-            Self::None => None,
-            Self::Single(tex) => Some((tex.width(), tex.height())),
-            Self::Array(tex, _) => Some((tex.width(), tex.height())),
+            Self::Single { texture, .. } => (texture.width(), texture.height()),
+            Self::Array { texture, .. } => (texture.width(), texture.height()),
+            Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
         }
     }
-}
-
-///
-/// A reference to a texture containing depths.
-///
-#[derive(Clone, Copy)]
-pub enum DepthTexture<'a> {
-    /// No texture
-    None,
-    /// A single texture 2D texture
-    Single(&'a DepthTargetTexture2D),
-    /// An array 2D textures and an index into the array
-    Array(&'a DepthTargetTexture2DArray, u32),
 }
 
 impl DepthTexture<'_> {
     ///
     /// Returns the fragment shader source for using this texture in a shader.
     ///
-    pub fn fragment_shader_source(&self) -> Option<String> {
+    pub fn fragment_shader_source(&self) -> String {
         match self {
-            Self::None => None,
-            Self::Single(_) => Some(
-                "
+            Self::Single { .. } => "
                 uniform sampler2D depthMap;
                 float sample_depth(vec2 uv)
                 {
                     return texture(depthMap, uv).x;
                 }"
-                .to_owned(),
-            ),
-            Self::Array(_, _) => Some(
-                "
+            .to_owned(),
+            Self::Array { .. } => "
                 uniform sampler2DArray depthMap;
                 uniform int depthLayer;
                 float sample_depth(vec2 uv)
                 {
                     return texture(depthMap, vec3(uv, depthLayer)).x;
                 }"
-                .to_owned(),
-            ),
+            .to_owned(),
+            Self::CubeMap { .. } => {
+                unimplemented!()
+            }
         }
     }
 
@@ -377,23 +354,23 @@ impl DepthTexture<'_> {
     ///
     pub fn use_uniforms(&self, program: &Program) {
         match self {
-            Self::None => {}
-            Self::Single(tex) => program.use_depth_texture("depthMap", tex),
-            Self::Array(tex, layer) => {
+            Self::Single { texture } => program.use_depth_texture("depthMap", texture),
+            Self::Array { texture, layer } => {
                 program.use_uniform("depthLayer", layer);
-                program.use_depth_texture_array("depthMap", tex);
+                program.use_depth_texture_array("depthMap", texture);
             }
+            Self::CubeMap { .. } => unimplemented!(),
         }
     }
 
     ///
     /// The resolution of the underlying texture if there is any.
     ///
-    pub fn resolution(&self) -> Option<(u32, u32)> {
+    pub fn resolution(&self) -> (u32, u32) {
         match self {
-            Self::None => None,
-            Self::Single(tex) => Some((tex.width(), tex.height())),
-            Self::Array(tex, _) => Some((tex.width(), tex.height())),
+            Self::Single { texture, .. } => (texture.width(), texture.height()),
+            Self::Array { texture, .. } => (texture.width(), texture.height()),
+            Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
         }
     }
 }
@@ -410,8 +387,8 @@ pub trait PostMaterial {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String;
 
     ///
@@ -422,8 +399,8 @@ pub trait PostMaterial {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     );
 
     ///
@@ -436,8 +413,8 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &T {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         (*self).fragment_shader_source(lights, color_texture, depth_texture)
     }
@@ -446,8 +423,8 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &T {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         (*self).use_uniforms(program, camera, lights, color_texture, depth_texture)
     }
@@ -460,8 +437,8 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         (**self).fragment_shader_source(lights, color_texture, depth_texture)
     }
@@ -470,8 +447,8 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         (**self).use_uniforms(program, camera, lights, color_texture, depth_texture)
     }
@@ -484,8 +461,8 @@ impl<T: PostMaterial> PostMaterial for Box<T> {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         self.as_ref()
             .fragment_shader_source(lights, color_texture, depth_texture)
@@ -495,8 +472,8 @@ impl<T: PostMaterial> PostMaterial for Box<T> {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.as_ref()
             .use_uniforms(program, camera, lights, color_texture, depth_texture)
@@ -510,8 +487,8 @@ impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         self.as_ref()
             .fragment_shader_source(lights, color_texture, depth_texture)
@@ -521,8 +498,8 @@ impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.as_ref()
             .use_uniforms(program, camera, lights, color_texture, depth_texture)
@@ -536,8 +513,8 @@ impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         self.as_ref()
             .fragment_shader_source(lights, color_texture, depth_texture)
@@ -547,8 +524,8 @@ impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.as_ref()
             .use_uniforms(program, camera, lights, color_texture, depth_texture)
@@ -562,8 +539,8 @@ impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         self.borrow()
             .fragment_shader_source(lights, color_texture, depth_texture)
@@ -573,8 +550,8 @@ impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.borrow()
             .use_uniforms(program, camera, lights, color_texture, depth_texture)
@@ -588,8 +565,8 @@ impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         self.read()
             .unwrap()
@@ -600,8 +577,8 @@ impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.read()
             .unwrap()

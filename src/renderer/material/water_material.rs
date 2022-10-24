@@ -23,17 +23,17 @@ impl PostMaterial for WaterMaterial {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         format!(
             "{}\n{}\n{}\n{}",
             color_texture
-                .fragment_shader_source()
-                .expect("Must supply a color texture to apply a water effect"),
+                .expect("Must supply a color texture to apply a water effect")
+                .fragment_shader_source(),
             depth_texture
-                .fragment_shader_source()
-                .expect("Must supply a depth texture to apply a water effect"),
+                .expect("Must supply a depth texture to apply a water effect")
+                .fragment_shader_source(),
             lights_shader_source(lights, self.lighting_model),
             include_str!("shaders/water_material.frag")
         )
@@ -51,11 +51,15 @@ impl PostMaterial for WaterMaterial {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
-        color_texture.use_uniforms(program);
-        depth_texture.use_uniforms(program);
+        color_texture
+            .expect("Must supply a color texture to apply a water effect")
+            .use_uniforms(program);
+        depth_texture
+            .expect("Must supply a depth texture to apply a water effect")
+            .use_uniforms(program);
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);
         }

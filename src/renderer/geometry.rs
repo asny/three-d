@@ -76,8 +76,8 @@ pub trait Geometry {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     );
 
     ///
@@ -101,8 +101,8 @@ impl<T: Geometry + ?Sized> Geometry for &T {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         (*self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
     }
@@ -127,8 +127,8 @@ impl<T: Geometry + ?Sized> Geometry for &mut T {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         (**self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
     }
@@ -153,8 +153,8 @@ impl<T: Geometry> Geometry for Box<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.as_ref().render_with_post_material(
             material,
@@ -185,8 +185,8 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.as_ref().render_with_post_material(
             material,
@@ -217,8 +217,8 @@ impl<T: Geometry> Geometry for std::sync::Arc<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.as_ref().render_with_post_material(
             material,
@@ -249,8 +249,8 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.borrow().render_with_post_material(
             material,
@@ -283,8 +283,8 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.read().unwrap().render_with_post_material(
             material,

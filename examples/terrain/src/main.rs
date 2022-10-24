@@ -275,16 +275,24 @@ pub async fn run() {
                 &camera,
                 &ScreenQuad::new(&context),
                 &[],
-                ColorTexture::Single(&color_texture),
-                DepthTexture::Single(&depth_texture),
+                Some(ColorTexture::Single {
+                    texture: &color_texture,
+                }),
+                Some(DepthTexture::Single {
+                    texture: &depth_texture,
+                }),
             )
             .render_with_post_material(
                 &water_material,
                 &camera,
                 &water,
                 &[&light],
-                ColorTexture::Single(&color_texture),
-                DepthTexture::Single(&depth_texture),
+                Some(ColorTexture::Single {
+                    texture: &color_texture,
+                }),
+                Some(DepthTexture::Single {
+                    texture: &depth_texture,
+                }),
             )
             .write(|| {
                 gui.render();

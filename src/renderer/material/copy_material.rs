@@ -12,11 +12,11 @@ impl PostMaterial for CopyMaterial {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
-        let color_source = color_texture.fragment_shader_source();
-        let depth_source = depth_texture.fragment_shader_source();
+        let color_source = color_texture.map(|t| t.fragment_shader_source());
+        let depth_source = depth_texture.map(|t| t.fragment_shader_source());
 
         if let Some(color_source) = color_source {
             if let Some(depth_source) = depth_source {
@@ -60,11 +60,11 @@ impl PostMaterial for CopyMaterial {
         program: &Program,
         _camera: &Camera,
         _lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
-        color_texture.use_uniforms(program);
-        depth_texture.use_uniforms(program);
+        color_texture.map(|t| t.use_uniforms(program));
+        depth_texture.map(|t| t.use_uniforms(program));
     }
 
     fn render_states(&self) -> RenderStates {

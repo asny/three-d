@@ -329,8 +329,8 @@ impl Geometry for ParticleSystem {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         let fragment_shader_source =
             material.fragment_shader_source(lights, color_texture, depth_texture);

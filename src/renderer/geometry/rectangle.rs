@@ -93,8 +93,8 @@ impl Geometry for Rectangle {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.mesh
             .render_with_post_material(material, camera, lights, color_texture, depth_texture)

@@ -12,15 +12,19 @@ pub struct DepthTarget<'a> {
     target: DepthTexture<'a>,
 }
 
+///
+/// A reference to some type of texture containing depths.
+///
 #[derive(Clone, Copy)]
-enum DepthTexture<'a> {
-    Single {
-        texture: &'a DepthTargetTexture2D,
-    },
+pub enum DepthTexture<'a> {
+    /// A single 2D texture.
+    Single { texture: &'a DepthTargetTexture2D },
+    /// An array of 2D textures and an index into the array.
     Array {
         texture: &'a DepthTargetTexture2DArray,
         layer: u32,
     },
+    /// A cube map texture and a [CubeMapSide] indicating the side to use.
     CubeMap {
         texture: &'a DepthTargetTextureCubeMap,
         side: CubeMapSide,

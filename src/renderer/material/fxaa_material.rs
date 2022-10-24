@@ -10,14 +10,14 @@ impl PostMaterial for FxaaMaterial {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        _depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        _depth_texture: Option<DepthTexture>,
     ) -> String {
         format!(
             "{}\n{}",
             color_texture
-                .fragment_shader_source()
-                .expect("Must supply a color texture to apply a FXAA effect"),
+                .expect("Must supply a color texture to apply a FXAA effect")
+                .fragment_shader_source(),
             include_str!("shaders/fxaa_material.frag")
         )
     }
@@ -27,13 +27,13 @@ impl PostMaterial for FxaaMaterial {
         program: &Program,
         _camera: &Camera,
         _lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        _depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        _depth_texture: Option<DepthTexture>,
     ) {
+        let color_texture =
+            color_texture.expect("Must supply a color texture to apply a FXAA effect");
         color_texture.use_uniforms(program);
-        let (w, h) = color_texture
-            .resolution()
-            .expect("Must supply a color texture to apply a FXAA effect");
+        let (w, h) = color_texture.resolution();
         program.use_uniform("resolution", vec2(w as f32, h as f32));
     }
 

@@ -130,8 +130,8 @@ impl DepthTarget<'_> {
         camera: &Camera,
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> &Self {
         self.render_partially_with_post_material(
             self.scissor_box(),
@@ -155,8 +155,8 @@ impl DepthTarget<'_> {
         camera: &Camera,
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> &Self {
         self.as_render_target().render_partially_with_post_material(
             scissor_box,
@@ -256,8 +256,8 @@ impl ColorTarget<'_> {
         camera: &Camera,
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> &Self {
         self.render_partially_with_post_material(
             self.scissor_box(),
@@ -281,8 +281,8 @@ impl ColorTarget<'_> {
         camera: &Camera,
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> &Self {
         self.as_render_target().render_partially_with_post_material(
             scissor_box,
@@ -356,8 +356,9 @@ impl RenderTarget<'_> {
                 Wrapping::ClampToEdge,
                 DepthFormat::Depth32F,
             );
+            let gbuffer_layers = [0, 1, 2];
             RenderTarget::new(
-                geometry_pass_texture.as_color_target(&[0, 1, 2], None),
+                geometry_pass_texture.as_color_target(&gbuffer_layers, None),
                 geometry_pass_depth_texture.as_depth_target(),
             )
             .clear(ClearState::default())
@@ -374,8 +375,13 @@ impl RenderTarget<'_> {
                 camera,
                 &ScreenQuad::new(&self.context),
                 lights,
-                ColorTexture::Array(&geometry_pass_texture, 0),
-                DepthTexture::Single(&geometry_pass_depth_texture),
+                Some(ColorTexture::Array {
+                    texture: &geometry_pass_texture,
+                    layers: &gbuffer_layers,
+                }),
+                Some(DepthTexture::Single {
+                    texture: &geometry_pass_depth_texture,
+                }),
             );
         }
 
@@ -442,8 +448,8 @@ impl RenderTarget<'_> {
         camera: &Camera,
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> &Self {
         self.render_partially_with_post_material(
             self.scissor_box(),
@@ -467,8 +473,8 @@ impl RenderTarget<'_> {
         camera: &Camera,
         geometries: impl IntoIterator<Item = impl Geometry>,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> &Self {
         self.write_partially(scissor_box, || {
             for object in geometries

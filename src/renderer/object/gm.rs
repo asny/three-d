@@ -49,8 +49,8 @@ impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
         material: &dyn PostMaterial,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         self.geometry.render_with_post_material(
             material,

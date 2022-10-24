@@ -142,8 +142,8 @@ impl PostMaterial for DeferredPhysicalMaterial {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         let mut fragment_shader = lights_shader_source(
             lights,
@@ -152,8 +152,16 @@ impl PostMaterial for DeferredPhysicalMaterial {
                 GeometryFunction::SmithSchlickGGX,
             ),
         );
-        fragment_shader.push_str(&color_texture.fragment_shader_source().unwrap());
-        fragment_shader.push_str(&depth_texture.fragment_shader_source().unwrap());
+        fragment_shader.push_str(
+            &color_texture
+                .expect("Must supply a gbuffer to a deferred lighting pass")
+                .fragment_shader_source(),
+        );
+        fragment_shader.push_str(
+            &depth_texture
+                .expect("Must supply a depth texture to a deferred lighting pass")
+                .fragment_shader_source(),
+        );
         fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
         fragment_shader
     }
@@ -163,11 +171,15 @@ impl PostMaterial for DeferredPhysicalMaterial {
         program: &Program,
         camera: &Camera,
         lights: &[&dyn Light],
-        color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
-        color_texture.use_uniforms(program);
-        depth_texture.use_uniforms(program);
+        color_texture
+            .expect("Must supply a gbuffer to a deferred lighting pass")
+            .use_uniforms(program);
+        depth_texture
+            .expect("Must supply a depth texture to a deferred lighting pass")
+            .use_uniforms(program);
         program.use_uniform_if_required("cameraPosition", camera.position());
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);

@@ -33,15 +33,15 @@ impl PostMaterial for FogMaterial {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
-        _color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        _color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
         format!(
             "{}\n{}\n{}",
             include_str!("../../core/shared.frag"),
             depth_texture
-                .fragment_shader_source()
-                .expect("Must supply a depth texture to apply a fog effect"),
+                .expect("Must supply a depth texture to apply a fog effect")
+                .fragment_shader_source(),
             include_str!("shaders/fog_material.frag")
         )
     }
@@ -51,10 +51,12 @@ impl PostMaterial for FogMaterial {
         program: &Program,
         camera: &Camera,
         _lights: &[&dyn Light],
-        _color_texture: ColorTexture,
-        depth_texture: DepthTexture,
+        _color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
-        depth_texture.use_uniforms(program);
+        depth_texture
+            .expect("Must supply a depth texture to apply a fog effect")
+            .use_uniforms(program);
         program.use_uniform(
             "viewProjectionInverse",
             (camera.projection() * camera.view()).invert().unwrap(),

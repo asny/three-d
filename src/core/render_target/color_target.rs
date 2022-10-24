@@ -15,15 +15,19 @@ pub struct ColorTarget<'a> {
     target: ColorTexture<'a>,
 }
 
+///
+/// A reference to some type of texture containing colors.
+///
 #[derive(Clone, Copy)]
-enum ColorTexture<'a> {
-    Single {
-        texture: &'a Texture2D,
-    },
+pub enum ColorTexture<'a> {
+    /// A single 2D texture.
+    Single { texture: &'a Texture2D },
+    /// An array of 2D textures and a set of indices into the array.
     Array {
         texture: &'a Texture2DArray,
         layers: &'a [u32],
     },
+    /// A cube map texture and a set of [CubeMapSide]s indicating the sides to use.
     CubeMap {
         texture: &'a TextureCubeMap,
         sides: &'a [CubeMapSide],

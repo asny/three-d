@@ -20,11 +20,11 @@ void main()
 
     vec3 position = world_pos_from_depth(viewProjectionInverse, depth, uvs);
    	
-    vec4 c = sample_color(uvs);
+    vec4 c = sample_layer(uvs, 0);
     vec4 surface_color = vec4(c.rgb, 1.0);
     float metallic_factor = c.w;
 
-    vec4 n = texture(colorMap, vec3(uvs, 1));
+    vec4 n = sample_layer(uvs, 1);
     vec2 n2 = n.xy*2.0 - 1.0;
     float z = 1.0 - n2.x * n2.x - n2.y * n2.y;
     if (z > 0.0001) {
@@ -33,7 +33,7 @@ void main()
     vec3 normal = normalize(vec3(n2.x, n2.y, (int(floor(n.z * 255.0)) & 128) == 128 ? z: -z));
     float roughness_factor = n.w;
     float occlusion = float(int(floor(n.z * 255.0)) & 127) / 127.0;
-    vec3 total_emissive = texture(colorMap, vec3(uvs, 2)).rgb;
+    vec3 total_emissive = sample_layer(uvs, 2).rgb;
 
     if(debug_type == 0) // Position
     {
