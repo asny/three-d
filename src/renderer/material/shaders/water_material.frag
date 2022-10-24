@@ -3,7 +3,12 @@ uniform mat4 viewProjectionInverse;
 uniform vec3 cameraPosition;
 uniform vec2 screenSize;
 
+#ifdef USE_BACKGROUND_TEXTURE
 uniform samplerCube environmentMap;
+#else
+uniform vec4 environmentColor;
+#endif
+
 uniform float metallic;
 uniform float roughness;
 
@@ -24,6 +29,7 @@ vec2 uv_at(vec3 world_pos) {
 
 vec3 reflect_color(vec3 incidentDir, vec3 normal)
 {
+#ifdef USE_BACKGROUND_TEXTURE
     vec3 reflectDir = normalize(reflect(incidentDir, normal));
     vec3 stepDir = 0.5 * reflectDir;
     vec3 p_ray = pos;
@@ -38,6 +44,9 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
         }
     }
     return texture(environmentMap, reflectDir).xyz;
+#else
+    return environmentColor.rgb;
+#endif
 }
 
 vec3 water(vec3 col, vec3 p1, vec3 p2)

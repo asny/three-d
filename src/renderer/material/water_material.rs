@@ -2,6 +2,21 @@ use crate::core::*;
 use crate::renderer::*;
 use std::sync::Arc;
 
+/// The background of the scene.
+#[derive(Clone)]
+pub enum Background {
+    /// Environnment texture.
+    Texture(Arc<TextureCubeMap>),
+    /// Background color.
+    Color(Color),
+}
+
+impl Default for Background {
+    fn default() -> Self {
+        Self::Color(Color::WHITE)
+    }
+}
+
 ///
 /// A material that simulates a water surface.
 /// This material needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections/refractions.
@@ -9,8 +24,8 @@ use std::sync::Arc;
 ///
 #[derive(Clone)]
 pub struct WaterMaterial {
-    /// A reference to the environnment texture of the scene which is used for reflections.
-    pub environment_texture: Arc<TextureCubeMap>,
+    /// The background of the scene which is used for reflections.
+    pub background: Background,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the surface is.
@@ -27,7 +42,11 @@ impl PostMaterial for WaterMaterial {
         depth_texture: Option<DepthTexture>,
     ) -> String {
         format!(
-            "{}\n{}\n{}\n{}",
+            "{}\n{}\n{}\n{}\n{}",
+            match &self.background {
+                Background::Color(_) => "",
+                Background::Texture(_) => "#define USE_BACKGROUND_TEXTURE",
+            },
             color_texture
                 .expect("Must supply a color texture to apply a water effect")
                 .fragment_shader_source(),
@@ -78,6 +97,20 @@ impl PostMaterial for WaterMaterial {
         );
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);
-        program.use_texture_cube("environmentMap", &self.environment_texture);
+        match &self.background {
+            Background::Color(color) => program.use_uniform("environmentColor", color),
+            Background::Texture(tex) => program.use_texture_cube("environmentMap", tex),
+        }
+    }
+}
+
+impl Default for WaterMaterial {
+    fn default() -> Self {
+        Self {
+            background: Background::default(),
+            metallic: 0.0,
+            roughness: 1.0,
+            lighting_model: LightingModel::Blinn,
+        }
     }
 }
