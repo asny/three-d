@@ -18,9 +18,6 @@ impl UniformDataType for f32 {}
 impl<T: UniformDataType + PrimitiveDataType> UniformDataType for Vector2<T> {}
 impl<T: UniformDataType + PrimitiveDataType> UniformDataType for Vector3<T> {}
 impl<T: UniformDataType + PrimitiveDataType> UniformDataType for Vector4<T> {}
-impl<T: UniformDataType + PrimitiveDataType> UniformDataType for [T; 2] {}
-impl<T: UniformDataType + PrimitiveDataType> UniformDataType for [T; 3] {}
-impl<T: UniformDataType + PrimitiveDataType> UniformDataType for [T; 4] {}
 
 impl UniformDataType for Color {}
 impl UniformDataType for Quat {}
