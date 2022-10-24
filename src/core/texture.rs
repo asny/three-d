@@ -52,6 +52,46 @@ impl TextureDataType for Quat {}
 
 impl<T: TextureDataType + ?Sized> TextureDataType for &T {}
 
+///
+/// A reference to some type of texture containing colors.
+///
+#[derive(Clone, Copy)]
+#[allow(missing_docs)]
+pub enum ColorTexture<'a> {
+    /// A single 2D texture.
+    Single(&'a Texture2D),
+    /// An array of 2D textures and a set of indices into the array.
+    Array {
+        texture: &'a Texture2DArray,
+        layers: &'a [u32],
+    },
+    /// A cube map texture and a set of [CubeMapSide]s indicating the sides to use.
+    CubeMap {
+        texture: &'a TextureCubeMap,
+        sides: &'a [CubeMapSide],
+    },
+}
+
+///
+/// A reference to some type of texture containing depths.
+///
+#[derive(Clone, Copy)]
+#[allow(missing_docs)]
+pub enum DepthTexture<'a> {
+    /// A single 2D texture.
+    Single(&'a DepthTargetTexture2D),
+    /// An array of 2D textures and an index into the array.
+    Array {
+        texture: &'a DepthTargetTexture2DArray,
+        layer: u32,
+    },
+    /// A cube map texture and a [CubeMapSide] indicating the side to use.
+    CubeMap {
+        texture: &'a DepthTargetTextureCubeMap,
+        side: CubeMapSide,
+    },
+}
+
 use crate::core::*;
 
 // COMMON TEXTURE FUNCTIONS

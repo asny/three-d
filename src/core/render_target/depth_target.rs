@@ -12,26 +12,6 @@ pub struct DepthTarget<'a> {
     target: DepthTexture<'a>,
 }
 
-///
-/// A reference to some type of texture containing depths.
-///
-#[derive(Clone, Copy)]
-#[allow(missing_docs)]
-pub enum DepthTexture<'a> {
-    /// A single 2D texture.
-    Single(&'a DepthTargetTexture2D),
-    /// An array of 2D textures and an index into the array.
-    Array {
-        texture: &'a DepthTargetTexture2DArray,
-        layer: u32,
-    },
-    /// A cube map texture and a [CubeMapSide] indicating the side to use.
-    CubeMap {
-        texture: &'a DepthTargetTextureCubeMap,
-        side: CubeMapSide,
-    },
-}
-
 impl<'a> DepthTarget<'a> {
     pub(in crate::core) fn new_texture2d(
         context: &Context,
