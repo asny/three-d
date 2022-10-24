@@ -4,6 +4,7 @@ use crate::renderer::*;
 /// A simple anti-aliasing approach which smooths otherwise jagged edges (for example lines) but also
 /// smooths the rest of the image.
 ///
+#[derive(Default)]
 pub struct FxaaMaterial {}
 
 impl PostMaterial for FxaaMaterial {

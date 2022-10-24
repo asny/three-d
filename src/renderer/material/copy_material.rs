@@ -3,6 +3,7 @@ use crate::renderer::*;
 ///
 /// Copies the content of a color and depth texture.
 ///
+#[derive(Default)]
 pub struct CopyMaterial {
     /// Only copies the channels given by this write mask.
     pub write_mask: WriteMask,

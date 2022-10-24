@@ -29,6 +29,17 @@ impl FogMaterial {
     }
 }
 
+impl Default for FogMaterial {
+    fn default() -> Self {
+        Self {
+            color: Color::WHITE,
+            density: 0.2,
+            animation: 0.0,
+            time: 0.0,
+        }
+    }
+}
+
 impl PostMaterial for FogMaterial {
     fn fragment_shader_source(
         &self,
