@@ -1,9 +1,11 @@
+#![allow(deprecated)]
 use crate::core::*;
 
 ///
 /// A customizable 2D effect.
 /// Can for example be used for adding an effect on top of a rendered image.
 ///
+#[deprecated = "Render a ScreenQuad with a Material or PostMaterial instead"]
 pub struct ImageEffect {
     program: Program,
     positions: VertexBuffer,
@@ -20,10 +22,10 @@ impl ImageEffect {
             "
                 uniform mat3 textureTransform;
                 in vec3 position;
-                out vec2 uvs;
+                out vec2 uv;
                 void main()
                 {
-                    uvs = (textureTransform * vec3(0.5 * position.x + 0.5, 0.5 * position.y + 0.5, 1.0)).xy;
+                    uv = (textureTransform * vec3(0.5 * position.x + 0.5, 0.5 * position.y + 0.5, 1.0)).xy;
                     gl_Position = vec4(position, 1.0);
                 }
             ",

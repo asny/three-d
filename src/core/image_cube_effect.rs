@@ -1,9 +1,11 @@
+#![allow(deprecated)]
 use crate::core::*;
 
 ///
 /// A customizable cube effect.
 /// Used for rendering into all 6 sides of a cube map texture.
 ///
+#[deprecated = "Render a cube Mesh with a Material or PostMaterial instead"]
 pub struct ImageCubeEffect {
     program: Program,
     positions: VertexBuffer,
