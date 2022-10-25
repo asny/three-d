@@ -79,8 +79,15 @@ impl ImageCubeEffect {
     ///
     pub fn render(&self, side: CubeMapSide, render_states: RenderStates, viewport: Viewport) {
         let projection = cgmath::perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
-        self.program
-            .use_uniform("viewProjection", projection * side.view());
+        self.program.use_uniform(
+            "viewProjection",
+            projection
+                * Mat4::look_at_rh(
+                    Point3::new(0.0, 0.0, 0.0),
+                    Point3::new(side.direction().x, side.direction().y, side.direction().z),
+                    side.up(),
+                ),
+        );
         self.program
             .use_vertex_attribute("position", &self.positions);
         self.program.draw_arrays(render_states, viewport, 36);

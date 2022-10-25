@@ -39,6 +39,7 @@ impl Environment {
         environment_map: &TextureCubeMap,
         lighting_model: LightingModel,
     ) -> Self {
+        let cube = Mesh::new(context, &CpuMesh::cube());
         // Diffuse
         let irradiance_size = 32;
         let mut irradiance_map = TextureCubeMap::new_empty::<[f16; 4]>(
@@ -53,21 +54,22 @@ impl Environment {
             Wrapping::ClampToEdge,
         );
         {
-            let fragment_shader_source = format!(
-                "{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/irradiance.frag")
-            );
-            let effect = ImageCubeEffect::new(context, &fragment_shader_source).unwrap();
+            let material = IrradianceMaterial { environment_map };
             for side in CubeMapSide::iter() {
-                effect.use_texture_cube("environmentMap", environment_map);
                 let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
+                let camera = Camera::new_perspective(
+                    viewport,
+                    vec3(0.0, 0.0, 0.0),
+                    side.direction(),
+                    side.up(),
+                    degrees(90.0),
+                    0.1,
+                    10.0,
+                );
                 irradiance_map
                     .as_color_target(&[side], None)
                     .clear(ClearState::default())
-                    .write(|| {
-                        effect.render(side, RenderStates::default(), viewport);
-                    });
+                    .render_with_material(&material, &camera, &cube, &[]);
             }
         }
 
@@ -85,30 +87,30 @@ impl Environment {
             Wrapping::ClampToEdge,
         );
         {
-            let fragment_shader_source = format!(
-                "{}{}{}{}",
-                super::lighting_model_shader(lighting_model),
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/light_shared.frag"),
-                include_str!("shaders/prefilter.frag")
-            );
-            let effect = ImageCubeEffect::new(context, &fragment_shader_source).unwrap();
             let max_mip_levels = 5;
             for mip in 0..max_mip_levels {
-                let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
+                let material = PrefilterMaterial {
+                    lighting_model,
+                    roughness: mip as f32 / (max_mip_levels as f32 - 1.0),
+                    environment_map,
+                };
                 for side in CubeMapSide::iter() {
-                    effect.use_texture_cube("environmentMap", environment_map);
-                    effect.use_uniform("roughness", &roughness);
-                    effect.use_uniform("resolution", &(environment_map.width() as f32));
                     let sides = [side];
                     let color_target = prefilter_map.as_color_target(&sides, Some(mip));
-                    color_target.clear(ClearState::default()).write(|| {
-                        effect.render(
-                            side,
-                            RenderStates::default(),
-                            Viewport::new_at_origo(color_target.width(), color_target.height()),
-                        );
-                    });
+                    let viewport =
+                        Viewport::new_at_origo(color_target.width(), color_target.height());
+                    let camera = Camera::new_perspective(
+                        viewport,
+                        vec3(0.0, 0.0, 0.0),
+                        side.direction(),
+                        side.up(),
+                        degrees(90.0),
+                        0.1,
+                        10.0,
+                    );
+                    color_target
+                        .clear(ClearState::default())
+                        .render_with_material(&material, &camera, &cube, &[]);
                 }
             }
         }
@@ -124,29 +126,105 @@ impl Environment {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
         );
-        let effect = ImageEffect::new(
-            context,
-            &format!(
-                "{}{}{}{}",
-                super::lighting_model_shader(lighting_model),
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/light_shared.frag"),
-                include_str!("shaders/brdf.frag")
-            ),
-        )
-        .unwrap();
         let viewport = Viewport::new_at_origo(brdf_map.width(), brdf_map.height());
         brdf_map
             .as_color_target(None)
             .clear(ClearState::default())
-            .write(|| {
-                effect.apply(RenderStates::default(), viewport);
-            });
+            .render_with_material(
+                &BrdfMaterial { lighting_model },
+                &camera2d(viewport),
+                &ScreenQuad::new(context),
+                &[],
+            );
 
         Self {
             irradiance_map,
             prefilter_map,
             brdf_map,
         }
+    }
+}
+
+struct IrradianceMaterial<'a> {
+    environment_map: &'a TextureCubeMap,
+}
+
+impl Material for IrradianceMaterial<'_> {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}",
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/irradiance.frag")
+        )
+    }
+
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
+        program.use_texture_cube("environmentMap", self.environment_map);
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates::default()
+    }
+
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
+    }
+}
+
+struct PrefilterMaterial<'a> {
+    lighting_model: LightingModel,
+    environment_map: &'a TextureCubeMap,
+    roughness: f32,
+}
+
+impl Material for PrefilterMaterial<'_> {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}{}{}",
+            super::lighting_model_shader(self.lighting_model),
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/light_shared.frag"),
+            include_str!("shaders/prefilter.frag")
+        )
+    }
+
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
+        program.use_texture_cube("environmentMap", self.environment_map);
+        program.use_uniform("roughness", self.roughness);
+        program.use_uniform("resolution", &(self.environment_map.width() as f32));
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates::default()
+    }
+
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
+    }
+}
+
+struct BrdfMaterial {
+    lighting_model: LightingModel,
+}
+
+impl Material for BrdfMaterial {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}{}{}",
+            super::lighting_model_shader(self.lighting_model),
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/light_shared.frag"),
+            include_str!("shaders/brdf.frag")
+        )
+    }
+
+    fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates::default()
+    }
+
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }
