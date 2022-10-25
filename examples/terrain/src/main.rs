@@ -94,6 +94,12 @@ pub async fn run() {
             GeometryFunction::SmithSchlickGGX,
         ),
     };
+    let copy_effect = Effect::new(
+        &context,
+        CopyMaterial {
+            write_mask: WriteMask::default(),
+        },
+    );
 
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
         &context,
@@ -268,16 +274,14 @@ pub async fn run() {
         }
         frame_input
             .screen()
-            .render_with_post_material(
-                &CopyMaterial {
-                    write_mask: WriteMask::default(),
-                },
-                &camera,
-                &ScreenQuad::new(&context),
-                &[],
-                Some(ColorTexture::Single(&color_texture)),
-                Some(DepthTexture::Single(&depth_texture)),
-            )
+            .write(|| {
+                copy_effect.render(
+                    &camera,
+                    &[],
+                    Some(ColorTexture::Single(&color_texture)),
+                    Some(DepthTexture::Single(&depth_texture)),
+                )
+            })
             .render_with_post_material(
                 &water_material,
                 &camera,
