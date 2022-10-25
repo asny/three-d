@@ -9,9 +9,9 @@ mod texture_cube_map;
 #[doc(inline)]
 pub use texture_cube_map::*;
 
-mod depth_target_texture2d;
+mod depth_texture2d;
 #[doc(inline)]
-pub use depth_target_texture2d::*;
+pub use depth_texture2d::*;
 
 mod texture2d_array;
 #[doc(inline)]
@@ -21,13 +21,13 @@ mod texture3d;
 #[doc(inline)]
 pub use texture3d::*;
 
-mod depth_target_texture2d_array;
+mod depth_texture2d_array;
 #[doc(inline)]
-pub use depth_target_texture2d_array::*;
+pub use depth_texture2d_array::*;
 
-mod depth_target_texture_cube_map;
+mod depth_texture_cube_map;
 #[doc(inline)]
-pub use depth_target_texture_cube_map::*;
+pub use depth_texture_cube_map::*;
 
 use data_type::*;
 pub use three_d_asset::texture::{
