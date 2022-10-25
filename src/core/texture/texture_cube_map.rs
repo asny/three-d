@@ -477,7 +477,7 @@ impl TextureCubeMap {
                 {
                     vec3 v = normalize(pos);
                     vec2 uv = vec2(0.1591 * atan(v.z, v.x) + 0.5, 0.3183 * asin(v.y) + 0.5);
-                    outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
+                    outColor = texture(equirectangularMap, uv);
                 }",
             )
             .unwrap();
