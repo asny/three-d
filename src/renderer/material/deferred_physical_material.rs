@@ -9,7 +9,7 @@ use std::sync::Arc;
 /// The first stage renders geometry information to a [RenderTarget] and the second stage uses this render target to apply lighting based on the geometry information which means the expensive lighting calculations are only done once per pixel.
 /// The [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods all support the two stages required by this material, so just pass the [Object] with this material applied into one of these methods.
 /// However, it is not possible to use the a [Object::render] method to render a [Geometry] with this material directly to the screen.
-/// Instead render the object into a [RenderTarget] consisting of a [Texture2DArray] with three RGBA u8 layers as color target and a [DepthTargetTexture2D] as depth target.
+/// Instead render the object into a [RenderTarget] consisting of a [Texture2DArray] with three RGBA u8 layers as color target and a [DepthTexture2D] as depth target.
 /// Then render this [PostMaterial] with the textures from the previous step onto a [ScreenQuad].
 ///
 #[derive(Clone)]

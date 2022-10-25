@@ -1,40 +1,31 @@
 use crate::core::texture::*;
 
 ///
-/// Type of formats for depth render targets ([DepthTargetTexture2D] and
-/// [DepthTargetTexture2DArray]).
+/// A 2D depth texture that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
 ///
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub enum DepthFormat {
-    /// 16 bit per pixel.
-    Depth16,
-    /// 24 bit per pixel.
-    Depth24,
-    /// 32 bit per pixel.
-    Depth32F,
-}
+#[deprecated = "Renamed to DepthTexture2D"]
+pub type DepthTargetTexture2D = DepthTexture2D;
 
 ///
-/// A 2D depth texture that can be rendered into and read from. See also [RenderTarget].
+/// A 2D depth texture that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
 ///
-pub struct DepthTargetTexture2D {
+pub struct DepthTexture2D {
     context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
 }
 
-impl DepthTargetTexture2D {
+impl DepthTexture2D {
     ///
-    /// Constructs a new 2D depth target texture.
+    /// Constructs a new 2D depth texture.
     ///
-    pub fn new(
+    pub fn new<T: DepthTextureDataType>(
         context: &Context,
         width: u32,
         height: u32,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
-        format: DepthFormat,
     ) -> Self {
         let id = generate(context);
         let texture = Self {
@@ -58,7 +49,7 @@ impl DepthTargetTexture2D {
             context.tex_storage_2d(
                 crate::context::TEXTURE_2D,
                 1,
-                internal_format_from_depth(format),
+                T::internal_format(),
                 width as i32,
                 height as i32,
             );
@@ -104,7 +95,7 @@ impl DepthTargetTexture2D {
     }
 }
 
-impl Drop for DepthTargetTexture2D {
+impl Drop for DepthTexture2D {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_texture(self.id);

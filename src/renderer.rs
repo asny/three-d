@@ -351,13 +351,12 @@ impl RenderTarget<'_> {
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
             );
-            let mut geometry_pass_depth_texture = DepthTargetTexture2D::new(
+            let mut geometry_pass_depth_texture = DepthTexture2D::new::<f32>(
                 &self.context,
                 viewport.width,
                 viewport.height,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                DepthFormat::Depth32F,
             );
             let gbuffer_layers = [0, 1, 2];
             RenderTarget::new(
@@ -609,13 +608,12 @@ pub fn ray_intersect(
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let mut depth_texture = DepthTargetTexture2D::new(
+    let mut depth_texture = DepthTexture2D::new::<f32>(
         context,
         viewport.width,
         viewport.height,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
-        DepthFormat::Depth32F,
     );
     let depth_material = DepthMaterial {
         render_states: RenderStates {

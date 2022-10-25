@@ -111,14 +111,8 @@ pub async fn run() {
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let mut depth_texture = DepthTargetTexture2D::new(
-        &context,
-        1,
-        1,
-        Wrapping::ClampToEdge,
-        Wrapping::ClampToEdge,
-        DepthFormat::Depth32F,
-    );
+    let mut depth_texture =
+        DepthTexture2D::new::<f32>(&context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge);
     let mut gui = GUI::new(&context);
 
     let mut wavelength = 3.0;
@@ -257,13 +251,12 @@ pub async fn run() {
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
             );
-            depth_texture = DepthTargetTexture2D::new(
+            depth_texture = DepthTexture2D::new::<f32>(
                 &context,
                 frame_input.viewport.width,
                 frame_input.viewport.height,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                DepthFormat::Depth32F,
             );
             RenderTarget::new(
                 color_texture.as_color_target(None),

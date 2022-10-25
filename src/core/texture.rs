@@ -52,6 +52,18 @@ impl TextureDataType for Quat {}
 
 impl<T: TextureDataType + ?Sized> TextureDataType for &T {}
 
+/// The basic data type used for each pixel in a depth texture.
+pub trait DepthTextureDataType: DepthDataType {}
+
+/// 24 bit float which can be used as [DepthTextureDataType].
+#[allow(non_camel_case_types)]
+#[derive(Clone, Copy, Default, Debug)]
+pub struct f24 {}
+
+impl DepthTextureDataType for f16 {}
+impl DepthTextureDataType for f24 {}
+impl DepthTextureDataType for f32 {}
+
 ///
 /// A reference to some type of texture containing colors.
 ///
@@ -79,15 +91,15 @@ pub enum ColorTexture<'a> {
 #[allow(missing_docs)]
 pub enum DepthTexture<'a> {
     /// A single 2D texture.
-    Single(&'a DepthTargetTexture2D),
+    Single(&'a DepthTexture2D),
     /// An array of 2D textures and an index into the array.
     Array {
-        texture: &'a DepthTargetTexture2DArray,
+        texture: &'a DepthTexture2DArray,
         layer: u32,
     },
     /// A cube map texture and a [CubeMapSide] indicating the side to use.
     CubeMap {
-        texture: &'a DepthTargetTextureCubeMap,
+        texture: &'a DepthTextureCubeMap,
         side: CubeMapSide,
     },
 }
@@ -183,14 +195,6 @@ fn calculate_number_of_mip_maps(
         (width as f64).log2() as u32 + 1
     } else {
         1
-    }
-}
-
-fn internal_format_from_depth(format: DepthFormat) -> u32 {
-    match format {
-        DepthFormat::Depth16 => crate::context::DEPTH_COMPONENT16,
-        DepthFormat::Depth24 => crate::context::DEPTH_COMPONENT24,
-        DepthFormat::Depth32F => crate::context::DEPTH_COMPONENT32F,
     }
 }
 

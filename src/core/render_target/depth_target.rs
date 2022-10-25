@@ -2,7 +2,7 @@ use super::*;
 
 ///
 /// Adds additional functionality to clear, read from and write to a texture.
-/// Use the `as_depth_target` function directly on the texture structs (for example [DepthTargetTexture2D]) to construct a depth target.
+/// Use the `as_depth_target` function directly on the texture structs (for example [DepthTexture2D]) to construct a depth target.
 /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
 /// A depth target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the texture.
 ///
@@ -13,10 +13,7 @@ pub struct DepthTarget<'a> {
 }
 
 impl<'a> DepthTarget<'a> {
-    pub(in crate::core) fn new_texture2d(
-        context: &Context,
-        texture: &'a DepthTargetTexture2D,
-    ) -> Self {
+    pub(in crate::core) fn new_texture2d(context: &Context, texture: &'a DepthTexture2D) -> Self {
         Self {
             context: context.clone(),
             target: DepthTexture::Single(texture),
@@ -25,7 +22,7 @@ impl<'a> DepthTarget<'a> {
 
     pub(in crate::core) fn new_texture_cube_map(
         context: &Context,
-        texture: &'a DepthTargetTextureCubeMap,
+        texture: &'a DepthTextureCubeMap,
         side: CubeMapSide,
     ) -> Self {
         Self {
@@ -36,7 +33,7 @@ impl<'a> DepthTarget<'a> {
 
     pub(in crate::core) fn new_texture_2d_array(
         context: &Context,
-        texture: &'a DepthTargetTexture2DArray,
+        texture: &'a DepthTexture2DArray,
         layer: u32,
     ) -> Self {
         Self {

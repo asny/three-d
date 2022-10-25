@@ -65,14 +65,8 @@ pub async fn run() {
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let mut depth_texture = DepthTargetTexture2D::new(
-        &context,
-        1,
-        1,
-        Wrapping::ClampToEdge,
-        Wrapping::ClampToEdge,
-        DepthFormat::Depth32F,
-    );
+    let mut depth_texture =
+        DepthTexture2D::new::<f32>(&context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge);
     window.render_loop(move |mut frame_input| {
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
@@ -103,13 +97,12 @@ pub async fn run() {
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
             );
-            depth_texture = DepthTargetTexture2D::new(
+            depth_texture = DepthTexture2D::new::<f32>(
                 &context,
                 frame_input.viewport.width,
                 frame_input.viewport.height,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                DepthFormat::Depth32F,
             );
             RenderTarget::new(
                 color_texture.as_color_target(None),

@@ -1,27 +1,32 @@
 use crate::core::texture::*;
 
 ///
-/// A depth texture cube map that can be rendered into and read from. See also [RenderTarget].
+/// A depth texture cube map that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
 ///
-pub struct DepthTargetTextureCubeMap {
+#[deprecated = "Renamed to DepthTextureCubeMap"]
+pub type DepthTargetTextureCubeMap = DepthTextureCubeMap;
+
+///
+/// A depth texture cube map that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
+///
+pub struct DepthTextureCubeMap {
     context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
 }
 
-impl DepthTargetTextureCubeMap {
+impl DepthTextureCubeMap {
     ///
-    /// Creates a new depth target texture cube map.
+    /// Creates a new depth texture cube map.
     ///
-    pub fn new(
+    pub fn new<T: DepthTextureDataType>(
         context: &Context,
         width: u32,
         height: u32,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         wrap_r: Wrapping,
-        format: DepthFormat,
     ) -> Self {
         let id = generate(context);
         let texture = Self {
@@ -45,7 +50,7 @@ impl DepthTargetTextureCubeMap {
             context.tex_storage_2d(
                 crate::context::TEXTURE_CUBE_MAP,
                 1,
-                internal_format_from_depth(format),
+                T::internal_format(),
                 width as i32,
                 height as i32,
             );
@@ -91,7 +96,7 @@ impl DepthTargetTextureCubeMap {
     }
 }
 
-impl Drop for DepthTargetTextureCubeMap {
+impl Drop for DepthTextureCubeMap {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_texture(self.id);

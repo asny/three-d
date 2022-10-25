@@ -631,3 +631,23 @@ impl<T: PrimitiveDataType> DataType for Matrix4<T> {
         T::send_uniform_with_type(context, location, &data, UniformType::Mat4)
     }
 }
+
+pub trait DepthDataType {
+    fn internal_format() -> u32;
+}
+
+impl DepthDataType for f16 {
+    fn internal_format() -> u32 {
+        crate::context::DEPTH_COMPONENT16
+    }
+}
+impl DepthDataType for f24 {
+    fn internal_format() -> u32 {
+        crate::context::DEPTH_COMPONENT24
+    }
+}
+impl DepthDataType for f32 {
+    fn internal_format() -> u32 {
+        crate::context::DEPTH_COMPONENT32F
+    }
+}

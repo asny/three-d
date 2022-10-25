@@ -196,13 +196,12 @@ impl ImpostersMaterial {
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
             );
-            let mut depth_texture = DepthTargetTexture2D::new(
+            let mut depth_texture = DepthTexture2D::new::<f32>(
                 &self.context,
                 texture_width,
                 texture_height,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                DepthFormat::Depth32F,
             );
             for i in 0..NO_VIEW_ANGLES {
                 let layers = [i];
