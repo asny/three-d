@@ -113,7 +113,7 @@ pub async fn run() {
                     WriteMask::default(),
                 )
                 .write(|| {
-                    fog_effect.render(
+                    fog_effect.apply(
                         frame_input.accumulated_time,
                         &camera,
                         DepthTexture::Single(&depth_texture),
