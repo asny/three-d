@@ -183,6 +183,10 @@ impl<'a> RenderTarget<'a> {
         from_byte_slice(&pixels).to_vec()
     }
 
+    ///
+    /// Copies the content of the color and depth texture to this render target.
+    /// Only copies the channels given by the write mask.
+    ///
     pub fn copy_from(
         &self,
         color_texture: Option<ColorTexture>,

@@ -111,6 +111,33 @@ impl<'a> ColorTarget<'a> {
     }
 
     ///
+    /// Copies the content of the color texture to this color target.
+    /// Only copies the channels given by the write mask.
+    ///
+    pub fn copy_from(&self, color_texture: ColorTexture, write_mask: WriteMask) -> &Self {
+        self.copy_partially_from(self.scissor_box(), color_texture, write_mask)
+    }
+
+    ///
+    /// Copies the content of the color texture to the specified scissor box of this color target.
+    /// Only copies the channels given by the write mask.
+    ///
+    pub fn copy_partially_from(
+        &self,
+        scissor_box: ScissorBox,
+        color_texture: ColorTexture,
+        write_mask: WriteMask,
+    ) -> &Self {
+        self.as_render_target().copy_partially_from(
+            scissor_box,
+            Some(color_texture),
+            None,
+            write_mask,
+        );
+        self
+    }
+
+    ///
     /// Returns the width of the color target in texels.
     /// If using the zero mip level of the underlying texture, then this is simply the width of that texture, otherwise it is the width of the given mip level.
     ///
