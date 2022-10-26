@@ -223,12 +223,11 @@ impl<'a> RenderTarget<'a> {
                     format!("{}\n{}\n{}", color_source, depth_source, source)
                 } else {
                     let source = "
-                        uniform sampler2D colorMap;
                         in vec2 uvs;
                         layout (location = 0) out vec4 color;
                         void main()
                         {
-                            color = texture(colorMap, uvs);
+                            color = sample_color(uvs);
                         }";
                     format!("{}\n{}", color_source, source)
                 }

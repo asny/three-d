@@ -123,7 +123,7 @@ pub async fn run() {
             // If a change has happened and no fog is applied, copy the result to the screen
             frame_input.screen().copy_from(
                 Some(ColorTexture::Single(&color_texture)),
-                Some(DepthTexture::Single(&depth_texture)),
+                None,
                 WriteMask::default(),
             );
         }
