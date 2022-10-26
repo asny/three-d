@@ -130,12 +130,20 @@ impl Environment {
         brdf_map
             .as_color_target(None)
             .clear(ClearState::default())
-            .render_with_material(
-                &BrdfMaterial { lighting_model },
-                &camera2d(viewport),
-                &ScreenQuad::new(context),
-                &[],
-            );
+            .write(|| {
+                context.apply_effect(
+                    &format!(
+                        "{}{}{}{}",
+                        super::lighting_model_shader(lighting_model),
+                        include_str!("../../core/shared.frag"),
+                        include_str!("shaders/light_shared.frag"),
+                        include_str!("shaders/brdf.frag")
+                    ),
+                    RenderStates::default(),
+                    viewport,
+                    |_| {},
+                )
+            });
 
         Self {
             irradiance_map,
@@ -193,32 +201,6 @@ impl Material for PrefilterMaterial<'_> {
         program.use_uniform("roughness", self.roughness);
         program.use_uniform("resolution", &(self.environment_map.width() as f32));
     }
-
-    fn render_states(&self) -> RenderStates {
-        RenderStates::default()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        MaterialType::Opaque
-    }
-}
-
-struct BrdfMaterial {
-    lighting_model: LightingModel,
-}
-
-impl Material for BrdfMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        format!(
-            "{}{}{}{}",
-            super::lighting_model_shader(self.lighting_model),
-            include_str!("../../core/shared.frag"),
-            include_str!("shaders/light_shared.frag"),
-            include_str!("shaders/brdf.frag")
-        )
-    }
-
-    fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
 
     fn render_states(&self) -> RenderStates {
         RenderStates::default()

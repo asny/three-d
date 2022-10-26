@@ -24,10 +24,6 @@ mod bounding_box;
 #[doc(inline)]
 pub use bounding_box::*;
 
-mod screen_quad;
-#[doc(inline)]
-pub use screen_quad::*;
-
 mod line;
 #[doc(inline)]
 pub use line::*;

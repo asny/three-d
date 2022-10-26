@@ -33,6 +33,9 @@ pub enum RendererError {
 pub mod material;
 pub use material::*;
 
+pub mod effect;
+pub use effect::*;
+
 pub mod light;
 pub use light::*;
 
@@ -44,9 +47,6 @@ pub use object::*;
 
 pub mod control;
 pub use control::*;
-
-mod effect;
-pub use effect::*;
 
 impl DepthTarget<'_> {
     ///
@@ -371,18 +371,18 @@ impl RenderTarget<'_> {
             });
 
             // Lighting pass
-            self.render_partially_with_post_material(
-                scissor_box,
-                &DeferredPhysicalMaterial::new(&self.context, &CpuMaterial::default()),
-                camera,
-                &ScreenQuad::new(&self.context),
-                lights,
-                Some(ColorTexture::Array {
-                    texture: &geometry_pass_texture,
-                    layers: &gbuffer_layers,
-                }),
-                Some(DepthTexture::Single(&geometry_pass_depth_texture)),
-            );
+            self.write_partially(scissor_box, || {
+                DeferredPhysicalMaterial::lighting_pass(
+                    &self.context,
+                    camera,
+                    ColorTexture::Array {
+                        texture: &geometry_pass_texture,
+                        layers: &gbuffer_layers,
+                    },
+                    DepthTexture::Single(&geometry_pass_depth_texture),
+                    lights,
+                )
+            });
         }
 
         // Forward

@@ -1,7 +1,11 @@
-mod fog_effect;
-#[doc(inline)]
-pub use fog_effect::*;
+//!
+//! A collection of image based effects, ie. effects applied to each pixel of a rendered image.
+//!
 
-mod fxaa_effect;
+mod fog;
 #[doc(inline)]
-pub use fxaa_effect::*;
+pub use fog::*;
+
+mod fxaa;
+#[doc(inline)]
+pub use fxaa::*;

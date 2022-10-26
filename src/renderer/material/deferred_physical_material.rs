@@ -9,8 +9,8 @@ use std::sync::Arc;
 /// The first stage renders geometry information to a [RenderTarget] and the second stage uses this render target to apply lighting based on the geometry information which means the expensive lighting calculations are only done once per pixel.
 /// The [RenderTarget::render], [ColorTarget::render] or [DepthTarget::render] methods all support the two stages required by this material, so just pass the [Object] with this material applied into one of these methods.
 /// However, it is not possible to use the a [Object::render] method to render a [Geometry] with this material directly to the screen.
-/// Instead render the object into a [RenderTarget] consisting of a [Texture2DArray] with three RGBA u8 layers as color target and a [DepthTexture2D] as depth target.
-/// Then render this [PostMaterial] with the textures from the previous step onto a [ScreenQuad].
+/// Instead render the object into a [RenderTarget] consisting of a [Texture2DArray] with three RGBA u8 layers as color target and a [DepthTargetTexture2D] as depth target.
+/// Then call the [DeferredPhysicalMaterial::lighting_pass] method with these textures to render the screen.
 ///
 #[derive(Clone)]
 pub struct DeferredPhysicalMaterial {
@@ -135,6 +135,47 @@ impl DeferredPhysicalMaterial {
                 None
             },
         }
+    }
+    ///
+    /// The second stage of a deferred render call.
+    /// Use the [Object::render] method to render the objects with this material into a [RenderTarget] and then call this method with these textures to render to the screen.
+    /// See [DeferredPhysicalMaterial] for more information.
+    ///
+    pub fn lighting_pass(
+        context: &Context,
+        camera: &Camera,
+        geometry_pass_color_texture: ColorTexture,
+        geometry_pass_depth_texture: DepthTexture,
+        lights: &[&dyn Light],
+    ) {
+        let mut fragment_shader = lights_shader_source(
+            lights,
+            LightingModel::Cook(
+                NormalDistributionFunction::TrowbridgeReitzGGX,
+                GeometryFunction::SmithSchlickGGX,
+            ),
+        );
+        fragment_shader.push_str(&geometry_pass_color_texture.fragment_shader_source());
+        fragment_shader.push_str(&geometry_pass_depth_texture.fragment_shader_source());
+        fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
+        context.apply_effect(
+            &fragment_shader,
+            RenderStates::default(),
+            camera.viewport(),
+            |program| {
+                geometry_pass_color_texture.use_uniforms(program);
+                geometry_pass_depth_texture.use_uniforms(program);
+                program.use_uniform_if_required("cameraPosition", camera.position());
+                for (i, light) in lights.iter().enumerate() {
+                    light.use_uniforms(program, i as u32);
+                }
+                program.use_uniform_if_required(
+                    "viewProjectionInverse",
+                    (camera.projection() * camera.view()).invert().unwrap(),
+                );
+                program.use_uniform("debug_type", DebugType::NONE as i32);
+            },
+        )
     }
 }
 
