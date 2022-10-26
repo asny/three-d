@@ -183,6 +183,80 @@ impl<'a> RenderTarget<'a> {
         from_byte_slice(&pixels).to_vec()
     }
 
+    pub fn copy_from(
+        &self,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+        write_mask: WriteMask,
+    ) -> &Self {
+        self.copy_partially_from(self.scissor_box(), color_texture, depth_texture, write_mask)
+    }
+
+    ///
+    /// Copies the content of the color and depth texture to the specified scissor box of this render target.
+    /// Only copies the channels given by the write mask.
+    ///
+    pub fn copy_partially_from(
+        &self,
+        scissor_box: ScissorBox,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+        write_mask: WriteMask,
+    ) -> &Self {
+        self.write_partially(scissor_box, || {
+            let color_source = color_texture.map(|t| t.fragment_shader_source());
+            let depth_source = depth_texture.map(|t| t.fragment_shader_source());
+            let fragment_shader_source = if let Some(color_source) = color_source {
+                if let Some(depth_source) = depth_source {
+                    let source = "
+                        in vec2 uvs;
+                        layout (location = 0) out vec4 color;
+                        void main()
+                        {
+                            color = sample_color(uvs);
+                            gl_FragDepth = sample_depth(uvs);
+                        }";
+                    format!("{}\n{}\n{}", color_source, depth_source, source)
+                } else {
+                    let source = "
+                        uniform sampler2D colorMap;
+                        in vec2 uvs;
+                        layout (location = 0) out vec4 color;
+                        void main()
+                        {
+                            color = texture(colorMap, uvs);
+                        }";
+                    format!("{}\n{}", color_source, source)
+                }
+            } else {
+                if let Some(depth_source) = depth_source {
+                    let source = "
+                        in vec2 uvs;
+                        void main()
+                        {
+                            gl_FragDepth = sample_depth(uvs);
+                        }";
+                    format!("{}\n{}", depth_source, source)
+                } else {
+                    panic!("Must supply a color or depth texture to apply a copy effect")
+                }
+            };
+            self.context.apply_effect(
+                &fragment_shader_source,
+                RenderStates {
+                    depth_test: DepthTest::Always,
+                    write_mask,
+                    ..Default::default()
+                },
+                scissor_box.into(),
+                |program| {
+                    color_texture.map(|t| t.use_uniforms(program));
+                    depth_texture.map(|t| t.use_uniforms(program));
+                },
+            )
+        })
+    }
+
     ///
     /// Returns the scissor box that encloses the entire target.
     ///

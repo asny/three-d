@@ -105,31 +105,27 @@ pub async fn run() {
 
         if fog_enabled {
             // Apply fog nomatter if a change has occured since it contain animation.
-            frame_input.screen().write(|| {
-                CopyEffect::render(
-                    &context,
-                    WriteMask::default(),
-                    frame_input.viewport,
+            frame_input
+                .screen()
+                .copy_from(
                     Some(ColorTexture::Single(&color_texture)),
                     Some(DepthTexture::Single(&depth_texture)),
-                );
-                fog_effect.render(
-                    frame_input.accumulated_time,
-                    &camera,
-                    DepthTexture::Single(&depth_texture),
+                    WriteMask::default(),
                 )
-            });
+                .write(|| {
+                    fog_effect.render(
+                        frame_input.accumulated_time,
+                        &camera,
+                        DepthTexture::Single(&depth_texture),
+                    )
+                });
         } else if change {
             // If a change has happened and no fog is applied, copy the result to the screen
-            frame_input.screen().write(|| {
-                CopyEffect::render(
-                    &context,
-                    WriteMask::default(),
-                    frame_input.viewport,
-                    Some(ColorTexture::Single(&color_texture)),
-                    Some(DepthTexture::Single(&depth_texture)),
-                );
-            });
+            frame_input.screen().copy_from(
+                Some(ColorTexture::Single(&color_texture)),
+                Some(DepthTexture::Single(&depth_texture)),
+                WriteMask::default(),
+            );
         }
 
         FrameOutput {

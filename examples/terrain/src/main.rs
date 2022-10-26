@@ -261,15 +261,11 @@ pub async fn run() {
         }
         frame_input
             .screen()
-            .write(|| {
-                CopyEffect::render(
-                    &context,
-                    WriteMask::COLOR_AND_DEPTH,
-                    frame_input.viewport,
-                    Some(ColorTexture::Single(&color_texture)),
-                    Some(DepthTexture::Single(&depth_texture)),
-                )
-            })
+            .copy_from(
+                Some(ColorTexture::Single(&color_texture)),
+                Some(DepthTexture::Single(&depth_texture)),
+                WriteMask::default(),
+            )
             .render_with_post_material(
                 &water_material,
                 &camera,

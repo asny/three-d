@@ -34,10 +34,10 @@ pub async fn run() {
     let mut gui = GUI::new(&context);
 
     // main loop
+    let mut tone_mapping = 1.0;
     let mut texture_transform_scale = 1.0;
     let mut texture_transform_x = 0.0;
     let mut texture_transform_y = 0.0;
-    let mut tone_mapping = 1.0;
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
         gui.update(
