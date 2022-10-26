@@ -84,6 +84,30 @@ pub enum ColorTexture<'a> {
     },
 }
 
+impl ColorTexture<'_> {
+    ///
+    /// Returns the width of the color texture in texels.
+    ///
+    pub fn width(&self) -> u32 {
+        match self {
+            ColorTexture::Single(texture) => texture.width(),
+            ColorTexture::Array { texture, .. } => texture.width(),
+            ColorTexture::CubeMap { texture, .. } => texture.width(),
+        }
+    }
+
+    ///
+    /// Returns the height of the color texture in texels.
+    ///
+    pub fn height(&self) -> u32 {
+        match self {
+            ColorTexture::Single(texture) => texture.height(),
+            ColorTexture::Array { texture, .. } => texture.height(),
+            ColorTexture::CubeMap { texture, .. } => texture.height(),
+        }
+    }
+}
+
 ///
 /// A reference to some type of texture containing depths.
 ///
@@ -102,6 +126,30 @@ pub enum DepthTexture<'a> {
         texture: &'a DepthTextureCubeMap,
         side: CubeMapSide,
     },
+}
+
+impl DepthTexture<'_> {
+    ///
+    /// Returns the width of the depth texture in texels.
+    ///
+    pub fn width(&self) -> u32 {
+        match self {
+            DepthTexture::Single(texture) => texture.width(),
+            DepthTexture::Array { texture, .. } => texture.width(),
+            DepthTexture::CubeMap { texture, .. } => texture.width(),
+        }
+    }
+
+    ///
+    /// Returns the height of the depth texture in texels.
+    ///
+    pub fn height(&self) -> u32 {
+        match self {
+            DepthTexture::Single(texture) => texture.height(),
+            DepthTexture::Array { texture, .. } => texture.height(),
+            DepthTexture::CubeMap { texture, .. } => texture.height(),
+        }
+    }
 }
 
 use crate::core::*;
