@@ -452,55 +452,27 @@ impl TextureCubeMap {
 
         {
             let map = Texture2D::new(context, cpu_texture);
-            let position_buffer = VertexBuffer::new_with_data(
-                context,
-                &three_d_asset::TriMesh::cube().positions.to_f32(),
-            );
-            let program = Program::from_source(
-                context,
-                "
-                uniform mat4 viewProjection;
-                in vec3 position;
-                out vec3 pos;
-                
-                void main()
-                {
-                    pos = position;
-                    gl_Position = viewProjection * vec4(position, 1.0);
-                }",
-                "
-                uniform sampler2D equirectangularMap;
-                in vec3 pos;
-                layout (location = 0) out vec4 outColor;
-                
-                void main()
-                {
-                    vec3 v = normalize(pos);
-                    vec2 uv = vec2(0.1591 * atan(v.z, v.x) + 0.5, 0.3183 * asin(v.y) + 0.5);
-                    outColor = texture(equirectangularMap, uv);
-                }",
-            )
-            .unwrap();
+            let fragment_shader_source = "
+            uniform sampler2D equirectangularMap;
+            in vec3 pos;
+            layout (location = 0) out vec4 outColor;
+            
+            void main()
+            {
+                vec3 v = normalize(pos);
+                vec2 uv = vec2(0.1591 * atan(v.z, v.x) + 0.5, 0.3183 * asin(v.y) + 0.5);
+                outColor = texture(equirectangularMap, uv);
+            }";
+            let effect = ImageCubeEffect::new(context, fragment_shader_source).unwrap();
 
             for side in CubeMapSide::iter() {
-                program.use_texture("equirectangularMap", &map);
+                effect.use_texture("equirectangularMap", &map);
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
                     .as_color_target(&[side], None)
                     .clear(ClearState::default())
                     .write(|| {
-                        let camera = Camera::new_perspective(
-                            viewport,
-                            vec3(0.0, 0.0, 0.0),
-                            side.direction(),
-                            side.up(),
-                            degrees(90.0),
-                            0.1,
-                            10.0,
-                        );
-                        program.use_uniform("viewProjection", camera.projection() * camera.view());
-                        program.use_vertex_attribute("position", &position_buffer);
-                        program.draw_arrays(RenderStates::default(), viewport, 36);
+                        effect.render(side, RenderStates::default(), viewport);
                     });
             }
         }
