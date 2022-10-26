@@ -18,6 +18,10 @@ impl FxaaEffect {
         }
     }
 
+    ///
+    /// Applies the FXAA effect to the given color texture and writes the result to the given viewport of the current render target.
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+    ///
     pub fn render(&self, viewport: Viewport, color_texture: ColorTexture) {
         self.context.apply_effect(
             &format!(
