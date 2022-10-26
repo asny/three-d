@@ -42,16 +42,7 @@ pub async fn run() {
     let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Fog
-    let copy_effect = Effect::new(
-        &context,
-        CopyMaterial {
-            write_mask: WriteMask::default(),
-        },
-    );
-    let mut fog_effect = Effect::new(
-        &context,
-        FogMaterial::new(Color::new_opaque(200, 200, 200), 0.2, 0.1),
-    );
+    let fog_effect = FogEffect::new(&context, Color::new_opaque(200, 200, 200), 0.2, 0.1);
     let mut fog_enabled = true;
 
     // main loop
@@ -114,30 +105,30 @@ pub async fn run() {
 
         if fog_enabled {
             // Apply fog nomatter if a change has occured since it contain animation.
-            fog_effect.material.time = frame_input.accumulated_time;
             frame_input.screen().write(|| {
-                copy_effect.render(
-                    &camera,
-                    &[],
+                CopyEffect::render(
+                    &context,
+                    WriteMask::default(),
+                    frame_input.viewport,
                     Some(ColorTexture::Single(&color_texture)),
                     Some(DepthTexture::Single(&depth_texture)),
                 );
                 fog_effect.render(
+                    frame_input.accumulated_time,
                     &camera,
-                    &[],
-                    Some(ColorTexture::Single(&color_texture)),
-                    Some(DepthTexture::Single(&depth_texture)),
+                    DepthTexture::Single(&depth_texture),
                 )
             });
         } else if change {
             // If a change has happened and no fog is applied, copy the result to the screen
             frame_input.screen().write(|| {
-                copy_effect.render(
-                    &camera,
-                    &[],
+                CopyEffect::render(
+                    &context,
+                    WriteMask::default(),
+                    frame_input.viewport,
                     Some(ColorTexture::Single(&color_texture)),
                     Some(DepthTexture::Single(&depth_texture)),
-                )
+                );
             });
         }
 

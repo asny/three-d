@@ -4,15 +4,32 @@ use crate::renderer::*;
 /// Copies the content of a color and depth texture.
 ///
 #[derive(Default)]
-pub struct CopyMaterial {
-    /// Only copies the channels given by this write mask.
-    pub write_mask: WriteMask,
-}
+pub struct CopyEffect {}
 
-impl PostMaterial for CopyMaterial {
+impl CopyEffect {
+    pub fn render(
+        context: &Context,
+        write_mask: WriteMask,
+        viewport: Viewport,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        context.apply_effect(
+            &Self::fragment_shader_source(color_texture, depth_texture),
+            RenderStates {
+                depth_test: DepthTest::Always,
+                write_mask,
+                ..Default::default()
+            },
+            viewport,
+            |program| {
+                color_texture.map(|t| t.use_uniforms(program));
+                depth_texture.map(|t| t.use_uniforms(program));
+            },
+        )
+    }
+
     fn fragment_shader_source(
-        &self,
-        _lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) -> String {
@@ -53,26 +70,6 @@ impl PostMaterial for CopyMaterial {
             } else {
                 panic!("Must supply a color or depth texture to apply a copy effect")
             }
-        }
-    }
-
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        _camera: &Camera,
-        _lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        color_texture.map(|t| t.use_uniforms(program));
-        depth_texture.map(|t| t.use_uniforms(program));
-    }
-
-    fn render_states(&self) -> RenderStates {
-        RenderStates {
-            depth_test: DepthTest::Always,
-            write_mask: self.write_mask,
-            ..Default::default()
         }
     }
 }

@@ -33,18 +33,11 @@ pub async fn run() {
 
     let mut gui = GUI::new(&context);
 
-    let mut image_viewer = Gm::new(
-        ScreenQuad::new(&context),
-        ImageMaterial {
-            image,
-            tone_mapping: 1.0,
-        },
-    );
-
     // main loop
     let mut texture_transform_scale = 1.0;
     let mut texture_transform_x = 0.0;
     let mut texture_transform_y = 0.0;
+    let mut tone_mapping = 1.0;
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
         gui.update(
@@ -56,10 +49,7 @@ pub async fn run() {
                 use three_d::egui::*;
                 SidePanel::right("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
-                    ui.add(
-                        Slider::new(&mut image_viewer.material.tone_mapping, 0.0..=50.0)
-                            .text("Tone mapping"),
-                    );
+                    ui.add(Slider::new(&mut tone_mapping, 0.0..=50.0).text("Tone mapping"));
                     ui.add(
                         Slider::new(&mut texture_transform_scale, 0.0..=10.0)
                             .text("Texture transform scale"),
@@ -77,48 +67,32 @@ pub async fn run() {
             },
         );
 
-        image_viewer.geometry.set_texture_transform(
-            Mat3::from_scale(texture_transform_scale)
-                * Mat3::from_translation(vec2(texture_transform_x, texture_transform_y)),
-        );
-
         let viewport = Viewport::new_at_origo(
             frame_input.viewport.width - (panel_width * frame_input.device_pixel_ratio) as u32,
             frame_input.viewport.height,
         );
 
-        frame_input
-            .screen()
-            .clear(ClearState::default())
-            .render(&camera2d(viewport), &image_viewer, &[])
-            .write(|| {
-                gui.render();
-            });
+        frame_input.screen().clear(ClearState::default()).write(|| {
+            context.apply_effect(
+                include_str!("shader.frag"),
+                RenderStates::default(),
+                viewport,
+                |program| {
+                    program.use_texture("image", &image);
+                    program.use_uniform("parameter", tone_mapping);
+                    program.use_uniform(
+                        "textureTransform",
+                        Mat3::from_scale(texture_transform_scale)
+                            * Mat3::from_translation(vec2(
+                                texture_transform_x,
+                                texture_transform_y,
+                            )),
+                    )
+                },
+            );
+            gui.render();
+        });
 
         FrameOutput::default()
     });
-}
-
-struct ImageMaterial {
-    pub image: Texture2D,
-    pub tone_mapping: f32,
-}
-
-impl Material for ImageMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        include_str!("shader.frag").to_owned()
-    }
-
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
-        program.use_texture("image", &self.image);
-        program.use_uniform("parameter", self.tone_mapping);
-    }
-
-    fn render_states(&self) -> RenderStates {
-        RenderStates::default()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        MaterialType::Opaque
-    }
 }

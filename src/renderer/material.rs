@@ -55,18 +55,6 @@ mod isosurface_material;
 #[doc(inline)]
 pub use isosurface_material::*;
 
-mod fog_material;
-#[doc(inline)]
-pub use fog_material::*;
-
-mod fxaa_material;
-#[doc(inline)]
-pub use fxaa_material::*;
-
-mod copy_material;
-#[doc(inline)]
-pub use copy_material::*;
-
 ///
 /// Defines the material type which is needed to render the objects in the correct order.
 /// For example, transparent objects need to be rendered back to front, whereas opaque objects need to be rendered front to back.
@@ -378,7 +366,6 @@ impl DepthTexture<'_> {
 ///
 /// Similar to [Material], the difference is that this type of material needs the rendered color texture and/or depth texture of the scene to be applied.
 /// Therefore this type of material is always applied one at a time and after the scene has been rendered with the regular [Material].
-/// A typical example is to apply a full screen effect after the scene has been rendered. To do this, apply this material to a [ScreenQuad].
 ///
 pub trait PostMaterial {
     ///

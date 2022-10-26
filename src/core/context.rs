@@ -69,6 +69,45 @@ impl Context {
     }
 
     ///
+    /// A 2D effect that is applied to the entire screen.
+    /// Can for example be used for adding an effect on top of a rendered image.
+    ///
+    pub fn apply_effect(
+        &self,
+        fragment_shader_source: &str,
+        render_states: RenderStates,
+        viewport: Viewport,
+        use_uniforms: impl FnOnce(&Program),
+    ) {
+        let position_buffer = VertexBuffer::new_with_data(
+            self,
+            &vec![
+                vec3(-3.0, -1.0, 0.0),
+                vec3(3.0, -1.0, 0.0),
+                vec3(0.0, 2.0, 0.0),
+            ],
+        );
+        self.program(
+            "
+                in vec3 position;
+                out vec2 uvs;
+                void main()
+                {
+                    uvs = 0.5 * position.xy + 0.5;
+                    gl_Position = vec4(position, 1.0);
+                }
+            ",
+            fragment_shader_source,
+            |program| {
+                use_uniforms(program);
+                program.use_vertex_attribute("position", &position_buffer);
+                program.draw_arrays(render_states, viewport, 3);
+            },
+        )
+        .expect("Failed compiling shader");
+    }
+
+    ///
     /// Set the scissor test for this context (see [ScissorBox]).
     ///
     pub fn set_scissor(&self, scissor_box: ScissorBox) {
