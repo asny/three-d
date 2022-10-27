@@ -262,8 +262,9 @@ pub async fn run() {
         frame_input
             .screen()
             .copy_from(
-                Some(ColorTexture::Single(&color_texture)),
-                Some(DepthTexture::Single(&depth_texture)),
+                ColorTexture::Single(&color_texture),
+                DepthTexture::Single(&depth_texture),
+                camera.viewport(),
                 WriteMask::default(),
             )
             .render_with_post_material(

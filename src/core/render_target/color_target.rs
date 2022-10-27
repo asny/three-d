@@ -111,27 +111,33 @@ impl<'a> ColorTarget<'a> {
     }
 
     ///
-    /// Copies the content of the color texture to this color target.
-    /// Only copies the channels given by the write mask.
+    /// Copies the content of the color texture as limited by the [WriteMask]
+    /// to the part of this color target specified by the [Viewport].
     ///
-    pub fn copy_from(&self, color_texture: ColorTexture, write_mask: WriteMask) -> &Self {
-        self.copy_partially_from(self.scissor_box(), color_texture, write_mask)
+    pub fn copy_from(
+        &self,
+        color_texture: ColorTexture,
+        viewport: Viewport,
+        write_mask: WriteMask,
+    ) -> &Self {
+        self.copy_partially_from(self.scissor_box(), color_texture, viewport, write_mask)
     }
 
     ///
-    /// Copies the content of the color texture to the specified scissor box of this color target.
-    /// Only copies the channels given by the write mask.
+    /// Copies the content of the color texture as limited by the [ScissorBox] and [WriteMask]
+    /// to the part of this color target specified by the [Viewport].
     ///
     pub fn copy_partially_from(
         &self,
         scissor_box: ScissorBox,
         color_texture: ColorTexture,
+        viewport: Viewport,
         write_mask: WriteMask,
     ) -> &Self {
-        self.as_render_target().copy_partially_from(
+        self.as_render_target().copy_partially_from_color(
             scissor_box,
-            Some(color_texture),
-            None,
+            color_texture,
+            viewport,
             write_mask,
         );
         self

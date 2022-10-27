@@ -108,8 +108,9 @@ pub async fn run() {
             frame_input
                 .screen()
                 .copy_from(
-                    Some(ColorTexture::Single(&color_texture)),
-                    Some(DepthTexture::Single(&depth_texture)),
+                    ColorTexture::Single(&color_texture),
+                    DepthTexture::Single(&depth_texture),
+                    frame_input.viewport,
                     WriteMask::default(),
                 )
                 .write(|| {
@@ -121,9 +122,9 @@ pub async fn run() {
                 });
         } else if change {
             // If a change has happened and no fog is applied, copy the result to the screen
-            frame_input.screen().copy_from(
-                Some(ColorTexture::Single(&color_texture)),
-                None,
+            frame_input.screen().copy_from_color(
+                ColorTexture::Single(&color_texture),
+                frame_input.viewport,
                 WriteMask::default(),
             );
         }

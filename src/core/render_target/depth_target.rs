@@ -95,26 +95,25 @@ impl<'a> DepthTarget<'a> {
     }
 
     ///
-    /// Copies the content of the depth texture to this depth target.
+    /// Copies the content of the depth texture
+    /// to the part of this depth target specified by the [Viewport].
     ///
-    pub fn copy_from(&self, depth_texture: DepthTexture) -> &Self {
-        self.copy_partially_from(self.scissor_box(), depth_texture)
+    pub fn copy_from(&self, depth_texture: DepthTexture, viewport: Viewport) -> &Self {
+        self.copy_partially_from(self.scissor_box(), depth_texture, viewport)
     }
 
     ///
-    /// Copies the content of the depth texture to the specified scissor box of this depth target.
+    /// Copies the content of the depth texture as limited by the [ScissorBox]
+    /// to the part of this depth target specified by the [Viewport].
     ///
     pub fn copy_partially_from(
         &self,
         scissor_box: ScissorBox,
         depth_texture: DepthTexture,
+        viewport: Viewport,
     ) -> &Self {
-        self.as_render_target().copy_partially_from(
-            scissor_box,
-            None,
-            Some(depth_texture),
-            WriteMask::DEPTH,
-        );
+        self.as_render_target()
+            .copy_partially_from_depth(scissor_box, depth_texture, viewport);
         self
     }
 
