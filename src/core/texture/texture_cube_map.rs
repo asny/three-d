@@ -463,16 +463,22 @@ impl TextureCubeMap {
                 vec2 uv = vec2(0.1591 * atan(v.z, v.x) + 0.5, 0.3183 * asin(v.y) + 0.5);
                 outColor = texture(equirectangularMap, uv);
             }";
-            let effect = ImageCubeEffect::new(context, fragment_shader_source).unwrap();
 
             for side in CubeMapSide::iter() {
-                effect.use_texture("equirectangularMap", &map);
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
                     .as_color_target(&[side], None)
                     .clear(ClearState::default())
                     .write(|| {
-                        effect.render(side, RenderStates::default(), viewport);
+                        context.apply_cube_effect(
+                            side,
+                            fragment_shader_source,
+                            RenderStates::default(),
+                            viewport,
+                            |program| {
+                                program.use_texture("equirectangularMap", &map);
+                            },
+                        );
                     });
             }
         }
