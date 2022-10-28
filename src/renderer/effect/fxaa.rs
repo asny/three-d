@@ -4,27 +4,17 @@ use crate::renderer::*;
 /// A simple anti-aliasing approach which smooths otherwise jagged edges (for example lines) but also
 /// smooths the rest of the image.
 ///
-pub struct FxaaEffect {
-    context: Context,
-}
+#[derive(Clone, Default, Debug)]
+pub struct FxaaEffect {}
 
 impl FxaaEffect {
-    ///
-    /// Constructs a new FXAA effect.
-    ///
-    pub fn new(context: &Context) -> Self {
-        Self {
-            context: context.clone(),
-        }
-    }
-
     ///
     /// Applies the FXAA effect to the given color texture.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn apply(&self, color_texture: ColorTexture) {
+    pub fn apply(&self, context: &Context, color_texture: ColorTexture) {
         apply_effect(
-            &self.context,
+            context,
             &format!(
                 "{}\n{}",
                 color_texture.fragment_shader_source(),

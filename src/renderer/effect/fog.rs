@@ -3,8 +3,8 @@ use crate::renderer::*;
 ///
 /// An effect that simulates fog, ie. the area where it is applied gets hazy when objects are far away.
 ///
+#[derive(Clone, Debug)]
 pub struct FogEffect {
-    context: Context,
     /// The color of the fog.
     pub color: Color,
     /// The density of the fog.
@@ -13,26 +13,30 @@ pub struct FogEffect {
     pub animation: f32,
 }
 
-impl FogEffect {
-    ///
-    /// Constructs a new fog effect.
-    ///
-    pub fn new(context: &Context, color: Color, density: f32, animation: f32) -> Self {
+impl Default for FogEffect {
+    fn default() -> Self {
         Self {
-            context: context.clone(),
-            color,
-            density,
-            animation,
+            color: Color::WHITE,
+            density: 0.2,
+            animation: 0.0,
         }
     }
+}
 
+impl FogEffect {
     ///
     /// Apply the fog effect on the current render target based on the given depth texture.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn apply(&self, time: f64, camera: &Camera, depth_texture: DepthTexture) {
+    pub fn apply(
+        &self,
+        context: &Context,
+        time: f64,
+        camera: &Camera,
+        depth_texture: DepthTexture,
+    ) {
         apply_effect(
-            &self.context,
+            context,
             &format!(
                 "{}\n{}\n{}",
                 include_str!("../../core/shared.frag"),

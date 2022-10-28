@@ -42,7 +42,11 @@ pub async fn run() {
     let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Fog
-    let fog_effect = FogEffect::new(&context, Color::new_opaque(200, 200, 200), 0.2, 0.1);
+    let fog_effect = FogEffect {
+        color: Color::new_opaque(200, 200, 200),
+        density: 0.2,
+        animation: 0.1,
+    };
     let mut fog_enabled = true;
 
     // main loop
@@ -115,6 +119,7 @@ pub async fn run() {
                 )
                 .write(|| {
                     fog_effect.apply(
+                        &context,
                         frame_input.accumulated_time,
                         &camera,
                         DepthTexture::Single(&depth_texture),
