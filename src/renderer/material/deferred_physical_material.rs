@@ -158,7 +158,8 @@ impl DeferredPhysicalMaterial {
         fragment_shader.push_str(&geometry_pass_color_texture.fragment_shader_source());
         fragment_shader.push_str(&geometry_pass_depth_texture.fragment_shader_source());
         fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
-        context.apply_effect(
+        apply_effect(
+            context,
             &fragment_shader,
             RenderStates::default(),
             camera.viewport(),

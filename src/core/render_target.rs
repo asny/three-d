@@ -228,7 +228,8 @@ impl<'a> RenderTarget<'a> {
                 color_texture.fragment_shader_source(),
                 depth_texture.fragment_shader_source()
             );
-            self.context.apply_effect(
+            apply_effect(
+                &self.context,
                 &fragment_shader_source,
                 RenderStates {
                     depth_test: DepthTest::Always,
@@ -278,7 +279,8 @@ impl<'a> RenderTarget<'a> {
                 }}",
                 color_texture.fragment_shader_source()
             );
-            self.context.apply_effect(
+            apply_effect(
+                &self.context,
                 &fragment_shader_source,
                 RenderStates {
                     depth_test: DepthTest::Always,
@@ -321,7 +323,8 @@ impl<'a> RenderTarget<'a> {
                     }}",
                 depth_texture.fragment_shader_source(),
             );
-            self.context.apply_effect(
+            apply_effect(
+                &self.context,
                 &fragment_shader_source,
                 RenderStates {
                     depth_test: DepthTest::Always,

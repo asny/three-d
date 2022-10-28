@@ -23,7 +23,8 @@ impl FxaaEffect {
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn apply(&self, color_texture: ColorTexture) {
-        self.context.apply_effect(
+        apply_effect(
+            &self.context,
             &format!(
                 "{}\n{}",
                 color_texture.fragment_shader_source(),

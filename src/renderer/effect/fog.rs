@@ -31,7 +31,8 @@ impl FogEffect {
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn apply(&self, time: f64, camera: &Camera, depth_texture: DepthTexture) {
-        self.context.apply_effect(
+        apply_effect(
+            &self.context,
             &format!(
                 "{}\n{}\n{}",
                 include_str!("../../core/shared.frag"),

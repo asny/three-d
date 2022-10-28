@@ -470,7 +470,8 @@ impl TextureCubeMap {
                     .as_color_target(&[side], None)
                     .clear(ClearState::default())
                     .write(|| {
-                        context.apply_cube_effect(
+                        apply_cube_effect(
+                            context,
                             side,
                             fragment_shader_source,
                             RenderStates::default(),

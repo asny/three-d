@@ -64,7 +64,8 @@ impl Environment {
                     .as_color_target(&[side], None)
                     .clear(ClearState::default())
                     .write(|| {
-                        context.apply_cube_effect(
+                        apply_cube_effect(
+                            context,
                             side,
                             &fragment_shader_source,
                             RenderStates::default(),
@@ -106,7 +107,8 @@ impl Environment {
                     let viewport =
                         Viewport::new_at_origo(color_target.width(), color_target.height());
                     color_target.clear(ClearState::default()).write(|| {
-                        context.apply_cube_effect(
+                        apply_cube_effect(
+                            context,
                             side,
                             &fragment_shader_source,
                             RenderStates::default(),
@@ -141,7 +143,8 @@ impl Environment {
             .as_color_target(None)
             .clear(ClearState::default())
             .write(|| {
-                context.apply_effect(
+                apply_effect(
+                    context,
                     &format!(
                         "{}{}{}{}",
                         super::lighting_model_shader(lighting_model),
