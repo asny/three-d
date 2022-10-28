@@ -63,6 +63,18 @@ impl<M: Material> Geometry for VoxelGrid<M> {
     ) {
         self.0.render_with_material(material, camera, lights)
     }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.0
+            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
+    }
 }
 
 impl<M: Material> Object for VoxelGrid<M> {

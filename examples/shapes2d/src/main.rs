@@ -9,34 +9,32 @@ pub fn main() {
     .unwrap();
     let context = window.gl();
 
-    let mut rectangle = Rectangle::new_with_material(
-        &context,
-        vec2(200.0, 200.0),
-        degrees(45.0),
-        100.0,
-        200.0,
+    let mut camera = camera2d(window.viewport());
+
+    let mut rectangle = Gm::new(
+        Rectangle::new(&context, vec2(200.0, 200.0), degrees(45.0), 100.0, 200.0),
         ColorMaterial {
             color: Color::RED,
             ..Default::default()
         },
     );
-    let mut circle = Circle::new_with_material(
-        &context,
-        vec2(500.0, 500.0),
-        200.0,
+    let mut circle = Gm::new(
+        Circle::new(&context, vec2(500.0, 500.0), 200.0),
         ColorMaterial {
             color: Color::BLUE,
             ..Default::default()
         },
     );
-    let mut line = Line::new_with_material(
-        &context,
-        vec2(0.0, 0.0),
-        vec2(
-            window.viewport().width as f32,
-            window.viewport().height as f32,
+    let mut line = Gm::new(
+        Line::new(
+            &context,
+            vec2(0.0, 0.0),
+            vec2(
+                window.viewport().width as f32,
+                window.viewport().height as f32,
+            ),
+            5.0,
         ),
-        5.0,
         ColorMaterial {
             color: Color::GREEN,
             ..Default::default()
@@ -44,6 +42,7 @@ pub fn main() {
     );
 
     window.render_loop(move |frame_input: FrameInput| {
+        camera.set_viewport(frame_input.viewport);
         for event in frame_input.events.iter() {
             match event {
                 Event::MousePress {
@@ -63,10 +62,12 @@ pub fn main() {
                         circle.set_center(pos);
                     }
                     if *button == MouseButton::Left && modifiers.ctrl {
-                        line.set_endpoints(pos, line.end_point1());
+                        let ep = line.end_point1();
+                        line.set_endpoints(pos, ep);
                     }
                     if *button == MouseButton::Right && modifiers.ctrl {
-                        line.set_endpoints(line.end_point0(), pos);
+                        let ep = line.end_point0();
+                        line.set_endpoints(ep, pos);
                     }
                 }
                 _ => {}
@@ -75,11 +76,11 @@ pub fn main() {
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            .write(|| {
-                line.render(frame_input.viewport);
-                rectangle.render(frame_input.viewport);
-                circle.render(frame_input.viewport);
-            });
+            .render(
+                &camera,
+                line.into_iter().chain(&rectangle).chain(&circle),
+                &[],
+            );
 
         FrameOutput::default()
     });

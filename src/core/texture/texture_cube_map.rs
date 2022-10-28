@@ -70,38 +70,27 @@ impl CubeMapSide {
         }
     }
 
-    pub(in crate::core) fn view(&self) -> Mat4 {
+    /// The up direction that should be used when rendering into this cube map side.
+    pub fn up(&self) -> Vec3 {
         match self {
-            CubeMapSide::Right => Mat4::look_at_rh(
-                Point3::new(0.0, 0.0, 0.0),
-                Point3::new(1.0, 0.0, 0.0),
-                vec3(0.0, -1.0, 0.0),
-            ),
-            CubeMapSide::Left => Mat4::look_at_rh(
-                Point3::new(0.0, 0.0, 0.0),
-                Point3::new(-1.0, 0.0, 0.0),
-                vec3(0.0, -1.0, 0.0),
-            ),
-            CubeMapSide::Top => Mat4::look_at_rh(
-                Point3::new(0.0, 0.0, 0.0),
-                Point3::new(0.0, 1.0, 0.0),
-                vec3(0.0, 0.0, 1.0),
-            ),
-            CubeMapSide::Bottom => Mat4::look_at_rh(
-                Point3::new(0.0, 0.0, 0.0),
-                Point3::new(0.0, -1.0, 0.0),
-                vec3(0.0, 0.0, -1.0),
-            ),
-            CubeMapSide::Front => Mat4::look_at_rh(
-                Point3::new(0.0, 0.0, 0.0),
-                Point3::new(0.0, 0.0, 1.0),
-                vec3(0.0, -1.0, 0.0),
-            ),
-            CubeMapSide::Back => Mat4::look_at_rh(
-                Point3::new(0.0, 0.0, 0.0),
-                Point3::new(0.0, 0.0, -1.0),
-                vec3(0.0, -1.0, 0.0),
-            ),
+            CubeMapSide::Right => vec3(0.0, -1.0, 0.0),
+            CubeMapSide::Left => vec3(0.0, -1.0, 0.0),
+            CubeMapSide::Top => vec3(0.0, 0.0, 1.0),
+            CubeMapSide::Bottom => vec3(0.0, 0.0, -1.0),
+            CubeMapSide::Front => vec3(0.0, -1.0, 0.0),
+            CubeMapSide::Back => vec3(0.0, -1.0, 0.0),
+        }
+    }
+
+    /// The direction from origo towards the center of this cube map side.
+    pub fn direction(&self) -> Vec3 {
+        match self {
+            CubeMapSide::Right => vec3(1.0, 0.0, 0.0),
+            CubeMapSide::Left => vec3(-1.0, 0.0, 0.0),
+            CubeMapSide::Top => vec3(0.0, 1.0, 0.0),
+            CubeMapSide::Bottom => vec3(0.0, -1.0, 0.0),
+            CubeMapSide::Front => vec3(0.0, 0.0, 1.0),
+            CubeMapSide::Back => vec3(0.0, 0.0, -1.0),
         }
     }
 }
@@ -463,35 +452,34 @@ impl TextureCubeMap {
 
         {
             let map = Texture2D::new(context, cpu_texture);
-            let fragment_shader_source = "uniform sampler2D equirectangularMap;
-            const vec2 invAtan = vec2(0.1591, 0.3183);
-            
+            let fragment_shader_source = "
+            uniform sampler2D equirectangularMap;
             in vec3 pos;
             layout (location = 0) out vec4 outColor;
             
-            vec2 sample_spherical_map(vec3 v)
-            {
-                vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
-                uv *= invAtan;
-                uv += 0.5;
-                return uv;
-            }
-            
             void main()
-            {		
-                vec2 uv = sample_spherical_map(normalize(pos));
-                outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
+            {
+                vec3 v = normalize(pos);
+                vec2 uv = vec2(0.1591 * atan(v.z, v.x) + 0.5, 0.3183 * asin(v.y) + 0.5);
+                outColor = texture(equirectangularMap, uv);
             }";
-            let effect = ImageCubeEffect::new(context, fragment_shader_source).unwrap();
 
             for side in CubeMapSide::iter() {
-                effect.use_texture("equirectangularMap", &map);
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
-                    .as_color_target(side, None)
+                    .as_color_target(&[side], None)
                     .clear(ClearState::default())
                     .write(|| {
-                        effect.render(side, RenderStates::default(), viewport);
+                        apply_cube_effect(
+                            context,
+                            side,
+                            fragment_shader_source,
+                            RenderStates::default(),
+                            viewport,
+                            |program| {
+                                program.use_texture("equirectangularMap", &map);
+                            },
+                        );
                     });
             }
         }
@@ -508,10 +496,10 @@ impl TextureCubeMap {
     ///
     pub fn as_color_target<'a>(
         &'a mut self,
-        side: CubeMapSide,
+        sides: &'a [CubeMapSide],
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {
-        ColorTarget::new_texture_cube_map(&self.context, self, side, mip_level)
+        ColorTarget::new_texture_cube_map(&self.context, self, sides, mip_level)
     }
 
     /// The width of this texture.

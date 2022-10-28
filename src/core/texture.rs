@@ -9,9 +9,9 @@ mod texture_cube_map;
 #[doc(inline)]
 pub use texture_cube_map::*;
 
-mod depth_target_texture2d;
+mod depth_texture2d;
 #[doc(inline)]
-pub use depth_target_texture2d::*;
+pub use depth_texture2d::*;
 
 mod texture2d_array;
 #[doc(inline)]
@@ -21,13 +21,13 @@ mod texture3d;
 #[doc(inline)]
 pub use texture3d::*;
 
-mod depth_target_texture2d_array;
+mod depth_texture2d_array;
 #[doc(inline)]
-pub use depth_target_texture2d_array::*;
+pub use depth_texture2d_array::*;
 
-mod depth_target_texture_cube_map;
+mod depth_texture_cube_map;
 #[doc(inline)]
-pub use depth_target_texture_cube_map::*;
+pub use depth_texture_cube_map::*;
 
 use data_type::*;
 pub use three_d_asset::texture::{
@@ -51,6 +51,106 @@ impl TextureDataType for Color {}
 impl TextureDataType for Quat {}
 
 impl<T: TextureDataType + ?Sized> TextureDataType for &T {}
+
+/// The basic data type used for each pixel in a depth texture.
+pub trait DepthTextureDataType: DepthDataType {}
+
+/// 24 bit float which can be used as [DepthTextureDataType].
+#[allow(non_camel_case_types)]
+#[derive(Clone, Copy, Default, Debug)]
+pub struct f24 {}
+
+impl DepthTextureDataType for f16 {}
+impl DepthTextureDataType for f24 {}
+impl DepthTextureDataType for f32 {}
+
+///
+/// A reference to some type of texture containing colors.
+///
+#[derive(Clone, Copy)]
+#[allow(missing_docs)]
+pub enum ColorTexture<'a> {
+    /// A single 2D texture.
+    Single(&'a Texture2D),
+    /// An array of 2D textures and a set of indices into the array.
+    Array {
+        texture: &'a Texture2DArray,
+        layers: &'a [u32],
+    },
+    /// A cube map texture and a set of [CubeMapSide]s indicating the sides to use.
+    CubeMap {
+        texture: &'a TextureCubeMap,
+        sides: &'a [CubeMapSide],
+    },
+}
+
+impl ColorTexture<'_> {
+    ///
+    /// Returns the width of the color texture in texels.
+    ///
+    pub fn width(&self) -> u32 {
+        match self {
+            ColorTexture::Single(texture) => texture.width(),
+            ColorTexture::Array { texture, .. } => texture.width(),
+            ColorTexture::CubeMap { texture, .. } => texture.width(),
+        }
+    }
+
+    ///
+    /// Returns the height of the color texture in texels.
+    ///
+    pub fn height(&self) -> u32 {
+        match self {
+            ColorTexture::Single(texture) => texture.height(),
+            ColorTexture::Array { texture, .. } => texture.height(),
+            ColorTexture::CubeMap { texture, .. } => texture.height(),
+        }
+    }
+}
+
+///
+/// A reference to some type of texture containing depths.
+///
+#[derive(Clone, Copy)]
+#[allow(missing_docs)]
+pub enum DepthTexture<'a> {
+    /// A single 2D texture.
+    Single(&'a DepthTexture2D),
+    /// An array of 2D textures and an index into the array.
+    Array {
+        texture: &'a DepthTexture2DArray,
+        layer: u32,
+    },
+    /// A cube map texture and a [CubeMapSide] indicating the side to use.
+    CubeMap {
+        texture: &'a DepthTextureCubeMap,
+        side: CubeMapSide,
+    },
+}
+
+impl DepthTexture<'_> {
+    ///
+    /// Returns the width of the depth texture in texels.
+    ///
+    pub fn width(&self) -> u32 {
+        match self {
+            DepthTexture::Single(texture) => texture.width(),
+            DepthTexture::Array { texture, .. } => texture.width(),
+            DepthTexture::CubeMap { texture, .. } => texture.width(),
+        }
+    }
+
+    ///
+    /// Returns the height of the depth texture in texels.
+    ///
+    pub fn height(&self) -> u32 {
+        match self {
+            DepthTexture::Single(texture) => texture.height(),
+            DepthTexture::Array { texture, .. } => texture.height(),
+            DepthTexture::CubeMap { texture, .. } => texture.height(),
+        }
+    }
+}
 
 use crate::core::*;
 
@@ -143,14 +243,6 @@ fn calculate_number_of_mip_maps(
         (width as f64).log2() as u32 + 1
     } else {
         1
-    }
-}
-
-fn internal_format_from_depth(format: DepthFormat) -> u32 {
-    match format {
-        DepthFormat::Depth16 => crate::context::DEPTH_COMPONENT16,
-        DepthFormat::Depth24 => crate::context::DEPTH_COMPONENT24,
-        DepthFormat::Depth32F => crate::context::DEPTH_COMPONENT32F,
     }
 }
 

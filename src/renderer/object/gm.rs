@@ -43,6 +43,23 @@ impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
     ) {
         self.geometry.render_with_material(material, camera, lights)
     }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.geometry.render_with_post_material(
+            material,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        )
+    }
 }
 
 impl<G: Geometry, M: Material> Object for Gm<G, M> {

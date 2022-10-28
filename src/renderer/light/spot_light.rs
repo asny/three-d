@@ -8,7 +8,7 @@ use crate::renderer::*;
 ///
 pub struct SpotLight {
     context: Context,
-    shadow_texture: Option<DepthTargetTexture2D>,
+    shadow_texture: Option<DepthTexture2D>,
     shadow_matrix: Mat4,
     /// The intensity of the light. This allows for higher intensity than 1 which can be used to simulate high intensity light sources like the sun.
     pub intensity: f32,
@@ -94,13 +94,12 @@ impl SpotLight {
         );
         self.shadow_matrix = shadow_matrix(&shadow_camera);
 
-        let mut shadow_texture = DepthTargetTexture2D::new(
+        let mut shadow_texture = DepthTexture2D::new::<f32>(
             &self.context,
             texture_size,
             texture_size,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            DepthFormat::Depth32F,
         );
         let depth_material = DepthMaterial {
             render_states: RenderStates {
@@ -126,7 +125,7 @@ impl SpotLight {
     ///
     /// Returns a reference to the shadow map if it has been generated.
     ///
-    pub fn shadow_map(&self) -> Option<&DepthTargetTexture2D> {
+    pub fn shadow_map(&self) -> Option<&DepthTexture2D> {
         self.shadow_texture.as_ref()
     }
 }

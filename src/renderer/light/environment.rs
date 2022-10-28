@@ -58,15 +58,22 @@ impl Environment {
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/irradiance.frag")
             );
-            let effect = ImageCubeEffect::new(context, &fragment_shader_source).unwrap();
+            let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
             for side in CubeMapSide::iter() {
-                effect.use_texture_cube("environmentMap", environment_map);
-                let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
                 irradiance_map
-                    .as_color_target(side, None)
+                    .as_color_target(&[side], None)
                     .clear(ClearState::default())
                     .write(|| {
-                        effect.render(side, RenderStates::default(), viewport);
+                        apply_cube_effect(
+                            context,
+                            side,
+                            &fragment_shader_source,
+                            RenderStates::default(),
+                            viewport,
+                            |program| {
+                                program.use_texture_cube("environmentMap", environment_map);
+                            },
+                        )
                     });
             }
         }
@@ -92,21 +99,29 @@ impl Environment {
                 include_str!("shaders/light_shared.frag"),
                 include_str!("shaders/prefilter.frag")
             );
-            let effect = ImageCubeEffect::new(context, &fragment_shader_source).unwrap();
             let max_mip_levels = 5;
             for mip in 0..max_mip_levels {
-                let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
                 for side in CubeMapSide::iter() {
-                    effect.use_texture_cube("environmentMap", environment_map);
-                    effect.use_uniform("roughness", &roughness);
-                    effect.use_uniform("resolution", &(environment_map.width() as f32));
-                    let color_target = prefilter_map.as_color_target(side, Some(mip));
+                    let sides = [side];
+                    let color_target = prefilter_map.as_color_target(&sides, Some(mip));
+                    let viewport =
+                        Viewport::new_at_origo(color_target.width(), color_target.height());
                     color_target.clear(ClearState::default()).write(|| {
-                        effect.render(
+                        apply_cube_effect(
+                            context,
                             side,
+                            &fragment_shader_source,
                             RenderStates::default(),
-                            Viewport::new_at_origo(color_target.width(), color_target.height()),
-                        );
+                            viewport,
+                            |program| {
+                                program.use_texture_cube("environmentMap", environment_map);
+                                program.use_uniform(
+                                    "roughness",
+                                    mip as f32 / (max_mip_levels as f32 - 1.0),
+                                );
+                                program.use_uniform("resolution", environment_map.width() as f32);
+                            },
+                        )
                     });
                 }
             }
@@ -123,23 +138,24 @@ impl Environment {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
         );
-        let effect = ImageEffect::new(
-            context,
-            &format!(
-                "{}{}{}{}",
-                super::lighting_model_shader(lighting_model),
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/light_shared.frag"),
-                include_str!("shaders/brdf.frag")
-            ),
-        )
-        .unwrap();
         let viewport = Viewport::new_at_origo(brdf_map.width(), brdf_map.height());
         brdf_map
             .as_color_target(None)
             .clear(ClearState::default())
             .write(|| {
-                effect.apply(RenderStates::default(), viewport);
+                apply_effect(
+                    context,
+                    &format!(
+                        "{}{}{}{}",
+                        super::lighting_model_shader(lighting_model),
+                        include_str!("../../core/shared.frag"),
+                        include_str!("shaders/light_shared.frag"),
+                        include_str!("shaders/brdf.frag")
+                    ),
+                    RenderStates::default(),
+                    viewport,
+                    |_| {},
+                )
             });
 
         Self {

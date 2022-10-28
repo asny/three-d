@@ -334,6 +334,23 @@ impl TerrainPatch {
         }
         data
     }
+
+    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+        let transformation = Mat4::identity();
+        program.use_uniform("modelMatrix", &transformation);
+        program.use_uniform(
+            "viewProjectionMatrix",
+            &(camera.projection() * camera.view()),
+        );
+        program.use_uniform(
+            "normalMatrix",
+            &transformation.invert().unwrap().transpose(),
+        );
+
+        program.use_vertex_attribute("position", &self.positions_buffer);
+        program.use_vertex_attribute("normal", &self.normals_buffer);
+        program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
+    }
 }
 
 impl Geometry for TerrainPatch {
@@ -350,27 +367,32 @@ impl Geometry for TerrainPatch {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    let transformation = Mat4::identity();
-                    program.use_uniform("modelMatrix", &transformation);
-                    program.use_uniform(
-                        "viewProjectionMatrix",
-                        &(camera.projection() * camera.view()),
-                    );
-                    program.use_uniform(
-                        "normalMatrix",
-                        &transformation.invert().unwrap().transpose(),
-                    );
-                    let render_states = RenderStates {
-                        cull: Cull::Back,
-                        ..Default::default()
-                    };
-
-                    program.use_vertex_attribute("position", &self.positions_buffer);
-                    program.use_vertex_attribute("normal", &self.normals_buffer);
-                    program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
+                    self.draw(program, material.render_states(), camera);
                 },
             )
-            .unwrap();
+            .expect("Failed compiling shader");
+    }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        let fragment_shader_source =
+            material.fragment_shader_source(lights, color_texture, depth_texture);
+        self.context
+            .program(
+                &include_str!("shaders/terrain.vert"),
+                &fragment_shader_source,
+                |program| {
+                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                    self.draw(program, material.render_states(), camera);
+                },
+            )
+            .expect("Failed compiling shader");
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

@@ -20,6 +20,22 @@ mod particles;
 #[doc(inline)]
 pub use particles::*;
 
+mod bounding_box;
+#[doc(inline)]
+pub use bounding_box::*;
+
+mod line;
+#[doc(inline)]
+pub use line::*;
+
+mod rectangle;
+#[doc(inline)]
+pub use rectangle::*;
+
+mod circle;
+#[doc(inline)]
+pub use circle::*;
+
 use crate::core::*;
 use crate::renderer::*;
 
@@ -40,11 +56,25 @@ pub use three_d_asset::{Indices, PointCloud, Positions, TriMesh as CpuMesh};
 ///
 pub trait Geometry {
     ///
-    /// Render the geometry with the given material.
+    /// Render the geometry with the given [Material].
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     ///
     fn render_with_material(&self, material: &dyn Material, camera: &Camera, lights: &[&dyn Light]);
+
+    ///
+    /// Render the geometry with the given [PostMaterial].
+    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+    /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+    ///
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    );
 
     ///
     /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
@@ -62,6 +92,17 @@ impl<T: Geometry + ?Sized> Geometry for &T {
         (*self).render_with_material(material, camera, lights)
     }
 
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        (*self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         (*self).aabb()
     }
@@ -75,6 +116,17 @@ impl<T: Geometry + ?Sized> Geometry for &mut T {
         lights: &[&dyn Light],
     ) {
         (**self).render_with_material(material, camera, lights)
+    }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        (**self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -92,6 +144,23 @@ impl<T: Geometry> Geometry for Box<T> {
         self.as_ref().render_with_material(material, camera, lights)
     }
 
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.as_ref().render_with_post_material(
+            material,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        )
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.as_ref().aabb()
     }
@@ -105,6 +174,23 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
         lights: &[&dyn Light],
     ) {
         self.as_ref().render_with_material(material, camera, lights)
+    }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.as_ref().render_with_post_material(
+            material,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -122,6 +208,23 @@ impl<T: Geometry> Geometry for std::sync::Arc<T> {
         self.as_ref().render_with_material(material, camera, lights)
     }
 
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.as_ref().render_with_post_material(
+            material,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        )
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.as_ref().aabb()
     }
@@ -135,6 +238,23 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
         lights: &[&dyn Light],
     ) {
         self.borrow().render_with_material(material, camera, lights)
+    }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.borrow().render_with_post_material(
+            material,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -154,63 +274,25 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
             .render_with_material(material, camera, lights)
     }
 
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.read().unwrap().render_with_post_material(
+            material,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        )
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.read().unwrap().aabb()
-    }
-}
-
-///
-/// Represents a 2D geometry that is possible to render with a [Material].
-///
-pub trait Geometry2D {
-    ///
-    /// Render the object with the given material.
-    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
-    ///
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport);
-}
-
-impl<T: Geometry2D + ?Sized> Geometry2D for &T {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        (*self).render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D + ?Sized> Geometry2D for &mut T {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        (**self).render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for Box<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.as_ref().render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for std::rc::Rc<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.as_ref().render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for std::sync::Arc<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.as_ref().render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for std::cell::RefCell<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.borrow().render_with_material(material, viewport)
-    }
-}
-
-impl<T: Geometry2D> Geometry2D for std::sync::RwLock<T> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.read()
-            .unwrap()
-            .render_with_material(material, viewport)
     }
 }
 

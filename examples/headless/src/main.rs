@@ -51,13 +51,12 @@ fn main() {
     );
 
     // Also create a depth texture to support depth testing
-    let mut depth_texture = DepthTargetTexture2D::new(
+    let mut depth_texture = DepthTexture2D::new::<f32>(
         &context,
         viewport.width,
         viewport.height,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
-        DepthFormat::Depth32F,
     );
 
     // Render three frames

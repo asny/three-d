@@ -1,9 +1,11 @@
+#![allow(deprecated)]
 use crate::core::*;
 
 ///
 /// A customizable cube effect.
 /// Used for rendering into all 6 sides of a cube map texture.
 ///
+#[deprecated = "Use apply_cube_effect instead"]
 pub struct ImageCubeEffect {
     program: Program,
     positions: VertexBuffer,
@@ -31,44 +33,7 @@ impl ImageCubeEffect {
 
         let positions = VertexBuffer::new_with_data(
             context,
-            &[
-                vec3(1.0, 1.0, -1.0),
-                vec3(-1.0, 1.0, -1.0),
-                vec3(1.0, 1.0, 1.0),
-                vec3(-1.0, 1.0, 1.0),
-                vec3(1.0, 1.0, 1.0),
-                vec3(-1.0, 1.0, -1.0),
-                vec3(-1.0, -1.0, -1.0),
-                vec3(1.0, -1.0, -1.0),
-                vec3(1.0, -1.0, 1.0),
-                vec3(1.0, -1.0, 1.0),
-                vec3(-1.0, -1.0, 1.0),
-                vec3(-1.0, -1.0, -1.0),
-                vec3(1.0, -1.0, -1.0),
-                vec3(-1.0, -1.0, -1.0),
-                vec3(1.0, 1.0, -1.0),
-                vec3(-1.0, 1.0, -1.0),
-                vec3(1.0, 1.0, -1.0),
-                vec3(-1.0, -1.0, -1.0),
-                vec3(-1.0, -1.0, 1.0),
-                vec3(1.0, -1.0, 1.0),
-                vec3(1.0, 1.0, 1.0),
-                vec3(1.0, 1.0, 1.0),
-                vec3(-1.0, 1.0, 1.0),
-                vec3(-1.0, -1.0, 1.0),
-                vec3(1.0, -1.0, -1.0),
-                vec3(1.0, 1.0, -1.0),
-                vec3(1.0, 1.0, 1.0),
-                vec3(1.0, 1.0, 1.0),
-                vec3(1.0, -1.0, 1.0),
-                vec3(1.0, -1.0, -1.0),
-                vec3(-1.0, 1.0, -1.0),
-                vec3(-1.0, -1.0, -1.0),
-                vec3(-1.0, 1.0, 1.0),
-                vec3(-1.0, -1.0, 1.0),
-                vec3(-1.0, 1.0, 1.0),
-                vec3(-1.0, -1.0, -1.0),
-            ],
+            &three_d_asset::TriMesh::cube().positions.to_f32(),
         );
         Ok(Self { program, positions })
     }
@@ -79,8 +44,15 @@ impl ImageCubeEffect {
     ///
     pub fn render(&self, side: CubeMapSide, render_states: RenderStates, viewport: Viewport) {
         let projection = cgmath::perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
-        self.program
-            .use_uniform("viewProjection", projection * side.view());
+        self.program.use_uniform(
+            "viewProjection",
+            projection
+                * Mat4::look_at_rh(
+                    Point3::new(0.0, 0.0, 0.0),
+                    Point3::new(side.direction().x, side.direction().y, side.direction().z),
+                    side.up(),
+                ),
+        );
         self.program
             .use_vertex_attribute("position", &self.positions);
         self.program.draw_arrays(render_states, viewport, 36);

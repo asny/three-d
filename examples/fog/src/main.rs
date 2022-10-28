@@ -42,11 +42,26 @@ pub async fn run() {
     let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Fog
-    let fog_effect = FogEffect::new(&context, Color::new_opaque(200, 200, 200), 0.2, 0.1);
+    let fog_effect = FogEffect {
+        color: Color::new_opaque(200, 200, 200),
+        density: 0.2,
+        animation: 0.1,
+    };
     let mut fog_enabled = true;
 
     // main loop
-    let mut depth_texture = None;
+    let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
+        &context,
+        1,
+        1,
+        Interpolation::Nearest,
+        Interpolation::Nearest,
+        None,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+    );
+    let mut depth_texture =
+        DepthTexture2D::new::<f32>(&context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge);
     window.render_loop(move |mut frame_input| {
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
@@ -65,39 +80,63 @@ pub async fn run() {
             }
         }
 
-        // draw
-        if change && fog_enabled {
-            depth_texture = Some(DepthTargetTexture2D::new(
+        if change {
+            // Draw the scene to a render target if a change has occured
+            color_texture = Texture2D::new_empty::<[u8; 4]>(
+                &context,
+                frame_input.viewport.width,
+                frame_input.viewport.height,
+                Interpolation::Nearest,
+                Interpolation::Nearest,
+                None,
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+            );
+            depth_texture = DepthTexture2D::new::<f32>(
                 &context,
                 frame_input.viewport.width,
                 frame_input.viewport.height,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                DepthFormat::Depth32F,
-            ));
-            depth_texture.as_mut().map(|dt| {
-                dt.as_depth_target()
-                    .clear(ClearState::default())
-                    .render_with_material(&DepthMaterial::default(), &camera, &monkey, &[]);
-            });
+            );
+            RenderTarget::new(
+                color_texture.as_color_target(None),
+                depth_texture.as_depth_target(),
+            )
+            .clear(ClearState::default())
+            .render(&camera, &monkey, &[&ambient, &directional]);
         }
 
-        frame_input
-            .screen()
-            .clear(ClearState::default())
-            .render(&camera, &monkey, &[&ambient, &directional])
-            .write(|| {
-                if fog_enabled {
-                    if let Some(ref depth_texture) = depth_texture {
-                        fog_effect.apply(
-                            &camera,
-                            depth_texture,
-                            frame_input.accumulated_time as f32,
-                        );
-                    }
-                }
-            });
+        if fog_enabled {
+            // Apply fog nomatter if a change has occured since it contain animation.
+            frame_input
+                .screen()
+                .copy_from(
+                    ColorTexture::Single(&color_texture),
+                    DepthTexture::Single(&depth_texture),
+                    frame_input.viewport,
+                    WriteMask::default(),
+                )
+                .write(|| {
+                    fog_effect.apply(
+                        &context,
+                        frame_input.accumulated_time,
+                        &camera,
+                        DepthTexture::Single(&depth_texture),
+                    )
+                });
+        } else if change {
+            // If a change has happened and no fog is applied, copy the result to the screen
+            frame_input.screen().copy_from_color(
+                ColorTexture::Single(&color_texture),
+                frame_input.viewport,
+                WriteMask::default(),
+            );
+        }
 
-        FrameOutput::default()
+        FrameOutput {
+            swap_buffers: change || fog_enabled,
+            ..Default::default()
+        }
     });
 }

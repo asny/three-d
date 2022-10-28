@@ -81,7 +81,7 @@ impl Geometry for Axes {
         self.model
             .read()
             .unwrap()
-            .render_with_material(&material, camera, lights);
+            .render_with_material(material, camera, lights);
         self.model
             .write()
             .unwrap()
@@ -89,7 +89,7 @@ impl Geometry for Axes {
         self.model
             .read()
             .unwrap()
-            .render_with_material(&material, camera, lights);
+            .render_with_material(material, camera, lights);
         self.model
             .write()
             .unwrap()
@@ -98,6 +98,49 @@ impl Geometry for Axes {
             .read()
             .unwrap()
             .render_with_material(material, camera, lights);
+    }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.model
+            .write()
+            .unwrap()
+            .set_transformation(self.transformation);
+        self.model.read().unwrap().render_with_post_material(
+            material,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        );
+        self.model
+            .write()
+            .unwrap()
+            .set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
+        self.model.read().unwrap().render_with_post_material(
+            material,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        );
+        self.model
+            .write()
+            .unwrap()
+            .set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
+        self.model.read().unwrap().render_with_post_material(
+            material,
+            camera,
+            lights,
+            color_texture,
+            depth_texture,
+        );
     }
 }
 

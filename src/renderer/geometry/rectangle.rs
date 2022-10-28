@@ -1,32 +1,31 @@
 use crate::renderer::*;
 
 ///
-/// A rectangle 2D object which can be rendered.
+/// A rectangle 2D geometry which can be rendered using the [camera2d] camera.
 ///
-pub struct Rectangle<M: Material> {
-    model: Gm<Mesh, M>,
+pub struct Rectangle {
+    mesh: Mesh,
     width: f32,
     height: f32,
     center: Vec2,
     rotation: Radians,
 }
 
-impl<M: Material> Rectangle<M> {
+impl Rectangle {
     ///
-    /// Constructs a new rectangle object with the given material.
+    /// Constructs a new rectangle geometry.
     ///
-    pub fn new_with_material(
+    pub fn new(
         context: &Context,
         center: Vec2,
         rotation: impl Into<Radians>,
         width: f32,
         height: f32,
-        material: M,
     ) -> Self {
         let mut mesh = CpuMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5))).unwrap();
         let mut rectangle = Self {
-            model: Gm::new(Mesh::new(context, &mesh), material),
+            mesh: Mesh::new(context, &mesh),
             width,
             height,
             center,
@@ -71,7 +70,7 @@ impl<M: Material> Rectangle<M> {
     }
 
     fn update(&mut self) {
-        self.model.set_transformation_2d(
+        self.mesh.set_transformation_2d(
             Mat3::from_translation(self.center)
                 * Mat3::from_angle_z(self.rotation)
                 * Mat3::from_nonuniform_scale(self.width, self.height),
@@ -79,19 +78,44 @@ impl<M: Material> Rectangle<M> {
     }
 }
 
-impl<M: Material> Geometry2D for Rectangle<M> {
-    fn render_with_material(&self, material: &dyn Material, viewport: Viewport) {
-        self.model
-            .render_with_material(material, &camera2d(viewport), &[])
+impl Geometry for Rectangle {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) {
+        self.mesh.render_with_material(material, camera, lights)
+    }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.mesh
+            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
+    }
+
+    ///
+    /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
+    ///
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_with_positions(&[
+            (self.center - 0.5 * vec2(self.width, self.height)).extend(0.0),
+            (self.center + 0.5 * vec2(self.width, self.height)).extend(0.0),
+        ])
     }
 }
 
-impl<M: Material> Object2D for Rectangle<M> {
-    fn render(&self, viewport: Viewport) {
-        self.model.render(&camera2d(viewport), &[])
-    }
+impl<'a> IntoIterator for &'a Rectangle {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
 
-    fn material_type(&self) -> MaterialType {
-        self.model.material_type()
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
     }
 }

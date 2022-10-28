@@ -16,7 +16,6 @@ pub async fn run() {
     })
     .unwrap();
     let context = window.gl();
-    let mut image_effect = ImageEffect::new(&context, include_str!("shader.frag")).unwrap();
 
     // Source: https://polyhaven.com/
     let mut loaded = if let Ok(loaded) =
@@ -68,20 +67,30 @@ pub async fn run() {
             },
         );
 
-        image_effect.set_texture_transform(
-            Mat3::from_scale(texture_transform_scale)
-                * Mat3::from_translation(vec2(texture_transform_x, texture_transform_y)),
-        );
-
         let viewport = Viewport::new_at_origo(
             frame_input.viewport.width - (panel_width * frame_input.device_pixel_ratio) as u32,
             frame_input.viewport.height,
         );
 
         frame_input.screen().clear(ClearState::default()).write(|| {
-            image_effect.use_texture("image", &image);
-            image_effect.use_uniform("parameter", tone_mapping);
-            image_effect.apply(RenderStates::default(), viewport);
+            apply_effect(
+                &context,
+                include_str!("shader.frag"),
+                RenderStates::default(),
+                viewport,
+                |program| {
+                    program.use_texture("image", &image);
+                    program.use_uniform("parameter", tone_mapping);
+                    program.use_uniform(
+                        "textureTransform",
+                        Mat3::from_scale(texture_transform_scale)
+                            * Mat3::from_translation(vec2(
+                                texture_transform_x,
+                                texture_transform_y,
+                            )),
+                    )
+                },
+            );
             gui.render();
         });
 

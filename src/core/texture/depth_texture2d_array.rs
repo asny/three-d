@@ -1,40 +1,33 @@
 use crate::core::texture::*;
 
 ///
-/// Type of formats for depth render targets ([DepthTargetTexture2D] and
-/// [DepthTargetTexture2DArray]).
+/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
 ///
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub enum DepthFormat {
-    /// 16 bit per pixel.
-    Depth16,
-    /// 24 bit per pixel.
-    Depth24,
-    /// 32 bit per pixel.
-    Depth32F,
-}
+#[deprecated = "Renamed to DepthTexture2DArray"]
+pub type DepthTargetTexture2DArray = DepthTexture2DArray;
 
 ///
-/// A 2D depth texture that can be rendered into and read from. See also [RenderTarget].
+/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
 ///
-pub struct DepthTargetTexture2D {
+pub struct DepthTexture2DArray {
     context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
+    depth: u32,
 }
 
-impl DepthTargetTexture2D {
+impl DepthTexture2DArray {
     ///
-    /// Constructs a new 2D depth target texture.
+    /// Creates a new array of depth textures.
     ///
-    pub fn new(
+    pub fn new<T: DepthTextureDataType>(
         context: &Context,
         width: u32,
         height: u32,
+        depth: u32,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
-        format: DepthFormat,
     ) -> Self {
         let id = generate(context);
         let texture = Self {
@@ -42,11 +35,12 @@ impl DepthTargetTexture2D {
             id,
             width,
             height,
+            depth,
         };
         texture.bind();
         set_parameters(
             context,
-            crate::context::TEXTURE_2D,
+            crate::context::TEXTURE_2D_ARRAY,
             Interpolation::Nearest,
             Interpolation::Nearest,
             None,
@@ -55,23 +49,24 @@ impl DepthTargetTexture2D {
             None,
         );
         unsafe {
-            context.tex_storage_2d(
-                crate::context::TEXTURE_2D,
+            context.tex_storage_3d(
+                crate::context::TEXTURE_2D_ARRAY,
                 1,
-                internal_format_from_depth(format),
+                T::internal_format(),
                 width as i32,
                 height as i32,
+                depth as i32,
             );
         }
         texture
     }
 
     ///
-    /// Returns a [DepthTarget] which can be used to clear, write to and read from this texture.
+    /// Returns a [DepthTarget] which can be used to clear, write to and read from the given layer of this texture.
     /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
     ///
-    pub fn as_depth_target<'a>(&'a mut self) -> DepthTarget<'a> {
-        DepthTarget::new_texture2d(&self.context, self)
+    pub fn as_depth_target<'a>(&'a mut self, layer: u32) -> DepthTarget<'a> {
+        DepthTarget::new_texture_2d_array(&self.context, self, layer)
     }
 
     /// The width of this texture.
@@ -84,14 +79,19 @@ impl DepthTargetTexture2D {
         self.height
     }
 
-    pub(in crate::core) fn bind_as_depth_target(&self) {
+    /// The number of layers.
+    pub fn depth(&self) -> u32 {
+        self.depth
+    }
+
+    pub(in crate::core) fn bind_as_depth_target(&self, layer: u32) {
         unsafe {
-            self.context.framebuffer_texture_2d(
-                crate::context::FRAMEBUFFER,
+            self.context.framebuffer_texture_layer(
+                crate::context::DRAW_FRAMEBUFFER,
                 crate::context::DEPTH_ATTACHMENT,
-                crate::context::TEXTURE_2D,
                 Some(self.id),
                 0,
+                layer as i32,
             );
         }
     }
@@ -99,12 +99,12 @@ impl DepthTargetTexture2D {
     pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
-                .bind_texture(crate::context::TEXTURE_2D, Some(self.id));
+                .bind_texture(crate::context::TEXTURE_2D_ARRAY, Some(self.id));
         }
     }
 }
 
-impl Drop for DepthTargetTexture2D {
+impl Drop for DepthTexture2DArray {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_texture(self.id);

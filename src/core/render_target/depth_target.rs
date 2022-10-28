@@ -2,61 +2,43 @@ use super::*;
 
 ///
 /// Adds additional functionality to clear, read from and write to a texture.
-/// Use the `as_depth_target` function directly on the texture structs (for example [DepthTargetTexture2D]) to construct a depth target.
+/// Use the `as_depth_target` function directly on the texture structs (for example [DepthTexture2D]) to construct a depth target.
 /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
 /// A depth target purely adds functionality, so it can be created each time it is needed, the actual data is saved in the texture.
 ///
 #[derive(Clone)]
 pub struct DepthTarget<'a> {
     pub(crate) context: Context,
-    target: DT<'a>,
-}
-
-#[derive(Clone)]
-enum DT<'a> {
-    Texture2D {
-        texture: &'a DepthTargetTexture2D,
-    },
-    Texture2DArray {
-        texture: &'a DepthTargetTexture2DArray,
-        layer: u32,
-    },
-    TextureCubeMap {
-        texture: &'a DepthTargetTextureCubeMap,
-        side: CubeMapSide,
-    },
+    target: DepthTexture<'a>,
 }
 
 impl<'a> DepthTarget<'a> {
-    pub(in crate::core) fn new_texture2d(
-        context: &Context,
-        texture: &'a DepthTargetTexture2D,
-    ) -> Self {
+    pub(in crate::core) fn new_texture2d(context: &Context, texture: &'a DepthTexture2D) -> Self {
         Self {
             context: context.clone(),
-            target: DT::Texture2D { texture },
+            target: DepthTexture::Single(texture),
         }
     }
 
     pub(in crate::core) fn new_texture_cube_map(
         context: &Context,
-        texture: &'a DepthTargetTextureCubeMap,
+        texture: &'a DepthTextureCubeMap,
         side: CubeMapSide,
     ) -> Self {
         Self {
             context: context.clone(),
-            target: DT::TextureCubeMap { texture, side },
+            target: DepthTexture::CubeMap { texture, side },
         }
     }
 
     pub(in crate::core) fn new_texture_2d_array(
         context: &Context,
-        texture: &'a DepthTargetTexture2DArray,
+        texture: &'a DepthTexture2DArray,
         layer: u32,
     ) -> Self {
         Self {
             context: context.clone(),
-            target: DT::Texture2DArray { texture, layer },
+            target: DepthTexture::Array { texture, layer },
         }
     }
 
@@ -112,6 +94,29 @@ impl<'a> DepthTarget<'a> {
         self.as_render_target().read_depth_partially(scissor_box)
     }
 
+    ///
+    /// Copies the content of the depth texture
+    /// to the part of this depth target specified by the [Viewport].
+    ///
+    pub fn copy_from(&self, depth_texture: DepthTexture, viewport: Viewport) -> &Self {
+        self.copy_partially_from(self.scissor_box(), depth_texture, viewport)
+    }
+
+    ///
+    /// Copies the content of the depth texture as limited by the [ScissorBox]
+    /// to the part of this depth target specified by the [Viewport].
+    ///
+    pub fn copy_partially_from(
+        &self,
+        scissor_box: ScissorBox,
+        depth_texture: DepthTexture,
+        viewport: Viewport,
+    ) -> &Self {
+        self.as_render_target()
+            .copy_partially_from_depth(scissor_box, depth_texture, viewport);
+        self
+    }
+
     pub(crate) fn as_render_target(&self) -> RenderTarget<'a> {
         RenderTarget::new_depth(self.clone())
     }
@@ -121,9 +126,9 @@ impl<'a> DepthTarget<'a> {
     ///
     pub fn width(&self) -> u32 {
         match &self.target {
-            DT::Texture2D { texture, .. } => texture.width(),
-            DT::Texture2DArray { texture, .. } => texture.width(),
-            DT::TextureCubeMap { texture, .. } => texture.width(),
+            DepthTexture::Single(texture) => texture.width(),
+            DepthTexture::Array { texture, .. } => texture.width(),
+            DepthTexture::CubeMap { texture, .. } => texture.width(),
         }
     }
 
@@ -132,9 +137,9 @@ impl<'a> DepthTarget<'a> {
     ///
     pub fn height(&self) -> u32 {
         match &self.target {
-            DT::Texture2D { texture, .. } => texture.height(),
-            DT::Texture2DArray { texture, .. } => texture.height(),
-            DT::TextureCubeMap { texture, .. } => texture.height(),
+            DepthTexture::Single(texture) => texture.height(),
+            DepthTexture::Array { texture, .. } => texture.height(),
+            DepthTexture::CubeMap { texture, .. } => texture.height(),
         }
     }
 
@@ -147,13 +152,13 @@ impl<'a> DepthTarget<'a> {
 
     pub(super) fn bind(&self) {
         match &self.target {
-            DT::Texture2D { texture } => {
+            DepthTexture::Single(texture) => {
                 texture.bind_as_depth_target();
             }
-            DT::Texture2DArray { texture, layer } => {
+            DepthTexture::Array { texture, layer } => {
                 texture.bind_as_depth_target(*layer);
             }
-            DT::TextureCubeMap { texture, side } => {
+            DepthTexture::CubeMap { texture, side } => {
                 texture.bind_as_depth_target(*side);
             }
         }

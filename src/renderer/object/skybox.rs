@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::sync::Arc;
 
 ///
 /// An illusion of a sky.
@@ -25,7 +26,7 @@ impl Skybox {
         back: &CpuTexture,
     ) -> Self {
         let texture = TextureCubeMap::new(&context, right, left, top, bottom, front, back);
-        Self::new_with_texture(context, texture)
+        Self::new_with_texture(context, Arc::new(texture))
     }
 
     ///
@@ -53,13 +54,13 @@ impl Skybox {
             }
         };
 
-        Self::new_with_texture(context, texture)
+        Self::new_with_texture(context, Arc::new(texture))
     }
 
     ///
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
-    pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> Self {
+    pub fn new_with_texture(context: &Context, texture: Arc<TextureCubeMap>) -> Self {
         let vertex_buffer = VertexBuffer::new_with_data(
             context,
             &[
@@ -112,7 +113,7 @@ impl Skybox {
     ///
     /// Returns a reference to the cube map texture
     ///
-    pub fn texture(&self) -> &TextureCubeMap {
+    pub fn texture(&self) -> &Arc<TextureCubeMap> {
         &self.material.texture
     }
 }
@@ -150,7 +151,32 @@ impl Geometry for Skybox {
                     program.draw_arrays(material.render_states(), camera.viewport(), 36);
                 },
             )
-            .unwrap();
+            .expect("Failed compiling shader");
+    }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        let fragment_shader_source =
+            material.fragment_shader_source(lights, color_texture, depth_texture);
+        self.context
+            .program(
+                &include_str!("shaders/skybox.vert"),
+                &fragment_shader_source,
+                |program| {
+                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                    program.use_uniform("view", camera.view());
+                    program.use_uniform("projection", camera.projection());
+                    program.use_vertex_attribute("position", &self.vertex_buffer);
+                    program.draw_arrays(material.render_states(), camera.viewport(), 36);
+                },
+            )
+            .expect("Failed compiling shader");
     }
 }
 

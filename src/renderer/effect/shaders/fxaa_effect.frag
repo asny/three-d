@@ -1,9 +1,7 @@
 
-uniform sampler2D colorMap;
-
 uniform vec2 resolution;
 
-in vec2 uv;
+in vec2 uvs;
 
 layout (location = 0) out vec4 color;
 
@@ -55,17 +53,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //optimized version for mobile, where dependent
 //texture reads can be a bottleneck
-vec4 fxaa(sampler2D tex, vec2 fragCoord, vec2 resolution,
+vec4 fxaa(vec2 fragCoord, vec2 resolution,
             vec2 v_rgbNW, vec2 v_rgbNE,
             vec2 v_rgbSW, vec2 v_rgbSE,
             vec2 v_rgbM) {
     vec4 color;
     mediump vec2 inverseVP = vec2(1.0 / resolution.x, 1.0 / resolution.y);
-    vec3 rgbNW = texture(tex, v_rgbNW).xyz;
-    vec3 rgbNE = texture(tex, v_rgbNE).xyz;
-    vec3 rgbSW = texture(tex, v_rgbSW).xyz;
-    vec3 rgbSE = texture(tex, v_rgbSE).xyz;
-    vec4 texColor = texture(tex, v_rgbM);
+    vec3 rgbNW = sample_color(v_rgbNW).xyz;
+    vec3 rgbNE = sample_color(v_rgbNE).xyz;
+    vec3 rgbSW = sample_color(v_rgbSW).xyz;
+    vec3 rgbSE = sample_color(v_rgbSE).xyz;
+    vec4 texColor = sample_color(v_rgbM);
     vec3 rgbM  = texColor.xyz;
     vec3 luma = vec3(0.299, 0.587, 0.114);
     float lumaNW = dot(rgbNW, luma);
@@ -89,11 +87,11 @@ vec4 fxaa(sampler2D tex, vec2 fragCoord, vec2 resolution,
               dir * rcpDirMin)) * inverseVP;
 
     vec3 rgbA = 0.5 * (
-        texture(tex, fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
-        texture(tex, fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
+        sample_color(fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
+        sample_color(fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
     vec3 rgbB = rgbA * 0.5 + 0.25 * (
-        texture(tex, fragCoord * inverseVP + dir * -0.5).xyz +
-        texture(tex, fragCoord * inverseVP + dir * 0.5).xyz);
+        sample_color(fragCoord * inverseVP + dir * -0.5).xyz +
+        sample_color(fragCoord * inverseVP + dir * 0.5).xyz);
 
     float lumaB = dot(rgbB, luma);
     if ((lumaB < lumaMin) || (lumaB > lumaMax))
@@ -123,8 +121,8 @@ void main() {
 	mediump vec2 v_rgbM;
 
 	//compute the texture coords
-	texcoords(uv * resolution, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
+	texcoords(uvs * resolution, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
 
 	//compute FXAA
-	color = fxaa(colorMap, uv * resolution, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
+	color = fxaa(uvs * resolution, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
 }

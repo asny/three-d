@@ -16,7 +16,6 @@ pub struct Context {
     context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
     programs: Arc<RwLock<HashMap<String, Program>>>,
-    effects: Arc<RwLock<HashMap<String, ImageEffect>>>,
 }
 
 impl Context {
@@ -43,7 +42,6 @@ impl Context {
                 context,
                 vao,
                 programs: Arc::new(RwLock::new(HashMap::new())),
-                effects: Arc::new(RwLock::new(HashMap::new())),
             }
         };
         Ok(c)
@@ -67,36 +65,6 @@ impl Context {
             );
         };
         callback(self.programs.read().unwrap().get(&key).unwrap());
-        Ok(())
-    }
-
-    ///
-    /// Compiles an [ImageEffect] with the given fragment shader source and stores it for later use.
-    /// If it has already been created, then it is just returned.
-    ///
-    pub fn effect(
-        &self,
-        fragment_shader_source: &str,
-        callback: impl FnOnce(&ImageEffect),
-    ) -> Result<(), CoreError> {
-        if !self
-            .effects
-            .read()
-            .unwrap()
-            .contains_key(fragment_shader_source)
-        {
-            self.effects.write().unwrap().insert(
-                fragment_shader_source.to_string(),
-                ImageEffect::new(self, fragment_shader_source)?,
-            );
-        };
-        callback(
-            self.effects
-                .read()
-                .unwrap()
-                .get(fragment_shader_source)
-                .unwrap(),
-        );
         Ok(())
     }
 
@@ -350,7 +318,6 @@ impl std::fmt::Debug for Context {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut d = f.debug_struct("Context");
         d.field("programs", &self.programs.read().unwrap().len());
-        d.field("effects", &self.effects.read().unwrap().len());
         d.finish()
     }
 }

@@ -1,13 +1,14 @@
+#![allow(deprecated)]
 use crate::core::*;
 
 ///
 /// A customizable 2D effect.
 /// Can for example be used for adding an effect on top of a rendered image.
 ///
+#[deprecated = "Use apply_effect instead"]
 pub struct ImageEffect {
     program: Program,
     positions: VertexBuffer,
-    uvs: VertexBuffer,
     texture_transform: Mat3,
 }
 
@@ -21,11 +22,10 @@ impl ImageEffect {
             "
                 uniform mat3 textureTransform;
                 in vec3 position;
-                in vec2 uv_coordinates;
                 out vec2 uv;
                 void main()
                 {
-                    uv = (textureTransform * vec3(uv_coordinates, 1.0)).xy;
+                    uv = (textureTransform * vec3(0.5 * position.x + 0.5, 0.5 * position.y + 0.5, 1.0)).xy;
                     gl_Position = vec4(position, 1.0);
                 }
             ",
@@ -37,14 +37,11 @@ impl ImageEffect {
             vec3(3.0, -1.0, 0.0),
             vec3(0.0, 2.0, 0.0),
         ];
-        let uvs = vec![vec2(-1.0, 0.0), vec2(2.0, 0.0), vec2(0.5, 1.5)];
         let positions = VertexBuffer::new_with_data(&context, &positions);
-        let uvs = VertexBuffer::new_with_data(&context, &uvs);
 
         Ok(Self {
             program,
             positions,
-            uvs,
             texture_transform: Mat3::identity(),
         })
     }
@@ -70,8 +67,6 @@ impl ImageEffect {
     pub fn render(&self, render_states: RenderStates, viewport: Viewport) {
         self.program
             .use_vertex_attribute("position", &self.positions);
-        self.program
-            .use_vertex_attribute("uv_coordinates", &self.uvs);
         self.program
             .use_uniform("textureTransform", &self.texture_transform);
         self.program.draw_arrays(render_states, viewport, 3);

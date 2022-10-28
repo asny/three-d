@@ -3,9 +3,12 @@ uniform mat4 viewProjectionInverse;
 uniform vec3 cameraPosition;
 uniform vec2 screenSize;
 
+#ifdef USE_BACKGROUND_TEXTURE
 uniform samplerCube environmentMap;
-uniform sampler2D depthMap;
-uniform sampler2D colorMap;
+#else
+uniform vec4 environmentColor;
+#endif
+
 uniform float metallic;
 uniform float roughness;
 
@@ -26,6 +29,7 @@ vec2 uv_at(vec3 world_pos) {
 
 vec3 reflect_color(vec3 incidentDir, vec3 normal)
 {
+#ifdef USE_BACKGROUND_TEXTURE
     vec3 reflectDir = normalize(reflect(incidentDir, normal));
     vec3 stepDir = 0.5 * reflectDir;
     vec3 p_ray = pos;
@@ -40,6 +44,9 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
         }
     }
     return texture(environmentMap, reflectDir).xyz;
+#else
+    return environmentColor.rgb;
+#endif
 }
 
 vec3 water(vec3 col, vec3 p1, vec3 p2)
@@ -61,9 +68,9 @@ void main()
     vec3 normal = normalize(nor);
     vec3 incidentDir = normalize(pos - cameraPosition);
     screen_uv -= 0.05 * normal.xz; // Shift the water bottom/sky.
-    float depth = texture(depthMap, screen_uv).x;
+    float depth = sample_depth(screen_uv);
     vec3 backgroundPos = world_pos_from_depth(viewProjectionInverse, depth, screen_uv);
-    outColor.rgb = inverse_reinhard_tone_mapping(rgb_from_srgb(texture(colorMap, screen_uv).xyz));
+    outColor.rgb = inverse_reinhard_tone_mapping(rgb_from_srgb(sample_color(screen_uv).rgb));
     
     // Compute cosine to the incident angle
     float cosAngle = dot(normal, -incidentDir);
