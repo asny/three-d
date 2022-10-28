@@ -73,7 +73,8 @@ pub async fn run() {
         );
 
         frame_input.screen().clear(ClearState::default()).write(|| {
-            context.apply_effect(
+            apply_effect(
+                &context,
                 include_str!("shader.frag"),
                 RenderStates::default(),
                 viewport,
