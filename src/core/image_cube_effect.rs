@@ -5,7 +5,7 @@ use crate::core::*;
 /// A customizable cube effect.
 /// Used for rendering into all 6 sides of a cube map texture.
 ///
-#[deprecated = "Use Context::apply_cube_effect instead"]
+#[deprecated = "Use apply_cube_effect instead"]
 pub struct ImageCubeEffect {
     program: Program,
     positions: VertexBuffer,

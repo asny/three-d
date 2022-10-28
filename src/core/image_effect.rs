@@ -5,7 +5,7 @@ use crate::core::*;
 /// A customizable 2D effect.
 /// Can for example be used for adding an effect on top of a rendered image.
 ///
-#[deprecated = "Use Context::apply_effect instead"]
+#[deprecated = "Use apply_effect instead"]
 pub struct ImageEffect {
     program: Program,
     positions: VertexBuffer,
