@@ -6,6 +6,15 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit::*;
 
+#[cfg(target_arch = "wasm32")]
+mod web {
+    use serde::{Deserialize, Serialize};
+    #[derive(Serialize, Deserialize)]
+    pub struct ContextSettings {
+        pub antialias: bool,
+    }
+}
+
 ///
 /// Default window and event handler for easy setup.
 ///
@@ -25,6 +34,7 @@ impl Window {
     pub fn new(window_settings: WindowSettings) -> Result<Window, WindowError> {
         use std::sync::Arc;
         use wasm_bindgen::JsCast;
+        use web::*;
         use winit::platform::web::{WindowBuilderExtWebSys, WindowExtWebSys};
 
         let websys_window = web_sys::window().ok_or(WindowError::WindowCreation)?;
@@ -55,9 +65,9 @@ impl Window {
         let webgl_context = canvas
             .get_context_with_context_options(
                 "webgl2",
-                &wasm_bindgen::JsValue::from_serde(&serde_json::json!({
-                    "antialias": window_settings.multisamples > 0,
-                }))
+                &serde_wasm_bindgen::to_value(&ContextSettings {
+                    antialias: window_settings.multisamples > 0,
+                })
                 .unwrap(),
             )
             .map_err(|e| WindowError::WebGL2NotSupported(format!(": {:?}", e)))?

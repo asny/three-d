@@ -18,7 +18,7 @@ targets = ["x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows
 
 [features]
 default = ["window"]
-window = ["glutin", "winit"] # Window module
+window = ["glutin", "winit", "wasm-bindgen", "serde", "serde-wasm-bindgen", "web-sys"] # Window module
 egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features 
 
 [dependencies]
@@ -35,9 +35,10 @@ getrandom = { version = "0.2", features = ["js"], optional = true }
 glutin = { version = "0.29", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen = {version = "0.2", features = ["serde-serialize"] }
-serde_json = "1"
-web-sys = { version = "0.3", features = ['Document', 'HtmlCollection', 'HtmlCanvasElement', 'Window'] }
+wasm-bindgen = {version = "0.2", optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+serde-wasm-bindgen = { version = "0.4", optional = true }
+web-sys = { version = "0.3", features = ['Document', 'HtmlCollection', 'HtmlCanvasElement', 'Window'], optional = true }
 
 instant = "0.1.12"
 
