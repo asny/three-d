@@ -49,4 +49,4 @@ allow = [
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
-allow-git = ["https://github.com/asny/three-d-asset"]
+allow-git = []
