@@ -38,11 +38,11 @@ The crate consist of three main modules for drawing, `context`, `core` and `rend
 
 In addition, the [three-d-asset](https://github.com/asny/three-d-asset) crate enables loading, deserializing, serializing and saving 3D assets, for example 3D models, textures etc. 
 
-### [Examples](https://github.com/asny/three-d/tree/master/examples)
+### [Examples](https://github.com/asny/three-d/tree/0.14/examples)
 
 ![PBR example](https://asny.github.io/three-d/0.14/pbr.png)
 
-Several examples covering most features can be found in the [examples folder](https://github.com/asny/three-d/tree/master/examples). 
+Several examples covering most features can be found in the [examples folder](https://github.com/asny/three-d/tree/0.14/examples). 
 
 Here you will also find an overview of the examples, build instructions and links where you can try out each example on web. 
 
@@ -64,7 +64,7 @@ If possible and feasible, functionality will be deprecated in one release before
 
 ### Contributing
 
-Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request against the [master branch](https://github.com/asny/three-d/tree/master). To avoid waste of time, please reach out before making major changes.
+Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request against the [master branch](https://github.com/asny/three-d/tree/0.14). To avoid waste of time, please reach out before making major changes.
 
 ### Sponsors
 
