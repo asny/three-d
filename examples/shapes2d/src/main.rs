@@ -9,8 +9,6 @@ pub fn main() {
     .unwrap();
     let context = window.gl();
 
-    let mut camera = camera2d(window.viewport());
-
     let mut rectangle = Gm::new(
         Rectangle::new(&context, vec2(200.0, 200.0), degrees(45.0), 100.0, 200.0),
         ColorMaterial {
@@ -42,7 +40,6 @@ pub fn main() {
     );
 
     window.render_loop(move |frame_input: FrameInput| {
-        camera.set_viewport(frame_input.viewport);
         for event in frame_input.events.iter() {
             match event {
                 Event::MousePress {
@@ -77,7 +74,7 @@ pub fn main() {
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             .render(
-                &camera,
+                &camera2d(frame_input.viewport),
                 line.into_iter().chain(&rectangle).chain(&circle),
                 &[],
             );
