@@ -1,4 +1,4 @@
-![Logo](https://asny.github.io/three-d/0.14/logo.png)
+![Logo](https://asny.github.io/three-d/0.15/logo.png)
 
 # `three-d`
 
@@ -40,7 +40,7 @@ In addition, the [three-d-asset](https://github.com/asny/three-d-asset) crate en
 
 ### [Examples](https://github.com/asny/three-d/tree/master/examples)
 
-![PBR example](https://asny.github.io/three-d/0.14/pbr.png)
+![PBR example](https://asny.github.io/three-d/0.15/pbr.png)
 
 Several examples covering most features can be found in the [examples folder](https://github.com/asny/three-d/tree/master/examples). 
 
