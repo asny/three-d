@@ -1,4 +1,3 @@
-
 # Examples
 
 ### Build
@@ -13,7 +12,8 @@ $ cargo run --example triangle --release
 
 #### WebAssembly:
 
-Prerequisites: 
+Prerequisites:
+
 - A server that properly defines the `application/wasm` mime type (for example [http-server](https://www.npmjs.com/package/http-server))
 - [wasm-pack](https://rustwasm.github.io/wasm-pack/)
 
@@ -31,13 +31,13 @@ $ http-server
 
 ### A note on async
 
-All of the examples builds to both native (desktop, mobile or whatever target specified) and WebAssembly (wasm) that can be run in a browser. 
-Because they should run in a browser and to keep the same code for native and wasm, all loading happens async. 
+All of the examples builds to both native (desktop, mobile or whatever target specified) and WebAssembly (wasm) that can be run in a browser.
+Because they should run in a browser and to keep the same code for native and wasm, all loading happens async.
 If your application is native only, you can avoid the async runtime (`tokio` or `async-std`) and use `three_d_asset::load` instead of `three_d_asset::load_async`.
 
 ## Triangle [[code](https://github.com/asny/three-d/tree/master/examples/triangle/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/triangle.html)]
 
-This is the recomended starting point for a gentle introduction to `three-d`. 
+This is the recomended starting point for a gentle introduction to `three-d`.
 
 ![Triangle example](https://asny.github.io/three-d/0.15/triangle.png)
 
@@ -64,6 +64,10 @@ This is the recomended starting point for a gentle introduction to `three-d`.
 ## Texture [[code](https://github.com/asny/three-d/tree/master/examples/texture/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/texture.html)]
 
 ![Texture example](https://asny.github.io/three-d/0.15/texture.png)
+
+## Animation [[code](https://github.com/asny/three-d/tree/master/examples/animation/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/animation.html)]
+
+![Animation example](https://asny.github.io/three-d/0.15/animation.png)
 
 ## Picking [[code](https://github.com/asny/three-d/tree/master/examples/picking/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/picking.html)]
 
