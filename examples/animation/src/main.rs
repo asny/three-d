@@ -19,8 +19,8 @@ pub async fn run() {
 
     let mut camera = Camera::new_perspective(
         window.viewport(),
-        vec3(-200.0, 50.0, 50.0),
-        vec3(0.0, 50.0, 0.0),
+        vec3(0.0, 0.0, -3.0),
+        vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
@@ -28,21 +28,13 @@ pub async fn run() {
     );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 1000.0);
 
-    let mut loaded = if let Ok(loaded) = three_d_asset::io::load_async(&[
-        "../assets/Fox.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+    let mut loaded = three_d_asset::io::load_async(&[
+        "../assets/AnimatedTriangle.gltf", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
     ])
     .await
-    {
-        loaded
-    } else {
-        three_d_asset::io::load_async(&[
-            "https://asny.github.io/three-d/assets/Fox.glb",
-        ])
-        .await
-        .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
-    };
+    .unwrap();
 
-    let mut cpu_model: CpuModel = loaded.deserialize("glb").unwrap();
+    let mut cpu_model: CpuModel = loaded.deserialize("gltf").unwrap();
     cpu_model
         .geometries
         .iter_mut()
