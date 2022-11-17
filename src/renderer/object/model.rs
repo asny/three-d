@@ -25,29 +25,28 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
     /// a [material] type specified by the generic parameter which implement [FromCpuMaterial] (constructed from the [CpuMaterial]s in the [CpuModel]).
     ///
     pub fn new(context: &Context, cpu_model: &CpuModel) -> Result<Self, RendererError> {
-        let mut materials = std::collections::HashMap::new();
-        for m in cpu_model.materials.iter() {
-            materials.insert(m.name.clone(), M::from_cpu_material(context, m));
-        }
+        let materials = cpu_model
+            .materials
+            .iter()
+            .map(|m| M::from_cpu_material(context, m))
+            .collect::<Vec<_>>();
         let mut gms = Vec::new();
-        for g in cpu_model.geometries.iter() {
-            gms.push(if let Some(material_name) = &g.material_name {
-                Gm {
-                    geometry: Mesh::new(context, g),
-                    material: materials
-                        .get(material_name)
-                        .ok_or(RendererError::MissingMaterial(
-                            material_name.clone(),
-                            g.name.clone(),
-                        ))?
-                        .clone(),
-                }
+        for part in cpu_model.parts.iter() {
+            let material = if let Some(material_index) = part.material_index {
+                materials
+                    .get(material_index)
+                    .ok_or(RendererError::MissingMaterial(
+                        material_index.to_string(),
+                        part.name.clone(),
+                    ))?
+                    .clone()
             } else {
-                Gm {
-                    geometry: Mesh::new(context, g),
-                    material: M::default(),
-                }
-            });
+                M::default()
+            };
+            gms.push(Gm {
+                geometry: Mesh::new(context, &part.geometry),
+                material,
+            })
         }
         Ok(Self(gms))
     }

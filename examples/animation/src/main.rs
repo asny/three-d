@@ -36,10 +36,10 @@ pub async fn run() {
 
     let mut cpu_model: CpuModel = loaded.deserialize("gltf").unwrap();
     cpu_model
-        .geometries
+        .parts
         .iter_mut()
-        .for_each(|g| g.compute_normals());
-    let model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+        .for_each(|part| part.geometry.compute_normals());
+    let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
 
     let light = AmbientLight::new(&context, 1.0, Color::WHITE);
 
@@ -47,6 +47,15 @@ pub async fn run() {
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
+
+        let mut transformation = Mat4::identity();
+        for key_frames in cpu_model.key_frames.iter() {
+            transformation = key_frames.transformation(0.001 * frame_input.accumulated_time as f32)
+                * transformation;
+        }
+        model
+            .iter_mut()
+            .for_each(|g| g.set_transformation(transformation));
 
         frame_input
             .screen()

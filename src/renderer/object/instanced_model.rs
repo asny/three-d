@@ -17,7 +17,7 @@ impl<'a, M: Material> IntoIterator for &'a InstancedModel<M> {
     }
 }
 
-impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModel<T> {
+impl<M: Material + FromCpuMaterial + Clone + Default> InstancedModel<M> {
     ///
     /// Constructs an [InstancedModel] from a [CpuModel] and the given [Instances] attributes, ie. constructs a list of [Gm]s with a [InstancedMesh] as geometry (constructed from the [CpuMesh]es in the [CpuModel]) and
     /// a [material] type specified by the generic parameter which implement [FromCpuMaterial] (constructed from the [CpuMaterial]s in the [CpuModel]).
@@ -27,29 +27,26 @@ impl<T: Material + FromCpuMaterial + Clone + Default> InstancedModel<T> {
         instances: &Instances,
         cpu_model: &CpuModel,
     ) -> Result<Self, RendererError> {
-        let mut materials = std::collections::HashMap::new();
-        for m in cpu_model.materials.iter() {
-            materials.insert(m.name.clone(), T::from_cpu_material(context, m));
-        }
-        let mut gms: Vec<Gm<InstancedMesh, T>> = Vec::new();
-        for g in cpu_model.geometries.iter() {
-            gms.push(if let Some(material_name) = &g.material_name {
-                Gm {
-                    geometry: InstancedMesh::new(context, instances, g),
-                    material: materials
-                        .get(material_name)
-                        .ok_or(RendererError::MissingMaterial(
-                            material_name.clone(),
-                            g.name.clone(),
-                        ))?
-                        .clone(),
-                }
+        let materials = cpu_model
+            .materials
+            .iter()
+            .map(|m| M::from_cpu_material(context, m))
+            .collect::<Vec<_>>();
+        let mut gms: Vec<Gm<InstancedMesh, M>> = Vec::new();
+        for part in cpu_model.parts.iter() {
+            let geometry = InstancedMesh::new(context, instances, &part.geometry);
+            let material = if let Some(material_index) = part.material_index {
+                materials
+                    .get(material_index)
+                    .ok_or(RendererError::MissingMaterial(
+                        material_index.to_string(),
+                        part.name.clone(),
+                    ))?
+                    .clone()
             } else {
-                Gm {
-                    geometry: InstancedMesh::new(context, instances, g),
-                    material: T::default(),
-                }
-            });
+                M::default()
+            };
+            gms.push(Gm { geometry, material });
         }
         Ok(Self(gms))
     }
