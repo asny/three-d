@@ -19,7 +19,7 @@ pub async fn run() {
 
     let mut camera = Camera::new_perspective(
         window.viewport(),
-        vec3(0.0, 0.0, -3.0),
+        vec3(0.0, 0.0, 3.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
@@ -29,7 +29,7 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 1000.0);
 
     let mut loaded = three_d_asset::io::load_async(&[
-        "../assets/AnimatedTriangle.gltf", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+        "../../../assets/AnimatedTriangle.gltf", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
     ])
     .await
     .unwrap();
