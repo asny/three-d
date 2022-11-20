@@ -1,11 +1,16 @@
 use crate::renderer::*;
 
+use three_d_asset::KeyFrames;
 pub use three_d_asset::Model as CpuModel;
 
 ///
 /// A 3D model consisting of a set of [Gm]s with [Mesh]es as the geometries and a [material] type specified by the generic parameter.
 ///
-pub struct Model<M: Material>(Vec<Gm<Mesh, M>>);
+pub struct Model<M: Material> {
+    gms: Vec<Gm<Mesh, M>>,
+    key_frames_indices: Vec<Vec<usize>>,
+    key_frames: Vec<KeyFrames>,
+}
 
 impl<'a, M: Material> IntoIterator for &'a Model<M> {
     type Item = &'a dyn Object;
@@ -16,6 +21,19 @@ impl<'a, M: Material> IntoIterator for &'a Model<M> {
             .map(|m| m as &dyn Object)
             .collect::<Vec<_>>()
             .into_iter()
+    }
+}
+
+impl<M: Material> Model<M> {
+    pub fn update_animation(&mut self, time: f32) {
+        for i in 0..self.gms.len() {
+            let mut transformation = Mat4::identity();
+            for key_frames_index in self.key_frames_indices[i].iter() {
+                transformation = self.key_frames[*key_frames_index].transformation(0.001 * time)
+                    * transformation;
+            }
+            self.gms[i].set_transformation(transformation);
+        }
     }
 }
 
@@ -31,6 +49,7 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
             .map(|m| M::from_cpu_material(context, m))
             .collect::<Vec<_>>();
         let mut gms = Vec::new();
+        let mut key_frames_indices = Vec::new();
         for part in cpu_model.parts.iter() {
             let material = if let Some(material_index) = part.material_index {
                 materials
@@ -46,21 +65,26 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
             gms.push(Gm {
                 geometry: Mesh::new(context, &part.geometry),
                 material,
-            })
+            });
+            key_frames_indices.push(part.key_frames_indices.clone().unwrap_or(Vec::new()));
         }
-        Ok(Self(gms))
+        Ok(Self {
+            gms,
+            key_frames: cpu_model.key_frames.clone(),
+            key_frames_indices,
+        })
     }
 }
 
 impl<M: Material> std::ops::Deref for Model<M> {
     type Target = Vec<Gm<Mesh, M>>;
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.gms
     }
 }
 
 impl<M: Material> std::ops::DerefMut for Model<M> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        &mut self.gms
     }
 }

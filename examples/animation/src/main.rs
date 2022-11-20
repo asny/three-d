@@ -48,14 +48,7 @@ pub async fn run() {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 
-        let mut transformation = Mat4::identity();
-        for key_frames in cpu_model.key_frames.iter() {
-            transformation = key_frames.transformation(0.001 * frame_input.accumulated_time as f32)
-                * transformation;
-        }
-        model
-            .iter_mut()
-            .for_each(|g| g.set_transformation(transformation));
+        model.update_animation(frame_input.accumulated_time as f32);
 
         frame_input
             .screen()
