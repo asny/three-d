@@ -29,7 +29,7 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 1000.0);
 
     let mut loaded = three_d_asset::io::load_async(&[
-        "../../../assets/AnimatedTriangle.gltf", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+        "../../../assets/BoxAnimated.gltf", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
     ])
     .await
     .unwrap();

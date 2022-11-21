@@ -1,7 +1,7 @@
 use crate::renderer::*;
 
-use three_d_asset::KeyFrames;
 pub use three_d_asset::Model as CpuModel;
+use three_d_asset::{Animation, KeyFrames};
 
 ///
 /// A 3D model consisting of a set of [Gm]s with [Mesh]es as the geometries and a [material] type specified by the generic parameter.
@@ -9,7 +9,7 @@ pub use three_d_asset::Model as CpuModel;
 pub struct Model<M: Material> {
     gms: Vec<Gm<Mesh, M>>,
     key_frames_indices: Vec<Vec<usize>>,
-    key_frames: Vec<KeyFrames>,
+    animations: Vec<Animation>,
 }
 
 impl<'a, M: Material> IntoIterator for &'a Model<M> {
@@ -26,11 +26,13 @@ impl<'a, M: Material> IntoIterator for &'a Model<M> {
 
 impl<M: Material> Model<M> {
     pub fn update_animation(&mut self, time: f32) {
+        let animation = self.animations.get(0).unwrap();
+        let time = (0.001 * time) % animation.loop_time;
         for i in 0..self.gms.len() {
             let mut transformation = Mat4::identity();
             for key_frames_index in self.key_frames_indices[i].iter() {
-                transformation = self.key_frames[*key_frames_index].transformation(0.001 * time)
-                    * transformation;
+                transformation =
+                    animation.key_frames[*key_frames_index].transformation(time) * transformation;
             }
             self.gms[i].set_transformation(transformation);
         }
@@ -70,7 +72,7 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
         }
         Ok(Self {
             gms,
-            key_frames: cpu_model.key_frames.clone(),
+            animations: cpu_model.animations.clone(),
             key_frames_indices,
         })
     }
