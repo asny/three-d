@@ -78,6 +78,8 @@ pub fn run() {
     ];
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
+
+    // A particle system is created with a default acceleration of -9.82 in the y direction.
     let particles = ParticleSystem::new(&context, &Particles::default(), &square);
     let fireworks_material = FireworksMaterial {
         color: colors[0],
@@ -86,14 +88,19 @@ pub fn run() {
     let mut fireworks = Gm::new(particles, fireworks_material);
 
     // main loop
-    fireworks.time = explosion_time + 100.0;
+    fireworks.time = explosion_time + 100.0; // Ensure initialisation on the first loop.
     let mut color_index = 0;
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
 
         control.handle_events(&mut camera, &mut frame_input.events);
         let elapsed_time = (frame_input.elapsed_time * 0.001) as f32;
+
+        // Update the time in the particlesystem; this automatically integrates the velocity and
+        // the acceleration of each particle to calculate its new position.
         fireworks.time += elapsed_time;
+
+        // If the time exceeds the explosion duration, re-initialise the explosion.
         if fireworks.time > explosion_time {
             color_index = (color_index + 1) % colors.len();
             fireworks.material.color = colors[color_index];

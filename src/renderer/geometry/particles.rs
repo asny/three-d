@@ -66,13 +66,14 @@ impl Particles {
 /// ```
 ///
 /// The particles will only move if the [ParticleSystem::time] variable is updated every frame.
+/// The acceleration defaults to -9.82 in the y direction.
 ///
 pub struct ParticleSystem {
     context: Context,
     vertex_buffers: HashMap<String, VertexBuffer>,
     instance_buffers: HashMap<String, InstanceBuffer>,
     index_buffer: Option<ElementBuffer>,
-    /// The acceleration applied to all particles defined in the world coordinate system. Default is gravity.
+    /// The acceleration applied to all particles defined in the world coordinate system. Default is gravity of -9.82 in the y direction.
     pub acceleration: Vec3,
     instance_count: u32,
     transformation: Mat4,
