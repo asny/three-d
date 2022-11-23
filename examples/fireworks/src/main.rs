@@ -79,8 +79,13 @@ pub fn run() {
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
 
-    // A particle system is created with a default acceleration of -9.82 in the y direction.
-    let particles = ParticleSystem::new(&context, &Particles::default(), &square);
+    // A particle system is created with an acceleration of -9.82 in the y direction to simulate gravity.
+    let particles = ParticleSystem::new(
+        &context,
+        &Particles::default(),
+        vec3(0.0, -9.82, 0.0),
+        &square,
+    );
     let fireworks_material = FireworksMaterial {
         color: colors[0],
         fade: 0.0,
