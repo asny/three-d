@@ -66,14 +66,13 @@ impl Particles {
 /// ```
 ///
 /// The particles will only move if the [ParticleSystem::time] variable is updated every frame.
-/// The acceleration defaults to -9.82 in the y direction.
 ///
 pub struct ParticleSystem {
     context: Context,
     vertex_buffers: HashMap<String, VertexBuffer>,
     instance_buffers: HashMap<String, InstanceBuffer>,
     index_buffer: Option<ElementBuffer>,
-    /// The acceleration applied to all particles defined in the world coordinate system. Default is gravity of -9.82 in the y direction.
+    /// The acceleration applied to all particles defined in the world coordinate system.
     pub acceleration: Vec3,
     instance_count: u32,
     transformation: Mat4,
@@ -85,8 +84,14 @@ pub struct ParticleSystem {
 impl ParticleSystem {
     ///
     /// Creates a new particle system with the given geometry and the given attributes for each particle.
+    /// The acceleration is applied to all particles defined in the world coordinate system.
     ///
-    pub fn new(context: &Context, particles: &Particles, cpu_mesh: &CpuMesh) -> Self {
+    pub fn new(
+        context: &Context,
+        particles: &Particles,
+        acceleration: Vec3,
+        cpu_mesh: &CpuMesh,
+    ) -> Self {
         #[cfg(debug_assertions)]
         cpu_mesh.validate().expect("invalid cpu mesh");
 
@@ -95,7 +100,7 @@ impl ParticleSystem {
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
             instance_buffers: HashMap::new(),
-            acceleration: vec3(0.0, -9.82, 0.0),
+            acceleration,
             instance_count: 0,
             transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
