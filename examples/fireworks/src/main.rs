@@ -28,7 +28,7 @@ impl Material for FireworksMaterial {
                 destination_rgb_multiplier: BlendMultiplierType::One,
                 destination_alpha_multiplier: BlendMultiplierType::One,
             },
-            depth_test: DepthTest::Always,
+            depth_test: DepthTest::LessOrEqual,
             write_mask: WriteMask::COLOR,
         }
     }
