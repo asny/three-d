@@ -28,7 +28,7 @@ impl Material for FireworksMaterial {
                 destination_rgb_multiplier: BlendMultiplierType::One,
                 destination_alpha_multiplier: BlendMultiplierType::One,
             },
-            depth_test: DepthTest::Always,
+            depth_test: DepthTest::LessOrEqual,
             write_mask: WriteMask::COLOR,
         }
     }
@@ -78,7 +78,14 @@ pub fn run() {
     ];
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
-    let particles = ParticleSystem::new(&context, &Particles::default(), &square);
+
+    // A particle system is created with an acceleration of -9.82 in the y direction to simulate gravity.
+    let particles = ParticleSystem::new(
+        &context,
+        &Particles::default(),
+        vec3(0.0, -9.82, 0.0),
+        &square,
+    );
     let fireworks_material = FireworksMaterial {
         color: colors[0],
         fade: 0.0,
@@ -86,14 +93,19 @@ pub fn run() {
     let mut fireworks = Gm::new(particles, fireworks_material);
 
     // main loop
-    fireworks.time = explosion_time + 100.0;
+    fireworks.time = explosion_time + 100.0; // Ensure initialisation on the first loop.
     let mut color_index = 0;
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
 
         control.handle_events(&mut camera, &mut frame_input.events);
         let elapsed_time = (frame_input.elapsed_time * 0.001) as f32;
+
+        // Update the time in the particlesystem; this automatically integrates the velocity and
+        // the acceleration of each particle to calculate its new position.
         fireworks.time += elapsed_time;
+
+        // If the time exceeds the explosion duration, re-initialise the explosion.
         if fireworks.time > explosion_time {
             color_index = (color_index + 1) % colors.len();
             fireworks.material.color = colors[color_index];
