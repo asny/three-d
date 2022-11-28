@@ -1,6 +1,14 @@
+use three_d_asset::KeyFrames;
+
 use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
+
+pub struct Animation {
+    pub transformation: Mat4,
+    pub key_frames: KeyFrames,
+    pub loop_time: f32,
+}
 
 ///
 /// A triangle mesh [Geometry].
@@ -12,6 +20,8 @@ pub struct Mesh {
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
+    current_transformation: Mat4,
+    pub animations: Vec<Animation>,
     texture_transform: Mat3,
 }
 
@@ -29,8 +39,22 @@ impl Mesh {
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
+            current_transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
+            animations: Vec::new(),
         }
+    }
+
+    pub fn update_animation(&mut self, time: f32) {
+        let mut transformation = Mat4::identity();
+        for animation in self.animations.iter() {
+            transformation = animation
+                .key_frames
+                .transformation(time % animation.loop_time)
+                * animation.transformation
+                * transformation;
+        }
+        self.current_transformation = self.transformation * transformation;
     }
 
     pub(in crate::renderer) fn set_transformation_2d(&mut self, transformation: Mat3) {
@@ -66,6 +90,7 @@ impl Mesh {
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
+        self.current_transformation = transformation;
         let mut aabb = self.aabb_local.clone();
         aabb.transform(&self.transformation);
         self.aabb = aabb;
@@ -87,11 +112,11 @@ impl Mesh {
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", &self.transformation);
+        program.use_uniform("modelMatrix", &self.current_transformation);
         program.use_uniform_if_required("textureTransform", &self.texture_transform);
         program.use_uniform_if_required(
             "normalMatrix",
-            &self.transformation.invert().unwrap().transpose(),
+            &self.current_transformation.invert().unwrap().transpose(),
         );
 
         for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
