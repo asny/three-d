@@ -53,6 +53,10 @@ This is the recomended starting point for a gentle introduction to `three-d`.
 
 ![Shapes example](https://asny.github.io/three-d/0.15/shapes.png)
 
+## Instanced Shapes [[code](https://github.com/asny/three-d/tree/master/examples/instanced_shapes/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/instanced_shapes.html)]
+
+![Instanced Shapes example](https://asny.github.io/three-d/0.15/instanced_shapes.png)
+
 ## Screen [[code](https://github.com/asny/three-d/tree/master/examples/screen/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/screen.html)]
 
 ![Screen example](https://asny.github.io/three-d/0.15/screen.png)
