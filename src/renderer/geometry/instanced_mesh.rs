@@ -94,52 +94,32 @@ impl InstancedMesh {
         instances.validate().expect("invalid instances");
         self.instance_count = instances.count();
         self.instance_buffers.clear();
-        self.instance_transforms = (0..self.instance_count as usize)
-            .map(|i| {
-                Mat4::from_translation(instances.translations[i])
-                    * instances
-                        .rotations
-                        .as_ref()
-                        .map(|r| Mat4::from(r[i]))
-                        .unwrap_or(Mat4::identity())
-                    * instances
-                        .scales
-                        .as_ref()
-                        .map(|s| Mat4::from_nonuniform_scale(s[i].x, s[i].y, s[i].z))
-                        .unwrap_or(Mat4::identity())
-            })
-            .collect::<Vec<_>>();
+        self.instance_transforms = instances.transformations.clone();
 
-        if instances.rotations.is_none() && instances.scales.is_none() {
+        if self
+            .instance_transforms
+            .iter()
+            .all(|t| Mat3::from_cols(t.x.truncate(), t.y.truncate(), t.z.truncate()).is_identity())
+        {
             self.instance_buffers.insert(
                 "instance_translation".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instances.translations),
+                InstanceBuffer::new_with_data(
+                    &self.context,
+                    &self
+                        .instance_transforms
+                        .iter()
+                        .map(|t| t.w.truncate())
+                        .collect::<Vec<_>>(),
+                ),
             );
         } else {
             let mut row1 = Vec::new();
             let mut row2 = Vec::new();
             let mut row3 = Vec::new();
-            for geometry_transform in self.instance_transforms.iter() {
-                row1.push(vec4(
-                    geometry_transform.x.x,
-                    geometry_transform.y.x,
-                    geometry_transform.z.x,
-                    geometry_transform.w.x,
-                ));
-
-                row2.push(vec4(
-                    geometry_transform.x.y,
-                    geometry_transform.y.y,
-                    geometry_transform.z.y,
-                    geometry_transform.w.y,
-                ));
-
-                row3.push(vec4(
-                    geometry_transform.x.z,
-                    geometry_transform.y.z,
-                    geometry_transform.z.z,
-                    geometry_transform.w.z,
-                ));
+            for transformation in self.instance_transforms.iter() {
+                row1.push(transformation.row(0));
+                row2.push(transformation.row(1));
+                row3.push(transformation.row(2));
             }
 
             self.instance_buffers.insert(
@@ -379,12 +359,8 @@ impl Geometry for InstancedMesh {
 ///
 #[derive(Clone, Debug, Default)]
 pub struct Instances {
-    /// The translation applied to the positions of each instance.
-    pub translations: Vec<Vec3>,
-    /// The rotations applied to the positions of each instance.
-    pub rotations: Option<Vec<Quat>>,
-    /// The non-uniform scales applied to the positions of each instance.
-    pub scales: Option<Vec<Vec3>>,
+    /// The transformations applied to each instance.
+    pub transformations: Vec<Mat4>,
     /// The texture transform applied to the uv coordinates of each instance.
     pub texture_transforms: Option<Vec<Mat3>>,
     /// Colors multiplied onto the base color of each instance.
@@ -414,24 +390,27 @@ impl Instances {
             self.texture_transforms.as_ref().map(|b| b.len()),
             "texture transforms",
         )?;
-        buffer_check(self.rotations.as_ref().map(|b| b.len()), "rotations")?;
-        buffer_check(self.scales.as_ref().map(|b| b.len()), "scales")?;
+        buffer_check(Some(self.transformations.len()), "transformations")?;
         buffer_check(self.colors.as_ref().map(|b| b.len()), "colors")?;
-        buffer_check(Some(self.translations.len()), "translations")?;
 
         Ok(())
     }
 
     /// Returns the number of instances.
     pub fn count(&self) -> u32 {
-        self.translations.len() as u32
+        self.transformations.len() as u32
     }
 }
 
 impl From<PointCloud> for Instances {
     fn from(points: PointCloud) -> Self {
         Self {
-            translations: points.positions.to_f32(),
+            transformations: points
+                .positions
+                .to_f32()
+                .into_iter()
+                .map(|p| Mat4::from_translation(p))
+                .collect(),
             colors: points.colors,
             ..Default::default()
         }
