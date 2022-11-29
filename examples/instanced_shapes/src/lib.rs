@@ -1,4 +1,3 @@
-#[allow(dead_code)] // Prevent warning about the free functions in main.
 mod main;
 
 // Entry point for wasm
