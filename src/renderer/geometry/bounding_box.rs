@@ -47,40 +47,40 @@ impl BoundingBox {
         ];
 
         let rotations = vec![
-            Quat::zero(),
-            Quat::zero(),
-            Quat::zero(),
-            Quat::zero(),
-            Quat::from_angle_z(degrees(90.0)),
-            Quat::from_angle_z(degrees(90.0)),
-            Quat::from_angle_z(degrees(90.0)),
-            Quat::from_angle_z(degrees(90.0)),
-            Quat::from_angle_y(degrees(-90.0)),
-            Quat::from_angle_y(degrees(-90.0)),
-            Quat::from_angle_y(degrees(-90.0)),
-            Quat::from_angle_y(degrees(-90.0)),
+            Mat4::identity(),
+            Mat4::identity(),
+            Mat4::identity(),
+            Mat4::identity(),
+            Mat4::from_angle_z(degrees(90.0)),
+            Mat4::from_angle_z(degrees(90.0)),
+            Mat4::from_angle_z(degrees(90.0)),
+            Mat4::from_angle_z(degrees(90.0)),
+            Mat4::from_angle_y(degrees(-90.0)),
+            Mat4::from_angle_y(degrees(-90.0)),
+            Mat4::from_angle_y(degrees(-90.0)),
+            Mat4::from_angle_y(degrees(-90.0)),
         ];
 
         let scales = vec![
-            vec3(size.x, thickness, thickness),
-            vec3(size.x, thickness, thickness),
-            vec3(size.x, thickness, thickness),
-            vec3(size.x, thickness, thickness),
-            vec3(size.y, thickness, thickness),
-            vec3(size.y, thickness, thickness),
-            vec3(size.y, thickness, thickness),
-            vec3(size.y, thickness, thickness),
-            vec3(size.z, thickness, thickness),
-            vec3(size.z, thickness, thickness),
-            vec3(size.z, thickness, thickness),
-            vec3(size.z, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.y, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.y, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.y, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.y, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.z, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.z, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.z, thickness, thickness),
+            Mat4::from_nonuniform_scale(size.z, thickness, thickness),
         ];
         let mesh = InstancedMesh::new(
             context,
             &Instances {
-                translations,
-                rotations: Some(rotations),
-                scales: Some(scales),
+                transformations: (0..12)
+                    .map(|i| Mat4::from_translation(translations[i]) * rotations[i] * scales[i])
+                    .collect(),
                 ..Default::default()
             },
             &CpuMesh::cylinder(16),
