@@ -33,20 +33,22 @@ impl<M: Material + FromCpuMaterial + Clone + Default> InstancedModel<M> {
             .map(|m| M::from_cpu_material(context, m))
             .collect::<Vec<_>>();
         let mut gms: Vec<Gm<InstancedMesh, M>> = Vec::new();
-        for part in cpu_model.parts.iter() {
-            let geometry = InstancedMesh::new(context, instances, &part.geometry);
-            let material = if let Some(material_index) = part.material_index {
+        for geometry in cpu_model.geometries.iter() {
+            let material = if let Some(material_index) = geometry.material_index {
                 materials
                     .get(material_index)
                     .ok_or(RendererError::MissingMaterial(
                         material_index.to_string(),
-                        part.name.clone(),
+                        geometry.name.clone(),
                     ))?
                     .clone()
             } else {
                 M::default()
             };
-            gms.push(Gm { geometry, material });
+            gms.push(Gm {
+                geometry: InstancedMesh::new(context, instances, &geometry.geometry),
+                material,
+            });
         }
         Ok(Self(gms))
     }

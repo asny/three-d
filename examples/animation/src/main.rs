@@ -36,7 +36,7 @@ pub async fn run() {
 
     let mut cpu_model: CpuModel = loaded.deserialize("gltf").unwrap();
     cpu_model
-        .parts
+        .geometries
         .iter_mut()
         .for_each(|part| part.geometry.compute_normals());
     let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();

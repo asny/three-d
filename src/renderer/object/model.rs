@@ -31,23 +31,23 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
             .map(|m| M::from_cpu_material(context, m))
             .collect::<Vec<_>>();
         let mut gms = Vec::new();
-        for part in cpu_model.parts.iter() {
-            let material = if let Some(material_index) = part.material_index {
+        for geometry in cpu_model.geometries.iter() {
+            let material = if let Some(material_index) = geometry.material_index {
                 materials
                     .get(material_index)
                     .ok_or(RendererError::MissingMaterial(
                         material_index.to_string(),
-                        part.name.clone(),
+                        geometry.name.clone(),
                     ))?
                     .clone()
             } else {
                 M::default()
             };
             let mut gm = Gm {
-                geometry: Mesh::new(context, &part.geometry),
+                geometry: Mesh::new(context, &geometry.geometry),
                 material,
             };
-            gm.animations = part.animations.clone();
+            gm.animations = geometry.animations.clone();
             gms.push(gm);
         }
         Ok(Self(gms))
