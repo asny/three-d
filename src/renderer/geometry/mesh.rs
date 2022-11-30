@@ -4,12 +4,6 @@ use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
 
-pub struct Animation {
-    pub transformation: Mat4,
-    pub key_frames: KeyFrames,
-    pub loop_time: f32,
-}
-
 ///
 /// A triangle mesh [Geometry].
 ///
@@ -21,7 +15,8 @@ pub struct Mesh {
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
     current_transformation: Mat4,
-    pub animations: Vec<Animation>,
+    pub animations: Vec<(Mat4, Vec<KeyFrames>)>,
+    pub animation_name: Option<String>,
     texture_transform: Mat3,
 }
 
@@ -42,17 +37,19 @@ impl Mesh {
             current_transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
             animations: Vec::new(),
+            animation_name: None,
         }
     }
 
     pub fn update_animation(&mut self, time: f32) {
         let mut transformation = Mat4::identity();
-        for animation in self.animations.iter() {
-            transformation = animation
-                .key_frames
-                .transformation(time % animation.loop_time)
-                * animation.transformation
-                * transformation;
+        for (t, animations) in self.animations.iter() {
+            for animation in animations {
+                if self.animation_name.is_none() || self.animation_name == animation.name {
+                    transformation = animation.transformation(time) * transformation;
+                }
+            }
+            transformation = t * transformation;
         }
         self.current_transformation = self.transformation * transformation;
     }

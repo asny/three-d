@@ -47,17 +47,7 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
                 geometry: Mesh::new(context, &part.geometry),
                 material,
             };
-            if let Some(key_frame_indices) = &part.key_frames_indices {
-                let animation = &cpu_model.animations[0];
-                gm.animations = key_frame_indices
-                    .iter()
-                    .map(|i| Animation {
-                        transformation: Mat4::identity(),
-                        key_frames: animation.key_frames[*i].clone(),
-                        loop_time: animation.loop_time,
-                    })
-                    .collect();
-            }
+            gm.animations = part.animations.clone();
             gms.push(gm);
         }
         Ok(Self(gms))
