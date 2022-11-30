@@ -41,19 +41,6 @@ impl Mesh {
         }
     }
 
-    pub fn update_animation(&mut self, time: f32) {
-        let mut transformation = Mat4::identity();
-        for (t, animations) in self.animations.iter() {
-            for animation in animations {
-                if self.animation_name.is_none() || self.animation_name == animation.name {
-                    transformation = animation.transformation(time) * transformation;
-                }
-            }
-            transformation = t * transformation;
-        }
-        self.current_transformation = self.transformation * transformation;
-    }
-
     pub(in crate::renderer) fn set_transformation_2d(&mut self, transformation: Mat3) {
         self.set_transformation(Mat4::new(
             transformation.x.x,
@@ -187,6 +174,19 @@ impl<'a> IntoIterator for &'a Mesh {
 impl Geometry for Mesh {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb
+    }
+
+    fn animate(&mut self, time: f32) {
+        let mut transformation = Mat4::identity();
+        for (t, animations) in self.animations.iter() {
+            for animation in animations {
+                if self.animation_name.is_none() || self.animation_name == animation.name {
+                    transformation = animation.transformation(time) * transformation;
+                }
+            }
+            transformation = t * transformation;
+        }
+        self.current_transformation = self.transformation * transformation;
     }
 
     fn render_with_material(

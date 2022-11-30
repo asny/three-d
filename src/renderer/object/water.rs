@@ -131,8 +131,8 @@ impl<M: Material> Water<M> {
     ///
     /// For updating the animation. The time parameter should be some continious time, for example the time since start.
     ///
-    pub fn update_animation(&mut self, time: f64) {
-        self.patches.iter_mut().for_each(|m| m.time = time);
+    pub fn animate(&mut self, time: f32) {
+        self.patches.iter_mut().for_each(|m| m.animate(time));
     }
 
     fn indices(context: &Context) -> Arc<ElementBuffer> {
@@ -181,7 +181,7 @@ impl<'a, M: Material> IntoIterator for &'a Water<M> {
 
 struct WaterPatch {
     context: Context,
-    time: f64,
+    time: f32,
     center: Vec3,
     parameters: [WaveParameters; MAX_WAVE_COUNT],
     offset: Vec2,
@@ -292,5 +292,9 @@ impl Geometry for WaterPatch {
             self.center + vec3(self.offset.x, -m, self.offset.y),
             self.center + vec3(self.offset.x + self.size.x, m, self.offset.y + self.size.y),
         ])
+    }
+
+    fn animate(&mut self, time: f32) {
+        self.time = time;
     }
 }

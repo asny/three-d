@@ -80,6 +80,8 @@ pub trait Geometry {
     /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
     ///
     fn aabb(&self) -> AxisAlignedBoundingBox;
+
+    fn animate(&mut self, _time: f32) {}
 }
 
 impl<T: Geometry + ?Sized> Geometry for &T {
