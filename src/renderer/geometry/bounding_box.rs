@@ -46,40 +46,25 @@ impl BoundingBox {
             vec3(max.x, min.y, min.z),
         ];
 
-        let rotations = vec![
-            Mat4::identity(),
-            Mat4::identity(),
-            Mat4::identity(),
-            Mat4::identity(),
-            Mat4::from_angle_z(degrees(90.0)),
-            Mat4::from_angle_z(degrees(90.0)),
-            Mat4::from_angle_z(degrees(90.0)),
-            Mat4::from_angle_z(degrees(90.0)),
-            Mat4::from_angle_y(degrees(-90.0)),
-            Mat4::from_angle_y(degrees(-90.0)),
-            Mat4::from_angle_y(degrees(-90.0)),
-            Mat4::from_angle_y(degrees(-90.0)),
-        ];
-
-        let scales = vec![
-            Mat4::from_nonuniform_scale(size.x, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.x, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.x, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.x, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.y, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.y, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.y, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.y, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.z, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.z, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.z, thickness, thickness),
-            Mat4::from_nonuniform_scale(size.z, thickness, thickness),
-        ];
         let mesh = InstancedMesh::new(
             context,
             &Instances {
                 transformations: (0..12)
-                    .map(|i| Mat4::from_translation(translations[i]) * rotations[i] * scales[i])
+                    .map(|i| {
+                        Mat4::from_translation(translations[i])
+                            * match i {
+                                0..=3 => Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+                                4..=7 => {
+                                    Mat4::from_angle_z(degrees(90.0))
+                                        * Mat4::from_nonuniform_scale(size.y, thickness, thickness)
+                                }
+                                8..=11 => {
+                                    Mat4::from_angle_y(degrees(-90.0))
+                                        * Mat4::from_nonuniform_scale(size.z, thickness, thickness)
+                                }
+                                _ => unreachable!(),
+                            }
+                    })
                     .collect(),
                 ..Default::default()
             },
