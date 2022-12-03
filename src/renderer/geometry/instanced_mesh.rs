@@ -8,7 +8,6 @@ use std::collections::HashMap;
 pub struct InstancedMesh {
     context: Context,
     vertex_buffers: HashMap<String, VertexBuffer>,
-    instance_buffers: HashMap<String, InstanceBuffer>,
     index_buffer: Option<ElementBuffer>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
@@ -16,6 +15,7 @@ pub struct InstancedMesh {
     instance_transforms: Vec<Mat4>,
     instance_count: u32,
     texture_transform: Mat3,
+    instances: Instances,
 }
 
 impl InstancedMesh {
@@ -30,13 +30,13 @@ impl InstancedMesh {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
-            instance_buffers: HashMap::new(),
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             instance_count: 0,
             instance_transforms: Vec::new(),
             texture_transform: Mat3::identity(),
+            instances: instances.clone(),
         };
         instanced_mesh.set_instances(instances);
         instanced_mesh
@@ -93,15 +93,49 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         instances.validate().expect("invalid instances");
         self.instance_count = instances.count();
-        self.instance_buffers.clear();
+        self.instances = instances.clone();
         self.instance_transforms = instances.transformations.clone();
+        self.update_aabb();
+    }
 
-        if self
+    fn update_aabb(&mut self) {
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for i in 0..self.instance_count as usize {
+            let mut aabb2 = self.aabb_local.clone();
+            aabb2.transform(&(self.instance_transforms[i] * self.transformation));
+            aabb.expand_with_aabb(&aabb2);
+        }
+        self.aabb = aabb;
+    }
+
+    ///
+    /// This function creates the instance buffers, ordering them by distance to the camera.
+    ///
+    fn create_instance_buffers(&self, camera: &Camera) -> HashMap<String, InstanceBuffer> {
+        // Determine the sort order for all the instances.
+        // First, create a vector of distances from the camera to each instance.
+        let distances = self
             .instance_transforms
             .iter()
+            .map(|m| m.w.truncate().distance2(*camera.position()))
+            .collect::<Vec<_>>();
+        // Then, we can sort the indices based on those distances.
+        let mut indices = (0..distances.len()).collect::<Vec<usize>>();
+        indices.sort_by(|a, b| {
+            distances[*b]
+                .partial_cmp(&distances[*a])
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        // Next, we can compute the instance buffers with that ordering.
+        let mut instance_buffers: HashMap<String, InstanceBuffer> = Default::default();
+
+        if indices
+            .iter()
+            .map(|i| self.instance_transforms[*i])
             .all(|t| Mat3::from_cols(t.x.truncate(), t.y.truncate(), t.z.truncate()).is_identity())
         {
-            self.instance_buffers.insert(
+            instance_buffers.insert(
                 "instance_translation".to_string(),
                 InstanceBuffer::new_with_data(
                     &self.context,
@@ -116,30 +150,30 @@ impl InstancedMesh {
             let mut row1 = Vec::new();
             let mut row2 = Vec::new();
             let mut row3 = Vec::new();
-            for transformation in self.instance_transforms.iter() {
+            for transformation in indices.iter().map(|i| self.instance_transforms[*i]) {
                 row1.push(transformation.row(0));
                 row2.push(transformation.row(1));
                 row3.push(transformation.row(2));
             }
 
-            self.instance_buffers.insert(
+            instance_buffers.insert(
                 "row1".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &row1),
             );
-            self.instance_buffers.insert(
+            instance_buffers.insert(
                 "row2".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &row2),
             );
-            self.instance_buffers.insert(
+            instance_buffers.insert(
                 "row3".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &row3),
             );
         }
 
-        if let Some(texture_transforms) = &instances.texture_transforms {
+        if let Some(texture_transforms) = &self.instances.texture_transforms {
             let mut instance_tex_transform1 = Vec::new();
             let mut instance_tex_transform2 = Vec::new();
-            for texture_transform in texture_transforms.iter() {
+            for texture_transform in indices.iter().map(|i| texture_transforms[*i]) {
                 instance_tex_transform1.push(vec3(
                     texture_transform.x.x,
                     texture_transform.y.x,
@@ -151,35 +185,32 @@ impl InstancedMesh {
                     texture_transform.z.y,
                 ));
             }
-            self.instance_buffers.insert(
+            instance_buffers.insert(
                 "tex_transform_row1".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1),
             );
-            self.instance_buffers.insert(
+            instance_buffers.insert(
                 "tex_transform_row2".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2),
             );
         }
-        if let Some(instance_colors) = &instances.colors {
-            self.instance_buffers.insert(
+        if let Some(instance_colors) = &self.instances.colors {
+            // Create the re-ordered color buffer by depth.
+            let ordered_instance_colors = indices
+                .iter()
+                .map(|i| instance_colors[*i])
+                .collect::<Vec<Color>>();
+            instance_buffers.insert(
                 "instance_color".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_colors),
+                InstanceBuffer::new_with_data(&self.context, &ordered_instance_colors),
             );
         }
-        self.update_aabb();
-    }
-
-    fn update_aabb(&mut self) {
-        let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for i in 0..self.instance_count as usize {
-            let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(self.instance_transforms[i] * self.transformation));
-            aabb.expand_with_aabb(&aabb2);
-        }
-        self.aabb = aabb;
+        instance_buffers
     }
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+        let instance_buffers = self.create_instance_buffers(camera);
+
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", &self.transformation);
         program.use_uniform_if_required("textureTransform", &self.texture_transform);
@@ -210,7 +241,7 @@ impl InstancedMesh {
             if program.requires_attribute(attribute_name) {
                 program.use_instance_attribute(
                     attribute_name,
-                    self.instance_buffers
+                    instance_buffers
                     .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
                 );
             }
@@ -233,7 +264,11 @@ impl InstancedMesh {
         }
     }
 
-    fn vertex_shader_source(&self, fragment_shader_source: &str) -> String {
+    fn vertex_shader_source(
+        &self,
+        fragment_shader_source: &str,
+        instance_buffers: &HashMap<String, InstanceBuffer>,
+    ) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
@@ -241,7 +276,7 @@ impl InstancedMesh {
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         format!(
             "{}{}{}{}{}{}{}{}{}",
-            if self.instance_buffers.contains_key("instance_translation") {
+            if instance_buffers.contains_key("instance_translation") {
                 "#define USE_INSTANCE_TRANSLATIONS\n"
             } else {
                 "#define USE_INSTANCE_TRANSFORMS\n"
@@ -266,11 +301,11 @@ impl InstancedMesh {
             },
             if use_uvs { "#define USE_UVS\n" } else { "" },
             if use_colors {
-                if self.instance_buffers.contains_key("instance_color")
+                if instance_buffers.contains_key("instance_color")
                     && self.vertex_buffers.contains_key("color")
                 {
                     "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else if self.instance_buffers.contains_key("instance_color") {
+                } else if instance_buffers.contains_key("instance_color") {
                     "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
                 } else {
                     "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
@@ -278,7 +313,7 @@ impl InstancedMesh {
             } else {
                 ""
             },
-            if self.instance_buffers.contains_key("tex_transform_row1") {
+            if instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
             } else {
                 ""
@@ -309,14 +344,15 @@ impl Geometry for InstancedMesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
+        let instance_buffers = self.create_instance_buffers(camera);
         let fragment_shader_source = material.fragment_shader_source(
             self.vertex_buffers.contains_key("color")
-                || self.instance_buffers.contains_key("instance_color"),
+                || instance_buffers.contains_key("instance_color"),
             lights,
         );
         self.context
             .program(
-                &self.vertex_shader_source(&fragment_shader_source),
+                &self.vertex_shader_source(&fragment_shader_source, &instance_buffers),
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
@@ -334,11 +370,12 @@ impl Geometry for InstancedMesh {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
+        let instance_buffers = self.create_instance_buffers(camera);
         let fragment_shader_source =
             material.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
             .program(
-                &self.vertex_shader_source(&fragment_shader_source),
+                &self.vertex_shader_source(&fragment_shader_source, &instance_buffers),
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
