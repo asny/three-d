@@ -117,7 +117,12 @@ impl InstancedMesh {
         let distances = self
             .instance_transforms
             .iter()
-            .map(|m| m.w.truncate().distance2(*camera.position()))
+            .map(|m| {
+                (self.transformation * m)
+                    .w
+                    .truncate()
+                    .distance2(*camera.position())
+            })
             .collect::<Vec<_>>();
         // Then, we can sort the indices based on those distances.
         let mut indices = (0..distances.len()).collect::<Vec<usize>>();
