@@ -252,13 +252,15 @@ impl InstancedMesh {
                 .collect::<Vec<_>>()
         };
 
+
         let indices = match sorting {
-            InstanceSorting::None => (0..self.instance_transforms.len()).collect::<Vec<usize>>(),
+            InstanceSorting::None => {
+                (0..self.instance_count as usize).collect::<Vec<usize>>()},
             InstanceSorting::BackToFront => {
                 // First, create a vector of distances from the camera to each instance.
                 let distances = distances();
                 // Then, we can sort the indices based on those distances.
-                let mut indices = (0..distances.len()).collect::<Vec<usize>>();
+                let mut indices = (0..self.instance_count as usize).collect::<Vec<usize>>();
                 indices.sort_by(|a, b| {
                     distances[*b]
                         .partial_cmp(&distances[*a])
@@ -277,7 +279,7 @@ impl InstancedMesh {
                     vec![false; distances.len()]
                 };
                 // Then, we can sort the indices based on those distances.
-                let mut indices = (0..distances.len()).collect::<Vec<usize>>();
+                let mut indices = (0..self.instance_count as usize).collect::<Vec<usize>>();
                 indices.sort_by(|a, b| {
                     // If both opaque, ordering is equal.
                     if opaque_mask[*a] && opaque_mask[*b] {
