@@ -252,10 +252,8 @@ impl InstancedMesh {
                 .collect::<Vec<_>>()
         };
 
-
         let indices = match sorting {
-            InstanceSorting::None => {
-                (0..self.instance_count as usize).collect::<Vec<usize>>()},
+            InstanceSorting::None => (0..self.instance_count as usize).collect::<Vec<usize>>(),
             InstanceSorting::BackToFront => {
                 // First, create a vector of distances from the camera to each instance.
                 let distances = distances();
