@@ -34,7 +34,6 @@ impl Default for InstanceBufferState {
     }
 }
 
-#[derive(PartialEq, Eq)]
 enum InstanceSorting {
     None,
     BackToFront,
@@ -139,17 +138,16 @@ impl InstancedMesh {
         self.instances = instances.clone();
         self.instance_transforms = instances.transformations.clone();
 
-        self.instance_state
-            .write()
-            .expect("failed acquiring write accesss")
-            .is_dirty = true;
-
-        if let Some(ref colors) = self.instances.colors {
-            let mut state = self
+        {
+            let mut s = self
                 .instance_state
                 .write()
                 .expect("failed acquiring write accesss");
-            state.instance_transparency = colors.iter().any(|c| c.a != 255);
+            s.is_dirty = true;
+
+            if let Some(ref colors) = self.instances.colors {
+                s.instance_transparency = colors.iter().any(|c| c.a != 255);
+            }
         }
 
         self.update_aabb();
@@ -204,9 +202,10 @@ impl InstancedMesh {
                 }
             };
 
-        // Two sorting styles;
-        // sort back to front, regardless of alpha
-        // alpha=255 first, then back to front.
+        // Three ways of ordering:
+        // No ordering, use the instances as is.
+        // Sort back to front, regardless of alpha
+        // Alpha==255 first, then back to front.
         let sorting = if is_material_transparent {
             InstanceSorting::BackToFront
         } else {
@@ -241,8 +240,7 @@ impl InstancedMesh {
         camera: &Camera,
         sorting: InstanceSorting,
     ) -> HashMap<String, InstanceBuffer> {
-
-        let distances = ||{
+        let distances = || {
             self.instance_transforms
                 .iter()
                 .map(|m| {
@@ -267,12 +265,12 @@ impl InstancedMesh {
                         .unwrap_or(std::cmp::Ordering::Equal)
                 });
                 indices
-            },
+            }
             InstanceSorting::OpaqueFirstTransparentBackToFront => {
                 let distances = distances();
                 // Now, if there exists alpha, we obtain it, otherwise assume opaque
                 let opaque_mask = if let Some(ref colors) = self.instances.colors {
-                    colors.iter().map(|v|{v.a == 255}).collect::<Vec<_>>()
+                    colors.iter().map(|v| v.a == 255).collect::<Vec<_>>()
                 } else {
                     // Don't think we can get here, as we only end up in this branch if there is
                     // instance transparency, which can only happen if colors is populated.
@@ -298,8 +296,7 @@ impl InstancedMesh {
                     }
                 });
                 indices
-            },
-
+            }
         };
         // Next, we can compute the instance buffers with that ordering.
         let mut instance_buffers: HashMap<String, InstanceBuffer> = Default::default();
@@ -313,9 +310,9 @@ impl InstancedMesh {
                 "instance_translation".to_string(),
                 InstanceBuffer::new_with_data(
                     &self.context,
-                    &self
-                        .instance_transforms
+                    &indices
                         .iter()
+                        .map(|i| self.instance_transforms[*i])
                         .map(|t| t.w.truncate())
                         .collect::<Vec<_>>(),
                 ),
