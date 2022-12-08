@@ -34,6 +34,7 @@ impl Default for InstanceBufferState {
     }
 }
 
+#[derive(PartialEq, Eq)]
 enum InstanceSorting {
     None,
     BackToFront,
@@ -240,26 +241,66 @@ impl InstancedMesh {
         camera: &Camera,
         sorting: InstanceSorting,
     ) -> HashMap<String, InstanceBuffer> {
-        // Determine the sort order for all the instances.
-        // First, create a vector of distances from the camera to each instance.
-        let distances = self
-            .instance_transforms
-            .iter()
-            .map(|m| {
-                (self.transformation * m)
-                    .w
-                    .truncate()
-                    .distance2(*camera.position())
-            })
-            .collect::<Vec<_>>();
-        // Then, we can sort the indices based on those distances.
-        let mut indices = (0..distances.len()).collect::<Vec<usize>>();
-        indices.sort_by(|a, b| {
-            distances[*b]
-                .partial_cmp(&distances[*a])
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
 
+        let distances = ||{
+            self.instance_transforms
+                .iter()
+                .map(|m| {
+                    (self.transformation * m)
+                        .w
+                        .truncate()
+                        .distance2(*camera.position())
+                })
+                .collect::<Vec<_>>()
+        };
+
+        let indices = match sorting {
+            InstanceSorting::None => (0..self.instance_transforms.len()).collect::<Vec<usize>>(),
+            InstanceSorting::BackToFront => {
+                // First, create a vector of distances from the camera to each instance.
+                let distances = distances();
+                // Then, we can sort the indices based on those distances.
+                let mut indices = (0..distances.len()).collect::<Vec<usize>>();
+                indices.sort_by(|a, b| {
+                    distances[*b]
+                        .partial_cmp(&distances[*a])
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
+                indices
+            },
+            InstanceSorting::OpaqueFirstTransparentBackToFront => {
+                let distances = distances();
+                // Now, if there exists alpha, we obtain it, otherwise assume opaque
+                let opaque_mask = if let Some(ref colors) = self.instances.colors {
+                    colors.iter().map(|v|{v.a == 255}).collect::<Vec<_>>()
+                } else {
+                    // Don't think we can get here, as we only end up in this branch if there is
+                    // instance transparency, which can only happen if colors is populated.
+                    vec![false; distances.len()]
+                };
+                // Then, we can sort the indices based on those distances.
+                let mut indices = (0..distances.len()).collect::<Vec<usize>>();
+                indices.sort_by(|a, b| {
+                    // If both opaque, ordering is equal.
+                    if opaque_mask[*a] && opaque_mask[*b] {
+                        std::cmp::Ordering::Equal
+                    } else if opaque_mask[*a] && !opaque_mask[*b] {
+                        // a is opaque, b is not, a is less than b.
+                        std::cmp::Ordering::Less
+                    } else if !opaque_mask[*a] && opaque_mask[*b] {
+                        // a is not opaque, b is, a is greater than b.
+                        std::cmp::Ordering::Greater
+                    } else {
+                        // both are false, not opaque, order by distance.
+                        distances[*b]
+                            .partial_cmp(&distances[*a])
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    }
+                });
+                indices
+            },
+
+        };
         // Next, we can compute the instance buffers with that ordering.
         let mut instance_buffers: HashMap<String, InstanceBuffer> = Default::default();
 
