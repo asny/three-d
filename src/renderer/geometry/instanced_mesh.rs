@@ -1,6 +1,23 @@
 use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
+use std::sync::RwLock;
+
+struct InstanceState {
+    instance_buffers: HashMap<String, InstanceBuffer>,
+    camera_position: Vec3,
+    is_dirty: bool,
+}
+
+impl Default for InstanceState {
+    fn default() -> Self{
+        InstanceState {
+            instance_buffers: Default::default(),
+            camera_position: vec3(0.0, 0.0, 0.0),
+            is_dirty: true,
+        }
+    }
+}
 
 ///
 /// Similar to [Mesh], except it is possible to render many instances of the same mesh efficiently.
@@ -9,6 +26,7 @@ pub struct InstancedMesh {
     context: Context,
     vertex_buffers: HashMap<String, VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
+    instance_state: RwLock<InstanceState>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -30,6 +48,7 @@ impl InstancedMesh {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
+            instance_state: RwLock::new(InstanceState::default()),
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
@@ -83,6 +102,7 @@ impl InstancedMesh {
     /// `instance_count` will be set to the number of instances when they are defined by `set_instances`, so all instanced are rendered by default.
     pub fn set_instance_count(&mut self, instance_count: u32) {
         self.instance_count = instance_count.min(self.instance_transforms.len() as u32);
+        // Buffers don't need to change, so not setting the instance_state's dirty flag.
         self.update_aabb();
     }
 
@@ -90,11 +110,14 @@ impl InstancedMesh {
     /// Update the instances.
     ///
     pub fn set_instances(&mut self, instances: &Instances) {
+        // For code review; should this be here > I dev with --release, that hides this and then
+        // it fails elsewhere.
         #[cfg(debug_assertions)]
         instances.validate().expect("invalid instances");
         self.instance_count = instances.count();
         self.instances = instances.clone();
         self.instance_transforms = instances.transformations.clone();
+        self.instance_state.write().expect("failed acquiring write accesss").is_dirty = true;
         self.update_aabb();
     }
 
@@ -108,8 +131,24 @@ impl InstancedMesh {
         self.aabb = aabb;
     }
 
+    fn update_instance_buffers(&self, camera: &Camera, is_material_transparent: bool) {
+
+        // If is dirty; always update.
+        // If transparent material and camera changed; update
+        // all else, don't update.
+        let (is_dirty, camera_pos) = {
+            let state = self.instance_state.read().expect("failed acquiring read accesss");
+            (state.is_dirty, state.camera_position)
+        };
+
+        if is_dirty || (is_material_transparent && camera.position() != &camera_pos) {
+            let mut state = self.instance_state.write().expect("failed acquiring mutable access");
+            state.instance_buffers = self.create_instance_buffers(camera);
+        }
+    }
+
     ///
-    /// This function creates the instance buffers, ordering them by distance to the camera.
+    /// This function creates the instance buffers, ordering them by distance to the camera
     ///
     fn create_instance_buffers(&self, camera: &Camera) -> HashMap<String, InstanceBuffer> {
         // Determine the sort order for all the instances.
@@ -349,7 +388,10 @@ impl Geometry for InstancedMesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let instance_buffers = self.create_instance_buffers(camera);
+        // Update the instance buffers if required.
+        self.update_instance_buffers(camera, material.material_type() == MaterialType::Transparent);
+        let instance_buffers = &self.instance_state.read().expect("failed to acquire read access").instance_buffers;
+
         let fragment_shader_source = material.fragment_shader_source(
             self.vertex_buffers.contains_key("color")
                 || instance_buffers.contains_key("instance_color"),
@@ -375,7 +417,11 @@ impl Geometry for InstancedMesh {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let instance_buffers = self.create_instance_buffers(camera);
+        // Update the instance buffers if required.
+        let is_material_transparent = false; // is this correct? PostMaterial doesn't provide this.
+        self.update_instance_buffers(camera, is_material_transparent);
+        let instance_buffers = &self.instance_state.read().expect("failed to acquire read access").instance_buffers;
+
         let fragment_shader_source =
             material.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
