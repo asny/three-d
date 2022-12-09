@@ -232,6 +232,54 @@ impl InstancedMesh {
         }
     }
 
+    /// Sort function for [`InstanceSorting::BackToFront`].
+    fn ordered_indices_back_to_front(instance_count: usize, distances: &[f32]) -> Vec<usize> {
+        // Then, we can sort the indices based on those distances.
+        let mut indices = (0..instance_count).collect::<Vec<usize>>();
+        indices.sort_by(|a, b| {
+            distances[*b]
+                .partial_cmp(&distances[*a])
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        indices
+    }
+
+    /// Sort function for [`InstanceSorting::OpaqueFirstTransparentBackToFront`].
+    fn ordered_opaque_first_transparent_back_to_front(
+        instance_count: usize,
+        distances: &[f32],
+        colors: &Option<Vec<Color>>,
+    ) -> Vec<usize> {
+        // Now, if there exists alpha, we obtain it, otherwise assume opaque
+        let opaque_mask = if let Some(ref colors) = colors {
+            colors.iter().map(|v| v.a == 255).collect::<Vec<_>>()
+        } else {
+            // Don't think we can get here, as we only end up in this branch if there is
+            // instance transparency, which can only happen if colors is populated.
+            vec![false; distances.len()]
+        };
+        // Then, we can sort the indices based on those distances.
+        let mut indices = (0..instance_count).collect::<Vec<usize>>();
+        indices.sort_by(|a, b| {
+            // If both opaque, ordering is equal.
+            if opaque_mask[*a] && opaque_mask[*b] {
+                std::cmp::Ordering::Equal
+            } else if opaque_mask[*a] && !opaque_mask[*b] {
+                // a is opaque, b is not, a is less than b.
+                std::cmp::Ordering::Less
+            } else if !opaque_mask[*a] && opaque_mask[*b] {
+                // a is not opaque, b is, a is greater than b.
+                std::cmp::Ordering::Greater
+            } else {
+                // both are false, not opaque, order by distance.
+                distances[*b]
+                    .partial_cmp(&distances[*a])
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            }
+        });
+        indices
+    }
+
     ///
     /// This function creates the instance buffers, ordering them by distance to the camera
     ///
@@ -257,45 +305,15 @@ impl InstancedMesh {
             InstanceSorting::BackToFront => {
                 // First, create a vector of distances from the camera to each instance.
                 let distances = distances();
-                // Then, we can sort the indices based on those distances.
-                let mut indices = (0..self.instance_count as usize).collect::<Vec<usize>>();
-                indices.sort_by(|a, b| {
-                    distances[*b]
-                        .partial_cmp(&distances[*a])
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                });
-                indices
+                Self::ordered_indices_back_to_front(self.instance_count as usize, &distances)
             }
             InstanceSorting::OpaqueFirstTransparentBackToFront => {
                 let distances = distances();
-                // Now, if there exists alpha, we obtain it, otherwise assume opaque
-                let opaque_mask = if let Some(ref colors) = self.instances.colors {
-                    colors.iter().map(|v| v.a == 255).collect::<Vec<_>>()
-                } else {
-                    // Don't think we can get here, as we only end up in this branch if there is
-                    // instance transparency, which can only happen if colors is populated.
-                    vec![false; distances.len()]
-                };
-                // Then, we can sort the indices based on those distances.
-                let mut indices = (0..self.instance_count as usize).collect::<Vec<usize>>();
-                indices.sort_by(|a, b| {
-                    // If both opaque, ordering is equal.
-                    if opaque_mask[*a] && opaque_mask[*b] {
-                        std::cmp::Ordering::Equal
-                    } else if opaque_mask[*a] && !opaque_mask[*b] {
-                        // a is opaque, b is not, a is less than b.
-                        std::cmp::Ordering::Less
-                    } else if !opaque_mask[*a] && opaque_mask[*b] {
-                        // a is not opaque, b is, a is greater than b.
-                        std::cmp::Ordering::Greater
-                    } else {
-                        // both are false, not opaque, order by distance.
-                        distances[*b]
-                            .partial_cmp(&distances[*a])
-                            .unwrap_or(std::cmp::Ordering::Equal)
-                    }
-                });
-                indices
+                Self::ordered_opaque_first_transparent_back_to_front(
+                    self.instance_count as usize,
+                    &distances,
+                    &self.instances.colors,
+                )
             }
         };
         // Next, we can compute the instance buffers with that ordering.
@@ -644,5 +662,45 @@ impl From<PointCloud> for Instances {
             colors: points.colors,
             ..Default::default()
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_ordered_indices_back_to_front() {
+        let distances = vec![10.0, 5.0, 5.1, 3.0, 1.0];
+        let res = InstancedMesh::ordered_indices_back_to_front(distances.len(), &distances);
+        assert_eq!(res, vec![0, 2, 1, 3, 4]);
+    }
+
+    #[test]
+    fn test_ordered_indices_opaque_first_transparent_back_to_front() {
+        let transparent = 128;
+        let opaque = 255;
+        let objects = vec![
+            (3.0, transparent),  // 0
+            (10.0, transparent), // 1
+            (5.0, opaque),       // 2
+            (5.1, transparent),  // 3
+            (3.0, opaque),       // 4
+            (1.0, opaque),       // 5
+        ];
+        let distances = objects.iter().map(|x| x.0).collect::<Vec<f32>>();
+        let colors = objects
+            .iter()
+            .map(|x| Color::new(128, 128, 128, x.1))
+            .collect::<Vec<Color>>();
+
+        // Expected, opaque first, same order as input, then transparent back to front;
+        let expected = vec![2, 4, 5, 1, 3, 0];
+
+        let indices = InstancedMesh::ordered_opaque_first_transparent_back_to_front(
+            distances.len(),
+            &distances,
+            &Some(colors),
+        );
+        assert_eq!(indices, expected);
     }
 }
