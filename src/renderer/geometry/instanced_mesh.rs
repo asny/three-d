@@ -14,7 +14,6 @@ pub struct InstancedMesh {
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
-    instance_transforms: Vec<Mat4>,
     instance_count: u32,
     texture_transform: Mat3,
     instances: Instances,
@@ -37,7 +36,6 @@ impl InstancedMesh {
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             instance_count: 0,
-            instance_transforms: Vec::new(),
             texture_transform: Mat3::identity(),
             instances: instances.clone(),
         };
@@ -85,7 +83,7 @@ impl InstancedMesh {
     /// This is the same as changing the instances using `set_instances`, except that it is faster since it doesn't update any buffers.
     /// `instance_count` will be set to the number of instances when they are defined by `set_instances`, so all instanced are rendered by default.
     pub fn set_instance_count(&mut self, instance_count: u32) {
-        self.instance_count = instance_count.min(self.instance_transforms.len() as u32);
+        self.instance_count = instance_count.min(self.instances.transformations.len() as u32);
         self.update_aabb();
     }
 
@@ -97,7 +95,6 @@ impl InstancedMesh {
         instances.validate().expect("invalid instances");
         self.instance_count = instances.count();
         self.instances = instances.clone();
-        self.instance_transforms = instances.transformations.clone();
 
         {
             let mut s = self
@@ -172,14 +169,15 @@ impl InstancedMesh {
         let indices = if let Some(position) = depth_ordering {
             // Need to order by using the position.
             let distances = self
-                .instance_transforms
+                .instances
+                .transformations
                 .iter()
                 .map(|m| (self.transformation * m).w.truncate().distance2(position))
                 .collect::<Vec<_>>();
             Self::ordered_indices_back_to_front(self.instance_count as usize, &distances)
         } else {
             // No need to order, just return the indices as is.
-            (0..self.instance_transforms.len()).collect::<Vec<usize>>()
+            (0..self.instances.transformations.len()).collect::<Vec<usize>>()
         };
 
         // Next, we can compute the instance buffers with that ordering.
@@ -187,7 +185,7 @@ impl InstancedMesh {
 
         if indices
             .iter()
-            .map(|i| self.instance_transforms[*i])
+            .map(|i| self.instances.transformations[*i])
             .all(|t| Mat3::from_cols(t.x.truncate(), t.y.truncate(), t.z.truncate()).is_identity())
         {
             instance_buffers.insert(
@@ -196,7 +194,7 @@ impl InstancedMesh {
                     &self.context,
                     &indices
                         .iter()
-                        .map(|i| self.instance_transforms[*i])
+                        .map(|i| self.instances.transformations[*i])
                         .map(|t| t.w.truncate())
                         .collect::<Vec<_>>(),
                 ),
@@ -205,7 +203,7 @@ impl InstancedMesh {
             let mut row1 = Vec::new();
             let mut row2 = Vec::new();
             let mut row3 = Vec::new();
-            for transformation in indices.iter().map(|i| self.instance_transforms[*i]) {
+            for transformation in indices.iter().map(|i| self.instances.transformations[*i]) {
                 row1.push(transformation.row(0));
                 row2.push(transformation.row(1));
                 row3.push(transformation.row(2));
@@ -267,7 +265,7 @@ impl InstancedMesh {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         for i in 0..self.instance_count as usize {
             let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(self.instance_transforms[i] * self.transformation));
+            aabb2.transform(&(self.instances.transformations[i] * self.transformation));
             aabb.expand_with_aabb(&aabb2);
         }
         self.aabb = aabb;
