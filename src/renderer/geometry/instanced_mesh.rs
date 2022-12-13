@@ -3,51 +3,14 @@ use crate::renderer::*;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-/// Internal struct to store and track the current state of the instance buffers.
-struct InstanceBufferState {
-    /// The actual instance buffers.
-    instance_buffers: HashMap<String, InstanceBuffer>,
-
-    /// Camera position for which the buffers are correct, only relevant if non opaque.
-    camera_position: Vec3,
-
-    /// Indicates buffers should be rewritten completely. Instances changed.
-    is_dirty: bool,
-
-    /// Indicates instances[0..instance_count] has at least one a != 255.
-    instance_transparency: bool,
-
-    /// The instance count for which buffers are correct, if material is opaque and there is an
-    /// instance that is transparent, we need to recalculate the buffers.
-    current_instance_count: u32,
-}
-
-impl Default for InstanceBufferState {
-    fn default() -> Self {
-        InstanceBufferState {
-            instance_buffers: Default::default(),
-            camera_position: vec3(0.0, 0.0, 0.0),
-            is_dirty: true,
-            instance_transparency: false,
-            current_instance_count: 0,
-        }
-    }
-}
-
-enum InstanceSorting {
-    None,
-    BackToFront,
-    OpaqueFirstTransparentBackToFront,
-}
-
 ///
 /// Similar to [Mesh], except it is possible to render many instances of the same mesh efficiently.
 ///
 pub struct InstancedMesh {
     context: Context,
     vertex_buffers: HashMap<String, VertexBuffer>,
+    instance_buffers: RwLock<(HashMap<String, InstanceBuffer>, Vec3)>,
     index_buffer: Option<ElementBuffer>,
-    instance_state: RwLock<InstanceBufferState>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -69,7 +32,7 @@ impl InstancedMesh {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
-            instance_state: RwLock::new(InstanceBufferState::default()),
+            instance_buffers: RwLock::new((Default::default(), vec3(0.0, 0.0, 0.0))),
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
@@ -119,7 +82,7 @@ impl InstancedMesh {
     }
 
     /// Use this if you only want to render instance 0 through to instance `instance_count`.
-    /// This is the same as changing the instances using `set_instances`, except that for opaque materials (with opaque instances) it is faster since it doesn't update any buffers.
+    /// This is the same as changing the instances using `set_instances`, except that it is faster since it doesn't update any buffers.
     /// `instance_count` will be set to the number of instances when they are defined by `set_instances`, so all instanced are rendered by default.
     pub fn set_instance_count(&mut self, instance_count: u32) {
         self.instance_count = instance_count.min(self.instance_transforms.len() as u32);
@@ -130,8 +93,6 @@ impl InstancedMesh {
     /// Update the instances.
     ///
     pub fn set_instances(&mut self, instances: &Instances) {
-        // For code review; should this be here > I dev with --release, that hides this and then
-        // it fails elsewhere.
         #[cfg(debug_assertions)]
         instances.validate().expect("invalid instances");
         self.instance_count = instances.count();
@@ -140,99 +101,56 @@ impl InstancedMesh {
 
         {
             let mut s = self
-                .instance_state
+                .instance_buffers
                 .write()
                 .expect("failed acquiring write accesss");
-            s.is_dirty = true;
-
-            if let Some(ref colors) = self.instances.colors {
-                s.instance_transparency = colors.iter().any(|c| c.a != 255);
-            }
+            s.0.clear();
         }
 
         self.update_aabb();
     }
 
-    fn update_aabb(&mut self) {
-        let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for i in 0..self.instance_count as usize {
-            let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(self.instance_transforms[i] * self.transformation));
-            aabb.expand_with_aabb(&aabb2);
-        }
-        self.aabb = aabb;
-    }
-
-    fn update_instance_buffers(&self, camera: &Camera, is_material_transparent: bool) {
-        let (is_dirty, camera_pos, instance_transparency, current_instance_count) = {
+    /// Update the instance buffers, if depth_ordering_pose is populated depth ordering is performed
+    /// using this position.
+    fn update_instance_buffers(&self, depth_ordering_pose: Option<Vec3>) {
+        let needs_update = {
             let s = self
-                .instance_state
+                .instance_buffers
                 .read()
                 .expect("failed acquiring read accesss");
-            (
-                s.is_dirty,
-                s.camera_position,
-                s.instance_transparency,
-                s.current_instance_count,
-            )
-        };
 
-        /*
-            See: https://github.com/asny/three-d/pull/297#issuecomment-1340557016
-            - If dirty; always update.
-            - If material transparent; update if camera changed, or if instance count changed.
-                => Order ALL back to front, regardless of alpha.
-            - If material is not transparent.
-                -> If not instance_transparency, even if count changed -> nothing to do, buffers ok.
-                -> If instance_transparency, update if camera changed, or instance count changed.
-                    => Order a==255 first, then transparency back to front.
-        */
-        let camera_changed = camera.position() != &camera_pos;
-        let instance_count_changed = current_instance_count != self.instance_count;
-        let should_update = is_dirty
-            || if is_material_transparent {
+            // Check if we need a reorder, this only applies to transparent materials.
+            let reorder_needed = if let Some(ref ordering_pose) = depth_ordering_pose {
+                let camera_changed = *ordering_pose != s.1;
+                let instance_count_changed = if let Some(v) = s.0.values().next() {
+                    v.instance_count() != self.instance_count
+                } else {
+                    false
+                };
+
                 camera_changed || instance_count_changed
             } else {
-                // Material is not transparent
-                if !instance_transparency {
-                    false // nothing to do, everything is opaque, can truncate buffers.
-                } else {
-                    // instance transparency, need to order with the camera.
-                    camera_changed || instance_count_changed
-                }
+                false
             };
 
-        // Three ways of ordering:
-        // No ordering, use the instances as is.
-        // Sort back to front, regardless of alpha
-        // Alpha==255 first, then back to front.
-        let sorting = if is_material_transparent {
-            InstanceSorting::BackToFront
-        } else {
-            // Material is not transparent, instances may be
-            if instance_transparency {
-                InstanceSorting::OpaqueFirstTransparentBackToFront
-            } else {
-                // all is opaque, use order as is.
-                InstanceSorting::None
-            }
+            // Update is always needed if the instance buffers is empty; Opaque materials only.
+            // Or, for transparent materials, if the camera moved or if the instance count changed.
+            s.0.is_empty() || reorder_needed
         };
 
-        if should_update {
-            let mut state = self
-                .instance_state
+        if needs_update {
+            let mut s = self
+                .instance_buffers
                 .write()
                 .expect("failed acquiring mutable access");
-            state.instance_buffers = self.create_instance_buffers(camera, sorting);
-
-            // State it is no longer dirty and update the state-tracking.
-            state.is_dirty = false;
-            state.camera_position = *camera.position();
-            state.current_instance_count = self.instance_count;
+            s.0 = self.create_instance_buffers(depth_ordering_pose);
+            if let Some(ordering_pose) = depth_ordering_pose {
+                s.1 = ordering_pose;
+            }
         }
     }
 
-    /// Sort function for [`InstanceSorting::BackToFront`].
+    /// Sort function to order the indices up to instance count by their distance, back to front.
     fn ordered_indices_back_to_front(instance_count: usize, distances: &[f32]) -> Vec<usize> {
         // Then, we can sort the indices based on those distances.
         let mut indices = (0..instance_count).collect::<Vec<usize>>();
@@ -244,78 +162,26 @@ impl InstancedMesh {
         indices
     }
 
-    /// Sort function for [`InstanceSorting::OpaqueFirstTransparentBackToFront`].
-    fn ordered_opaque_first_transparent_back_to_front(
-        instance_count: usize,
-        distances: &[f32],
-        colors: &Option<Vec<Color>>,
-    ) -> Vec<usize> {
-        // Now, if there exists alpha, we obtain it, otherwise assume opaque
-        let opaque_mask = if let Some(ref colors) = colors {
-            colors.iter().map(|v| v.a == 255).collect::<Vec<_>>()
-        } else {
-            // Don't think we can get here, as we only end up in this branch if there is
-            // instance transparency, which can only happen if colors is populated.
-            vec![false; distances.len()]
-        };
-        // Then, we can sort the indices based on those distances.
-        let mut indices = (0..instance_count).collect::<Vec<usize>>();
-        indices.sort_by(|a, b| {
-            // If both opaque, ordering is equal.
-            if opaque_mask[*a] && opaque_mask[*b] {
-                std::cmp::Ordering::Equal
-            } else if opaque_mask[*a] && !opaque_mask[*b] {
-                // a is opaque, b is not, a is less than b.
-                std::cmp::Ordering::Less
-            } else if !opaque_mask[*a] && opaque_mask[*b] {
-                // a is not opaque, b is, a is greater than b.
-                std::cmp::Ordering::Greater
-            } else {
-                // both are false, not opaque, order by distance.
-                distances[*b]
-                    .partial_cmp(&distances[*a])
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            }
-        });
-        indices
-    }
-
     ///
     /// This function creates the instance buffers, ordering them by distance to the camera
     ///
     fn create_instance_buffers(
         &self,
-        camera: &Camera,
-        sorting: InstanceSorting,
+        depth_ordering: Option<Vec3>,
     ) -> HashMap<String, InstanceBuffer> {
-        let distances = || {
-            self.instance_transforms
+        let indices = if let Some(position) = depth_ordering {
+            // Need to order by using the position.
+            let distances = self
+                .instance_transforms
                 .iter()
-                .map(|m| {
-                    (self.transformation * m)
-                        .w
-                        .truncate()
-                        .distance2(*camera.position())
-                })
-                .collect::<Vec<_>>()
+                .map(|m| (self.transformation * m).w.truncate().distance2(position))
+                .collect::<Vec<_>>();
+            Self::ordered_indices_back_to_front(self.instance_count as usize, &distances)
+        } else {
+            // No need to order, just return the indices as is.
+            (0..self.instance_transforms.len()).collect::<Vec<usize>>()
         };
 
-        let indices = match sorting {
-            InstanceSorting::None => (0..self.instance_count as usize).collect::<Vec<usize>>(),
-            InstanceSorting::BackToFront => {
-                // First, create a vector of distances from the camera to each instance.
-                let distances = distances();
-                Self::ordered_indices_back_to_front(self.instance_count as usize, &distances)
-            }
-            InstanceSorting::OpaqueFirstTransparentBackToFront => {
-                let distances = distances();
-                Self::ordered_opaque_first_transparent_back_to_front(
-                    self.instance_count as usize,
-                    &distances,
-                    &self.instances.colors,
-                )
-            }
-        };
         // Next, we can compute the instance buffers with that ordering.
         let mut instance_buffers: HashMap<String, InstanceBuffer> = Default::default();
 
@@ -397,13 +263,23 @@ impl InstancedMesh {
         instance_buffers
     }
 
-    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
-        let instance_buffers = &self
-            .instance_state
-            .read()
-            .expect("failed acquiring mutable access")
-            .instance_buffers;
+    fn update_aabb(&mut self) {
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for i in 0..self.instance_count as usize {
+            let mut aabb2 = self.aabb_local.clone();
+            aabb2.transform(&(self.instance_transforms[i] * self.transformation));
+            aabb.expand_with_aabb(&aabb2);
+        }
+        self.aabb = aabb;
+    }
 
+    fn draw(
+        &self,
+        program: &Program,
+        render_states: RenderStates,
+        camera: &Camera,
+        instance_buffers: &HashMap<String, InstanceBuffer>,
+    ) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", &self.transformation);
         program.use_uniform_if_required("textureTransform", &self.texture_transform);
@@ -538,15 +414,18 @@ impl Geometry for InstancedMesh {
         lights: &[&dyn Light],
     ) {
         // Update the instance buffers if required.
-        self.update_instance_buffers(
-            camera,
-            material.material_type() == MaterialType::Transparent,
-        );
+        let update_pose = if material.material_type() == MaterialType::Transparent {
+            Some(*camera.position())
+        } else {
+            None
+        };
+
+        self.update_instance_buffers(update_pose);
         let instance_buffers = &self
-            .instance_state
+            .instance_buffers
             .read()
             .expect("failed to acquire read access")
-            .instance_buffers;
+            .0;
 
         let fragment_shader_source = material.fragment_shader_source(
             self.vertex_buffers.contains_key("color")
@@ -559,7 +438,7 @@ impl Geometry for InstancedMesh {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    self.draw(program, material.render_states(), camera);
+                    self.draw(program, material.render_states(), camera, instance_buffers);
                 },
             )
             .expect("Failed compiling shader")
@@ -574,13 +453,12 @@ impl Geometry for InstancedMesh {
         depth_texture: Option<DepthTexture>,
     ) {
         // Update the instance buffers if required.
-        let is_material_transparent = false; // is this correct? PostMaterial doesn't provide this.
-        self.update_instance_buffers(camera, is_material_transparent);
+        self.update_instance_buffers(None);
         let instance_buffers = &self
-            .instance_state
+            .instance_buffers
             .read()
             .expect("failed to acquire read access")
-            .instance_buffers;
+            .0;
 
         let fragment_shader_source =
             material.fragment_shader_source(lights, color_texture, depth_texture);
@@ -590,7 +468,7 @@ impl Geometry for InstancedMesh {
                 &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, material.render_states(), camera);
+                    self.draw(program, material.render_states(), camera, instance_buffers);
                 },
             )
             .expect("Failed compiling shader")
@@ -673,34 +551,5 @@ mod test {
         let distances = vec![10.0, 5.0, 5.1, 3.0, 1.0];
         let res = InstancedMesh::ordered_indices_back_to_front(distances.len(), &distances);
         assert_eq!(res, vec![0, 2, 1, 3, 4]);
-    }
-
-    #[test]
-    fn test_ordered_indices_opaque_first_transparent_back_to_front() {
-        let transparent = 128;
-        let opaque = 255;
-        let objects = vec![
-            (3.0, transparent),  // 0
-            (10.0, transparent), // 1
-            (5.0, opaque),       // 2
-            (5.1, transparent),  // 3
-            (3.0, opaque),       // 4
-            (1.0, opaque),       // 5
-        ];
-        let distances = objects.iter().map(|x| x.0).collect::<Vec<f32>>();
-        let colors = objects
-            .iter()
-            .map(|x| Color::new(128, 128, 128, x.1))
-            .collect::<Vec<Color>>();
-
-        // Expected, opaque first, same order as input, then transparent back to front;
-        let expected = vec![2, 4, 5, 1, 3, 0];
-
-        let indices = InstancedMesh::ordered_opaque_first_transparent_back_to_front(
-            distances.len(),
-            &distances,
-            &Some(colors),
-        );
-        assert_eq!(indices, expected);
     }
 }
