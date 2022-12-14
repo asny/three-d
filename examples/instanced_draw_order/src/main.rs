@@ -79,7 +79,8 @@ pub fn main() {
     let opaque_instances = three_d::renderer::geometry::Instances {
         transformations: transparent_instances.transformations,
         colors: Some(
-            transparent_instances.colors
+            transparent_instances
+                .colors
                 .as_ref()
                 .unwrap()
                 .iter()
@@ -95,7 +96,8 @@ pub fn main() {
     };
     let mut thin_cube_right = CpuMesh::cube();
     thin_cube_right.transform(
-        &(Mat4::from_translation(vec3(-3.0, 0.0, 0.0)) * Mat4::from_nonuniform_scale(1.0, 1.0, 0.1)),
+        &(Mat4::from_translation(vec3(-3.0, 0.0, 0.0))
+            * Mat4::from_nonuniform_scale(1.0, 1.0, 0.1)),
     );
 
     let mut opaque_meshes_opaque_instances = Gm::new(
