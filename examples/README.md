@@ -53,6 +53,12 @@ This is the recomended starting point for a gentle introduction to `three-d`.
 
 ![Shapes example](https://asny.github.io/three-d/0.15/shapes.png)
 
+## Instanced Draw Order [[code](https://github.com/asny/three-d/tree/master/examples/instanced_draw_order/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/instanced_draw_order.html)]
+
+This example shows how depth ordering is currently working for `InstancedMesh` objects with transparency.
+
+![Instanced Draw Order](https://asny.github.io/three-d/0.15/instanced_draw_order.png)
+
 ## Instanced Shapes [[code](https://github.com/asny/three-d/tree/master/examples/instanced_shapes/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/instanced_shapes.html)]
 
 ![Instanced Shapes example](https://asny.github.io/three-d/0.15/instanced_shapes.png)
