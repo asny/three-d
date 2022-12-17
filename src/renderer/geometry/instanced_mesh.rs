@@ -225,7 +225,7 @@ impl InstancedMesh {
             );
         }
 
-        if let Some(texture_transforms) = &self.instances.texture_transforms {
+        if let Some(texture_transforms) = &self.instances.texture_transformations {
             let mut instance_tex_transform1 = Vec::new();
             let mut instance_tex_transform2 = Vec::new();
             for texture_transform in indices.iter().map(|i| texture_transforms[*i]) {
@@ -487,7 +487,7 @@ pub struct Instances {
     /// The transformations applied to each instance.
     pub transformations: Vec<Mat4>,
     /// The texture transform applied to the uv coordinates of each instance.
-    pub texture_transforms: Option<Vec<Mat3>>,
+    pub texture_transformations: Option<Vec<Mat3>>,
     /// Colors multiplied onto the base color of each instance.
     pub colors: Option<Vec<Color>>,
 }
@@ -512,8 +512,8 @@ impl Instances {
         };
 
         buffer_check(
-            self.texture_transforms.as_ref().map(|b| b.len()),
-            "texture transforms",
+            self.texture_transformations.as_ref().map(|b| b.len()),
+            "texture transformations",
         )?;
         buffer_check(Some(self.transformations.len()), "transformations")?;
         buffer_check(self.colors.as_ref().map(|b| b.len()), "colors")?;
