@@ -127,6 +127,7 @@ impl ParticleSystem {
     ///
     /// Get the texture transform applied to the uv coordinates of all of the particles.
     ///
+    #[deprecated]
     pub fn texture_transform(&self) -> &Mat3 {
         &self.texture_transform
     }
@@ -135,6 +136,7 @@ impl ParticleSystem {
     /// Set the texture transform applied to the uv coordinates of all of the particles.
     /// This is applied before the texture transform for each particle.
     ///
+    #[deprecated = "Set the texture transformation of Texture2DRef for a material instead"]
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }

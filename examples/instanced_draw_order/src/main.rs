@@ -57,7 +57,9 @@ pub fn main() {
     };
 
     let mut thin_cube = CpuMesh::cube();
-    thin_cube.transform(&Mat4::from_nonuniform_scale(1.0, 1.0, 0.1));
+    thin_cube
+        .transform(&Mat4::from_nonuniform_scale(1.0, 1.0, 0.1))
+        .unwrap();
 
     let transparent_meshes = Gm::new(
         InstancedMesh::new(&context, &transparent_instances, &thin_cube),
@@ -95,10 +97,12 @@ pub fn main() {
         ..Default::default()
     };
     let mut thin_cube_right = CpuMesh::cube();
-    thin_cube_right.transform(
-        &(Mat4::from_translation(vec3(-3.0, 0.0, 0.0))
-            * Mat4::from_nonuniform_scale(1.0, 1.0, 0.1)),
-    );
+    thin_cube_right
+        .transform(
+            &(Mat4::from_translation(vec3(-3.0, 0.0, 0.0))
+                * Mat4::from_nonuniform_scale(1.0, 1.0, 0.1)),
+        )
+        .unwrap();
 
     let mut opaque_meshes_opaque_instances = Gm::new(
         InstancedMesh::new(&context, &opaque_instances, &thin_cube_right),

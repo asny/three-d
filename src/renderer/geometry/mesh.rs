@@ -74,6 +74,7 @@ impl Mesh {
     ///
     /// Get the texture transform applied to the uv coordinates of the model.
     ///
+    #[deprecated]
     pub fn texture_transform(&mut self) -> &Mat3 {
         &self.texture_transform
     }
@@ -81,6 +82,7 @@ impl Mesh {
     ///
     /// Set the texture transform applied to the uv coordinates of the model.
     ///
+    #[deprecated = "Set the texture transformation of Texture2DRef for a material instead"]
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }

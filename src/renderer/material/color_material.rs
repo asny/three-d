@@ -11,7 +11,7 @@ pub struct ColorMaterial {
     /// Base surface color. Assumed to be in linear color space.
     pub color: Color,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
-    pub texture: Option<Arc<Texture2D>>,
+    pub texture: Option<Texture2DRef>,
     /// Render states.
     pub render_states: RenderStates,
     /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).
@@ -34,11 +34,13 @@ impl ColorMaterial {
 
     /// Constructs a new opaque color material from a [CpuMaterial].
     pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
-        } else {
-            None
-        };
+        let texture = cpu_material
+            .albedo_texture
+            .as_ref()
+            .map(|cpu_texture| Texture2DRef {
+                texture: Arc::new(Texture2D::new(context, cpu_texture)),
+                transformation: Mat3::identity(),
+            });
         Self {
             color: cpu_material.albedo,
             texture,
@@ -49,11 +51,13 @@ impl ColorMaterial {
 
     /// Constructs a new transparent color material from a [CpuMaterial].
     pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
-        } else {
-            None
-        };
+        let texture = cpu_material
+            .albedo_texture
+            .as_ref()
+            .map(|cpu_texture| Texture2DRef {
+                texture: Arc::new(Texture2D::new(context, cpu_texture)),
+                transformation: Mat3::identity(),
+            });
         Self {
             color: cpu_material.albedo,
             texture,
@@ -99,6 +103,7 @@ impl Material for ColorMaterial {
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("surfaceColor", self.color);
         if let Some(ref tex) = self.texture {
+            program.use_uniform("textureTransformation", tex.transformation);
             program.use_texture("tex", tex);
         }
     }

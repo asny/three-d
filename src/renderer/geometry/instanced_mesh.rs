@@ -62,6 +62,7 @@ impl InstancedMesh {
     ///
     /// Get the texture transform applied to the uv coordinates of all of the instances.
     ///
+    #[deprecated]
     pub fn texture_transform(&self) -> &Mat3 {
         &self.texture_transform
     }
@@ -70,6 +71,7 @@ impl InstancedMesh {
     /// Set the texture transform applied to the uv coordinates of all of the model instances.
     /// This is applied before the texture transform for each instance.
     ///
+    #[deprecated = "Set the texture transformation of Texture2DRef for a material instead"]
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }
@@ -478,8 +480,7 @@ impl Geometry for InstancedMesh {
 ///
 /// Each list of attributes must contain the same number of elements as the number of instances.
 /// The attributes are applied to each instance before they are rendered.
-/// The translation, rotation and scale is applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).
-/// The texture transform is also applied after the texture transform applied to all instances (see [InstancedMesh::set_texture_transform]).
+/// The [Instances::transformations] are applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).
 ///
 #[derive(Clone, Debug, Default)]
 pub struct Instances {
