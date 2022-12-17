@@ -37,10 +37,7 @@ impl ColorMaterial {
         let texture = cpu_material
             .albedo_texture
             .as_ref()
-            .map(|cpu_texture| Texture2DRef {
-                texture: Arc::new(Texture2D::new(context, cpu_texture)),
-                transformation: Mat3::identity(),
-            });
+            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
         Self {
             color: cpu_material.albedo,
             texture,
@@ -54,10 +51,7 @@ impl ColorMaterial {
         let texture = cpu_material
             .albedo_texture
             .as_ref()
-            .map(|cpu_texture| Texture2DRef {
-                texture: Arc::new(Texture2D::new(context, cpu_texture)),
-                transformation: Mat3::identity(),
-            });
+            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
         Self {
             color: cpu_material.albedo,
             texture,
