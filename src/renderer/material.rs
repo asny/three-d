@@ -56,9 +56,16 @@ mod isosurface_material;
 pub use isosurface_material::*;
 
 use std::sync::Arc;
+
+///
+/// A reference to a 2D texture and a texture transformation.
+///
 #[derive(Clone)]
 pub struct Texture2DRef {
+    /// A reference to the texture.
     pub texture: Arc<Texture2D>,
+    /// A transformation applied to the uv coordinates before reading a texel value at those uv coordinates.
+    /// This is primarily used in relation to texture atlasing.
     pub transformation: Mat3,
 }
 
