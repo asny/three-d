@@ -55,6 +55,29 @@ mod isosurface_material;
 #[doc(inline)]
 pub use isosurface_material::*;
 
+use std::sync::Arc;
+#[derive(Clone)]
+pub struct Texture2DRef {
+    pub texture: Arc<Texture2D>,
+    pub transformation: Mat3,
+}
+
+impl std::ops::Deref for Texture2DRef {
+    type Target = Texture2D;
+    fn deref(&self) -> &Self::Target {
+        &self.texture
+    }
+}
+
+impl std::convert::From<Arc<Texture2D>> for Texture2DRef {
+    fn from(texture: Arc<Texture2D>) -> Self {
+        Self {
+            texture,
+            transformation: Mat3::identity(),
+        }
+    }
+}
+
 ///
 /// Defines the material type which is needed to render the objects in the correct order.
 /// For example, transparent objects need to be rendered back to front, whereas opaque objects need to be rendered front to back.

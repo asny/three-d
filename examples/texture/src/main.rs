@@ -52,10 +52,13 @@ pub async fn run() {
     let mut box_object = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()),
         ColorMaterial {
-            texture: Some(std::sync::Arc::new(Texture2D::new(
-                &context,
-                &loaded.deserialize("Skybox_example").unwrap(),
-            ))),
+            texture: Some(
+                std::sync::Arc::new(Texture2D::new(
+                    &context,
+                    &loaded.deserialize("Skybox_example").unwrap(),
+                ))
+                .into(),
+            ),
             ..Default::default()
         },
     );
