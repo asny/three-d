@@ -69,6 +69,10 @@ name = "shapes"
 path = "examples/shapes/src/main.rs"
 
 [[example]]
+name = "instanced_draw_order"
+path = "examples/instanced_draw_order/src/main.rs"
+
+[[example]]
 name = "instanced_shapes"
 path = "examples/instanced_shapes/src/main.rs"
 required-features = ["egui-gui"]

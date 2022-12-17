@@ -82,7 +82,6 @@ pub fn main() {
 
         // Time to move the cubes.
         let time = (frame_input.accumulated_time * 0.001) as f32;
-        let rotation = Quat::from_angle_x(Rad(time));
         let count = side_count * side_count * side_count;
 
         // Always update the transforms for both the normal cubes as well as the instanced versions.
@@ -109,19 +108,18 @@ pub fn main() {
         });
 
         // Finally, calculate the cube transforms and update them.
-        let mut translations = Vec::new();
+        let rotation = Mat4::from_angle_x(Rad(time));
+        let mut transformations = Vec::new();
         for (i, mesh) in non_instanced_meshes.iter_mut().enumerate() {
             let x = (i % side_count) as f32;
             let y = ((i as f32 / side_count as f32).floor() as usize % side_count) as f32;
             let z = (i as f32 / side_count.pow(2) as f32).floor();
-            let translation = 3.0 * vec3(x, y, z);
-            translations.push(translation);
-            let transformation = Mat4::from_translation(translation) * Into::<Mat4>::into(rotation);
+            let transformation = Mat4::from_translation(3.0 * vec3(x, y, z)) * rotation;
             mesh.set_transformation(transformation);
+            transformations.push(transformation);
         }
         instanced_mesh.set_instances(&Instances {
-            translations,
-            rotations: Some(vec![rotation; count]),
+            transformations,
             ..Default::default()
         });
 

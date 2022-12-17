@@ -39,7 +39,7 @@ pub async fn run() {
     let mut instanced_model_with_computed_tangents = InstancedModel::<PhysicalMaterial>::new(
         &context,
         &Instances {
-            translations: vec![Vec3::zero()],
+            transformations: vec![Mat4::identity()],
             ..Default::default()
         },
         &cpu_model,
@@ -58,7 +58,7 @@ pub async fn run() {
     let mut instanced_model_with_loaded_tangents = InstancedModel::<PhysicalMaterial>::new(
         &context,
         &Instances {
-            translations: vec![Vec3::zero()],
+            transformations: vec![Mat4::identity()],
             ..Default::default()
         },
         &cpu_model,

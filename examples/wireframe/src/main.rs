@@ -105,7 +105,12 @@ pub async fn run() {
 
 fn vertex_transformations(cpu_mesh: &CpuMesh) -> Instances {
     Instances {
-        translations: cpu_mesh.positions.to_f32(),
+        transformations: cpu_mesh
+            .positions
+            .to_f32()
+            .into_iter()
+            .map(|p| Mat4::from_translation(p))
+            .collect(),
         ..Default::default()
     }
 }
@@ -113,9 +118,7 @@ fn vertex_transformations(cpu_mesh: &CpuMesh) -> Instances {
 fn edge_transformations(cpu_mesh: &CpuMesh) -> Instances {
     let indices = cpu_mesh.indices.to_u32().unwrap();
     let positions = cpu_mesh.positions.to_f32();
-    let mut translations = Vec::new();
-    let mut rotations = Vec::new();
-    let mut scales = Vec::new();
+    let mut transformations = Vec::new();
     let mut keys = Vec::new();
     for f in 0..indices.len() / 3 {
         let mut fun = |i1, i2| {
@@ -124,13 +127,15 @@ fn edge_transformations(cpu_mesh: &CpuMesh) -> Instances {
                 keys.push(key);
                 let p1: Vec3 = positions[i1];
                 let p2: Vec3 = positions[i2];
-                translations.push(p1);
-                scales.push(vec3((p1 - p2).magnitude(), 1.0, 1.0));
-                rotations.push(Quat::from_arc(
-                    vec3(1.0, 0.0, 0.0),
-                    (p2 - p1).normalize(),
-                    None,
-                ));
+                transformations.push(
+                    Mat4::from_translation(p1)
+                        * Into::<Mat4>::into(Quat::from_arc(
+                            vec3(1.0, 0.0, 0.0),
+                            (p2 - p1).normalize(),
+                            None,
+                        ))
+                        * Mat4::from_nonuniform_scale((p1 - p2).magnitude(), 1.0, 1.0),
+                );
             }
         };
         let i1 = indices[3 * f] as usize;
@@ -141,9 +146,7 @@ fn edge_transformations(cpu_mesh: &CpuMesh) -> Instances {
         fun(i3, i1);
     }
     Instances {
-        translations,
-        rotations: Some(rotations),
-        scales: Some(scales),
+        transformations,
         ..Default::default()
     }
 }
