@@ -62,6 +62,7 @@ impl InstancedMesh {
     ///
     /// Get the texture transform applied to the uv coordinates of all of the instances.
     ///
+    #[deprecated]
     pub fn texture_transform(&self) -> &Mat3 {
         &self.texture_transform
     }
@@ -70,6 +71,7 @@ impl InstancedMesh {
     /// Set the texture transform applied to the uv coordinates of all of the model instances.
     /// This is applied before the texture transform for each instance.
     ///
+    #[deprecated = "Set the texture transformation of Texture2DRef for a material instead"]
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }
@@ -223,7 +225,7 @@ impl InstancedMesh {
             );
         }
 
-        if let Some(texture_transforms) = &self.instances.texture_transforms {
+        if let Some(texture_transforms) = &self.instances.texture_transformations {
             let mut instance_tex_transform1 = Vec::new();
             let mut instance_tex_transform2 = Vec::new();
             for texture_transform in indices.iter().map(|i| texture_transforms[*i]) {
@@ -478,15 +480,14 @@ impl Geometry for InstancedMesh {
 ///
 /// Each list of attributes must contain the same number of elements as the number of instances.
 /// The attributes are applied to each instance before they are rendered.
-/// The translation, rotation and scale is applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).
-/// The texture transform is also applied after the texture transform applied to all instances (see [InstancedMesh::set_texture_transform]).
+/// The [Instances::transformations] are applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).
 ///
 #[derive(Clone, Debug, Default)]
 pub struct Instances {
     /// The transformations applied to each instance.
     pub transformations: Vec<Mat4>,
     /// The texture transform applied to the uv coordinates of each instance.
-    pub texture_transforms: Option<Vec<Mat3>>,
+    pub texture_transformations: Option<Vec<Mat3>>,
     /// Colors multiplied onto the base color of each instance.
     pub colors: Option<Vec<Color>>,
 }
@@ -511,8 +512,8 @@ impl Instances {
         };
 
         buffer_check(
-            self.texture_transforms.as_ref().map(|b| b.len()),
-            "texture transforms",
+            self.texture_transformations.as_ref().map(|b| b.len()),
+            "texture transformations",
         )?;
         buffer_check(Some(self.transformations.len()), "transformations")?;
         buffer_check(self.colors.as_ref().map(|b| b.len()), "colors")?;

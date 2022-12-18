@@ -19,29 +19,29 @@ pub struct DeferredPhysicalMaterial {
     /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
     pub albedo: Color,
     /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
-    pub albedo_texture: Option<Arc<Texture2D>>,
+    pub albedo_texture: Option<Texture2DRef>,
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the material surface is.
     pub roughness: f32,
     /// Texture containing the metallic and roughness parameters which are multiplied with the [Self::metallic] and [Self::roughness] values in the shader.
     /// The metallic values are sampled from the blue channel and the roughness from the green channel.
-    pub metallic_roughness_texture: Option<Arc<Texture2D>>,
+    pub metallic_roughness_texture: Option<Texture2DRef>,
     /// A scalar multiplier controlling the amount of occlusion applied from the [Self::occlusion_texture]. A value of 0.0 means no occlusion. A value of 1.0 means full occlusion.
     pub occlusion_strength: f32,
     /// An occlusion map. Higher values indicate areas that should receive full indirect lighting and lower values indicate no indirect lighting.
     /// The occlusion values are sampled from the red channel.
-    pub occlusion_texture: Option<Arc<Texture2D>>,
+    pub occlusion_texture: Option<Texture2DRef>,
     /// A scalar multiplier applied to each normal vector of the [Self::normal_texture].
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
-    pub normal_texture: Option<Arc<Texture2D>>,
+    pub normal_texture: Option<Texture2DRef>,
     /// Render states
     pub render_states: RenderStates,
     /// Color of light shining from an object.
     pub emissive: Color,
     /// Texture with color of light shining from an object.
-    pub emissive_texture: Option<Arc<Texture2D>>,
+    pub emissive_texture: Option<Texture2DRef>,
     /// A threshold on the alpha value of the color as a workaround for transparency.
     /// If the alpha value of a pixel touched by an object with this material is less than the threshold, then that object is not contributing to the color of that pixel.
     /// On the other hand, if the alpha value is more than the threshold, then it is contributing fully to that pixel and thereby blocks out everything behind.
@@ -55,40 +55,35 @@ impl DeferredPhysicalMaterial {
     /// [DeferredPhysicalMaterial::metallic_roughness_texture] and [DeferredPhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
     ///
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
-        } else {
-            None
-        };
+        let albedo_texture = cpu_material
+            .albedo_texture
+            .as_ref()
+            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
-                Some(Arc::new(Texture2D::new(&context, cpu_texture)))
+                Some(Arc::new(Texture2D::new(context, cpu_texture)).into())
             } else {
-                if let Some(ref cpu_texture) = cpu_material.metallic_roughness_texture {
-                    Some(Arc::new(Texture2D::new(&context, cpu_texture)))
-                } else {
-                    None
-                }
+                cpu_material
+                    .metallic_roughness_texture
+                    .as_ref()
+                    .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into())
             };
         let occlusion_texture = if cpu_material.occlusion_metallic_roughness_texture.is_some() {
             metallic_roughness_texture.clone()
         } else {
-            if let Some(ref cpu_texture) = cpu_material.occlusion_texture {
-                Some(Arc::new(Texture2D::new(&context, cpu_texture)))
-            } else {
-                None
-            }
+            cpu_material
+                .occlusion_texture
+                .as_ref()
+                .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into())
         };
-        let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
-            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
-        } else {
-            None
-        };
-        let emissive_texture = if let Some(ref cpu_texture) = cpu_material.emissive_texture {
-            Some(Arc::new(Texture2D::new(&context, cpu_texture)))
-        } else {
-            None
-        };
+        let normal_texture = cpu_material
+            .normal_texture
+            .as_ref()
+            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+        let emissive_texture = cpu_material
+            .emissive_texture
+            .as_ref()
+            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
         Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
@@ -174,7 +169,7 @@ impl DeferredPhysicalMaterial {
                     "viewProjectionInverse",
                     (camera.projection() * camera.view()).invert().unwrap(),
                 );
-                program.use_uniform("debug_type", DebugType::NONE as i32);
+                program.use_uniform("debug_type", DebugType::None as i32);
             },
         )
     }
@@ -236,20 +231,25 @@ impl Material for DeferredPhysicalMaterial {
         program.use_uniform("emissive", self.emissive);
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture);
+            program.use_uniform("albedoTexTransform", texture.transformation);
         }
         if let Some(ref texture) = self.metallic_roughness_texture {
             program.use_texture("metallicRoughnessTexture", texture);
+            program.use_uniform("metallicRoughnessTexTransform", texture.transformation);
         }
         if let Some(ref texture) = self.occlusion_texture {
             program.use_uniform("occlusionStrength", self.occlusion_strength);
+            program.use_uniform("occlusionTexTransform", texture.transformation);
             program.use_texture("occlusionTexture", texture);
         }
         if let Some(ref texture) = self.normal_texture {
             program.use_uniform("normalScale", self.normal_scale);
+            program.use_uniform("normalTexTransform", texture.transformation);
             program.use_texture("normalTexture", texture);
         }
         if program.requires_uniform("emissiveTexture") {
             if let Some(ref texture) = self.emissive_texture {
+                program.use_uniform("emissiveTexTransform", texture.transformation);
                 program.use_texture("emissiveTexture", texture);
             }
         }
@@ -286,17 +286,17 @@ impl Default for DeferredPhysicalMaterial {
 }
 
 ///
-/// Used for debug purposes.
+/// Used for debug purposes - only internal.
 ///
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[allow(missing_docs)]
 #[allow(dead_code)]
 enum DebugType {
-    POSITION,
-    NORMAL,
-    COLOR,
-    DEPTH,
-    ORM,
-    UV,
-    NONE,
+    Position,
+    Normal,
+    Color,
+    Depth,
+    Orm,
+    Uv,
+    None,
 }
