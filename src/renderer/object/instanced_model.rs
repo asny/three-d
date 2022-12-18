@@ -48,10 +48,12 @@ impl<M: Material + FromCpuMaterial + Clone + Default> InstancedModel<M> {
                 } else {
                     M::default()
                 };
-                gms.push(Gm {
+                let mut gm = Gm {
                     geometry: InstancedMesh::new(context, instances, &geometry),
                     material,
-                });
+                };
+                gm.set_transformation(primitive.transformation);
+                gms.push(gm);
             }
         }
         Ok(Self(gms))

@@ -75,7 +75,7 @@ impl Mesh {
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.current_transformation = transformation;
-        let mut aabb = self.aabb_local.clone();
+        let mut aabb = self.aabb_local;
         aabb.transform(&self.transformation);
         self.aabb = aabb;
     }
