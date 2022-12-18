@@ -33,14 +33,21 @@ pub async fn run() {
         .await
         .unwrap();
 
-    let mut cpu_model: CpuModel = loaded.deserialize("suzanne.obj").unwrap();
-    cpu_model.geometries[0]
+    let mut cpu_mesh: CpuMesh = loaded.deserialize("suzanne.obj").unwrap();
+    cpu_mesh
         .transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)))
         .unwrap();
-    let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
-        .unwrap()
-        .remove(0);
-    model.material.render_states.cull = Cull::Back;
+    let mut model_material = PhysicalMaterial::new_opaque(
+        &context,
+        &CpuMaterial {
+            albedo: Color::new_opaque(50, 50, 50),
+            roughness: 0.7,
+            metallic: 0.8,
+            ..Default::default()
+        },
+    );
+    model_material.render_states.cull = Cull::Back;
+    let model = Gm::new(Mesh::new(&context, &cpu_mesh), model_material);
     let mut wireframe_material = PhysicalMaterial::new_opaque(
         &context,
         &CpuMaterial {
@@ -56,22 +63,14 @@ pub async fn run() {
         .transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007))
         .unwrap();
     let edges = Gm::new(
-        InstancedMesh::new(
-            &context,
-            &edge_transformations(&cpu_model.geometries[0]),
-            &cylinder,
-        ),
+        InstancedMesh::new(&context, &edge_transformations(&cpu_mesh), &cylinder),
         wireframe_material.clone(),
     );
 
     let mut sphere = CpuMesh::sphere(8);
     sphere.transform(&Mat4::from_scale(0.015)).unwrap();
     let vertices = Gm::new(
-        InstancedMesh::new(
-            &context,
-            &vertex_transformations(&cpu_model.geometries[0]),
-            &sphere,
-        ),
+        InstancedMesh::new(&context, &vertex_transformations(&cpu_mesh), &sphere),
         wireframe_material,
     );
 
