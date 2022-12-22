@@ -1,5 +1,29 @@
-#![allow(unsafe_code)]
-use crate::core::Context;
+use crate::Context;
+use crate::WindowError;
+
+/// A headless graphics context (a graphics context that is not associated with any window).
+#[derive(Clone)]
+pub struct HeadlessContext {}
+
+impl HeadlessContext {
+    /// Resizes the context
+    pub fn resize(&self, _physical_size: winit::dpi::PhysicalSize<u32>) {}
+
+    /// Swap buffers - should always be called after rendering.
+    pub fn swap_buffers(&self) -> Result<(), WindowError> {
+        Ok(())
+    }
+}
+
+impl std::ops::Deref for HeadlessContext {
+    type Target = Context;
+
+    fn deref(&self) -> &Self::Target {
+        unimplemented!()
+    }
+}
+
+/*#![allow(unsafe_code)]
 use glutin::dpi::PhysicalSize;
 use glutin::event_loop::EventLoop;
 use glutin::{ContextBuilder, ContextCurrentState, CreationError, NotCurrent, PossiblyCurrent};
@@ -31,14 +55,6 @@ impl HeadlessContext {
             context,
             _glutin_context: Rc::new(glutin_context),
         })
-    }
-}
-
-impl Deref for HeadlessContext {
-    type Target = Context;
-
-    fn deref(&self) -> &Self::Target {
-        &self.context
     }
 }
 
@@ -107,3 +123,4 @@ fn build_context<T1: ContextCurrentState>(
     let el = EventLoop::new();
     build_context_headless(cb.clone(), &el).map(|ctx| (ctx, el))
 }
+*/
