@@ -1,5 +1,6 @@
 use crate::Context;
-use crate::ContextOptions;
+use crate::ContextSettings;
+use crate::WindowError;
 use std::sync::Arc;
 use winit::window::Window;
 
@@ -11,20 +12,20 @@ mod inner {
 
     use super::*;
     #[derive(Serialize, Deserialize)]
-    struct ContextSettings {
+    struct ContextOpt {
         pub antialias: bool,
     }
 
     /// A context used for rendering
-    pub struct WindowContext {
+    pub struct WindowedContext {
         pub(super) context: Context,
     }
 
-    impl WindowContext {
+    impl WindowedContext {
         /// Creates a new context from a [winit] window.
         pub fn from_winit_window(
             window: &Window,
-            options: super::ContextOptions,
+            settings: ContextSettings,
         ) -> Result<Self, WindowError> {
             let canvas = window.canvas();
 
@@ -32,8 +33,8 @@ mod inner {
             let webgl_context = canvas
                 .get_context_with_context_options(
                     "webgl2",
-                    &serde_wasm_bindgen::to_value(&ContextSettings {
-                        antialias: window_settings.multisamples > 0,
+                    &serde_wasm_bindgen::to_value(&ContextOpt {
+                        antialias: settings.multisamples > 0,
                     })
                     .unwrap(),
                 )
@@ -50,9 +51,7 @@ mod inner {
             webgl_context
                 .get_extension("OES_texture_float_linear")
                 .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
-            let gl = crate::core::Context::from_gl_context(Arc::new(
-                crate::context::Context::from_webgl2_context(webgl_context),
-            ))?;
+
             Ok(Self {
                 context: Context::from_gl_context(Arc::new(
                     crate::context::Context::from_webgl2_context(webgl_context),
@@ -64,7 +63,7 @@ mod inner {
         pub fn resize(&self, _physical_size: winit::dpi::PhysicalSize<u32>) {}
 
         /// Swap buffers - should always be called after rendering.
-        pub fn swap_buffers(&self) -> Result<(), Box<dyn std::error::Error>> {
+        pub fn swap_buffers(&self) -> Result<(), WindowError> {
             Ok(())
         }
     }
@@ -73,8 +72,6 @@ mod inner {
 #[cfg(not(target_arch = "wasm32"))]
 mod inner {
     use glutin::surface::*;
-
-    use crate::WindowError;
 
     use super::*;
     pub struct WindowedContext {
@@ -88,8 +85,11 @@ mod inner {
         #[allow(unsafe_code)]
         pub fn from_winit_window(
             window: &Window,
-            options: ContextOptions,
+            settings: ContextSettings,
         ) -> Result<Self, WindowError> {
+            if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
+                Err(WindowError::InvalidNumberOfMSAASamples)?;
+            }
             use glutin::prelude::*;
             use raw_window_handle::*;
             let raw_display_handle = window.raw_display_handle();
@@ -117,28 +117,28 @@ mod inner {
 
             let gl_display =
                 unsafe { glutin::display::Display::new(raw_display_handle, preference)? };
-            let swap_interval = if options.vsync {
+            let swap_interval = if settings.vsync {
                 glutin::surface::SwapInterval::Wait(std::num::NonZeroU32::new(1).unwrap())
             } else {
                 glutin::surface::SwapInterval::DontWait
             };
 
-            let hardware_acceleration = match options.hardware_acceleration {
+            let hardware_acceleration = match settings.hardware_acceleration {
                 crate::HardwareAcceleration::Required => Some(true),
                 crate::HardwareAcceleration::Preferred => None,
                 crate::HardwareAcceleration::Off => Some(false),
             };
             let config_template = glutin::config::ConfigTemplateBuilder::new()
                 .prefer_hardware_accelerated(hardware_acceleration)
-                .with_depth_size(options.depth_buffer);
-            // we don't know if multi sampling option is set. so, check if its more than 1.
-            let config_template = if options.multisamples > 1 {
-                config_template.with_multisampling(options.multisamples)
+                .with_depth_size(settings.depth_buffer);
+            // we don't know if multi sampling option is set. so, check if its more than 0.
+            let config_template = if settings.multisamples > 0 {
+                config_template.with_multisampling(settings.multisamples)
             } else {
                 config_template
             };
             let config_template = config_template
-                .with_stencil_size(options.stencil_buffer)
+                .with_stencil_size(settings.stencil_buffer)
                 .compatible_with_native_window(raw_window_handle)
                 .build();
             // finds all valid configurations supported by this display that match the
