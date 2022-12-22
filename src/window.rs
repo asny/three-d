@@ -13,6 +13,10 @@ mod winit_window;
 #[doc(inline)]
 pub use winit_window::*;
 
+mod windowed_context;
+#[doc(inline)]
+pub use windowed_context::*;
+
 #[cfg(not(target_arch = "wasm32"))]
 mod headless;
 #[doc(inline)]
@@ -27,10 +31,10 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
 pub enum WindowError {
-    #[error("failed creating a new window")]
-    WindowCreation(#[from] glutin::CreationError),
-    #[error("failed creating a new context")]
-    ContextCreation(#[from] glutin::ContextError),
+    #[error("glutin error")]
+    GlutinError(#[from] glutin::error::Error),
+    #[error("winit error")]
+    WinitError(#[from] winit::error::OsError),
     #[error("error in three-d")]
     ThreeDError(#[from] CoreError),
     #[error("the number of MSAA samples must be a power of two")]

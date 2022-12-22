@@ -21,11 +21,9 @@ mod web {
 pub struct Window {
     window: Option<winit::window::Window>,
     event_loop: Option<EventLoop<()>>,
-    #[cfg(not(target_arch = "wasm32"))]
-    glutin_context: Option<glutin::RawContext<glutin::PossiblyCurrent>>,
     #[cfg(target_arch = "wasm32")]
     closure: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
-    gl: MaybeHeadlessContext,
+    gl: GlContext,
 }
 
 impl Window {
@@ -61,31 +59,7 @@ impl Window {
             .build(&event_loop)?;
         let canvas = window.canvas();
 
-        // get webgl context and verify extensions
-        let webgl_context = canvas
-            .get_context_with_context_options(
-                "webgl2",
-                &serde_wasm_bindgen::to_value(&ContextSettings {
-                    antialias: window_settings.multisamples > 0,
-                })
-                .unwrap(),
-            )
-            .map_err(|e| WindowError::WebGL2NotSupported(format!(": {:?}", e)))?
-            .ok_or(WindowError::WebGL2NotSupported("".to_string()))?
-            .dyn_into::<web_sys::WebGl2RenderingContext>()
-            .map_err(|e| WindowError::WebGL2NotSupported(format!(": {:?}", e)))?;
-        webgl_context
-            .get_extension("EXT_color_buffer_float")
-            .map_err(|e| WindowError::ColorBufferFloatNotSupported(format!("{:?}", e)))?;
-        webgl_context
-            .get_extension("OES_texture_float")
-            .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
-        webgl_context
-            .get_extension("OES_texture_float_linear")
-            .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
-        let gl = crate::core::Context::from_gl_context(Arc::new(
-            crate::context::Context::from_webgl2_context(webgl_context),
-        ))?;
+        let gl = WindowedContext::from_winit_window(&window, ContextOptions::default());
 
         let closure = wasm_bindgen::closure::Closure::wrap(Box::new(move |event: web_sys::Event| {
             event.prevent_default();
@@ -112,67 +86,48 @@ impl Window {
             return Ok(Window {
                 window: None,
                 event_loop: None,
-                glutin_context: None,
-                gl: HeadlessContext::new()?.into(),
+                gl: GlContext::Headless(HeadlessContext {}),
             });
         } else {
             let event_loop = EventLoop::new();
-            let mut wc = Self::new_windowed_context(&settings, &event_loop);
-            if wc.is_err() {
-                settings.multisamples = 0;
-                wc = Self::new_windowed_context(&settings, &event_loop);
+            if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
+                Err(WindowError::InvalidNumberOfMSAASamples)?;
             }
-            let windowed_context = unsafe { wc?.make_current().unwrap() };
-            let context = unsafe {
-                crate::context::Context::from_loader_function(|s| {
-                    windowed_context.get_proc_address(s) as *const _
-                })
-            };
-            // in future, we might just use winit for everything and build raw context from https://github.com/rust-windowing/glutin/blob/master/glutin_examples/examples/raw_context.rs
-            let (glutin_context, winit_window) = unsafe { windowed_context.split() };
+            let borderless = settings.borderless;
+            let winit_window = if let Some((width, height)) = settings.max_size {
+                WindowBuilder::new()
+                    .with_title(&settings.title)
+                    .with_min_inner_size(dpi::LogicalSize::new(
+                        settings.min_size.0,
+                        settings.min_size.1,
+                    ))
+                    .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
+                    .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
+                    .with_decorations(!borderless)
+            } else {
+                WindowBuilder::new()
+                    .with_min_inner_size(dpi::LogicalSize::new(
+                        settings.min_size.0,
+                        settings.min_size.1,
+                    ))
+                    .with_title(&settings.title)
+                    .with_decorations(!borderless)
+                    .with_maximized(true)
+            }
+            .build(&event_loop)?;
+
+            let mut context_options = ContextOptions::default();
+            let mut gl = WindowedContext::from_winit_window(&winit_window, context_options);
+            if gl.is_err() {
+                context_options.multisamples = 0;
+                gl = WindowedContext::from_winit_window(&winit_window, context_options);
+            }
             Ok(Window {
                 window: Some(winit_window),
                 event_loop: Some(event_loop),
-                #[cfg(not(target_arch = "wasm32"))]
-                glutin_context: Some(glutin_context),
-                gl: Context::from_gl_context(std::sync::Arc::new(context))?.into(),
+                gl: GlContext::Headed(gl?),
             })
         }
-    }
-    #[cfg(not(target_arch = "wasm32"))]
-    fn new_windowed_context(
-        settings: &WindowSettings,
-        event_loop: &EventLoop<()>,
-    ) -> Result<glutin::WindowedContext<glutin::NotCurrent>, WindowError> {
-        if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
-            Err(WindowError::InvalidNumberOfMSAASamples)?;
-        }
-        let borderless = settings.borderless;
-        let window_builder = if let Some((width, height)) = settings.max_size {
-            WindowBuilder::new()
-                .with_title(&settings.title)
-                .with_min_inner_size(dpi::LogicalSize::new(
-                    settings.min_size.0,
-                    settings.min_size.1,
-                ))
-                .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
-                .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
-                .with_decorations(!borderless)
-        } else {
-            WindowBuilder::new()
-                .with_min_inner_size(dpi::LogicalSize::new(
-                    settings.min_size.0,
-                    settings.min_size.1,
-                ))
-                .with_title(&settings.title)
-                .with_decorations(!borderless)
-                .with_maximized(true)
-        };
-
-        Ok(glutin::ContextBuilder::new()
-            .with_multisampling(settings.multisamples as u16)
-            .with_vsync(settings.vsync)
-            .build_windowed(window_builder, event_loop)?)
     }
 
     ///
@@ -181,8 +136,6 @@ impl Window {
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
         if let Some(event_loop) = self.event_loop {
             let window = self.window.unwrap();
-            #[cfg(not(target_arch = "wasm32"))]
-            let glutin_context = self.glutin_context.unwrap();
             #[cfg(not(target_arch = "wasm32"))]
             let mut last_time = std::time::Instant::now();
             #[cfg(target_arch = "wasm32")]
@@ -194,7 +147,7 @@ impl Window {
             let mut modifiers = Modifiers::default();
             let mut first_frame = true;
             let mut mouse_pressed = None;
-            let context = self.gl.clone();
+            let context = self.gl;
             event_loop.run(move |event, _, control_flow| {
                 match event {
                     Event::LoopDestroyed => {
@@ -295,7 +248,7 @@ impl Window {
                         } else {
                             if frame_output.swap_buffers {
                                 #[cfg(not(target_arch = "wasm32"))]
-                                glutin_context.swap_buffers().unwrap();
+                                context.swap_buffers().unwrap();
                             }
                             if frame_output.wait_next_event {
                                 *control_flow = ControlFlow::Wait;
@@ -308,7 +261,7 @@ impl Window {
                     Event::WindowEvent { ref event, .. } => match event {
                         #[cfg(not(target_arch = "wasm32"))]
                         WindowEvent::Resized(physical_size) => {
-                            glutin_context.resize(*physical_size); // apparently some native contexts need to be resized manually to match window
+                            context.resize(*physical_size);
                         }
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::KeyboardInput { input, .. } => {
@@ -595,34 +548,42 @@ fn translate_virtual_key_code(key: event::VirtualKeyCode) -> Option<crate::Key> 
 }
 
 /// A graphics context that may be headed or headless.
-enum MaybeHeadlessContext {
+enum GlContext {
     /// Headed graphics context.
-    Haeded(Context),
+    Headed(WindowedContext),
     #[cfg(not(target_arch = "wasm32"))]
     /// Headless graphics context.
     Headless(HeadlessContext),
 }
 
-impl std::ops::Deref for MaybeHeadlessContext {
-    type Target = Context;
-
-    fn deref(&self) -> &Self::Target {
+impl GlContext {
+    /// Resizes the context
+    pub fn resize(&self, physical_size: winit::dpi::PhysicalSize<u32>) {
         match self {
-            Self::Haeded(context) => context,
+            Self::Headed(c) => c.resize(physical_size),
             #[cfg(not(target_arch = "wasm32"))]
-            Self::Headless(context) => context,
+            Self::Headless(c) => c.resize(physical_size),
+        }
+    }
+
+    /// Swap buffers - should always be called after rendering.
+    pub fn swap_buffers(&self) -> Result<(), WindowError> {
+        match self {
+            Self::Headed(c) => c.swap_buffers(),
+            #[cfg(not(target_arch = "wasm32"))]
+            Self::Headless(c) => c.swap_buffers(),
         }
     }
 }
 
-impl From<Context> for MaybeHeadlessContext {
-    fn from(context: Context) -> Self {
-        Self::Haeded(context)
-    }
-}
-#[cfg(not(target_arch = "wasm32"))]
-impl From<HeadlessContext> for MaybeHeadlessContext {
-    fn from(context: HeadlessContext) -> Self {
-        Self::Headless(context)
+impl std::ops::Deref for GlContext {
+    type Target = Context;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Self::Headed(context) => context,
+            #[cfg(not(target_arch = "wasm32"))]
+            Self::Headless(context) => context,
+        }
     }
 }
