@@ -6,15 +6,6 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit::*;
 
-#[cfg(target_arch = "wasm32")]
-mod web {
-    use serde::{Deserialize, Serialize};
-    #[derive(Serialize, Deserialize)]
-    pub struct ContextSettings {
-        pub antialias: bool,
-    }
-}
-
 ///
 /// Default window and event handler for easy setup.
 ///
@@ -33,10 +24,8 @@ impl Window {
         window_settings: WindowSettings,
         context_settings: ContextSettings,
     ) -> Result<Window, WindowError> {
-        use std::sync::Arc;
         use wasm_bindgen::JsCast;
-        use web::*;
-        use winit::platform::web::{WindowBuilderExtWebSys, WindowExtWebSys};
+        use winit::platform::web::WindowBuilderExtWebSys;
 
         let websys_window = web_sys::window().ok_or(WindowError::WindowCreation)?;
         let document = websys_window
@@ -118,8 +107,7 @@ impl Window {
         #[cfg(target_arch = "wasm32")]
         let closure = {
             use wasm_bindgen::JsCast;
-            use web::*;
-            use winit::platform::web::{WindowBuilderExtWebSys, WindowExtWebSys};
+            use winit::platform::web::WindowExtWebSys;
             let closure =
                 wasm_bindgen::closure::Closure::wrap(Box::new(move |event: web_sys::Event| {
                     event.prevent_default();

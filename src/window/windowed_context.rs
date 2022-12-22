@@ -7,7 +7,7 @@ use winit::window::Window;
 #[cfg(target_arch = "wasm32")]
 mod inner {
     use serde::{Deserialize, Serialize};
-    use wasm_bindgen::{JsCast, JsError};
+    use wasm_bindgen::JsCast;
     use winit::platform::web::WindowExtWebSys;
 
     use super::*;
