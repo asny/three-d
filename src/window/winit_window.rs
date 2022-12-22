@@ -29,7 +29,10 @@ pub struct Window {
 impl Window {
     /// function to create window on web platforms
     #[cfg(target_arch = "wasm32")]
-    pub fn new(window_settings: WindowSettings) -> Result<Window, WindowError> {
+    pub fn new(
+        window_settings: WindowSettings,
+        context_settings: ContextSettings,
+    ) -> Result<Window, WindowError> {
         use std::sync::Arc;
         use wasm_bindgen::JsCast;
         use web::*;
@@ -40,7 +43,6 @@ impl Window {
             .document()
             .ok_or(WindowError::DocumentMissing)?;
 
-        let event_loop = EventLoop::new();
         let canvas =
             if let Some(canvas) = window_settings.canvas {
                 canvas
@@ -51,55 +53,38 @@ impl Window {
             .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
             };
 
-        // create winit window
-        let window = WindowBuilder::new()
+        let event_loop = EventLoop::new();
+        let winit_window = WindowBuilder::new()
             .with_title(window_settings.title)
             .with_canvas(Some(canvas))
             .with_prevent_default(true)
             .build(&event_loop)?;
-        let canvas = window.canvas();
 
-        let gl = WindowedContext::from_winit_window(&window, ContextOptions::default());
-
-        let closure = wasm_bindgen::closure::Closure::wrap(Box::new(move |event: web_sys::Event| {
-            event.prevent_default();
-        }) as Box<dyn FnMut(_)>);
-        canvas
-            .add_event_listener_with_callback("contextmenu", closure.as_ref().unchecked_ref())
-            .expect("failed to listen to canvas context menu");
-
-        let window = Window {
-            window: Some(window),
-            event_loop: Some(event_loop),
-            closure,
-            gl: MaybeHeadlessContext::Haeded(gl),
-        };
-
-        Ok(window)
+        Self::from_winit_window(winit_window, event_loop, context_settings)
     }
     ///
     /// Constructs a new window with the given settings.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn new(mut settings: WindowSettings) -> Result<Window, WindowError> {
+    pub fn new(
+        window_settings: WindowSettings,
+        context_settings: ContextSettings,
+    ) -> Result<Window, WindowError> {
         if std::env::var("THREE_D_CI").is_ok() {
-            return Ok(Window {
+            Ok(Window {
                 window: None,
                 event_loop: None,
                 gl: GlContext::Headless(HeadlessContext {}),
-            });
+            })
         } else {
             let event_loop = EventLoop::new();
-            if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
-                Err(WindowError::InvalidNumberOfMSAASamples)?;
-            }
-            let borderless = settings.borderless;
-            let winit_window = if let Some((width, height)) = settings.max_size {
+            let borderless = window_settings.borderless;
+            let winit_window = if let Some((width, height)) = window_settings.max_size {
                 WindowBuilder::new()
-                    .with_title(&settings.title)
+                    .with_title(&window_settings.title)
                     .with_min_inner_size(dpi::LogicalSize::new(
-                        settings.min_size.0,
-                        settings.min_size.1,
+                        window_settings.min_size.0,
+                        window_settings.min_size.1,
                     ))
                     .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
                     .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
@@ -107,27 +92,52 @@ impl Window {
             } else {
                 WindowBuilder::new()
                     .with_min_inner_size(dpi::LogicalSize::new(
-                        settings.min_size.0,
-                        settings.min_size.1,
+                        window_settings.min_size.0,
+                        window_settings.min_size.1,
                     ))
-                    .with_title(&settings.title)
+                    .with_title(&window_settings.title)
                     .with_decorations(!borderless)
                     .with_maximized(true)
             }
             .build(&event_loop)?;
-
-            let mut context_options = ContextOptions::default();
-            let mut gl = WindowedContext::from_winit_window(&winit_window, context_options);
-            if gl.is_err() {
-                context_options.multisamples = 0;
-                gl = WindowedContext::from_winit_window(&winit_window, context_options);
-            }
-            Ok(Window {
-                window: Some(winit_window),
-                event_loop: Some(event_loop),
-                gl: GlContext::Headed(gl?),
-            })
+            Self::from_winit_window(winit_window, event_loop, context_settings)
         }
+    }
+
+    pub fn from_winit_window(
+        winit_window: window::Window,
+        event_loop: EventLoop<()>,
+        mut context_settings: ContextSettings,
+    ) -> Result<Self, WindowError> {
+        let mut gl = WindowedContext::from_winit_window(&winit_window, context_settings);
+        if gl.is_err() {
+            context_settings.multisamples = 0;
+            gl = WindowedContext::from_winit_window(&winit_window, context_settings);
+        }
+
+        #[cfg(target_arch = "wasm32")]
+        let closure = {
+            use wasm_bindgen::JsCast;
+            use web::*;
+            use winit::platform::web::{WindowBuilderExtWebSys, WindowExtWebSys};
+            let closure =
+                wasm_bindgen::closure::Closure::wrap(Box::new(move |event: web_sys::Event| {
+                    event.prevent_default();
+                }) as Box<dyn FnMut(_)>);
+            winit_window
+                .canvas()
+                .add_event_listener_with_callback("contextmenu", closure.as_ref().unchecked_ref())
+                .expect("failed to listen to canvas context menu");
+            closure
+        };
+
+        Ok(Window {
+            window: Some(winit_window),
+            event_loop: Some(event_loop),
+            gl: GlContext::Headed(gl?),
+            #[cfg(target_arch = "wasm32")]
+            closure,
+        })
     }
 
     ///
