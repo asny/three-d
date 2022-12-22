@@ -9,18 +9,26 @@ mod settings;
 #[doc(inline)]
 pub use settings::*;
 
+#[cfg(not(feature = "test"))]
 mod winit_window;
 #[doc(inline)]
+#[cfg(not(feature = "test"))]
 pub use winit_window::*;
+
+#[cfg(feature = "test")]
+mod test_window;
+#[doc(inline)]
+#[cfg(feature = "test")]
+pub use test_window::*;
 
 mod windowed_context;
 #[doc(inline)]
 pub use windowed_context::*;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(feature = "headless", not(target_arch = "wasm32")))]
 mod headless;
 #[doc(inline)]
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(feature = "headless", not(target_arch = "wasm32")))]
 pub use headless::*;
 
 use thiserror::Error;
