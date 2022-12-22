@@ -1,6 +1,7 @@
 #![allow(unsafe_code)]
 use crate::core::{Context, Viewport};
 use crate::window::*;
+use std::ops::Deref;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
@@ -9,12 +10,16 @@ use winit::*;
 ///
 /// Default window and event handler for easy setup.
 ///
-pub struct Window {
-    window: Option<winit::window::Window>,
-    event_loop: Option<EventLoop<()>>,
-    #[cfg(target_arch = "wasm32")]
-    closure: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
-    gl: GlContext,
+pub enum Window {
+    Prod {
+        window: winit::window::Window,
+        event_loop: EventLoop<()>,
+        #[cfg(target_arch = "wasm32")]
+        closure: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
+        gl: WindowedContext,
+    },
+    #[cfg(not(target_arch = "wasm32"))]
+    Test { gl: HeadlessContext },
 }
 
 impl Window {
@@ -60,10 +65,8 @@ impl Window {
         context_settings: ContextSettings,
     ) -> Result<Window, WindowError> {
         if std::env::var("THREE_D_CI").is_ok() {
-            Ok(Window {
-                window: None,
-                event_loop: None,
-                gl: GlContext::Headless(HeadlessContext {}),
+            Ok(Window::Test {
+                gl: HeadlessContext {},
             })
         } else {
             let event_loop = EventLoop::new();
@@ -119,10 +122,10 @@ impl Window {
             closure
         };
 
-        Ok(Window {
-            window: Some(winit_window),
-            event_loop: Some(event_loop),
-            gl: GlContext::Headed(gl?),
+        Ok(Window::Prod {
+            window: winit_window,
+            event_loop,
+            gl: gl?,
             #[cfg(target_arch = "wasm32")]
             closure,
         })
@@ -132,277 +135,290 @@ impl Window {
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
-        if let Some(event_loop) = self.event_loop {
-            let window = self.window.unwrap();
-            #[cfg(not(target_arch = "wasm32"))]
-            let mut last_time = std::time::Instant::now();
-            #[cfg(target_arch = "wasm32")]
-            let mut last_time = instant::Instant::now();
+        match self {
+            Self::Prod {
+                window,
+                event_loop,
+                gl,
+                #[cfg(target_arch = "wasm32")]
+                closure,
+            } => {
+                #[cfg(not(target_arch = "wasm32"))]
+                let mut last_time = std::time::Instant::now();
+                #[cfg(target_arch = "wasm32")]
+                let mut last_time = instant::Instant::now();
 
-            let mut accumulated_time = 0.0;
-            let mut events = Vec::new();
-            let mut cursor_pos = None;
-            let mut modifiers = Modifiers::default();
-            let mut first_frame = true;
-            let mut mouse_pressed = None;
-            let context = self.gl;
-            event_loop.run(move |event, _, control_flow| {
-                match event {
-                    Event::LoopDestroyed => {
-                        #[cfg(target_arch = "wasm32")]
-                        {
-                            use wasm_bindgen::JsCast;
-                            use winit::platform::web::WindowExtWebSys;
-                            window
-                                .canvas()
-                                .remove_event_listener_with_callback(
-                                    "contextmenu",
-                                    self.closure.as_ref().unchecked_ref(),
-                                )
+                let mut accumulated_time = 0.0;
+                let mut events = Vec::new();
+                let mut cursor_pos = None;
+                let mut modifiers = Modifiers::default();
+                let mut first_frame = true;
+                let mut mouse_pressed = None;
+                let context = gl;
+                event_loop.run(move |event, _, control_flow| {
+                    match event {
+                        Event::LoopDestroyed => {
+                            #[cfg(target_arch = "wasm32")]
+                            {
+                                use wasm_bindgen::JsCast;
+                                use winit::platform::web::WindowExtWebSys;
+                                window
+                                    .canvas()
+                                    .remove_event_listener_with_callback(
+                                        "contextmenu",
+                                        closure.as_ref().unchecked_ref(),
+                                    )
+                                    .unwrap();
+                            }
+                        }
+                        Event::MainEventsCleared => {
+                            window.request_redraw();
+                        }
+                        Event::RedrawRequested(_) => {
+                            #[cfg(not(target_arch = "wasm32"))]
+                            let now = std::time::Instant::now();
+                            #[cfg(target_arch = "wasm32")]
+                            let now = instant::Instant::now();
+
+                            let duration = now.duration_since(last_time);
+                            last_time = now;
+                            let elapsed_time = duration.as_secs() as f64 * 1000.0
+                                + duration.subsec_nanos() as f64 * 1e-6;
+                            accumulated_time += elapsed_time;
+
+                            #[cfg(target_arch = "wasm32")]
+                            {
+                                window.set_inner_size(winit::dpi::Size::Logical(
+                                    winit::dpi::LogicalSize {
+                                        width: web_sys::window()
+                                            .unwrap()
+                                            .inner_width()
+                                            .unwrap()
+                                            .as_f64()
+                                            .unwrap(),
+                                        height: web_sys::window()
+                                            .unwrap()
+                                            .inner_height()
+                                            .unwrap()
+                                            .as_f64()
+                                            .unwrap(),
+                                    },
+                                ));
+                            }
+
+                            let (physical_width, physical_height): (u32, u32) =
+                                window.inner_size().into();
+                            let device_pixel_ratio = window.scale_factor();
+                            let (width, height): (u32, u32) = window
+                                .inner_size()
+                                .to_logical::<f64>(device_pixel_ratio)
+                                .into();
+                            let frame_input = FrameInput {
+                                events: events.clone(),
+                                elapsed_time,
+                                accumulated_time,
+                                viewport: Viewport::new_at_origo(physical_width, physical_height),
+                                window_width: width,
+                                window_height: height,
+                                device_pixel_ratio: device_pixel_ratio,
+                                first_frame: first_frame,
+                                context: context.clone(),
+                            };
+                            first_frame = false;
+                            events.clear();
+                            let mut frame_output = callback(frame_input);
+                            #[cfg(not(target_arch = "wasm32"))]
+                            if let Ok(ref v) = std::env::var("THREE_D_SCREENSHOT") {
+                                let pixels =
+                                    RenderTarget::screen(&context, physical_width, physical_height)
+                                        .read_color::<[u8; 4]>();
+                                use three_d_asset::io::Serialize;
+                                CpuTexture {
+                                    data: TextureData::RgbaU8(pixels),
+                                    width: physical_width,
+                                    height: physical_height,
+                                    ..Default::default()
+                                }
+                                .serialize(v)
+                                .unwrap()
+                                .save()
                                 .unwrap();
-                        }
-                        return;
-                    }
-                    Event::MainEventsCleared => {
-                        window.request_redraw();
-                    }
-                    Event::RedrawRequested(_) => {
-                        #[cfg(not(target_arch = "wasm32"))]
-                        let now = std::time::Instant::now();
-                        #[cfg(target_arch = "wasm32")]
-                        let now = instant::Instant::now();
-
-                        let duration = now.duration_since(last_time);
-                        last_time = now;
-                        let elapsed_time = duration.as_secs() as f64 * 1000.0
-                            + duration.subsec_nanos() as f64 * 1e-6;
-                        accumulated_time += elapsed_time;
-
-                        #[cfg(target_arch = "wasm32")]
-                        {
-                            window.set_inner_size(winit::dpi::Size::Logical(
-                                winit::dpi::LogicalSize {
-                                    width: web_sys::window()
-                                        .unwrap()
-                                        .inner_width()
-                                        .unwrap()
-                                        .as_f64()
-                                        .unwrap(),
-                                    height: web_sys::window()
-                                        .unwrap()
-                                        .inner_height()
-                                        .unwrap()
-                                        .as_f64()
-                                        .unwrap(),
-                                },
-                            ));
-                        }
-
-                        let (physical_width, physical_height): (u32, u32) =
-                            window.inner_size().into();
-                        let device_pixel_ratio = window.scale_factor();
-                        let (width, height): (u32, u32) = window
-                            .inner_size()
-                            .to_logical::<f64>(device_pixel_ratio)
-                            .into();
-                        let frame_input = FrameInput {
-                            events: events.clone(),
-                            elapsed_time,
-                            accumulated_time,
-                            viewport: Viewport::new_at_origo(physical_width, physical_height),
-                            window_width: width,
-                            window_height: height,
-                            device_pixel_ratio: device_pixel_ratio,
-                            first_frame: first_frame,
-                            context: context.clone(),
-                        };
-                        first_frame = false;
-                        events.clear();
-                        let mut frame_output = callback(frame_input);
-                        #[cfg(not(target_arch = "wasm32"))]
-                        if let Ok(ref v) = std::env::var("THREE_D_SCREENSHOT") {
-                            let pixels =
-                                RenderTarget::screen(&context, physical_width, physical_height)
-                                    .read_color::<[u8; 4]>();
-                            use three_d_asset::io::Serialize;
-                            CpuTexture {
-                                data: TextureData::RgbaU8(pixels),
-                                width: physical_width,
-                                height: physical_height,
-                                ..Default::default()
                             }
-                            .serialize(v)
-                            .unwrap()
-                            .save()
-                            .unwrap();
-                        }
-                        if let Ok(v) = std::env::var("THREE_D_EXIT") {
-                            if v.parse::<f64>().unwrap() < accumulated_time {
-                                frame_output.exit = true;
+                            if let Ok(v) = std::env::var("THREE_D_EXIT") {
+                                if v.parse::<f64>().unwrap() < accumulated_time {
+                                    frame_output.exit = true;
+                                }
                             }
-                        }
-                        if frame_output.exit {
-                            *control_flow = ControlFlow::Exit;
-                        } else {
-                            if frame_output.swap_buffers {
-                                #[cfg(not(target_arch = "wasm32"))]
-                                context.swap_buffers().unwrap();
-                            }
-                            if frame_output.wait_next_event {
-                                *control_flow = ControlFlow::Wait;
+                            if frame_output.exit {
+                                *control_flow = ControlFlow::Exit;
                             } else {
-                                *control_flow = ControlFlow::Poll;
-                                window.request_redraw();
+                                if frame_output.swap_buffers {
+                                    #[cfg(not(target_arch = "wasm32"))]
+                                    context.swap_buffers().unwrap();
+                                }
+                                if frame_output.wait_next_event {
+                                    *control_flow = ControlFlow::Wait;
+                                } else {
+                                    *control_flow = ControlFlow::Poll;
+                                    window.request_redraw();
+                                }
                             }
                         }
-                    }
-                    Event::WindowEvent { ref event, .. } => match event {
-                        #[cfg(not(target_arch = "wasm32"))]
-                        WindowEvent::Resized(physical_size) => {
-                            context.resize(*physical_size);
-                        }
-                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                        WindowEvent::KeyboardInput { input, .. } => {
-                            if let Some(keycode) = input.virtual_keycode {
-                                use event::VirtualKeyCode;
-                                let state = input.state == event::ElementState::Pressed;
-                                if let Some(kind) = translate_virtual_key_code(keycode) {
-                                    events.push(if state {
-                                        crate::Event::KeyPress {
-                                            kind,
-                                            modifiers,
-                                            handled: false,
-                                        }
+                        Event::WindowEvent { ref event, .. } => match event {
+                            #[cfg(not(target_arch = "wasm32"))]
+                            WindowEvent::Resized(physical_size) => {
+                                context.resize(*physical_size);
+                            }
+                            WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                            WindowEvent::KeyboardInput { input, .. } => {
+                                if let Some(keycode) = input.virtual_keycode {
+                                    use event::VirtualKeyCode;
+                                    let state = input.state == event::ElementState::Pressed;
+                                    if let Some(kind) = translate_virtual_key_code(keycode) {
+                                        events.push(if state {
+                                            crate::Event::KeyPress {
+                                                kind,
+                                                modifiers,
+                                                handled: false,
+                                            }
+                                        } else {
+                                            crate::Event::KeyRelease {
+                                                kind,
+                                                modifiers,
+                                                handled: false,
+                                            }
+                                        });
                                     } else {
-                                        crate::Event::KeyRelease {
-                                            kind,
-                                            modifiers,
-                                            handled: false,
-                                        }
-                                    });
-                                } else {
-                                    if keycode == VirtualKeyCode::LControl
-                                        || keycode == VirtualKeyCode::RControl
-                                    {
-                                        modifiers.ctrl = state;
-                                        if !cfg!(target_os = "macos") {
-                                            modifiers.command = state;
-                                        }
-                                        events.push(crate::Event::ModifiersChange { modifiers });
-                                    } else if keycode == VirtualKeyCode::LAlt
-                                        || keycode == VirtualKeyCode::RAlt
-                                    {
-                                        modifiers.alt = state;
-                                        events.push(crate::Event::ModifiersChange { modifiers });
-                                    } else if keycode == VirtualKeyCode::LShift
-                                        || keycode == VirtualKeyCode::RShift
-                                    {
-                                        modifiers.shift = state;
-                                        events.push(crate::Event::ModifiersChange { modifiers });
-                                    } else if keycode == VirtualKeyCode::LWin
-                                        || keycode == VirtualKeyCode::RWin
-                                    {
-                                        if cfg!(target_os = "macos") {
-                                            modifiers.command = state;
+                                        if keycode == VirtualKeyCode::LControl
+                                            || keycode == VirtualKeyCode::RControl
+                                        {
+                                            modifiers.ctrl = state;
+                                            if !cfg!(target_os = "macos") {
+                                                modifiers.command = state;
+                                            }
                                             events
                                                 .push(crate::Event::ModifiersChange { modifiers });
+                                        } else if keycode == VirtualKeyCode::LAlt
+                                            || keycode == VirtualKeyCode::RAlt
+                                        {
+                                            modifiers.alt = state;
+                                            events
+                                                .push(crate::Event::ModifiersChange { modifiers });
+                                        } else if keycode == VirtualKeyCode::LShift
+                                            || keycode == VirtualKeyCode::RShift
+                                        {
+                                            modifiers.shift = state;
+                                            events
+                                                .push(crate::Event::ModifiersChange { modifiers });
+                                        } else if keycode == VirtualKeyCode::LWin
+                                            || keycode == VirtualKeyCode::RWin
+                                        {
+                                            if cfg!(target_os = "macos") {
+                                                modifiers.command = state;
+                                                events.push(crate::Event::ModifiersChange {
+                                                    modifiers,
+                                                });
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                        WindowEvent::MouseWheel { delta, .. } => {
-                            if let Some(position) = cursor_pos {
-                                match delta {
-                                    winit::event::MouseScrollDelta::LineDelta(x, y) => {
-                                        let line_height = 24.0; // TODO
-                                        events.push(crate::Event::MouseWheel {
-                                            delta: (
-                                                (*x * line_height) as f64,
-                                                (*y * line_height) as f64,
-                                            ),
-                                            position,
-                                            modifiers,
-                                            handled: false,
-                                        });
+                            WindowEvent::MouseWheel { delta, .. } => {
+                                if let Some(position) = cursor_pos {
+                                    match delta {
+                                        winit::event::MouseScrollDelta::LineDelta(x, y) => {
+                                            let line_height = 24.0; // TODO
+                                            events.push(crate::Event::MouseWheel {
+                                                delta: (
+                                                    (*x * line_height) as f64,
+                                                    (*y * line_height) as f64,
+                                                ),
+                                                position,
+                                                modifiers,
+                                                handled: false,
+                                            });
+                                        }
+                                        winit::event::MouseScrollDelta::PixelDelta(delta) => {
+                                            let d = delta.to_logical(window.scale_factor());
+                                            events.push(crate::Event::MouseWheel {
+                                                delta: (d.x, d.y),
+                                                position,
+                                                modifiers,
+                                                handled: false,
+                                            });
+                                        }
                                     }
-                                    winit::event::MouseScrollDelta::PixelDelta(delta) => {
-                                        let d = delta.to_logical(window.scale_factor());
-                                        events.push(crate::Event::MouseWheel {
-                                            delta: (d.x, d.y),
-                                            position,
-                                            modifiers,
-                                            handled: false,
+                                }
+                            }
+                            WindowEvent::MouseInput { state, button, .. } => {
+                                if let Some(position) = cursor_pos {
+                                    let button = match button {
+                                        event::MouseButton::Left => Some(crate::MouseButton::Left),
+                                        event::MouseButton::Middle => {
+                                            Some(crate::MouseButton::Middle)
+                                        }
+                                        event::MouseButton::Right => {
+                                            Some(crate::MouseButton::Right)
+                                        }
+                                        _ => None,
+                                    };
+                                    if let Some(b) = button {
+                                        events.push(if *state == event::ElementState::Pressed {
+                                            mouse_pressed = Some(b);
+                                            crate::Event::MousePress {
+                                                button: b,
+                                                position,
+                                                modifiers,
+                                                handled: false,
+                                            }
+                                        } else {
+                                            mouse_pressed = None;
+                                            crate::Event::MouseRelease {
+                                                button: b,
+                                                position,
+                                                modifiers,
+                                                handled: false,
+                                            }
                                         });
                                     }
                                 }
                             }
-                        }
-                        WindowEvent::MouseInput { state, button, .. } => {
-                            if let Some(position) = cursor_pos {
-                                let button = match button {
-                                    event::MouseButton::Left => Some(crate::MouseButton::Left),
-                                    event::MouseButton::Middle => Some(crate::MouseButton::Middle),
-                                    event::MouseButton::Right => Some(crate::MouseButton::Right),
-                                    _ => None,
+                            WindowEvent::CursorMoved { position, .. } => {
+                                let p = position.to_logical(window.scale_factor());
+                                let delta = if let Some(last_pos) = cursor_pos {
+                                    (p.x - last_pos.0, p.y - last_pos.1)
+                                } else {
+                                    (0.0, 0.0)
                                 };
-                                if let Some(b) = button {
-                                    events.push(if *state == event::ElementState::Pressed {
-                                        mouse_pressed = Some(b);
-                                        crate::Event::MousePress {
-                                            button: b,
-                                            position,
-                                            modifiers,
-                                            handled: false,
-                                        }
-                                    } else {
-                                        mouse_pressed = None;
-                                        crate::Event::MouseRelease {
-                                            button: b,
-                                            position,
-                                            modifiers,
-                                            handled: false,
-                                        }
-                                    });
+                                events.push(crate::Event::MouseMotion {
+                                    button: mouse_pressed,
+                                    delta,
+                                    position: (p.x, p.y),
+                                    modifiers,
+                                    handled: false,
+                                });
+                                cursor_pos = Some((p.x, p.y));
+                            }
+                            WindowEvent::ReceivedCharacter(ch) => {
+                                if is_printable_char(*ch) && !modifiers.ctrl && !modifiers.command {
+                                    events.push(crate::Event::Text(ch.to_string()));
                                 }
                             }
-                        }
-                        WindowEvent::CursorMoved { position, .. } => {
-                            let p = position.to_logical(window.scale_factor());
-                            let delta = if let Some(last_pos) = cursor_pos {
-                                (p.x - last_pos.0, p.y - last_pos.1)
-                            } else {
-                                (0.0, 0.0)
-                            };
-                            events.push(crate::Event::MouseMotion {
-                                button: mouse_pressed,
-                                delta,
-                                position: (p.x, p.y),
-                                modifiers,
-                                handled: false,
-                            });
-                            cursor_pos = Some((p.x, p.y));
-                        }
-                        WindowEvent::ReceivedCharacter(ch) => {
-                            if is_printable_char(*ch) && !modifiers.ctrl && !modifiers.command {
-                                events.push(crate::Event::Text(ch.to_string()));
+                            WindowEvent::CursorEntered { .. } => {
+                                events.push(crate::Event::MouseEnter);
                             }
-                        }
-                        WindowEvent::CursorEntered { .. } => {
-                            events.push(crate::Event::MouseEnter);
-                        }
-                        WindowEvent::CursorLeft { .. } => {
-                            mouse_pressed = None;
-                            events.push(crate::Event::MouseLeave);
-                        }
+                            WindowEvent::CursorLeft { .. } => {
+                                mouse_pressed = None;
+                                events.push(crate::Event::MouseLeave);
+                            }
+                            _ => (),
+                        },
                         _ => (),
-                    },
-                    _ => (),
-                }
-            });
-        } else {
+                    }
+                });
+            }
             #[cfg(not(target_arch = "wasm32"))]
-            {
+            Self::Test { gl } => {
                 let exit_time = if let Ok(v) = std::env::var("THREE_D_EXIT") {
                     v.parse::<f64>().unwrap()
                 } else {
@@ -423,12 +439,12 @@ impl Window {
                             events: Vec::new(),
                             elapsed_time,
                             accumulated_time,
-                            viewport: self.viewport(),
+                            viewport: Viewport::new_at_origo(1024, 1024),
                             device_pixel_ratio: 1.0,
-                            window_width: self.size().0,
-                            window_height: self.size().1,
+                            window_width: 1024,
+                            window_height: 1024,
                             first_frame,
-                            context: self.gl().clone(),
+                            context: gl.deref().clone(),
                         });
                         first_frame = false;
                     }
@@ -441,13 +457,13 @@ impl Window {
     /// Return the current logical size of the window.
     ///
     pub fn size(&self) -> (u32, u32) {
-        if let Some(ref window) = self.window {
+        if let Self::Prod { window, .. } = self {
             window
                 .inner_size()
                 .to_logical::<f64>(window.scale_factor())
                 .into()
         } else {
-            (1024, 1024)
+            unreachable!()
         }
     }
 
@@ -455,11 +471,11 @@ impl Window {
     /// Returns the current viewport of the window in physical pixels (the size of the screen [RenderTarget] which is returned from [FrameInput::screen]).
     ///
     pub fn viewport(&self) -> Viewport {
-        if let Some(ref window) = self.window {
+        if let Self::Prod { window, .. } = self {
             let (w, h): (u32, u32) = window.inner_size().into();
             Viewport::new_at_origo(w, h)
         } else {
-            Viewport::new_at_origo(1024, 1024)
+            unreachable!()
         }
     }
 
@@ -467,7 +483,11 @@ impl Window {
     /// Returns the graphics context for this window.
     ///
     pub fn gl(&self) -> Context {
-        self.gl.clone()
+        match self {
+            Self::Prod { gl, .. } => gl.deref().clone(),
+            #[cfg(not(target_arch = "wasm32"))]
+            Self::Test { gl } => gl.deref().clone(),
+        }
     }
 }
 
@@ -543,45 +563,4 @@ fn translate_virtual_key_code(key: event::VirtualKeyCode) -> Option<crate::Key> 
             return None;
         }
     })
-}
-
-/// A graphics context that may be headed or headless.
-enum GlContext {
-    /// Headed graphics context.
-    Headed(WindowedContext),
-    #[cfg(not(target_arch = "wasm32"))]
-    /// Headless graphics context.
-    Headless(HeadlessContext),
-}
-
-impl GlContext {
-    /// Resizes the context
-    pub fn resize(&self, physical_size: winit::dpi::PhysicalSize<u32>) {
-        match self {
-            Self::Headed(c) => c.resize(physical_size),
-            #[cfg(not(target_arch = "wasm32"))]
-            Self::Headless(c) => c.resize(physical_size),
-        }
-    }
-
-    /// Swap buffers - should always be called after rendering.
-    pub fn swap_buffers(&self) -> Result<(), WindowError> {
-        match self {
-            Self::Headed(c) => c.swap_buffers(),
-            #[cfg(not(target_arch = "wasm32"))]
-            Self::Headless(c) => c.swap_buffers(),
-        }
-    }
-}
-
-impl std::ops::Deref for GlContext {
-    type Target = Context;
-
-    fn deref(&self) -> &Self::Target {
-        match self {
-            Self::Headed(context) => context,
-            #[cfg(not(target_arch = "wasm32"))]
-            Self::Headless(context) => context,
-        }
-    }
 }
