@@ -162,6 +162,7 @@ path = "examples/normals/src/main.rs"
 [[example]]
 name = "headless"
 path = "examples/headless/src/main.rs"
+required-features = ["headless"]
 
 [[example]]
 name = "logo"
