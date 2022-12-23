@@ -4,11 +4,8 @@ use glutin_029::{
     NotCurrent, PossiblyCurrent,
 };
 use std::rc::Rc;
-
 use thiserror::Error;
-///
-/// Error in the [window](crate::window) module.
-///
+
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
