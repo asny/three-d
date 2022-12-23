@@ -11,9 +11,9 @@ mod winit_window;
 #[cfg(feature = "window")]
 pub use winit_window::*;
 
-#[cfg(all(feature = "test", not(feature = "window")))]
+#[cfg(all(feature = "test", not(feature = "window"), not(target_arch = "wasm32")))]
 mod test_window;
-#[cfg(all(feature = "test", not(feature = "window")))]
+#[cfg(all(feature = "test", not(feature = "window"), not(target_arch = "wasm32")))]
 pub use test_window::*;
 
 #[cfg(all(feature = "headless", not(target_arch = "wasm32")))]
