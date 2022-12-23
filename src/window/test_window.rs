@@ -16,7 +16,7 @@ impl Window {
     ) -> Result<Self, HeadlessError> {
         Ok(Self {
             context: HeadlessContext::new()?,
-            size: window_settings.min_size,
+            size: window_settings.max_size.unwrap_or(window_settings.min_size),
         })
     }
 
@@ -54,13 +54,13 @@ impl Window {
 
         #[cfg(not(target_arch = "wasm32"))]
         if let Ok(ref v) = std::env::var("THREE_D_SCREENSHOT") {
-            let pixels = RenderTarget::screen(&self.gl, physical_width, physical_height)
+            let pixels = RenderTarget::screen(&self.context, self.size.0, self.size.1)
                 .read_color::<[u8; 4]>();
             use three_d_asset::io::Serialize;
             CpuTexture {
                 data: TextureData::RgbaU8(pixels),
-                width: physical_width,
-                height: physical_height,
+                width: self.size.0,
+                height: self.size.1,
                 ..Default::default()
             }
             .serialize(v)
