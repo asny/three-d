@@ -50,6 +50,23 @@ impl Window {
                 first_frame = false;
             }
         }
+
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Ok(ref v) = std::env::var("THREE_D_SCREENSHOT") {
+            let pixels = RenderTarget::screen(&self.gl, physical_width, physical_height)
+                .read_color::<[u8; 4]>();
+            use three_d_asset::io::Serialize;
+            CpuTexture {
+                data: TextureData::RgbaU8(pixels),
+                width: physical_width,
+                height: physical_height,
+                ..Default::default()
+            }
+            .serialize(v)
+            .unwrap()
+            .save()
+            .unwrap();
+        }
     }
 
     ///
