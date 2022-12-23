@@ -25,6 +25,7 @@ impl Window {
         } else {
             300.0
         };
+        println!("Start test (exit time: {})", exit_time);
 
         let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
             &self.context,
@@ -46,7 +47,7 @@ impl Window {
 
         let mut last_time = std::time::Instant::now();
         let mut accumulated_time = 0.0;
-        let mut first_frame = true;
+        let mut frame_count = 0;
         while exit_time > accumulated_time {
             let now = std::time::Instant::now();
             let duration = now.duration_since(last_time);
@@ -63,16 +64,20 @@ impl Window {
                     device_pixel_ratio: 1.0,
                     window_width: self.size.0,
                     window_height: self.size.1,
-                    first_frame,
+                    first_frame: frame_count == 0,
                     context: self.context.deref().clone(),
                     render_target: std::rc::Rc::new(RenderTarget::new(
                         color_texture.as_color_target(None),
                         depth_texture.as_depth_target(),
                     )),
                 });
-                first_frame = false;
+                frame_count += 1;
             }
         }
+        println!(
+            "End test (accumulated time: {}, frame count: {})",
+            accumulated_time, frame_count
+        );
 
         if let Ok(ref v) = std::env::var("THREE_D_SCREENSHOT") {
             let pixels = RenderTarget::new(
