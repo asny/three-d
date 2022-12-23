@@ -10,7 +10,7 @@ impl Window {
         context_settings: ContextSettings,
     ) -> Result<Self, WindowError> {
         Ok(Self {
-            context: HeadlessContext {},
+            context: HeadlessContext::new()?,
         })
     }
 

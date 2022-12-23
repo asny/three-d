@@ -173,8 +173,7 @@ mod inner {
 
                         gl_display.get_proc_address(&s)
                     })
-                }))
-                .expect("Failed creating a gl context"),
+                }))?,
                 glutin_context: gl_context,
                 surface: gl_surface,
             })
