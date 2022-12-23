@@ -11,7 +11,7 @@ pub enum HardwareAcceleration {
     Off,
 }
 
-/// Options controlling the behavior of a [RenderContext].
+/// Settings controlling the behavior of the surface, ie. the [RenderTarget::screen].
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(dead_code)]
 pub struct ContextSettings {

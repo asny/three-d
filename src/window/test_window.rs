@@ -1,5 +1,7 @@
 use crate::*;
 
+include!("winit_window/settings.rs");
+
 pub struct Window {
     context: HeadlessContext,
 }
@@ -8,7 +10,7 @@ impl Window {
     pub fn new(
         window_settings: WindowSettings,
         context_settings: ContextSettings,
-    ) -> Result<Self, WindowError> {
+    ) -> Result<Self, HeadlessError> {
         Ok(Self {
             context: HeadlessContext::new()?,
         })
