@@ -8,7 +8,7 @@ pub fn main() {
             max_size: Some((1280, 720)),
             ..Default::default()
         },
-        ContextSettings::default(),
+        SurfaceSettings::default(),
     )
     .unwrap();
 
