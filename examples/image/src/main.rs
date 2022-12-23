@@ -9,11 +9,14 @@ use three_d::core::*;
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
-        title: "Image!".to_string(),
-        max_size: Some((1280, 720)),
-        ..Default::default()
-    })
+    let window = Window::new(
+        WindowSettings {
+            title: "Image!".to_string(),
+            max_size: Some((1280, 720)),
+            ..Default::default()
+        },
+        SurfaceSettings::default(),
+    )
     .unwrap();
     let context = window.gl();
 
