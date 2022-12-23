@@ -23,7 +23,7 @@ impl Window {
         let exit_time = if let Ok(v) = std::env::var("THREE_D_EXIT") {
             v.parse::<f64>().unwrap()
         } else {
-            3000.0
+            300.0
         };
 
         let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
