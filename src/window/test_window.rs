@@ -2,6 +2,7 @@ use crate::*;
 use std::ops::Deref;
 
 include!("winit_window/settings.rs");
+include!("winit_window/frame_io.rs");
 
 pub struct Window {
     context: HeadlessContext,

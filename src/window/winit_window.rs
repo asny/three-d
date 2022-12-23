@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
-use crate::core::{Context, Viewport};
-use crate::window::*;
+use crate::control::*;
+use crate::core::{Context, CoreError, Viewport};
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
@@ -8,6 +8,9 @@ use winit::*;
 
 mod settings;
 pub use settings::*;
+
+mod frame_io;
+pub use frame_io::*;
 
 mod windowed_context;
 pub use windowed_context::*;
