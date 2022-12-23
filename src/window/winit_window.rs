@@ -194,11 +194,11 @@ impl Window {
                     {
                         use wasm_bindgen::JsCast;
                         use winit::platform::web::WindowExtWebSys;
-                        window
+                        self.window
                             .canvas()
                             .remove_event_listener_with_callback(
                                 "contextmenu",
-                                closure.as_ref().unchecked_ref(),
+                                self.closure.as_ref().unchecked_ref(),
                             )
                             .unwrap();
                     }
@@ -220,20 +220,22 @@ impl Window {
 
                     #[cfg(target_arch = "wasm32")]
                     {
-                        window.set_inner_size(winit::dpi::Size::Logical(winit::dpi::LogicalSize {
-                            width: web_sys::window()
-                                .unwrap()
-                                .inner_width()
-                                .unwrap()
-                                .as_f64()
-                                .unwrap(),
-                            height: web_sys::window()
-                                .unwrap()
-                                .inner_height()
-                                .unwrap()
-                                .as_f64()
-                                .unwrap(),
-                        }));
+                        self.window.set_inner_size(winit::dpi::Size::Logical(
+                            winit::dpi::LogicalSize {
+                                width: web_sys::window()
+                                    .unwrap()
+                                    .inner_width()
+                                    .unwrap()
+                                    .as_f64()
+                                    .unwrap(),
+                                height: web_sys::window()
+                                    .unwrap()
+                                    .inner_height()
+                                    .unwrap()
+                                    .as_f64()
+                                    .unwrap(),
+                            },
+                        ));
                     }
 
                     let (physical_width, physical_height): (u32, u32) =
