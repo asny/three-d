@@ -71,7 +71,7 @@ impl Window {
     #[cfg(target_arch = "wasm32")]
     pub fn new(
         window_settings: WindowSettings,
-        context_settings: ContextSettings,
+        surface_settings: SurfaceSettings,
     ) -> Result<Window, WindowError> {
         use wasm_bindgen::JsCast;
         use winit::platform::web::WindowBuilderExtWebSys;
@@ -98,7 +98,7 @@ impl Window {
             .with_prevent_default(true)
             .build(&event_loop)?;
 
-        Self::from_winit_window(winit_window, event_loop, context_settings)
+        Self::from_winit_window(winit_window, event_loop, surface_settings)
     }
     ///
     /// Constructs a new window with the given settings.
@@ -106,7 +106,7 @@ impl Window {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(
         window_settings: WindowSettings,
-        context_settings: ContextSettings,
+        surface_settings: SurfaceSettings,
     ) -> Result<Self, WindowError> {
         let event_loop = EventLoop::new();
         let borderless = window_settings.borderless;
@@ -131,18 +131,18 @@ impl Window {
                 .with_maximized(true)
         }
         .build(&event_loop)?;
-        Self::from_winit_window(winit_window, event_loop, context_settings)
+        Self::from_winit_window(winit_window, event_loop, surface_settings)
     }
 
     pub fn from_winit_window(
         winit_window: window::Window,
         event_loop: EventLoop<()>,
-        mut context_settings: ContextSettings,
+        mut surface_settings: SurfaceSettings,
     ) -> Result<Self, WindowError> {
-        let mut gl = WindowedContext::from_winit_window(&winit_window, context_settings);
+        let mut gl = WindowedContext::from_winit_window(&winit_window, surface_settings);
         if gl.is_err() {
-            context_settings.multisamples = 0;
-            gl = WindowedContext::from_winit_window(&winit_window, context_settings);
+            surface_settings.multisamples = 0;
+            gl = WindowedContext::from_winit_window(&winit_window, surface_settings);
         }
 
         #[cfg(target_arch = "wasm32")]

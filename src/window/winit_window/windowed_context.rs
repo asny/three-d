@@ -1,5 +1,5 @@
 use crate::Context;
-use crate::ContextSettings;
+use crate::SurfaceSettings;
 use crate::WindowError;
 use std::sync::Arc;
 use winit::window::Window;
@@ -25,7 +25,7 @@ mod inner {
         /// Creates a new context from a [winit] window.
         pub fn from_winit_window(
             window: &Window,
-            settings: ContextSettings,
+            settings: SurfaceSettings,
         ) -> Result<Self, WindowError> {
             let canvas = window.canvas();
 
@@ -85,7 +85,7 @@ mod inner {
         #[allow(unsafe_code)]
         pub fn from_winit_window(
             window: &Window,
-            settings: ContextSettings,
+            settings: SurfaceSettings,
         ) -> Result<Self, WindowError> {
             if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
                 Err(WindowError::InvalidNumberOfMSAASamples)?;

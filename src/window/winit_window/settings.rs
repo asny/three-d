@@ -14,7 +14,7 @@ pub enum HardwareAcceleration {
 /// Settings controlling the behavior of the surface, ie. the [crate::RenderTarget::screen].
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(dead_code)]
-pub struct ContextSettings {
+pub struct SurfaceSettings {
     /// Turn on vertical syncing, limiting the FPS to the display refresh rate.
     /// The default is true.
     ///
@@ -39,7 +39,7 @@ pub struct ContextSettings {
     pub hardware_acceleration: HardwareAcceleration,
 }
 
-impl Default for ContextSettings {
+impl Default for SurfaceSettings {
     fn default() -> Self {
         Self {
             vsync: true,

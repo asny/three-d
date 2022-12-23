@@ -11,7 +11,7 @@ pub struct Window {
 impl Window {
     pub fn new(
         window_settings: WindowSettings,
-        context_settings: ContextSettings,
+        surface_settings: SurfaceSettings,
     ) -> Result<Self, HeadlessError> {
         Ok(Self {
             context: HeadlessContext::new()?,
