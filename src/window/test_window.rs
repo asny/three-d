@@ -1,9 +1,11 @@
 use crate::*;
+use std::ops::Deref;
 
 include!("winit_window/settings.rs");
 
 pub struct Window {
     context: HeadlessContext,
+    size: (u32, u32),
 }
 
 impl Window {
@@ -13,10 +15,11 @@ impl Window {
     ) -> Result<Self, HeadlessError> {
         Ok(Self {
             context: HeadlessContext::new()?,
+            size: window_settings.min_size,
         })
     }
 
-    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
+    pub fn render_loop(self, mut callback: impl 'static + FnMut(FrameInput) -> FrameOutput) {
         let exit_time = if let Ok(v) = std::env::var("THREE_D_EXIT") {
             v.parse::<f64>().unwrap()
         } else {
@@ -37,12 +40,12 @@ impl Window {
                     events: Vec::new(),
                     elapsed_time,
                     accumulated_time,
-                    viewport: Viewport::new_at_origo(1024, 1024),
+                    viewport: self.viewport(),
                     device_pixel_ratio: 1.0,
-                    window_width: 1024,
-                    window_height: 1024,
+                    window_width: self.size.0,
+                    window_height: self.size.1,
                     first_frame,
-                    context: (*self.context).clone(),
+                    context: self.context.deref().clone(),
                 });
                 first_frame = false;
             }
@@ -53,20 +56,20 @@ impl Window {
     /// Return the current logical size of the window.
     ///
     pub fn size(&self) -> (u32, u32) {
-        (1024, 1024)
+        self.size
     }
 
     ///
     /// Returns the current viewport of the window in physical pixels (the size of the screen [RenderTarget] which is returned from [FrameInput::screen]).
     ///
     pub fn viewport(&self) -> Viewport {
-        Viewport::new_at_origo(1024, 1024)
+        Viewport::new_at_origo(self.size.0, self.size.1)
     }
 
     ///
     /// Returns the graphics context for this window.
     ///
     pub fn gl(&self) -> Context {
-        (*self.context).clone()
+        self.context.deref().clone()
     }
 }

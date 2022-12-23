@@ -11,7 +11,7 @@ pub enum HardwareAcceleration {
     Off,
 }
 
-/// Settings controlling the behavior of the surface, ie. the [RenderTarget::screen].
+/// Settings controlling the behavior of the surface, ie. the [crate::RenderTarget::screen].
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(dead_code)]
 pub struct ContextSettings {
