@@ -1,10 +1,21 @@
-use crate::{Context, WindowError};
+use crate::{Context, CoreError};
 use glutin_029::{
-    event_loop::EventLoop, ContextBuilder, ContextCurrentState, CreationError, NotCurrent,
-    PossiblyCurrent,
+    dpi::PhysicalSize, event_loop::EventLoop, ContextBuilder, ContextCurrentState, CreationError,
+    NotCurrent, PossiblyCurrent,
 };
 use std::rc::Rc;
-use winit::dpi::PhysicalSize;
+
+use thiserror::Error;
+///
+/// Error in the [window](crate::window) module.
+///
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Error, Debug)]
+#[allow(missing_docs)]
+pub enum HeadlessError {
+    #[error("error in three-d")]
+    ThreeDError(#[from] CoreError),
+}
 
 /// A headless graphics context (a graphics context that is not associated with any window).
 #[derive(Clone)]
@@ -18,7 +29,7 @@ impl HeadlessContext {
     /// Creates a new headless graphics context (a graphics context that is not associated with any window).
     ///
     #[allow(unsafe_code)]
-    pub fn new() -> Result<Self, WindowError> {
+    pub fn new() -> Result<Self, HeadlessError> {
         let cb = ContextBuilder::new();
         let (glutin_context, _el) = build_context(cb).unwrap();
         let glutin_context = unsafe { glutin_context.make_current().unwrap() };
