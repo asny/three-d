@@ -8,11 +8,14 @@ async fn main() {
 }
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
-        title: "Wireframe!".to_string(),
-        max_size: Some((1280, 720)),
-        ..Default::default()
-    })
+    let window = Window::new(
+        WindowSettings {
+            title: "Wireframe!".to_string(),
+            max_size: Some((1280, 720)),
+            ..Default::default()
+        },
+        SurfaceSettings::default(),
+    )
     .unwrap();
     let context = window.gl();
 

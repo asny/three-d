@@ -8,11 +8,14 @@ async fn main() {
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
-        title: "Logo!".to_string(),
-        max_size: Some((1280, 300)),
-        ..Default::default()
-    })
+    let window = Window::new(
+        WindowSettings {
+            title: "Logo!".to_string(),
+            max_size: Some((1280, 300)),
+            ..Default::default()
+        },
+        SurfaceSettings::default(),
+    )
     .unwrap();
     let context = window.gl();
 
