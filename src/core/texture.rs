@@ -17,6 +17,10 @@ mod texture2d_array;
 #[doc(inline)]
 pub use texture2d_array::*;
 
+mod texture2d_multisample;
+#[doc(inline)]
+pub use texture2d_multisample::*;
+
 mod texture3d;
 #[doc(inline)]
 pub use texture3d::*;
@@ -28,6 +32,10 @@ pub use depth_texture2d_array::*;
 mod depth_texture_cube_map;
 #[doc(inline)]
 pub use depth_texture_cube_map::*;
+
+mod depth_texture2d_multisample;
+#[doc(inline)]
+pub use depth_texture2d_multisample::*;
 
 use data_type::*;
 pub use three_d_asset::texture::{
@@ -82,6 +90,8 @@ pub enum ColorTexture<'a> {
         texture: &'a TextureCubeMap,
         sides: &'a [CubeMapSide],
     },
+    /// A multisampled 2D texture.
+    Multisample(&'a Texture2DMultisample),
 }
 
 impl ColorTexture<'_> {
@@ -93,6 +103,7 @@ impl ColorTexture<'_> {
             ColorTexture::Single(texture) => texture.width(),
             ColorTexture::Array { texture, .. } => texture.width(),
             ColorTexture::CubeMap { texture, .. } => texture.width(),
+            ColorTexture::Multisample(texture) => texture.width(),
         }
     }
 
@@ -104,6 +115,7 @@ impl ColorTexture<'_> {
             ColorTexture::Single(texture) => texture.height(),
             ColorTexture::Array { texture, .. } => texture.height(),
             ColorTexture::CubeMap { texture, .. } => texture.height(),
+            ColorTexture::Multisample(texture) => texture.height(),
         }
     }
 }
@@ -126,6 +138,8 @@ pub enum DepthTexture<'a> {
         texture: &'a DepthTextureCubeMap,
         side: CubeMapSide,
     },
+    /// A multisampled 2D texture.
+    Multisample(&'a DepthTexture2DMultisample),
 }
 
 impl DepthTexture<'_> {
@@ -137,6 +151,7 @@ impl DepthTexture<'_> {
             DepthTexture::Single(texture) => texture.width(),
             DepthTexture::Array { texture, .. } => texture.width(),
             DepthTexture::CubeMap { texture, .. } => texture.width(),
+            DepthTexture::Multisample(texture) => texture.width(),
         }
     }
 
@@ -148,6 +163,7 @@ impl DepthTexture<'_> {
             DepthTexture::Single(texture) => texture.height(),
             DepthTexture::Array { texture, .. } => texture.height(),
             DepthTexture::CubeMap { texture, .. } => texture.height(),
+            DepthTexture::Multisample(texture) => texture.height(),
         }
     }
 }
