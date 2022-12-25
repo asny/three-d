@@ -54,6 +54,17 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
+    pub(in crate::core) fn new_texture_2d_multisample(
+        context: &Context,
+        texture: &'a Texture2DMultisample,
+    ) -> Self {
+        ColorTarget {
+            context: context.clone(),
+            mip_level: None,
+            target: ColorTexture::Multisample(texture),
+        }
+    }
+
     ///
     /// Clears the color of this color target as defined by the given clear state.
     ///
@@ -152,6 +163,7 @@ impl<'a> ColorTarget<'a> {
             ColorTexture::Single(texture) => size_with_mip(texture.width(), self.mip_level),
             ColorTexture::Array { texture, .. } => size_with_mip(texture.width(), self.mip_level),
             ColorTexture::CubeMap { texture, .. } => size_with_mip(texture.width(), self.mip_level),
+            ColorTexture::Multisample(texture) => texture.width(),
         }
     }
 
@@ -165,7 +177,8 @@ impl<'a> ColorTarget<'a> {
             ColorTexture::Array { texture, .. } => size_with_mip(texture.height(), self.mip_level),
             ColorTexture::CubeMap { texture, .. } => {
                 size_with_mip(texture.height(), self.mip_level)
-            }
+            },
+            ColorTexture::Multisample(texture) => texture.height(),
         }
     }
 
@@ -196,7 +209,8 @@ impl<'a> ColorTarget<'a> {
                 if self.mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
-            }
+            },
+            ColorTexture::Multisample(_) => {},
         }
     }
 
@@ -234,6 +248,10 @@ impl<'a> ColorTarget<'a> {
                     );
                 }
             },
+            ColorTexture::Multisample(texture) => unsafe {
+                context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
+                texture.bind_as_color_target(0);
+            }
         }
     }
 }

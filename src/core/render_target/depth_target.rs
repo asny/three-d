@@ -42,6 +42,16 @@ impl<'a> DepthTarget<'a> {
         }
     }
 
+    pub(in crate::core) fn new_texture_2d_multisample(
+        context: &Context,
+        texture: &'a DepthTexture2DMultisample,
+    ) -> Self {
+        Self {
+            context: context.clone(),
+            target: DepthTexture::Multisample(texture),
+        }
+    }
+
     ///
     /// Clears the depth of this depth target as defined by the given clear state.
     ///
@@ -129,6 +139,7 @@ impl<'a> DepthTarget<'a> {
             DepthTexture::Single(texture) => texture.width(),
             DepthTexture::Array { texture, .. } => texture.width(),
             DepthTexture::CubeMap { texture, .. } => texture.width(),
+            DepthTexture::Multisample(texture) => texture.width(),
         }
     }
 
@@ -140,6 +151,7 @@ impl<'a> DepthTarget<'a> {
             DepthTexture::Single(texture) => texture.height(),
             DepthTexture::Array { texture, .. } => texture.height(),
             DepthTexture::CubeMap { texture, .. } => texture.height(),
+            DepthTexture::Multisample(texture) => texture.height(),
         }
     }
 
@@ -160,6 +172,9 @@ impl<'a> DepthTarget<'a> {
             }
             DepthTexture::CubeMap { texture, side } => {
                 texture.bind_as_depth_target(*side);
+            },
+            DepthTexture::Multisample(texture) => {
+                texture.bind_as_depth_target();
             }
         }
     }

@@ -306,6 +306,20 @@ impl ColorTexture<'_> {
                 }"
             .to_owned(),
             Self::CubeMap { .. } => unimplemented!(),
+            Self::Multisample(_) => "
+                uniform sampler2DMS colorMap;
+                uniform int colorMapSamples;
+                vec4 sample_color(vec2 uv)
+                {
+                    ivec2 coord = ivec2(uv * textureSize(colorMap));
+                    vec4 c = vec4(0.0);
+                    for(int i = 0; i < colorMapSamples; i++)
+                    {
+                        c += texelFetch(colorMap, coord, i);
+                    }
+                    return c / float(colorMapSamples);
+                }"
+            .to_owned(),
         }
     }
 
@@ -325,6 +339,10 @@ impl ColorTexture<'_> {
                 program.use_texture_array("colorMap", texture);
             }
             Self::CubeMap { .. } => unimplemented!(),
+            Self::Multisample(texture) => {
+                program.use_texture_multisample("colorMap", texture);
+                program.use_uniform("colorMapSamples", texture.number_of_samples() as i32);
+            }
         }
     }
 
@@ -336,6 +354,7 @@ impl ColorTexture<'_> {
             Self::Single(texture) => (texture.width(), texture.height()),
             Self::Array { texture, .. } => (texture.width(), texture.height()),
             Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
+            Self::Multisample(texture) => (texture.width(), texture.height()),
         }
     }
 }
@@ -363,7 +382,22 @@ impl DepthTexture<'_> {
             .to_owned(),
             Self::CubeMap { .. } => {
                 unimplemented!()
-            }
+            },
+            Self::Multisample(_) => "
+                uniform sampler2DMS depthMap;
+                uniform int depthMapSamples;
+                float sample_depth(vec2 uv)
+                {
+                    ivec2 coord = ivec2(uv * textureSize(depthMap));
+                    float d = 0.0;
+                    for(int i = 0; i < depthMapSamples; i++)
+                    {
+                        d += texelFetch(depthMap, coord, i).x;
+                    }
+                    return d / float(depthMapSamples);
+                }
+            "
+            .to_owned(),
         }
     }
 
@@ -378,6 +412,10 @@ impl DepthTexture<'_> {
                 program.use_depth_texture_array("depthMap", texture);
             }
             Self::CubeMap { .. } => unimplemented!(),
+            Self::Multisample(texture) => {
+                program.use_depth_texture_multisample("depthMap", texture);
+                program.use_uniform("depthMapSamples", texture.number_of_samples() as i32);
+            }
         }
     }
 
@@ -389,6 +427,7 @@ impl DepthTexture<'_> {
             Self::Single(texture) => (texture.width(), texture.height()),
             Self::Array { texture, .. } => (texture.width(), texture.height()),
             Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
+            Self::Multisample(texture) => (texture.width(), texture.height()),
         }
     }
 }
