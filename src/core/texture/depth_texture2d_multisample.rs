@@ -76,7 +76,6 @@ impl DepthTexture2DMultisample {
                 Some(self.id),
                 0,
             );
-            println!("DepthTexture2DMultisample bind_as_depth_target: {:?}", self.context.error_check());
         }
     }
 
