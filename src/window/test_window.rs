@@ -3,6 +3,34 @@ use std::ops::Deref;
 
 include!("winit_window/settings.rs");
 
+mod inner_mod {
+    include!("winit_window/frame_io.rs");
+}
+
+pub use inner_mod::FrameOutput;
+///
+/// Input from the window to the rendering (and whatever else needs it) each frame.
+///
+#[derive(Clone)]
+pub struct FrameInput<'a> {
+    pub inner: inner_mod::FrameInput,
+
+    pub render_target: std::rc::Rc<RenderTarget<'a>>,
+}
+
+impl<'a> FrameInput<'a> {
+    pub fn screen(&'a self) -> &'a RenderTarget {
+        self.render_target.as_ref()
+    }
+}
+
+impl std::ops::Deref for FrameInput<'_> {
+    type Target = inner_mod::FrameInput;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
 pub struct Window {
     context: HeadlessContext,
     size: (u32, u32),
@@ -57,15 +85,17 @@ impl Window {
                     duration.as_secs() as f64 * 1000.0 + duration.subsec_nanos() as f64 * 1e-6;
                 accumulated_time += elapsed_time;
                 callback(FrameInput {
-                    events: Vec::new(),
-                    elapsed_time,
-                    accumulated_time,
-                    viewport: self.viewport(),
-                    device_pixel_ratio: 1.0,
-                    window_width: self.size.0,
-                    window_height: self.size.1,
-                    first_frame: frame_count == 0,
-                    context: self.context.deref().clone(),
+                    inner: inner_mod::FrameInput {
+                        events: Vec::new(),
+                        elapsed_time,
+                        accumulated_time,
+                        viewport: self.viewport(),
+                        device_pixel_ratio: 1.0,
+                        window_width: self.size.0,
+                        window_height: self.size.1,
+                        first_frame: frame_count == 0,
+                        context: self.context.deref().clone(),
+                    },
                     render_target: std::rc::Rc::new(RenderTarget::new(
                         color_texture.as_color_target(None),
                         depth_texture.as_depth_target(),
@@ -118,85 +148,5 @@ impl Window {
     ///
     pub fn gl(&self) -> Context {
         self.context.deref().clone()
-    }
-}
-use crate::control::*;
-use crate::core::*;
-
-///
-/// Input from the window to the rendering (and whatever else needs it) each frame.
-///
-#[derive(Clone)]
-pub struct FrameInput<'a> {
-    /// A list of [events](crate::Event) which has occurred since last frame.
-    pub events: Vec<Event>,
-
-    /// Milliseconds since last frame.
-    pub elapsed_time: f64,
-
-    /// Milliseconds accumulated time since start.
-    pub accumulated_time: f64,
-
-    /// Viewport of the window in physical pixels (the size of the screen [RenderTarget] which is returned from [FrameInput::screen]).
-    pub viewport: Viewport,
-
-    /// Width of the window in logical pixels.
-    pub window_width: u32,
-
-    /// Height of the window in logical pixels.
-    pub window_height: u32,
-
-    /// Number of physical pixels for each logical pixel.
-    pub device_pixel_ratio: f64,
-
-    /// Whether or not this is the first frame.
-    pub first_frame: bool,
-
-    /// The graphics context for the window.
-    pub context: Context,
-
-    pub render_target: std::rc::Rc<RenderTarget<'a>>,
-}
-
-impl<'a> FrameInput<'a> {
-    pub fn screen(&'a self) -> &'a RenderTarget {
-        self.render_target.as_ref()
-    }
-}
-
-///
-/// Output from the rendering to the window each frame.
-///
-#[derive(Clone, Debug)]
-pub struct FrameOutput {
-    ///
-    /// If this is true:
-    /// - On desktop, the window is closed and the renderloop is stopped.
-    /// - On web, the render loop is stopped, the event handlers are removed and the `Window` dropped. Note that the canvas is not removed.
-    ///
-    pub exit: bool,
-
-    ///
-    /// Swaps the back and front buffer if this is true.
-    /// Set this to true if something have been rendered this frame and you want to display it.
-    /// Set it to false if nothing have been rendered this frame, for example if nothing has changed,
-    /// and you want to reuse the image from an old frame.
-    /// Currently ignored on web, since it does not use double buffering.
-    ///
-    pub swap_buffers: bool,
-
-    ///
-    /// Whether to stop the render loop until next event.
-    ///
-    pub wait_next_event: bool,
-}
-
-impl Default for FrameOutput {
-    fn default() -> Self {
-        Self {
-            exit: false,
-            swap_buffers: true,
-            wait_next_event: false,
-        }
     }
 }
