@@ -72,10 +72,7 @@ pub struct Window {
 impl Window {
     /// function to create window on web platforms
     #[cfg(target_arch = "wasm32")]
-    pub fn new(
-        window_settings: WindowSettings,
-        surface_settings: SurfaceSettings,
-    ) -> Result<Window, WindowError> {
+    pub fn new(window_settings: WindowSettings) -> Result<Window, WindowError> {
         use wasm_bindgen::JsCast;
         use winit::platform::web::WindowBuilderExtWebSys;
 
@@ -101,16 +98,13 @@ impl Window {
             .with_prevent_default(true)
             .build(&event_loop)?;
 
-        Self::from_winit_window(winit_window, event_loop, surface_settings)
+        Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
     }
     ///
     /// Constructs a new window with the given settings.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn new(
-        window_settings: WindowSettings,
-        surface_settings: SurfaceSettings,
-    ) -> Result<Self, WindowError> {
+    pub fn new(window_settings: WindowSettings) -> Result<Self, WindowError> {
         let event_loop = EventLoop::new();
         let borderless = window_settings.borderless;
         let winit_window = if let Some((width, height)) = window_settings.max_size {
@@ -134,7 +128,7 @@ impl Window {
                 .with_maximized(true)
         }
         .build(&event_loop)?;
-        Self::from_winit_window(winit_window, event_loop, surface_settings)
+        Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
     }
 
     pub fn from_winit_window(

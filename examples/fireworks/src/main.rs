@@ -43,14 +43,11 @@ fn main() {
 }
 
 pub fn run() {
-    let window = Window::new(
-        WindowSettings {
-            title: "Fireworks!".to_string(),
-            max_size: Some((1280, 720)),
-            ..Default::default()
-        },
-        SurfaceSettings::default(),
-    )
+    let window = Window::new(WindowSettings {
+        title: "Fireworks!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
     .unwrap();
     let context = window.gl();
 
