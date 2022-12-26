@@ -300,33 +300,30 @@ impl Window {
                                         handled: false,
                                     }
                                 });
-                            } else {
-                                if keycode == VirtualKeyCode::LControl
-                                    || keycode == VirtualKeyCode::RControl
-                                {
-                                    modifiers.ctrl = state;
-                                    if !cfg!(target_os = "macos") {
-                                        modifiers.command = state;
-                                    }
-                                    events.push(crate::Event::ModifiersChange { modifiers });
-                                } else if keycode == VirtualKeyCode::LAlt
-                                    || keycode == VirtualKeyCode::RAlt
-                                {
-                                    modifiers.alt = state;
-                                    events.push(crate::Event::ModifiersChange { modifiers });
-                                } else if keycode == VirtualKeyCode::LShift
-                                    || keycode == VirtualKeyCode::RShift
-                                {
-                                    modifiers.shift = state;
-                                    events.push(crate::Event::ModifiersChange { modifiers });
-                                } else if keycode == VirtualKeyCode::LWin
-                                    || keycode == VirtualKeyCode::RWin
-                                {
-                                    if cfg!(target_os = "macos") {
-                                        modifiers.command = state;
-                                        events.push(crate::Event::ModifiersChange { modifiers });
-                                    }
+                            } else if keycode == VirtualKeyCode::LControl
+                                || keycode == VirtualKeyCode::RControl
+                            {
+                                modifiers.ctrl = state;
+                                if !cfg!(target_os = "macos") {
+                                    modifiers.command = state;
                                 }
+                                events.push(crate::Event::ModifiersChange { modifiers });
+                            } else if keycode == VirtualKeyCode::LAlt
+                                || keycode == VirtualKeyCode::RAlt
+                            {
+                                modifiers.alt = state;
+                                events.push(crate::Event::ModifiersChange { modifiers });
+                            } else if keycode == VirtualKeyCode::LShift
+                                || keycode == VirtualKeyCode::RShift
+                            {
+                                modifiers.shift = state;
+                                events.push(crate::Event::ModifiersChange { modifiers });
+                            } else if (keycode == VirtualKeyCode::LWin
+                                || keycode == VirtualKeyCode::RWin)
+                                && cfg!(target_os = "macos")
+                            {
+                                modifiers.command = state;
+                                events.push(crate::Event::ModifiersChange { modifiers });
                             }
                         }
                     }
@@ -448,9 +445,9 @@ impl Window {
 }
 
 fn is_printable_char(chr: char) -> bool {
-    let is_in_private_use_area = '\u{e000}' <= chr && chr <= '\u{f8ff}'
-        || '\u{f0000}' <= chr && chr <= '\u{ffffd}'
-        || '\u{100000}' <= chr && chr <= '\u{10fffd}';
+    let is_in_private_use_area = ('\u{e000}'..='\u{f8ff}').contains(&chr)
+        || ('\u{f0000}'..='\u{ffffd}').contains(&chr)
+        || ('\u{100000}'..='\u{10fffd}').contains(&chr);
 
     !is_in_private_use_area && !chr.is_ascii_control()
 }
