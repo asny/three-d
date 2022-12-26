@@ -59,7 +59,8 @@ pub enum WindowError {
 }
 
 ///
-/// Default window and event handler for easy setup.
+/// Window and event handling.
+/// Use [Window::new] to create a new window or [Window::from_winit_window] which provides full control over the creation of the window.
 ///
 pub struct Window {
     window: winit::window::Window,
@@ -100,6 +101,7 @@ impl Window {
 
         Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
     }
+
     ///
     /// Constructs a new window with the given settings.
     ///
@@ -131,6 +133,11 @@ impl Window {
         Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
     }
 
+    ///
+    /// Creates a new window from a [winit](https://crates.io/crates/winit) window and event loop with the given surface settings, giving the user full
+    /// control over the creation of the window.
+    /// This method takes ownership of the winit window and event loop, if this is not desired, use a [WindowedContext] or [crate::HeadlessContext] instead.
+    ///
     pub fn from_winit_window(
         winit_window: window::Window,
         event_loop: EventLoop<()>,
@@ -425,7 +432,7 @@ impl Window {
     }
 
     ///
-    /// Returns the current viewport of the window in physical pixels (the size of the screen [RenderTarget] which is returned from [FrameInput::screen]).
+    /// Returns the current viewport of the window in physical pixels (the size of the screen returned from [FrameInput::screen]).
     ///
     pub fn viewport(&self) -> Viewport {
         let (w, h): (u32, u32) = self.window.inner_size().into();
