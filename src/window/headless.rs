@@ -12,10 +12,6 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
 pub enum HeadlessError {
-    #[cfg(target_os = "linux")]
-    #[error("glutin error")]
-    GlutinCreationError(#[from] [glutin_029::CreationError; 2]),
-    #[cfg(not(target_os = "linux"))]
     #[error("glutin error")]
     GlutinCreationError(#[from] glutin_029::CreationError),
     #[error("glutin error")]
@@ -92,7 +88,7 @@ fn build_context_osmesa<T1: ContextCurrentState>(
 #[cfg(target_os = "linux")]
 fn build_context<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
-) -> Result<(glutin_029::Context<NotCurrent>, EventLoop<()>), [CreationError; 2]> {
+) -> Result<(glutin_029::Context<NotCurrent>, EventLoop<()>), CreationError> {
     // On unix operating systems, you should always try for surfaceless first,
     // and if that does not work, headless (pbuffers), and if that too fails,
     // finally osmesa.
@@ -118,7 +114,7 @@ fn build_context<T1: ContextCurrentState>(
         Err(err) => err,
     };
 
-    Err([err2, err3])
+    Err(err2)
 }
 
 #[cfg(not(target_os = "linux"))]
