@@ -17,7 +17,7 @@ pub use windowed_context::*;
 
 use thiserror::Error;
 ///
-/// Error in the [window](crate::window) module.
+/// Error associated with a window.
 ///
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Error, Debug)]
@@ -34,7 +34,7 @@ pub enum WindowError {
 }
 
 ///
-/// Error in the [window](crate::window) module.
+/// Error associated with a window.
 ///
 #[cfg(target_arch = "wasm32")]
 #[derive(Error, Debug)]
