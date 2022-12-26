@@ -76,6 +76,8 @@ pub struct WindowSettings {
     /// if this is None, the DOM (`index.html`) must contain a canvas element
     #[cfg(target_arch = "wasm32")]
     pub canvas: Option<web_sys::HtmlCanvasElement>,
+
+    pub surface_settings: SurfaceSettings,
 }
 impl Default for WindowSettings {
     fn default() -> Self {
@@ -86,6 +88,20 @@ impl Default for WindowSettings {
             borderless: false,
             #[cfg(target_arch = "wasm32")]
             canvas: None,
+            surface_settings: SurfaceSettings::default(),
         }
+    }
+}
+
+impl std::ops::Deref for WindowSettings {
+    type Target = SurfaceSettings;
+    fn deref(&self) -> &Self::Target {
+        &self.surface_settings
+    }
+}
+
+impl std::ops::DerefMut for WindowSettings {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.surface_settings
     }
 }
