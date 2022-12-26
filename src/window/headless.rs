@@ -6,10 +6,16 @@ use glutin_029::{
 use std::rc::Rc;
 use thiserror::Error;
 
-#[cfg(not(target_arch = "wasm32"))]
+///
+/// Error associated with a headless context.
+///
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
 pub enum HeadlessError {
+    #[error("glutin error")]
+    GlutinCreationError(#[from] glutin_029::CreationError),
+    #[error("glutin error")]
+    GlutinContextError(#[from] glutin_029::ContextError),
     #[error("error in three-d")]
     ThreeDError(#[from] CoreError),
 }
@@ -32,8 +38,8 @@ impl HeadlessContext {
     #[allow(unsafe_code)]
     pub fn new() -> Result<Self, HeadlessError> {
         let cb = ContextBuilder::new();
-        let (glutin_context, _el) = build_context(cb).unwrap();
-        let glutin_context = unsafe { glutin_context.make_current().unwrap() };
+        let (glutin_context, _el) = build_context(cb)?;
+        let glutin_context = unsafe { glutin_context.make_current().map_err(|(_, e)| e)? };
         let context = Context::from_gl_context(std::sync::Arc::new(unsafe {
             crate::context::Context::from_loader_function(|s| {
                 glutin_context.get_proc_address(s) as *const _
