@@ -12,6 +12,10 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
 pub enum HeadlessError {
+    #[cfg(target_os = "linux")]
+    #[error("glutin error")]
+    GlutinCreationError(#[from] [glutin_029::CreationError; 2]),
+    #[cfg(not(target_os = "linux"))]
     #[error("glutin error")]
     GlutinCreationError(#[from] glutin_029::CreationError),
     #[error("glutin error")]
