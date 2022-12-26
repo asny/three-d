@@ -31,22 +31,23 @@ impl std::ops::Deref for FrameInput<'_> {
     }
 }
 
+///
+/// Only for testing purposes!
+///
 pub struct Window {
     context: HeadlessContext,
     size: (u32, u32),
 }
 
 impl Window {
-    pub fn new(
-        window_settings: WindowSettings,
-        surface_settings: SurfaceSettings,
-    ) -> Result<Self, HeadlessError> {
+    ///
+    pub fn new(window_settings: WindowSettings) -> Result<Self, HeadlessError> {
         Ok(Self {
             context: HeadlessContext::new()?,
             size: window_settings.max_size.unwrap_or(window_settings.min_size),
         })
     }
-
+    ///
     pub fn render_loop(self, mut callback: impl 'static + FnMut(FrameInput) -> FrameOutput) {
         let exit_time = if let Ok(v) = std::env::var("THREE_D_EXIT") {
             v.parse::<f64>().unwrap()
