@@ -6,14 +6,20 @@ use winit::window::Window;
 
 #[cfg(target_arch = "wasm32")]
 mod inner {
+    use crate::HardwareAcceleration;
     use serde::{Deserialize, Serialize};
     use wasm_bindgen::JsCast;
     use winit::platform::web::WindowExtWebSys;
 
     use super::*;
+    #[allow(non_snake_case)]
     #[derive(Serialize, Deserialize)]
     struct ContextOpt {
         pub antialias: bool,
+        pub depth: bool,
+        pub stencil: bool,
+        pub willReadFrequently: bool,
+        pub alpha: bool,
     }
 
     /// A context used for rendering
@@ -35,6 +41,14 @@ mod inner {
                     "webgl2",
                     &serde_wasm_bindgen::to_value(&ContextOpt {
                         antialias: settings.multisamples > 0,
+                        depth: settings.depth_buffer > 0,
+                        stencil: settings.stencil_buffer > 0,
+                        willReadFrequently: match settings.hardware_acceleration {
+                            HardwareAcceleration::Required => false,
+                            HardwareAcceleration::Preferred => false,
+                            HardwareAcceleration::Off => true,
+                        },
+                        alpha: false,
                     })
                     .unwrap(),
                 )
