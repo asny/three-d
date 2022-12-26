@@ -88,6 +88,10 @@ mod inner {
     use glutin::surface::*;
 
     use super::*;
+    ///
+    /// A windowed graphics context, ie. a graphics context that is associated with a window.
+    /// For a graphics context that is not associated with a window, see [HeadlessContext](crate::HeadlessContext).
+    ///
     pub struct WindowedContext {
         pub(super) context: Context,
         surface: Surface<WindowSurface>,
@@ -95,7 +99,7 @@ mod inner {
     }
 
     impl WindowedContext {
-        /// Creates a new context from a [winit] window.
+        /// Creates a new windowed context from a [winit](https://crates.io/crates/winit) window.
         #[allow(unsafe_code)]
         pub fn from_winit_window(
             window: &Window,

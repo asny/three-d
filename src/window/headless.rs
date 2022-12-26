@@ -14,7 +14,11 @@ pub enum HeadlessError {
     ThreeDError(#[from] CoreError),
 }
 
-/// A headless graphics context (a graphics context that is not associated with any window).
+///
+/// A headless graphics context, ie. a graphics context that is not associated with any window.
+/// For a graphics context associated with a window, see [WindowedContext](crate::WindowedContext).
+/// Can only be created on native, not on web.
+///
 #[derive(Clone)]
 pub struct HeadlessContext {
     context: Context,
@@ -23,7 +27,7 @@ pub struct HeadlessContext {
 
 impl HeadlessContext {
     ///
-    /// Creates a new headless graphics context (a graphics context that is not associated with any window).
+    /// Creates a new headless graphics context.
     ///
     #[allow(unsafe_code)]
     pub fn new() -> Result<Self, HeadlessError> {
