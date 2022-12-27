@@ -35,8 +35,8 @@ impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
         self.geometry.aabb()
     }
 
-    fn animate(&mut self, time: f32, animation_name: Option<String>) {
-        self.geometry.animate(time, animation_name)
+    fn animate(&mut self, time: f32) {
+        self.geometry.animate(time)
     }
 
     fn render_with_material(

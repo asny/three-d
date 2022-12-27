@@ -14,6 +14,7 @@ pub struct Mesh {
     transformation: Mat4,
     current_transformation: Mat4,
     animations: Vec<KeyFrameAnimation>,
+    animation_name: Option<String>,
     texture_transform: Mat3,
 }
 
@@ -42,6 +43,7 @@ impl Mesh {
             current_transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
             animations,
+            animation_name: None,
         }
     }
 
@@ -82,6 +84,14 @@ impl Mesh {
         let mut aabb = self.aabb_local;
         aabb.transform(&self.transformation);
         self.aabb = aabb;
+    }
+
+    pub fn animation_name(&mut self) -> Option<&str> {
+        self.animation_name.as_ref().map(|x| &**x)
+    }
+
+    pub fn set_animation_name(&mut self, animation_name: Option<String>) {
+        self.animation_name = animation_name;
     }
 
     ///
@@ -182,11 +192,11 @@ impl Geometry for Mesh {
         self.aabb
     }
 
-    fn animate(&mut self, time: f32, animation_name: Option<String>) {
+    fn animate(&mut self, time: f32) {
         if let Some(animation) = self
             .animations
             .iter()
-            .find(|a| animation_name == a.name)
+            .find(|a| self.animation_name == a.name)
             .or_else(|| self.animations.first())
         {
             self.current_transformation = self.transformation * animation.transformation(time);

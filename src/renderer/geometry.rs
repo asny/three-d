@@ -84,7 +84,7 @@ pub trait Geometry {
     ///
     fn aabb(&self) -> AxisAlignedBoundingBox;
 
-    fn animate(&mut self, _time: f32, _animation_name: Option<String>) {}
+    fn animate(&mut self, _time: f32) {}
 }
 
 impl<T: Geometry + ?Sized> Geometry for &T {

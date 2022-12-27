@@ -50,7 +50,7 @@ pub async fn run() {
 
         model
             .iter_mut()
-            .for_each(|m| m.animate(0.001 * frame_input.accumulated_time as f32, None));
+            .for_each(|m| m.animate(0.001 * frame_input.accumulated_time as f32));
 
         frame_input
             .screen()
