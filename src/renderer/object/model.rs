@@ -1,7 +1,4 @@
 use crate::renderer::*;
-
-pub use three_d_asset::KeyFrameAnimation;
-pub use three_d_asset::KeyFrames;
 pub use three_d_asset::Model as CpuModel;
 
 ///

@@ -38,7 +38,7 @@ pub async fn run() {
     cpu_model
         .geometries
         .iter_mut()
-        .for_each(|part| part.geometry.compute_normals());
+        .for_each(|part| part.compute_normals());
     let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
 
     let light = AmbientLight::new(&context, 1.0, Color::WHITE);

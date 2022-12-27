@@ -40,7 +40,8 @@ use crate::core::*;
 use crate::renderer::*;
 
 pub use three_d_asset::{
-    Geometry as CpuGeometry, Indices, PointCloud, Positions, TriMesh as CpuMesh,
+    Geometry as CpuGeometry, Indices, KeyFrameAnimation, KeyFrames, PointCloud, Positions,
+    TriMesh as CpuMesh,
 };
 
 ///
