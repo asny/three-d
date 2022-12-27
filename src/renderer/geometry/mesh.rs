@@ -102,11 +102,11 @@ impl Mesh {
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", &self.current_transformation);
-        program.use_uniform_if_required("textureTransform", &self.texture_transform);
+        program.use_uniform("modelMatrix", self.current_transformation);
+        program.use_uniform_if_required("textureTransform", self.texture_transform);
         program.use_uniform_if_required(
             "normalMatrix",
-            &self.current_transformation.invert().unwrap().transpose(),
+            self.current_transformation.invert().unwrap().transpose(),
         );
 
         for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
@@ -114,7 +114,7 @@ impl Mesh {
                 program.use_vertex_attribute(
                     attribute_name,
                     self.vertex_buffers
-                        .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
+                        .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
                 );
             }
         }
@@ -125,17 +125,17 @@ impl Mesh {
             program.draw_arrays(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
+                self.vertex_buffers.get("position").unwrap().vertex_count(),
             )
         }
     }
 
     fn vertex_shader_source(fragment_shader_source: &str) -> String {
-        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
-        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
-        let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
-        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
-        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
+        let use_positions = fragment_shader_source.contains("in vec3 pos;");
+        let use_normals = fragment_shader_source.contains("in vec3 nor;");
+        let use_tangents = fragment_shader_source.contains("in vec3 tang;");
+        let use_uvs = fragment_shader_source.contains("in vec2 uvs;");
+        let use_colors = fragment_shader_source.contains("in vec4 col;");
         format!(
             "{}{}{}{}{}{}{}",
             if use_positions {
@@ -149,7 +149,7 @@ impl Mesh {
                 ""
             },
             if use_tangents {
-                if fragment_shader_source.find("in vec3 bitang;").is_none() {
+                if !fragment_shader_source.contains("in vec3 bitang;") {
                     panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
                 }
                 "#define USE_TANGENTS\n"
