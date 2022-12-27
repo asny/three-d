@@ -12,16 +12,14 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
-  THREE_D_EXIT: 300
-  THREE_D_CI: 1
 
 jobs:
   desktop:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        rust: [ stable, nightly ]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [stable, nightly]
 
     steps:
       - uses: actions/checkout@v2
@@ -77,12 +75,6 @@ jobs:
             fi
           done
 
-  cargo-deny:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: EmbarkStudios/cargo-deny-action@v1
-
   examples:
     runs-on: ubuntu-latest
     steps:
@@ -107,7 +99,7 @@ jobs:
           for example in `find examples -maxdepth 1 -mindepth 1 -type d -printf "%f\n"` ; do
             if [ -f "examples/$example/Cargo.toml" ]; then
               echo "::group::Run $example example"
-              xvfb-run -a cargo run --example $example --all-features
+              xvfb-run -a cargo run --example $example --no-default-features --features="egui-gui, test"
               echo "::endgroup::"
             fi
           done
