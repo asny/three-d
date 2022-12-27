@@ -1,5 +1,3 @@
-use three_d_asset::KeyFrames;
-
 use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
@@ -15,8 +13,7 @@ pub struct Mesh {
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
     current_transformation: Mat4,
-    pub animations: Vec<(Mat4, Vec<KeyFrames>)>,
-    pub animation_name: Option<String>,
+    animations: Vec<KeyFrameAnimation>,
     texture_transform: Mat3,
 }
 
@@ -26,18 +23,25 @@ impl Mesh {
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     ///
     pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
+        Self::new_animated(context, cpu_mesh, Vec::new())
+    }
+
+    pub fn new_animated(
+        context: &Context,
+        cpu_mesh: &CpuMesh,
+        animations: Vec<KeyFrameAnimation>,
+    ) -> Self {
         let aabb = cpu_mesh.compute_aabb();
         Self {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
             aabb,
-            aabb_local: aabb.clone(),
+            aabb_local: aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
-            animations: Vec::new(),
-            animation_name: None,
+            animations,
         }
     }
 
@@ -178,17 +182,15 @@ impl Geometry for Mesh {
         self.aabb
     }
 
-    fn animate(&mut self, time: f32) {
-        let mut transformation = Mat4::identity();
-        for (t, animations) in self.animations.iter() {
-            for animation in animations {
-                if self.animation_name.is_none() || self.animation_name == animation.name {
-                    transformation = animation.transformation(time) * transformation;
-                }
-            }
-            transformation = t * transformation;
+    fn animate(&mut self, time: f32, animation_name: Option<String>) {
+        if let Some(animation) = self
+            .animations
+            .iter()
+            .find(|a| animation_name == a.name)
+            .or_else(|| self.animations.first())
+        {
+            self.current_transformation = self.transformation * animation.transformation(time);
         }
-        self.current_transformation = self.transformation * transformation;
     }
 
     fn render_with_material(

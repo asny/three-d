@@ -132,7 +132,7 @@ impl<M: Material> Water<M> {
     /// For updating the animation. The time parameter should be some continious time, for example the time since start.
     ///
     pub fn animate(&mut self, time: f32) {
-        self.patches.iter_mut().for_each(|m| m.animate(time));
+        self.patches.iter_mut().for_each(|m| m.animate(time, None));
     }
 
     fn indices(context: &Context) -> Arc<ElementBuffer> {
@@ -294,7 +294,7 @@ impl Geometry for WaterPatch {
         ])
     }
 
-    fn animate(&mut self, time: f32) {
+    fn animate(&mut self, time: f32, _animation_name: Option<String>) {
         self.time = time;
     }
 }

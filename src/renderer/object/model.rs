@@ -1,5 +1,7 @@
 use crate::renderer::*;
 
+pub use three_d_asset::KeyFrameAnimation;
+pub use three_d_asset::KeyFrames;
 pub use three_d_asset::Model as CpuModel;
 
 ///
@@ -47,11 +49,10 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
                     M::default()
                 };
                 let mut gm = Gm {
-                    geometry: Mesh::new(context, geometry),
+                    geometry: Mesh::new_animated(context, geometry, primitive.animations.clone()),
                     material,
                 };
                 gm.set_transformation(primitive.transformation);
-                gm.animations = primitive.animations.clone();
                 gms.push(gm);
             }
         }
