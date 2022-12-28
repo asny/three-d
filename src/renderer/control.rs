@@ -39,6 +39,8 @@ pub enum Event {
         /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
         /// The first value defines the position on the horizontal axis with zero being at the left border of the window
         /// and the second on the vertical axis with zero being at the top edge of the window.
+        /// To convert this position into a position used by the camera methods, see
+        /// [`control_position_to_viewport_position`].
         position: (f64, f64),
         /// The state of modifiers.
         modifiers: Modifiers,
@@ -52,6 +54,8 @@ pub enum Event {
         /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
         /// The first value defines the position on the horizontal axis with zero being at the left border of the window
         /// and the second on the vertical axis with zero being at the top edge of the window.
+        /// To convert this position into a position used by the camera methods, see
+        /// [`control_position_to_viewport_position`].
         position: (f64, f64),
         /// The state of modifiers.
         modifiers: Modifiers,
@@ -67,6 +71,8 @@ pub enum Event {
         /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
         /// The first value defines the position on the horizontal axis with zero being at the left border of the window
         /// and the second on the vertical axis with zero being at the top edge of the window.
+        /// To convert this position into a position used by the camera methods, see
+        /// [`control_position_to_viewport_position`].
         position: (f64, f64),
         /// The state of modifiers.
         modifiers: Modifiers,
@@ -80,6 +86,8 @@ pub enum Event {
         /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
         /// The first value defines the position on the horizontal axis with zero being at the left border of the window
         /// and the second on the vertical axis with zero being at the top edge of the window.
+        /// To convert this position into a position used by the camera methods, see
+        /// [`control_position_to_viewport_position`].
         position: (f64, f64),
         /// The state of modifiers.
         modifiers: Modifiers,
@@ -201,4 +209,29 @@ pub struct Modifiers {
     /// On Windows and Linux, set this to the same value as `ctrl`.
     /// On Mac, this should be set whenever one of the ⌘ Command keys are down.
     pub command: bool,
+}
+
+/// Convert a position provided by any of the control events into the viewport position
+///
+/// The viewport uses a flipped y direction, so the positions provided by control inputs need to be
+/// converted before they can be used with methods that requires viewport pixels, such as the
+/// [`crate::core::Camera::position_at_pixel`] and [`crate::core::Camera::view_direction_at_pixel`]
+/// methods.
+pub fn control_position_to_viewport_position(
+    pos: (f64, f64),
+    device_pixel_ratio: f64,
+    viewport: &crate::Viewport,
+) -> (f32, f32) {
+    // First, convert the logical pixels to physical pixels using the device pixel ratio.
+    let physical_x = pos.0 * device_pixel_ratio;
+    let physical_y = pos.1 * device_pixel_ratio;
+
+    // The logical pixels have an y that has zero being at the top edge of the window.
+    // The viewport pixels have viewport.y as bottom and (viewport.y + viewport.height) as top.
+
+    // To convert between the two, we need to flip the y axis around.
+    let viewport_y = viewport.y as f64 + (viewport.height as f64 - physical_y);
+    let viewport_x = viewport.x as f64 + physical_x;
+
+    (viewport_x as f32, viewport_y as f32)
 }
