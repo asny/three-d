@@ -177,7 +177,7 @@ impl<'a> ColorTarget<'a> {
             ColorTexture::Array { texture, .. } => size_with_mip(texture.height(), self.mip_level),
             ColorTexture::CubeMap { texture, .. } => {
                 size_with_mip(texture.height(), self.mip_level)
-            },
+            }
             ColorTexture::Multisample(texture) => texture.height(),
         }
     }
@@ -209,8 +209,8 @@ impl<'a> ColorTarget<'a> {
                 if self.mip_level.is_none() {
                     texture.generate_mip_maps()
                 }
-            },
-            ColorTexture::Multisample(_) => {},
+            }
+            ColorTexture::Multisample(_) => {}
         }
     }
 
@@ -251,7 +251,7 @@ impl<'a> ColorTarget<'a> {
             ColorTexture::Multisample(texture) => unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
                 texture.bind_as_color_target(0);
-            }
+            },
         }
     }
 }

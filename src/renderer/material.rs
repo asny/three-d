@@ -382,7 +382,7 @@ impl DepthTexture<'_> {
             .to_owned(),
             Self::CubeMap { .. } => {
                 unimplemented!()
-            },
+            }
             Self::Multisample(_) => "
                 uniform sampler2DMS depthMap;
                 uniform int depthMapSamples;

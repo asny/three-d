@@ -1,6 +1,5 @@
 use crate::core::texture::*;
 
-
 ///
 /// A multisampled 2D texture.
 ///
