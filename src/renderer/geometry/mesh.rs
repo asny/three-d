@@ -197,7 +197,6 @@ impl Geometry for Mesh {
             .animations
             .iter()
             .find(|a| self.animation_name == a.name)
-            .or_else(|| self.animations.first())
         {
             self.current_transformation = self.transformation * animation.transformation(time);
         }
