@@ -41,7 +41,7 @@ impl Texture2DMultisample {
                 T::internal_format(),
                 width as i32,
                 height as i32,
-                true,
+                false,
             );
         }
         texture
