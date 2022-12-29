@@ -16,7 +16,7 @@ pub fn main() {
     .unwrap();
     let context = window.gl();
 
-    let mut render_steps = RenderMethod::Direct;
+    let mut render_steps = RenderMethod::ToTexture;
 
     let mut camera = Camera::new_perspective(
         window.viewport(),
