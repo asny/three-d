@@ -31,6 +31,8 @@ pub enum WindowError {
     ThreeDError(#[from] CoreError),
     #[error("the number of MSAA samples must be a power of two")]
     InvalidNumberOfMSAASamples,
+    #[error("it's not possible to create a graphics context/surface with the given settings")]
+    SurfaceCreationError,
 }
 
 ///
