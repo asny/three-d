@@ -172,7 +172,7 @@ impl<'a> DepthTarget<'a> {
             }
             DepthTexture::CubeMap { texture, side } => {
                 texture.bind_as_depth_target(*side);
-            },
+            }
             DepthTexture::Multisample(texture) => {
                 texture.bind_as_depth_target();
             }
