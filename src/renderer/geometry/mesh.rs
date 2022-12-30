@@ -10,7 +10,6 @@ pub struct Mesh {
     index_buffer: Option<ElementBuffer>,
     context: Context,
     aabb: AxisAlignedBoundingBox,
-    aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
     current_transformation: Mat4,
     animation: Option<Box<dyn Fn(f32) -> Mat4>>,
@@ -29,7 +28,6 @@ impl Mesh {
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
             aabb,
-            aabb_local: aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
@@ -71,9 +69,6 @@ impl Mesh {
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.current_transformation = transformation;
-        let mut aabb = self.aabb_local;
-        aabb.transform(&self.transformation);
-        self.aabb = aabb;
     }
 
     pub fn start_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
@@ -179,7 +174,9 @@ impl<'a> IntoIterator for &'a Mesh {
 
 impl Geometry for Mesh {
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.aabb
+        let mut aabb = self.aabb;
+        aabb.transform(&self.current_transformation);
+        aabb
     }
 
     fn animate(&mut self, time: f32) {
