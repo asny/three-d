@@ -1,6 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 ///
 /// A triangle mesh [Geometry].
@@ -13,6 +14,7 @@ pub struct Mesh {
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
     current_transformation: Mat4,
+    animation: Option<Arc<dyn Fn(f32) -> Mat4>>,
     animations: Vec<KeyFrameAnimation>,
     animation_name: Option<String>,
     texture_transform: Mat3,
@@ -42,6 +44,7 @@ impl Mesh {
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
+            animation: None,
             animations,
             animation_name: None,
         }
@@ -84,6 +87,10 @@ impl Mesh {
         let mut aabb = self.aabb_local;
         aabb.transform(&self.transformation);
         self.aabb = aabb;
+    }
+
+    pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
+        self.animation = Some(Arc::new(animation));
     }
 
     pub fn animation_name(&mut self) -> Option<&str> {
@@ -199,6 +206,10 @@ impl Geometry for Mesh {
             .find(|a| self.animation_name == a.name)
         {
             self.current_transformation = self.transformation * animation.transformation(time);
+        }
+
+        if let Some(animation) = &self.animation {
+            self.current_transformation = self.transformation * animation(time);
         }
     }
 
