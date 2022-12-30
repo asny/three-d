@@ -43,7 +43,8 @@ pub fn main() {
     // Construct a model, with a default color material, thereby transferring the mesh data to the GPU
     let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
 
-    model.set_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
+    // Add an animation to the triangle.
+    model.start_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
 
     // Start the main render loop
     window.render_loop(
@@ -52,9 +53,8 @@ pub fn main() {
         // Ensure the viewport matches the current window viewport which changes if the window is resized
         camera.set_viewport(frame_input.viewport);
 
-        // Set the current transformation of the triangle
+        // Update the animation of the triangle
         model.animate(frame_input.accumulated_time as f32);
-        //model.set_transformation(Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32)));
 
         // Get the screen render target to be able to render something on the screen
         frame_input.screen()
