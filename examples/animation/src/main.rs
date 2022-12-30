@@ -40,6 +40,7 @@ pub async fn run() {
         .iter_mut()
         .for_each(|part| part.compute_normals());
     let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+    model.start_animation(None);
 
     let light = AmbientLight::new(&context, 1.0, Color::WHITE);
 
@@ -48,9 +49,7 @@ pub async fn run() {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 
-        model
-            .iter_mut()
-            .for_each(|m| m.animate(0.001 * frame_input.accumulated_time as f32));
+        model.animate(0.001 * frame_input.accumulated_time as f32);
 
         frame_input
             .screen()

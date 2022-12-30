@@ -3,6 +3,7 @@ pub use three_d_asset::Model as CpuModel;
 
 pub struct ModelPart<M: Material> {
     gm: Gm<Mesh, M>,
+    animations: Vec<KeyFrameAnimation>,
 }
 
 impl<M: Material> std::ops::Deref for ModelPart<M> {
@@ -42,6 +43,9 @@ impl<M: Material> Geometry for ModelPart<M> {
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.gm.aabb()
+    }
+    fn animate(&mut self, time: f32) {
+        self.gm.animate(time)
     }
 }
 impl<M: Material> Object for ModelPart<M> {
@@ -99,14 +103,36 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
                     M::default()
                 };
                 let mut gm = Gm {
-                    geometry: Mesh::new_animated(context, geometry, primitive.animations.clone()),
+                    geometry: Mesh::new(context, geometry),
                     material,
                 };
                 gm.set_transformation(primitive.transformation);
-                gms.push(ModelPart { gm });
+                gms.push(ModelPart {
+                    gm,
+                    animations: primitive.animations.clone(),
+                });
             }
         }
         Ok(Self(gms))
+    }
+
+    pub fn start_animation(&mut self, animation_name: Option<String>) {
+        for part in self.0.iter_mut() {
+            if let Some(animation) = part
+                .animations
+                .iter()
+                .find(|a| animation_name == a.name)
+                .cloned()
+            {
+                part.start_animation(move |time| animation.transformation(time));
+            } else {
+                part.stop_animation();
+            }
+        }
+    }
+
+    pub fn animate(&mut self, time: f32) {
+        self.iter_mut().for_each(|m| m.animate(time));
     }
 }
 

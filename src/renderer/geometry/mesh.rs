@@ -14,8 +14,6 @@ pub struct Mesh {
     transformation: Mat4,
     current_transformation: Mat4,
     animation: Option<Box<dyn Fn(f32) -> Mat4>>,
-    animations: Vec<KeyFrameAnimation>,
-    animation_name: Option<String>,
     texture_transform: Mat3,
 }
 
@@ -25,14 +23,6 @@ impl Mesh {
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     ///
     pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
-        Self::new_animated(context, cpu_mesh, Vec::new())
-    }
-
-    pub fn new_animated(
-        context: &Context,
-        cpu_mesh: &CpuMesh,
-        animations: Vec<KeyFrameAnimation>,
-    ) -> Self {
         let aabb = cpu_mesh.compute_aabb();
         Self {
             context: context.clone(),
@@ -44,8 +34,6 @@ impl Mesh {
             current_transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
             animation: None,
-            animations,
-            animation_name: None,
         }
     }
 
@@ -88,16 +76,12 @@ impl Mesh {
         self.aabb = aabb;
     }
 
-    pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
+    pub fn start_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
         self.animation = Some(Box::new(animation));
     }
 
-    pub fn animation_name(&mut self) -> Option<&str> {
-        self.animation_name.as_ref().map(|x| &**x)
-    }
-
-    pub fn set_animation_name(&mut self, animation_name: Option<String>) {
-        self.animation_name = animation_name;
+    pub fn stop_animation(&mut self) {
+        self.animation = None;
     }
 
     ///
@@ -199,14 +183,6 @@ impl Geometry for Mesh {
     }
 
     fn animate(&mut self, time: f32) {
-        if let Some(animation) = self
-            .animations
-            .iter()
-            .find(|a| self.animation_name == a.name)
-        {
-            self.current_transformation = self.transformation * animation.transformation(time);
-        }
-
         if let Some(animation) = &self.animation {
             self.current_transformation = self.transformation * animation(time);
         }
