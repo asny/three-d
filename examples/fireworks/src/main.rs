@@ -93,7 +93,7 @@ pub fn run() {
     let mut fireworks = Gm::new(particles, fireworks_material);
 
     // main loop
-    fireworks.time = explosion_time + 100.0; // Ensure initialisation on the first loop.
+    let mut time = explosion_time + 100.0; // Ensure initialisation on the first loop.
     let mut color_index = 0;
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
@@ -103,13 +103,13 @@ pub fn run() {
 
         // Update the time in the particlesystem; this automatically integrates the velocity and
         // the acceleration of each particle to calculate its new position.
-        fireworks.time += elapsed_time;
+        time += elapsed_time;
 
         // If the time exceeds the explosion duration, re-initialise the explosion.
-        if fireworks.time > explosion_time {
+        if time > explosion_time {
             color_index = (color_index + 1) % colors.len();
             fireworks.material.color = colors[color_index];
-            fireworks.time = 0.0;
+            time = 0.0;
             let start_position = vec3(
                 10.0 * rng.gen::<f32>() - 5.0,
                 40.0 + 10.0 * rng.gen::<f32>(),
@@ -147,7 +147,7 @@ pub fn run() {
             });
         }
 
-        let f = fireworks.time / explosion_time.max(0.0);
+        let f = time / explosion_time.max(0.0);
         fireworks.material.fade = 1.0 - f * f * f * f;
         // Since our geometry is a square, we always want to view it from the same direction, nomatter how we change the camera.
         fireworks.set_transformation(
@@ -160,6 +160,7 @@ pub fn run() {
             .invert()
             .unwrap(),
         );
+        fireworks.animate(time);
         frame_input
             .screen()
             .clear(ClearState::color(0.0, 0.0, 0.0, 1.0))
