@@ -1,7 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
-use std::sync::Arc;
 
 ///
 /// A triangle mesh [Geometry].
@@ -14,7 +13,7 @@ pub struct Mesh {
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
     current_transformation: Mat4,
-    animation: Option<Arc<dyn Fn(f32) -> Mat4>>,
+    animation: Option<Box<dyn Fn(f32) -> Mat4>>,
     animations: Vec<KeyFrameAnimation>,
     animation_name: Option<String>,
     texture_transform: Mat3,
@@ -90,7 +89,7 @@ impl Mesh {
     }
 
     pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
-        self.animation = Some(Arc::new(animation));
+        self.animation = Some(Box::new(animation));
     }
 
     pub fn animation_name(&mut self) -> Option<&str> {
