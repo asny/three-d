@@ -1,10 +1,63 @@
 use crate::renderer::*;
 pub use three_d_asset::Model as CpuModel;
 
+pub struct ModelPart<M: Material> {
+    gm: Gm<Mesh, M>,
+}
+
+impl<M: Material> std::ops::Deref for ModelPart<M> {
+    type Target = Gm<Mesh, M>;
+    fn deref(&self) -> &Self::Target {
+        &self.gm
+    }
+}
+
+impl<M: Material> std::ops::DerefMut for ModelPart<M> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.gm
+    }
+}
+
+impl<M: Material> Geometry for ModelPart<M> {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) {
+        self.gm.render_with_material(material, camera, lights)
+    }
+
+    fn render_with_post_material(
+        &self,
+        material: &dyn PostMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        self.gm
+            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.gm.aabb()
+    }
+}
+impl<M: Material> Object for ModelPart<M> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
+        self.gm.render(camera, lights)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.gm.material_type()
+    }
+}
+
 ///
 /// A 3D model consisting of a set of [Gm]s with [Mesh]es as the geometries and a [material] type specified by the generic parameter.
 ///
-pub struct Model<M: Material>(Vec<Gm<Mesh, M>>);
+pub struct Model<M: Material>(Vec<ModelPart<M>>);
 
 impl<'a, M: Material> IntoIterator for &'a Model<M> {
     type Item = &'a dyn Object;
@@ -50,7 +103,7 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
                     material,
                 };
                 gm.set_transformation(primitive.transformation);
-                gms.push(gm);
+                gms.push(ModelPart { gm });
             }
         }
         Ok(Self(gms))
@@ -58,7 +111,7 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
 }
 
 impl<M: Material> std::ops::Deref for Model<M> {
-    type Target = Vec<Gm<Mesh, M>>;
+    type Target = Vec<ModelPart<M>>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
