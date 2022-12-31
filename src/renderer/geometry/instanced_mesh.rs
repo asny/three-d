@@ -11,9 +11,10 @@ pub struct InstancedMesh {
     vertex_buffers: HashMap<String, VertexBuffer>,
     instance_buffers: RwLock<(HashMap<String, InstanceBuffer>, Vec3)>,
     index_buffer: Option<ElementBuffer>,
-    aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
+    current_transformation: Mat4,
+    animation: Option<Box<dyn Fn(f32) -> Mat4>>,
     instance_count: u32,
     texture_transform: Mat3,
     instances: Instances,
@@ -33,8 +34,9 @@ impl InstancedMesh {
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
             instance_buffers: RwLock::new((Default::default(), vec3(0.0, 0.0, 0.0))),
             aabb,
-            aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
+            current_transformation: Mat4::identity(),
+            animation: None,
             instance_count: 0,
             texture_transform: Mat3::identity(),
             instances: instances.clone(),
@@ -56,7 +58,16 @@ impl InstancedMesh {
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
-        self.update_aabb();
+        self.current_transformation = transformation;
+    }
+
+    ///
+    /// Specifies a function which takes a time parameter as input and returns a transformation that should be applied to this mesh at the given time.
+    /// To actually animate this instanced mesh, call [Geometry::animate] at each frame which in turn evaluates the animation function defined by this method.
+    /// This transformation is applied first, then the local to world transformation defined by [Self::set_transformation].
+    ///
+    pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
+        self.animation = Some(Box::new(animation));
     }
 
     ///
@@ -86,7 +97,6 @@ impl InstancedMesh {
     /// `instance_count` will be set to the number of instances when they are defined by `set_instances`, so all instanced are rendered by default.
     pub fn set_instance_count(&mut self, instance_count: u32) {
         self.instance_count = instance_count.min(self.instances.transformations.len() as u32);
-        self.update_aabb();
     }
 
     ///
@@ -105,8 +115,6 @@ impl InstancedMesh {
                 .expect("failed acquiring write accesss");
             s.0.clear();
         }
-
-        self.update_aabb();
     }
 
     /// Update the instance buffers, if depth_ordering_pose is populated depth ordering is performed
@@ -263,16 +271,6 @@ impl InstancedMesh {
         instance_buffers
     }
 
-    fn update_aabb(&mut self) {
-        let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for i in 0..self.instance_count as usize {
-            let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(self.instances.transformations[i] * self.transformation));
-            aabb.expand_with_aabb(&aabb2);
-        }
-        self.aabb = aabb;
-    }
-
     fn draw(
         &self,
         program: &Program,
@@ -281,11 +279,11 @@ impl InstancedMesh {
         instance_buffers: &HashMap<String, InstanceBuffer>,
     ) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", &self.transformation);
+        program.use_uniform("modelMatrix", &self.current_transformation);
         program.use_uniform_if_required("textureTransform", &self.texture_transform);
         program.use_uniform_if_required(
             "normalMatrix",
-            &self.transformation.invert().unwrap().transpose(),
+            &self.current_transformation.invert().unwrap().transpose(),
         );
 
         for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
@@ -404,7 +402,20 @@ impl<'a> IntoIterator for &'a InstancedMesh {
 
 impl Geometry for InstancedMesh {
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.aabb
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for i in 0..self.instance_count as usize {
+            let mut aabb2 = self.aabb;
+            aabb2.transform(&self.instances.transformations[i]);
+            aabb.expand_with_aabb(&aabb2);
+        }
+        aabb.transform(&self.current_transformation);
+        aabb
+    }
+
+    fn animate(&mut self, time: f32) {
+        if let Some(animation) = &self.animation {
+            self.current_transformation = self.transformation * animation(time);
+        }
     }
 
     fn render_with_material(
