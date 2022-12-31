@@ -44,7 +44,7 @@ pub fn main() {
     let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
 
     // Add an animation to the triangle.
-    model.start_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
+    model.set_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
 
     // Start the main render loop
     window.render_loop(

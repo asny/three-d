@@ -65,18 +65,20 @@ impl Mesh {
 
     ///
     /// Set the local to world transformation applied to this mesh.
+    /// If any animation method is set using [Self::set_animation], the transformation from that method is applied before this transformation.
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.current_transformation = transformation;
     }
 
-    pub fn start_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
+    ///
+    /// Specifies a function which takes a time parameter as input and returns a transformation that should be applied to this mesh at the given time.
+    /// To actually animate this mehs, call [Geometry::animate] at each frame which in turn evaluates the animation function defined by this method.
+    /// This transformation is applied first, then the local to world transformation defined by [Self::set_transformation].
+    ///
+    pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
         self.animation = Some(Box::new(animation));
-    }
-
-    pub fn stop_animation(&mut self) {
-        self.animation = None;
     }
 
     ///

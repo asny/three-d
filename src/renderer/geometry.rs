@@ -84,6 +84,10 @@ pub trait Geometry {
     ///
     fn aabb(&self) -> AxisAlignedBoundingBox;
 
+    ///
+    /// For updating the animation of this geometry if it is animated, if not, this method does nothing.
+    /// The time parameter should be some continious time, for example the time since start.
+    ///
     fn animate(&mut self, _time: f32) {}
 }
 

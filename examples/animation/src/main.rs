@@ -40,7 +40,6 @@ pub async fn run() {
         .iter_mut()
         .for_each(|part| part.compute_normals());
     let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
-    model.start_animation(None);
 
     let light = AmbientLight::new(&context, 1.0, Color::WHITE);
 

@@ -1,9 +1,38 @@
 use crate::renderer::*;
 pub use three_d_asset::Model as CpuModel;
 
+///
+/// Part of a 3D model consisting of a [Mesh], some type of [material] and a set of possible animations.
+///
 pub struct ModelPart<M: Material> {
     gm: Gm<Mesh, M>,
     animations: Vec<KeyFrameAnimation>,
+}
+
+impl<M: Material> ModelPart<M> {
+    ///
+    /// Returns a list of unique names for the animations for this model part. Use these names as input to [Self::choose_animation].
+    ///
+    pub fn animations(&self) -> Vec<Option<String>> {
+        self.animations
+            .iter()
+            .map(|animation| animation.name.clone())
+            .collect()
+    }
+
+    ///
+    /// Specifies the animation to use when [Geometry::animate] is called. Use the [Self::animations] method to get a list of possible animations.
+    ///
+    pub fn choose_animation(&mut self, animation_name: Option<&str>) {
+        if let Some(animation) = self
+            .animations
+            .iter()
+            .find(|a| animation_name == a.name.as_ref().map(|x| &**x))
+            .cloned()
+        {
+            self.set_animation(move |time| animation.transformation(time));
+        }
+    }
 }
 
 impl<M: Material> std::ops::Deref for ModelPart<M> {
@@ -113,24 +142,36 @@ impl<M: Material + FromCpuMaterial + Clone + Default> Model<M> {
                 });
             }
         }
-        Ok(Self(gms))
+        let mut model = Self(gms);
+        if let Some(animation_name) = model.animations().first().cloned() {
+            model.choose_animation(animation_name.as_deref());
+        }
+        Ok(model)
     }
 
-    pub fn start_animation(&mut self, animation_name: Option<String>) {
+    ///
+    /// Returns a list of unique names for the animations in this model. Use these names as input to [Self::choose_animation].
+    ///
+    pub fn animations(&self) -> Vec<Option<String>> {
+        let mut set = std::collections::HashSet::new();
+        for model_part in self.0.iter() {
+            set.extend(model_part.animations());
+        }
+        set.into_iter().collect()
+    }
+
+    ///
+    /// Specifies the animation to use when [Geometry::animate] is called. Use the [Self::animations] method to get a list of possible animations.
+    ///
+    pub fn choose_animation(&mut self, animation_name: Option<&str>) {
         for part in self.0.iter_mut() {
-            if let Some(animation) = part
-                .animations
-                .iter()
-                .find(|a| animation_name == a.name)
-                .cloned()
-            {
-                part.start_animation(move |time| animation.transformation(time));
-            } else {
-                part.stop_animation();
-            }
+            part.choose_animation(animation_name);
         }
     }
 
+    ///
+    /// For updating the animation. The time parameter should be some continious time, for example the time since start.
+    ///
     pub fn animate(&mut self, time: f32) {
         self.iter_mut().for_each(|m| m.animate(time));
     }

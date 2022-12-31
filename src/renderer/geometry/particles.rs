@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
@@ -356,7 +357,6 @@ impl Geometry for ParticleSystem {
     }
 
     fn animate(&mut self, time: f32) {
-        #![allow(deprecated)]
         self.time = time;
     }
 }
