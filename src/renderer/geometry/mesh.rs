@@ -74,7 +74,7 @@ impl Mesh {
 
     ///
     /// Specifies a function which takes a time parameter as input and returns a transformation that should be applied to this mesh at the given time.
-    /// To actually animate this mehs, call [Geometry::animate] at each frame which in turn evaluates the animation function defined by this method.
+    /// To actually animate this mesh, call [Geometry::animate] at each frame which in turn evaluates the animation function defined by this method.
     /// This transformation is applied first, then the local to world transformation defined by [Self::set_transformation].
     ///
     pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
