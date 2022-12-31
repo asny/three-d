@@ -19,8 +19,8 @@ pub async fn run() {
 
     let mut camera = Camera::new_perspective(
         window.viewport(),
-        vec3(0.0, 0.0, 3.0),
-        vec3(0.0, 0.0, 0.0),
+        vec3(3.0, 2.5, 6.0),
+        vec3(0.0, 1.5, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
@@ -48,7 +48,8 @@ pub async fn run() {
         .for_each(|part| part.compute_normals());
     let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
 
-    let light = AmbientLight::new(&context, 1.0, Color::WHITE);
+    let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
+    let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5));
 
     // main loop
     window.render_loop(move |mut frame_input| {
@@ -60,7 +61,7 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
-            .render(&camera, &model, &[&light]);
+            .render(&camera, &model, &[&light0, &light1]);
 
         FrameOutput::default()
     });
