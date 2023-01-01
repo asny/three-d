@@ -2,7 +2,7 @@ use crate::renderer::*;
 pub use three_d_asset::Model as CpuModel;
 
 ///
-/// Part of a 3D model consisting of a [Mesh], some type of [material] and a set of possible animations.
+/// Part of a [Model] consisting of a [Mesh], some type of [material] and a set of possible animations.
 ///
 pub struct ModelPart<M: Material> {
     gm: Gm<Mesh, M>,
@@ -27,7 +27,7 @@ impl<M: Material> ModelPart<M> {
         if let Some(animation) = self
             .animations
             .iter()
-            .find(|a| animation_name == a.name.as_ref().map(|x| &**x))
+            .find(|a| animation_name == a.name.as_deref())
             .cloned()
         {
             self.set_animation(move |time| animation.transformation(time));
