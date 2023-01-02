@@ -22,7 +22,7 @@ pub struct SurfaceSettings {
     pub vsync: bool,
     /// Sets the number of bits in the depth buffer.
     /// A value of 0 means no depth buffer.
-    /// The default value is 32.
+    /// The default value is 24.
     /// On web, this can only be off (0) or on (>0).
     pub depth_buffer: u8,
     /// Sets the number of bits in the stencil buffer.
@@ -46,7 +46,7 @@ impl Default for SurfaceSettings {
     fn default() -> Self {
         Self {
             vsync: true,
-            depth_buffer: 32,
+            depth_buffer: 24,
             stencil_buffer: 0,
             multisamples: 4,
             hardware_acceleration: HardwareAcceleration::Preferred,

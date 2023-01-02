@@ -162,9 +162,13 @@ mod inner {
             // finds all valid configurations supported by this display that match the
             // config_template this is where we will try to get a "fallback" config if
             // we are okay with ignoring some native options required by user like multi
-            // sampling, srgb, transparency etc.. TODO: need to figure out a good
-            // fallback config template
-            let config = unsafe { gl_display.find_configs(config_template)?.next().unwrap() };
+            // sampling, srgb, transparency etc..
+            let config = unsafe {
+                gl_display
+                    .find_configs(config_template)?
+                    .next()
+                    .ok_or(WindowError::SurfaceCreationError)?
+            };
 
             let context_attributes =
                 glutin::context::ContextAttributesBuilder::new().build(Some(raw_window_handle));
