@@ -87,6 +87,15 @@ impl<M: Material> Object for InstancedModelPart<M> {
     }
 }
 
+impl<'a, M: Material> IntoIterator for &'a InstancedModelPart<M> {
+    type Item = &'a dyn Object;
+    type IntoIter = std::iter::Once<&'a dyn Object>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.gm.into_iter()
+    }
+}
+
 ///
 /// Similar to [Model], except it is possible to render many instances of the same model efficiently.
 ///

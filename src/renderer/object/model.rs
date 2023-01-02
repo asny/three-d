@@ -87,6 +87,15 @@ impl<M: Material> Object for ModelPart<M> {
     }
 }
 
+impl<'a, M: Material> IntoIterator for &'a ModelPart<M> {
+    type Item = &'a dyn Object;
+    type IntoIter = std::iter::Once<&'a dyn Object>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.gm.into_iter()
+    }
+}
+
 ///
 /// A 3D model consisting of a set of [Gm]s with [Mesh]es as the geometries and a [material] type specified by the generic parameter.
 ///
