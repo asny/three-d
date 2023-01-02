@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
@@ -78,6 +79,7 @@ pub struct ParticleSystem {
     transformation: Mat4,
     texture_transform: Mat3,
     /// A time variable that should be updated each frame.
+    #[deprecated = "call the animate method each frame instead"]
     pub time: f32,
 }
 
@@ -352,5 +354,9 @@ impl Geometry for ParticleSystem {
                 },
             )
             .expect("Failed compiling shader")
+    }
+
+    fn animate(&mut self, time: f32) {
+        self.time = time;
     }
 }

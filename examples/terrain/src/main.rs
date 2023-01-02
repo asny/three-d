@@ -232,7 +232,7 @@ pub async fn run() {
 
         terrain.set_center(p);
         water.set_center(p);
-        water.update_animation(frame_input.accumulated_time);
+        water.animate(frame_input.accumulated_time as f32);
 
         if change {
             color_texture = Texture2D::new_empty::<[u8; 4]>(

@@ -10,8 +10,9 @@ pub struct Mesh {
     index_buffer: Option<ElementBuffer>,
     context: Context,
     aabb: AxisAlignedBoundingBox,
-    aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
+    current_transformation: Mat4,
+    animation: Option<Box<dyn Fn(f32) -> Mat4>>,
     texture_transform: Mat3,
 }
 
@@ -27,9 +28,10 @@ impl Mesh {
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
             vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
             aabb,
-            aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
+            current_transformation: Mat4::identity(),
             texture_transform: Mat3::identity(),
+            animation: None,
         }
     }
 
@@ -63,12 +65,20 @@ impl Mesh {
 
     ///
     /// Set the local to world transformation applied to this mesh.
+    /// If any animation method is set using [Self::set_animation], the transformation from that method is applied before this transformation.
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
-        let mut aabb = self.aabb_local.clone();
-        aabb.transform(&self.transformation);
-        self.aabb = aabb;
+        self.current_transformation = transformation;
+    }
+
+    ///
+    /// Specifies a function which takes a time parameter as input and returns a transformation that should be applied to this mesh at the given time.
+    /// To actually animate this mesh, call [Geometry::animate] at each frame which in turn evaluates the animation function defined by this method.
+    /// This transformation is applied first, then the local to world transformation defined by [Self::set_transformation].
+    ///
+    pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + 'static) {
+        self.animation = Some(Box::new(animation));
     }
 
     ///
@@ -89,11 +99,11 @@ impl Mesh {
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", &self.transformation);
-        program.use_uniform_if_required("textureTransform", &self.texture_transform);
+        program.use_uniform("modelMatrix", self.current_transformation);
+        program.use_uniform_if_required("textureTransform", self.texture_transform);
         program.use_uniform_if_required(
             "normalMatrix",
-            &self.transformation.invert().unwrap().transpose(),
+            self.current_transformation.invert().unwrap().transpose(),
         );
 
         for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
@@ -101,7 +111,7 @@ impl Mesh {
                 program.use_vertex_attribute(
                     attribute_name,
                     self.vertex_buffers
-                        .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
+                        .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
                 );
             }
         }
@@ -112,17 +122,17 @@ impl Mesh {
             program.draw_arrays(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
+                self.vertex_buffers.get("position").unwrap().vertex_count(),
             )
         }
     }
 
     fn vertex_shader_source(fragment_shader_source: &str) -> String {
-        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
-        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
-        let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
-        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
-        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
+        let use_positions = fragment_shader_source.contains("in vec3 pos;");
+        let use_normals = fragment_shader_source.contains("in vec3 nor;");
+        let use_tangents = fragment_shader_source.contains("in vec3 tang;");
+        let use_uvs = fragment_shader_source.contains("in vec2 uvs;");
+        let use_colors = fragment_shader_source.contains("in vec4 col;");
         format!(
             "{}{}{}{}{}{}{}",
             if use_positions {
@@ -136,7 +146,7 @@ impl Mesh {
                 ""
             },
             if use_tangents {
-                if fragment_shader_source.find("in vec3 bitang;").is_none() {
+                if !fragment_shader_source.contains("in vec3 bitang;") {
                     panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
                 }
                 "#define USE_TANGENTS\n"
@@ -166,7 +176,15 @@ impl<'a> IntoIterator for &'a Mesh {
 
 impl Geometry for Mesh {
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.aabb
+        let mut aabb = self.aabb;
+        aabb.transform(&self.current_transformation);
+        aabb
+    }
+
+    fn animate(&mut self, time: f32) {
+        if let Some(animation) = &self.animation {
+            self.current_transformation = self.transformation * animation(time);
+        }
     }
 
     fn render_with_material(

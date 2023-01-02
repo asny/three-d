@@ -207,6 +207,7 @@ fn set_parameters(
                     )
                 }
             }
+            _ => panic!("Can only sample textures using 'NEAREST' or 'LINEAR' interpolation"),
         }
         context.tex_parameter_i32(
             target,
@@ -258,6 +259,7 @@ fn interpolation_from(interpolation: Interpolation) -> i32 {
     (match interpolation {
         Interpolation::Nearest => crate::context::NEAREST,
         Interpolation::Linear => crate::context::LINEAR,
+        _ => panic!("Can only sample textures using 'NEAREST' or 'LINEAR' interpolation"),
     }) as i32
 }
 

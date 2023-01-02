@@ -39,7 +39,10 @@ pub use circle::*;
 use crate::core::*;
 use crate::renderer::*;
 
-pub use three_d_asset::{Indices, PointCloud, Positions, TriMesh as CpuMesh};
+pub use three_d_asset::{
+    Geometry as CpuGeometry, Indices, KeyFrameAnimation, KeyFrames, PointCloud, Positions,
+    TriMesh as CpuMesh,
+};
 
 ///
 /// Represents a 3D geometry that, together with a [material], can be rendered using [Geometry::render_with_material].
@@ -80,6 +83,12 @@ pub trait Geometry {
     /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
     ///
     fn aabb(&self) -> AxisAlignedBoundingBox;
+
+    ///
+    /// For updating the animation of this geometry if it is animated, if not, this method does nothing.
+    /// The time parameter should be some continious time, for example the time since start.
+    ///
+    fn animate(&mut self, _time: f32) {}
 }
 
 impl<T: Geometry + ?Sized> Geometry for &T {

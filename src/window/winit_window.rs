@@ -138,7 +138,7 @@ impl Window {
     ///
     /// Creates a new window from a [winit](https://crates.io/crates/winit) window and event loop with the given surface settings, giving the user full
     /// control over the creation of the window.
-    /// This method takes ownership of the winit window and event loop, if this is not desired, use a [WindowedContext] or [crate::HeadlessContext] instead.
+    /// This method takes ownership of the winit window and event loop, if this is not desired, use a [WindowedContext] or [HeadlessContext](crate::HeadlessContext) instead.
     ///
     pub fn from_winit_window(
         winit_window: window::Window,

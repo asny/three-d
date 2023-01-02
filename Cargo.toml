@@ -26,7 +26,7 @@ test = ["headless"] # Only for testing purposes (CI)
 [dependencies]
 glow = "0.11"
 cgmath = "0.18"
-three-d-asset = "0.4"
+three-d-asset = {git="https://github.com/asny/three-d-asset"}
 thiserror = "1"
 winit = {version = "0.27", optional = true}
 egui = { version = "0.20", optional = true }
@@ -43,12 +43,11 @@ wasm-bindgen = {version = "0.2", optional = true }
 serde = { version = "1", features = ["derive"], optional = true }
 serde-wasm-bindgen = { version = "0.4", optional = true }
 web-sys = { version = "0.3", features = ['Document', 'HtmlCollection', 'HtmlCanvasElement', 'Window'], optional = true }
-
 instant = "0.1.12"
 
 [dev-dependencies]
 rand = "0.7"
-three-d-asset = {version="0.4", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http"] }
+three-d-asset = {git="https://github.com/asny/three-d-asset", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 noise = {version = "0.6", default-features = false}
 
@@ -81,6 +80,10 @@ path = "examples/instanced_draw_order/src/main.rs"
 name = "instanced_shapes"
 path = "examples/instanced_shapes/src/main.rs"
 required-features = ["egui-gui"]
+
+[[example]]
+name = "animation"
+path = "examples/animation/src/main.rs"
 
 [[example]]
 name = "sprites"
