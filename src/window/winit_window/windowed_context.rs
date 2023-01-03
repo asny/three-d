@@ -60,10 +60,10 @@ mod inner {
                 .get_extension("EXT_color_buffer_float")
                 .map_err(|e| WindowError::ColorBufferFloatNotSupported(format!("{:?}", e)))?;
             webgl_context
-                .get_extension("OES_texture_float")
+                .get_extension("OES_texture_float_linear")
                 .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
             webgl_context
-                .get_extension("OES_texture_float_linear")
+                .get_extension("OES_texture_half_float_linear")
                 .map_err(|e| WindowError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
 
             Ok(Self {
