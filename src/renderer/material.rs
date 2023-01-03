@@ -362,7 +362,6 @@ impl DepthTexture<'_> {
                 }"
             .to_owned(),
             Self::CubeMap { .. } => unimplemented!(),
-            Self::Multisample(_) => panic!("Multisampled textures cannot be sampled in a shader, copy the content to a DepthTexture2D before sampling.")
         }
     }
 
@@ -377,7 +376,6 @@ impl DepthTexture<'_> {
                 program.use_depth_texture_array("depthMap", texture);
             }
             Self::CubeMap { .. } => unimplemented!(),
-            Self::Multisample(_) => panic!("Multisampled textures cannot be sampled in a shader, copy the content to a DepthTexture2D before sampling.")
         }
     }
 
@@ -389,7 +387,6 @@ impl DepthTexture<'_> {
             Self::Single(texture) => (texture.width(), texture.height()),
             Self::Array { texture, .. } => (texture.width(), texture.height()),
             Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
-            Self::Multisample(texture) => (texture.width(), texture.height()),
         }
     }
 }

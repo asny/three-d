@@ -134,8 +134,6 @@ pub enum DepthTexture<'a> {
         texture: &'a DepthTextureCubeMap,
         side: CubeMapSide,
     },
-    /// A multisampled 2D texture.
-    Multisample(&'a DepthTexture2DMultisample),
 }
 
 impl DepthTexture<'_> {
@@ -147,7 +145,6 @@ impl DepthTexture<'_> {
             DepthTexture::Single(texture) => texture.width(),
             DepthTexture::Array { texture, .. } => texture.width(),
             DepthTexture::CubeMap { texture, .. } => texture.width(),
-            DepthTexture::Multisample(texture) => texture.width(),
         }
     }
 
@@ -159,7 +156,6 @@ impl DepthTexture<'_> {
             DepthTexture::Single(texture) => texture.height(),
             DepthTexture::Array { texture, .. } => texture.height(),
             DepthTexture::CubeMap { texture, .. } => texture.height(),
-            DepthTexture::Multisample(texture) => texture.height(),
         }
     }
 }
