@@ -276,11 +276,11 @@ impl<'a> RenderTarget<'a> {
         self.write_partially(scissor_box, || {
             let fragment_shader_source = format!(
                 "{}\nin vec2 uvs;
-                    layout (location = 0) out vec4 color;
-                    void main()
-                    {{
-                        color = sample_color(uvs);
-                    }}",
+                layout (location = 0) out vec4 color;
+                void main()
+                {{
+                    color = sample_color(uvs);
+                }}",
                 color_texture.fragment_shader_source()
             );
             apply_effect(
