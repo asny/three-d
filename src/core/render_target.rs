@@ -14,6 +14,10 @@ mod depth_target;
 #[doc(inline)]
 pub use depth_target::*;
 
+mod multisample;
+#[doc(inline)]
+pub use multisample::*;
+
 use crate::core::*;
 
 use crate::context::Framebuffer;

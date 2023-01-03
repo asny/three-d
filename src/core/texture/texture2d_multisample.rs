@@ -59,30 +59,6 @@ impl Texture2DMultisample {
         ColorTarget::new_texture_2d_multisample(&self.context, self)
     }
 
-    pub fn copy_to(&self) -> Texture2D {
-        let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
-            &self.context,
-            self.width,
-            self.height,
-            Interpolation::Nearest,
-            Interpolation::Nearest,
-            None,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-        );
-
-        {
-            let target = color_texture.as_color_target(None).as_render_target();
-
-            let source =
-                ColorTarget::new_texture_2d_multisample(&self.context, self).as_render_target();
-
-            source.blit(&target);
-        }
-
-        color_texture
-    }
-
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width

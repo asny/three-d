@@ -55,10 +55,6 @@ impl DepthTexture2DMultisample {
         DepthTarget::new_texture_2d_multisample(&self.context, self)
     }
 
-    pub(in crate::core) fn as_depth_read(&self) -> DepthTarget<'_> {
-        DepthTarget::new_texture_2d_multisample(&self.context, self)
-    }
-
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width

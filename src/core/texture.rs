@@ -19,7 +19,7 @@ pub use texture2d_array::*;
 
 mod texture2d_multisample;
 #[doc(inline)]
-pub use texture2d_multisample::*;
+pub(in crate::core) use texture2d_multisample::*;
 
 mod texture3d;
 #[doc(inline)]
@@ -35,7 +35,7 @@ pub use depth_texture_cube_map::*;
 
 mod depth_texture2d_multisample;
 #[doc(inline)]
-pub use depth_texture2d_multisample::*;
+pub(in crate::core) use depth_texture2d_multisample::*;
 
 use data_type::*;
 pub use three_d_asset::texture::{
