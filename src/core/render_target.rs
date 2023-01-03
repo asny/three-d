@@ -378,7 +378,7 @@ impl<'a> RenderTarget<'a> {
         self.id.take()
     }
 
-    pub(in crate::core) fn blit(&self, target: &RenderTarget) {
+    pub(in crate::core) fn blit_to(&self, target: &RenderTarget) {
         self.bind(crate::context::DRAW_FRAMEBUFFER);
         target.bind(crate::context::DRAW_FRAMEBUFFER);
         let mask = if self.color.is_some() && target.color.is_some() {

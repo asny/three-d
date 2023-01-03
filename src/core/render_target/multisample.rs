@@ -48,6 +48,24 @@ impl RenderTargetMultisample {
         }
     }
 
+    pub fn new_depth<D: DepthTextureDataType>(
+        context: &Context,
+        width: u32,
+        height: u32,
+        number_of_samples: u32,
+    ) -> Self {
+        Self {
+            context: context.clone(),
+            color: None,
+            depth: Some(DepthTexture2DMultisample::new::<D>(
+                context,
+                width,
+                height,
+                number_of_samples,
+            )),
+        }
+    }
+
     /// The width of this target.
     pub fn width(&self) -> u32 {
         self.color
@@ -83,31 +101,81 @@ impl RenderTargetMultisample {
             RenderTarget::new_depth(self.depth.as_mut().unwrap().as_depth_target())
         }
     }
-
-    pub fn resolve(&self) -> Option<Texture2D> {
-        if let Some(color) = &self.color {
-            let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
+    pub fn resolve_color(&self) -> Option<Texture2D> {
+        if let Some(source_color) = &self.color {
+            let mut target_color = Texture2D::new_empty::<[u8; 4]>(
                 &self.context,
-                color.width(),
-                color.height(),
+                source_color.width(),
+                source_color.height(),
                 Interpolation::Nearest,
                 Interpolation::Nearest,
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
             );
-
-            {
-                let target = color_texture.as_color_target(None).as_render_target();
-
-                let source = ColorTarget::new_texture_2d_multisample(&self.context, &color)
-                    .as_render_target();
-
-                source.blit(&target);
-            }
-            Some(color_texture)
+            source_color
+                .as_color_target()
+                .as_render_target()
+                .blit_to(&target_color.as_color_target(None).as_render_target());
+            Some(target_color)
         } else {
             None
+        }
+    }
+
+    pub fn resolve_depth(&self) -> Option<DepthTexture2D> {
+        if let Some(source_depth) = &self.depth {
+            let mut target_depth = DepthTexture2D::new::<f32>(
+                &self.context,
+                source_depth.width(),
+                source_depth.height(),
+                Wrapping::ClampToEdge,
+                Wrapping::ClampToEdge,
+            );
+            source_depth
+                .as_depth_target()
+                .as_render_target()
+                .blit_to(&target_depth.as_depth_target().as_render_target());
+            Some(target_depth)
+        } else {
+            None
+        }
+    }
+
+    pub fn resolve(&self) -> (Option<Texture2D>, Option<DepthTexture2D>) {
+        if let Some(source_color) = &self.color {
+            if let Some(source_depth) = &self.depth {
+                let mut target_color = Texture2D::new_empty::<[u8; 4]>(
+                    &self.context,
+                    source_color.width(),
+                    source_color.height(),
+                    Interpolation::Nearest,
+                    Interpolation::Nearest,
+                    None,
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                );
+                let mut target_depth = DepthTexture2D::new::<f32>(
+                    &self.context,
+                    source_depth.width(),
+                    source_depth.height(),
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                );
+                RenderTarget::new(
+                    source_color.as_color_target(),
+                    source_depth.as_depth_target(),
+                )
+                .blit_to(&RenderTarget::new(
+                    target_color.as_color_target(None),
+                    target_depth.as_depth_target(),
+                ));
+                (Some(target_color), Some(target_depth))
+            } else {
+                (self.resolve_color(), None)
+            }
+        } else {
+            (None, self.resolve_depth())
         }
     }
 }
