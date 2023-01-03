@@ -5,7 +5,7 @@ use crate::core::texture::*;
 ///
 pub struct DepthTexture2DMultisample {
     context: Context,
-    id: crate::context::Texture,
+    id: crate::context::Renderbuffer,
     width: u32,
     height: u32,
     number_of_samples: u32,
@@ -21,7 +21,11 @@ impl DepthTexture2DMultisample {
         height: u32,
         number_of_samples: u32,
     ) -> Self {
-        let id = generate(context);
+        let id = unsafe {
+            context
+                .create_renderbuffer()
+                .expect("Failed creating render buffer")
+        };
         let texture = Self {
             context: context.clone(),
             id,
@@ -32,13 +36,12 @@ impl DepthTexture2DMultisample {
         texture.bind();
         // CHECK: Omitted `set_parameters` since neither filtering, nor mipmap levels, nor clamping makes sense for multisampled textures.
         unsafe {
-            context.tex_storage_2d_multisample(
-                crate::context::TEXTURE_2D_MULTISAMPLE,
+            context.renderbuffer_storage_multisample(
+                crate::context::RENDERBUFFER,
                 number_of_samples as i32,
                 T::internal_format(),
                 width as i32,
                 height as i32,
-                false,
             );
         }
         texture
@@ -48,7 +51,11 @@ impl DepthTexture2DMultisample {
     /// Returns a [DepthTarget] which can be used to clear, write to and read from this texture.
     /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
     ///
-    pub fn as_depth_target<'a>(&'a mut self) -> DepthTarget<'a> {
+    pub fn as_depth_target(&mut self) -> DepthTarget<'_> {
+        DepthTarget::new_texture_2d_multisample(&self.context, self)
+    }
+
+    pub(in crate::core) fn as_depth_read(&self) -> DepthTarget<'_> {
         DepthTarget::new_texture_2d_multisample(&self.context, self)
     }
 
@@ -69,12 +76,11 @@ impl DepthTexture2DMultisample {
 
     pub(in crate::core) fn bind_as_depth_target(&self) {
         unsafe {
-            self.context.framebuffer_texture_2d(
+            self.context.framebuffer_renderbuffer(
                 crate::context::FRAMEBUFFER,
                 crate::context::DEPTH_ATTACHMENT,
-                crate::context::TEXTURE_2D_MULTISAMPLE,
+                crate::context::RENDERBUFFER,
                 Some(self.id),
-                0,
             );
         }
     }
@@ -82,7 +88,7 @@ impl DepthTexture2DMultisample {
     pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
-                .bind_texture(crate::context::TEXTURE_2D_MULTISAMPLE, Some(self.id));
+                .bind_renderbuffer(crate::context::RENDERBUFFER, Some(self.id));
         }
     }
 }
@@ -90,7 +96,7 @@ impl DepthTexture2DMultisample {
 impl Drop for DepthTexture2DMultisample {
     fn drop(&mut self) {
         unsafe {
-            self.context.delete_texture(self.id);
+            self.context.delete_renderbuffer(self.id);
         }
     }
 }
