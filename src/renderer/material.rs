@@ -346,7 +346,7 @@ impl DepthTexture<'_> {
     ///
     pub fn fragment_shader_source(&self) -> String {
         match self {
-            Self::Single(_) => "
+            Self::Single { .. } => "
                 uniform sampler2D depthMap;
                 float sample_depth(vec2 uv)
                 {
@@ -361,7 +361,9 @@ impl DepthTexture<'_> {
                     return texture(depthMap, vec3(uv, depthLayer)).x;
                 }"
             .to_owned(),
-            Self::CubeMap { .. } => unimplemented!(),
+            Self::CubeMap { .. } => {
+                unimplemented!()
+            }
         }
     }
 
