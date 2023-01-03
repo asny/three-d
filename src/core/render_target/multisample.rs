@@ -1,18 +1,17 @@
 use crate::core::*;
 
-pub struct RenderTargetMultisample {
+pub struct RenderTargetMultisample<C: TextureDataType, D: DepthTextureDataType> {
     context: Context,
     color: Option<Texture2DMultisample>,
     depth: Option<DepthTexture2DMultisample>,
+    _c: C,
+    _d: D,
 }
 
-impl RenderTargetMultisample {
-    pub fn new<C: TextureDataType, D: DepthTextureDataType>(
-        context: &Context,
-        width: u32,
-        height: u32,
-        number_of_samples: u32,
-    ) -> Self {
+impl<C: TextureDataType + Default, D: DepthTextureDataType + Default>
+    RenderTargetMultisample<C, D>
+{
+    pub fn new(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
         Self {
             context: context.clone(),
             color: Some(Texture2DMultisample::new::<C>(
@@ -27,15 +26,12 @@ impl RenderTargetMultisample {
                 height,
                 number_of_samples,
             )),
+            _c: C::default(),
+            _d: D::default(),
         }
     }
 
-    pub fn new_color<C: TextureDataType>(
-        context: &Context,
-        width: u32,
-        height: u32,
-        number_of_samples: u32,
-    ) -> Self {
+    pub fn new_color(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
         Self {
             context: context.clone(),
             color: Some(Texture2DMultisample::new::<C>(
@@ -45,15 +41,12 @@ impl RenderTargetMultisample {
                 number_of_samples,
             )),
             depth: None,
+            _c: C::default(),
+            _d: D::default(),
         }
     }
 
-    pub fn new_depth<D: DepthTextureDataType>(
-        context: &Context,
-        width: u32,
-        height: u32,
-        number_of_samples: u32,
-    ) -> Self {
+    pub fn new_depth(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
         Self {
             context: context.clone(),
             color: None,
@@ -63,6 +56,8 @@ impl RenderTargetMultisample {
                 height,
                 number_of_samples,
             )),
+            _c: C::default(),
+            _d: D::default(),
         }
     }
 
@@ -103,7 +98,7 @@ impl RenderTargetMultisample {
     }
     pub fn resolve_color(&self) -> Option<Texture2D> {
         if let Some(source_color) = &self.color {
-            let mut target_color = Texture2D::new_empty::<[u8; 4]>(
+            let mut target_color = Texture2D::new_empty::<C>(
                 &self.context,
                 source_color.width(),
                 source_color.height(),
@@ -125,7 +120,7 @@ impl RenderTargetMultisample {
 
     pub fn resolve_depth(&self) -> Option<DepthTexture2D> {
         if let Some(source_depth) = &self.depth {
-            let mut target_depth = DepthTexture2D::new::<f32>(
+            let mut target_depth = DepthTexture2D::new::<D>(
                 &self.context,
                 source_depth.width(),
                 source_depth.height(),
@@ -145,7 +140,7 @@ impl RenderTargetMultisample {
     pub fn resolve(&self) -> (Option<Texture2D>, Option<DepthTexture2D>) {
         if let Some(source_color) = &self.color {
             if let Some(source_depth) = &self.depth {
-                let mut target_color = Texture2D::new_empty::<[u8; 4]>(
+                let mut target_color = Texture2D::new_empty::<C>(
                     &self.context,
                     source_color.width(),
                     source_color.height(),
@@ -155,7 +150,7 @@ impl RenderTargetMultisample {
                     Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge,
                 );
-                let mut target_depth = DepthTexture2D::new::<f32>(
+                let mut target_depth = DepthTexture2D::new::<D>(
                     &self.context,
                     source_depth.width(),
                     source_depth.height(),
