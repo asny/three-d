@@ -7,16 +7,43 @@ pub struct RenderTargetMultisample {
 }
 
 impl RenderTargetMultisample {
-    pub fn new_color<T: TextureDataType>(
+    pub fn new<C: TextureDataType, D: DepthTextureDataType>(
         context: &Context,
         width: u32,
         height: u32,
         number_of_samples: u32,
     ) -> Self {
-        let color = Texture2DMultisample::new::<T>(context, width, height, number_of_samples);
         Self {
             context: context.clone(),
-            color: Some(color),
+            color: Some(Texture2DMultisample::new::<C>(
+                context,
+                width,
+                height,
+                number_of_samples,
+            )),
+            depth: Some(DepthTexture2DMultisample::new::<D>(
+                context,
+                width,
+                height,
+                number_of_samples,
+            )),
+        }
+    }
+
+    pub fn new_color<C: TextureDataType>(
+        context: &Context,
+        width: u32,
+        height: u32,
+        number_of_samples: u32,
+    ) -> Self {
+        Self {
+            context: context.clone(),
+            color: Some(Texture2DMultisample::new::<C>(
+                context,
+                width,
+                height,
+                number_of_samples,
+            )),
             depth: None,
         }
     }
@@ -47,9 +74,13 @@ impl RenderTargetMultisample {
 
     pub fn as_render_target(&mut self) -> RenderTarget<'_> {
         if let Some(color) = &mut self.color {
-            RenderTarget::new_color(color.as_color_target())
+            if let Some(depth) = &mut self.depth {
+                RenderTarget::new(color.as_color_target(), depth.as_depth_target())
+            } else {
+                RenderTarget::new_color(color.as_color_target())
+            }
         } else {
-            unimplemented!()
+            RenderTarget::new_depth(self.depth.as_mut().unwrap().as_depth_target())
         }
     }
 
