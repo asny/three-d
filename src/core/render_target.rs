@@ -380,11 +380,22 @@ impl<'a> RenderTarget<'a> {
 
     pub(in crate::core) fn blit(&self, target: &RenderTarget) {
         self.bind(crate::context::DRAW_FRAMEBUFFER);
+        target.bind(crate::context::DRAW_FRAMEBUFFER);
+        let mask = if self.color.is_some() && target.color.is_some() {
+            let mut mask = crate::context::COLOR_BUFFER_BIT;
+            if self.depth.is_some() && target.depth.is_some() {
+                mask |= crate::context::DEPTH_BUFFER_BIT;
+            }
+            mask
+        } else if self.depth.is_some() && target.depth.is_some() {
+            crate::context::DEPTH_BUFFER_BIT
+        } else {
+            unreachable!()
+        };
         unsafe {
             self.context
                 .bind_framebuffer(crate::context::READ_FRAMEBUFFER, self.id);
 
-            target.bind(crate::context::DRAW_FRAMEBUFFER);
             self.context.blit_framebuffer(
                 0,
                 0,
@@ -392,9 +403,9 @@ impl<'a> RenderTarget<'a> {
                 self.height as i32,
                 0,
                 0,
-                self.width as i32,
-                self.height as i32,
-                crate::context::COLOR_BUFFER_BIT,
+                target.width as i32,
+                target.height as i32,
+                mask,
                 crate::context::NEAREST,
             );
         }
