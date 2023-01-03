@@ -306,7 +306,6 @@ impl ColorTexture<'_> {
                 }"
             .to_owned(),
             Self::CubeMap { .. } => unimplemented!(),
-            Self::Multisample(_) => panic!("Multisampled textures cannot be sampled in a shader, copy the content to a Texture2D before sampling."),
         }
     }
 
@@ -326,9 +325,6 @@ impl ColorTexture<'_> {
                 program.use_texture_array("colorMap", texture);
             }
             Self::CubeMap { .. } => unimplemented!(),
-            Self::Multisample(_) => {
-                panic!("Multisampled textures cannot be sampled in a shader, copy the content to a Texture2D before sampling.")
-            }
         }
     }
 
@@ -340,7 +336,6 @@ impl ColorTexture<'_> {
             Self::Single(texture) => (texture.width(), texture.height()),
             Self::Array { texture, .. } => (texture.width(), texture.height()),
             Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
-            Self::Multisample(texture) => (texture.width(), texture.height()),
         }
     }
 }

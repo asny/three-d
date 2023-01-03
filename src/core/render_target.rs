@@ -269,54 +269,30 @@ impl<'a> RenderTarget<'a> {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> &Self {
-        if let ColorTexture::Multisample(buffer) = color_texture {
-            let rt = buffer.as_color_read().as_render_target();
-            rt.bind(crate::context::DRAW_FRAMEBUFFER);
-            unsafe {
-                self.context
-                    .bind_framebuffer(crate::context::READ_FRAMEBUFFER, rt.id);
-
-                self.bind(crate::context::DRAW_FRAMEBUFFER);
-                self.context.blit_framebuffer(
-                    0,
-                    0,
-                    buffer.width() as i32,
-                    buffer.height() as i32,
-                    0,
-                    0,
-                    self.width as i32,
-                    self.height as i32,
-                    crate::context::COLOR_BUFFER_BIT,
-                    crate::context::NEAREST,
-                );
-            }
-            self
-        } else {
-            self.write_partially(scissor_box, || {
-                let fragment_shader_source = format!(
-                    "{}\nin vec2 uvs;
+        self.write_partially(scissor_box, || {
+            let fragment_shader_source = format!(
+                "{}\nin vec2 uvs;
                     layout (location = 0) out vec4 color;
                     void main()
                     {{
                         color = sample_color(uvs);
                     }}",
-                    color_texture.fragment_shader_source()
-                );
-                apply_effect(
-                    &self.context,
-                    &fragment_shader_source,
-                    RenderStates {
-                        depth_test: DepthTest::Always,
-                        write_mask,
-                        ..Default::default()
-                    },
-                    viewport,
-                    |program| {
-                        color_texture.use_uniforms(program);
-                    },
-                )
-            })
-        }
+                color_texture.fragment_shader_source()
+            );
+            apply_effect(
+                &self.context,
+                &fragment_shader_source,
+                RenderStates {
+                    depth_test: DepthTest::Always,
+                    write_mask,
+                    ..Default::default()
+                },
+                viewport,
+                |program| {
+                    color_texture.use_uniforms(program);
+                },
+            )
+        })
     }
 
     ///
@@ -396,6 +372,28 @@ impl<'a> RenderTarget<'a> {
     ///
     pub fn into_framebuffer(mut self) -> Option<Framebuffer> {
         self.id.take()
+    }
+
+    pub(in crate::core) fn blit(&self, target: &RenderTarget) {
+        self.bind(crate::context::DRAW_FRAMEBUFFER);
+        unsafe {
+            self.context
+                .bind_framebuffer(crate::context::READ_FRAMEBUFFER, self.id);
+
+            target.bind(crate::context::DRAW_FRAMEBUFFER);
+            self.context.blit_framebuffer(
+                0,
+                0,
+                self.width as i32,
+                self.height as i32,
+                0,
+                0,
+                self.width as i32,
+                self.height as i32,
+                crate::context::COLOR_BUFFER_BIT,
+                crate::context::NEAREST,
+            );
+        }
     }
 
     fn new_color(color: ColorTarget<'a>) -> Self {

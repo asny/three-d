@@ -90,8 +90,6 @@ pub enum ColorTexture<'a> {
         texture: &'a TextureCubeMap,
         sides: &'a [CubeMapSide],
     },
-    /// A multisampled 2D texture.
-    Multisample(&'a Texture2DMultisample),
 }
 
 impl ColorTexture<'_> {
@@ -103,7 +101,6 @@ impl ColorTexture<'_> {
             ColorTexture::Single(texture) => texture.width(),
             ColorTexture::Array { texture, .. } => texture.width(),
             ColorTexture::CubeMap { texture, .. } => texture.width(),
-            ColorTexture::Multisample(texture) => texture.width(),
         }
     }
 
@@ -115,7 +112,6 @@ impl ColorTexture<'_> {
             ColorTexture::Single(texture) => texture.height(),
             ColorTexture::Array { texture, .. } => texture.height(),
             ColorTexture::CubeMap { texture, .. } => texture.height(),
-            ColorTexture::Multisample(texture) => texture.height(),
         }
     }
 }
