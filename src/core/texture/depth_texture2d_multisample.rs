@@ -1,8 +1,5 @@
 use crate::core::texture::*;
 
-///
-/// A 2D depth texture that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
-///
 pub struct DepthTexture2DMultisample {
     context: Context,
     id: crate::context::Renderbuffer,
@@ -12,9 +9,6 @@ pub struct DepthTexture2DMultisample {
 }
 
 impl DepthTexture2DMultisample {
-    ///
-    /// Constructs a new multisample 2D depth texture.
-    ///
     pub fn new<T: DepthTextureDataType>(
         context: &Context,
         width: u32,
@@ -47,11 +41,7 @@ impl DepthTexture2DMultisample {
         texture
     }
 
-    ///
-    /// Returns a [DepthTarget] which can be used to clear, write to and read from this texture.
-    /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
-    ///
-    pub fn as_depth_target(&mut self) -> DepthTarget<'_> {
+    pub fn as_depth_target(&self) -> DepthTarget<'_> {
         DepthTarget::new_texture_2d_multisample(&self.context, self)
     }
 

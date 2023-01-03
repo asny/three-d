@@ -1,8 +1,5 @@
 use crate::core::texture::*;
 
-///
-/// A multisampled 2D texture.
-///
 pub struct Texture2DMultisample {
     context: Context,
     id: crate::context::Renderbuffer,
@@ -12,11 +9,6 @@ pub struct Texture2DMultisample {
 }
 
 impl Texture2DMultisample {
-    ///
-    /// Constructs a new empty 2D texture with the given parameters.
-    /// The format is determined by the generic [TextureDataType] parameter
-    /// (for example, if [u8; 4] is specified, the format is RGBA and the data type is byte).
-    ///
     pub fn new<T: TextureDataType>(
         context: &Context,
         width: u32,
@@ -36,7 +28,6 @@ impl Texture2DMultisample {
             number_of_samples,
         };
         texture.bind();
-        // CHECK: Omitted `set_parameters` since neither filtering, nor mipmap levels, nor clamping makes sense for multisampled textures.
         unsafe {
             context.renderbuffer_storage_multisample(
                 crate::context::RENDERBUFFER,
@@ -49,13 +40,7 @@ impl Texture2DMultisample {
         texture
     }
 
-    ///
-    /// Returns a [ColorTarget] which can be used to clear, write to and read from the texture.
-    /// Combine this together with a [DepthTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
-    ///
-    /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
-    ///
-    pub fn as_color_target(&mut self) -> ColorTarget<'_> {
+    pub fn as_color_target(&self) -> ColorTarget<'_> {
         ColorTarget::new_texture_2d_multisample(&self.context, self)
     }
 
