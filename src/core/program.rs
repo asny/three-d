@@ -277,32 +277,6 @@ impl Program {
         texture.bind();
     }
 
-    ///
-    /// Use the given multisample texture in this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of the type `uniform sampler2DMS` and can only be used by the `texelFetch` function.
-    ///
-    /// # Panic
-    /// Will panic if the texture is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_texture_multisample(&self, name: &str, texture: &Texture2DMultisample) {
-        self.use_texture_internal(name);
-        texture.bind();
-    }
-
-    ///
-    /// Use the given multisample texture in this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of the type `uniform sampler2DMS` and can only be used by the `texelFetch` function.
-    ///
-    /// # Panic
-    /// Will panic if the texture is not defined in the shader code or not used.
-    /// In the latter case the variable is removed by the shader compiler.
-    ///
-    pub fn use_depth_texture_multisample(&self, name: &str, texture: &DepthTexture2DMultisample) {
-        self.use_texture_internal(name);
-        texture.bind();
-    }
-
     fn use_texture_internal(&self, name: &str) -> u32 {
         if !self.textures.read().unwrap().contains_key(name) {
             let mut map = self.textures.write().unwrap();

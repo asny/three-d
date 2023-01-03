@@ -5,7 +5,7 @@ use crate::core::texture::*;
 ///
 pub struct Texture2DMultisample {
     context: Context,
-    id: crate::context::Texture,
+    id: crate::context::Renderbuffer,
     width: u32,
     height: u32,
     number_of_samples: u32,
@@ -23,7 +23,11 @@ impl Texture2DMultisample {
         height: u32,
         number_of_samples: u32,
     ) -> Self {
-        let id = generate(context);
+        let id = unsafe {
+            context
+                .create_renderbuffer()
+                .expect("Failed creating render buffer")
+        };
         let texture = Self {
             context: context.clone(),
             id,
@@ -34,13 +38,12 @@ impl Texture2DMultisample {
         texture.bind();
         // CHECK: Omitted `set_parameters` since neither filtering, nor mipmap levels, nor clamping makes sense for multisampled textures.
         unsafe {
-            context.tex_storage_2d_multisample(
-                crate::context::TEXTURE_2D_MULTISAMPLE,
+            context.renderbuffer_storage_multisample(
+                crate::context::RENDERBUFFER,
                 number_of_samples as i32,
                 T::internal_format(),
                 width as i32,
                 height as i32,
-                false,
             );
         }
         texture
@@ -52,7 +55,11 @@ impl Texture2DMultisample {
     ///
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     ///
-    pub fn as_color_target<'a>(&'a mut self) -> ColorTarget<'a> {
+    pub fn as_color_target(&mut self) -> ColorTarget<'_> {
+        ColorTarget::new_texture_2d_multisample(&self.context, self)
+    }
+
+    pub(in crate::core) fn as_color_read(&self) -> ColorTarget<'_> {
         ColorTarget::new_texture_2d_multisample(&self.context, self)
     }
 
@@ -73,19 +80,18 @@ impl Texture2DMultisample {
 
     pub(in crate::core) fn bind_as_color_target(&self, channel: u32) {
         unsafe {
-            self.context.framebuffer_texture_2d(
+            self.context.framebuffer_renderbuffer(
                 crate::context::FRAMEBUFFER,
                 crate::context::COLOR_ATTACHMENT0 + channel,
-                crate::context::TEXTURE_2D_MULTISAMPLE,
+                crate::context::RENDERBUFFER,
                 Some(self.id),
-                0,
             );
         }
     }
     pub(in crate::core) fn bind(&self) {
         unsafe {
             self.context
-                .bind_texture(crate::context::TEXTURE_2D_MULTISAMPLE, Some(self.id));
+                .bind_renderbuffer(crate::context::RENDERBUFFER, Some(self.id));
         }
     }
 }
@@ -93,7 +99,7 @@ impl Texture2DMultisample {
 impl Drop for Texture2DMultisample {
     fn drop(&mut self) {
         unsafe {
-            self.context.delete_texture(self.id);
+            self.context.delete_renderbuffer(self.id);
         }
     }
 }
