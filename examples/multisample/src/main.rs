@@ -178,28 +178,22 @@ pub fn main() {
 
             RenderMethod::ToMultisampledTexture(sample_count) => {
                 // Render the shapes to a multisampled texture, and copy the color texture to the screen framebuffer
-                let mut color_texture = Texture2DMultisample::new::<[u8; 4]>(
-                    &context,
-                    frame_input.viewport.width,
-                    frame_input.viewport.height,
-                    sample_count,
-                );
-                let mut depth_texture = DepthTexture2DMultisample::new::<f32>(
+                let mut multisample_target = RenderTargetMultisample::<[u8; 4], f32>::new(
                     &context,
                     frame_input.viewport.width,
                     frame_input.viewport.height,
                     sample_count,
                 );
 
-                RenderTarget::new(
-                    color_texture.as_color_target(),
-                    depth_texture.as_depth_target(),
-                )
-                .clear(clear_state)
-                .render(&camera, renderable_things, &[]);
+                multisample_target
+                    .as_render_target()
+                    .clear(clear_state)
+                    .render(&camera, renderable_things, &[]);
 
-                frame_input.screen().copy_from_color(
-                    ColorTexture::Multisample(&color_texture),
+                let color_texture = multisample_target.resolve_color().unwrap();
+
+                frame_input.screen().clear(clear_state).copy_from_color(
+                    ColorTexture::Single(&color_texture),
                     frame_input.viewport,
                     WriteMask::default(),
                 );
