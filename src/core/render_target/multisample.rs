@@ -106,7 +106,8 @@ impl<C: TextureDataType + Default, D: DepthTextureDataType + Default>
             RenderTarget::new_depth(self.depth.as_mut().unwrap().as_depth_target())
         }
     }
-    pub fn resolve_color(&self) -> Option<Texture2D> {
+
+    pub fn resolve_color(&self) -> Texture2D {
         if let Some(source_color) = &self.color {
             let mut target_color = Texture2D::new_empty::<C>(
                 &self.context,
@@ -122,13 +123,13 @@ impl<C: TextureDataType + Default, D: DepthTextureDataType + Default>
                 .as_color_target()
                 .as_render_target()
                 .blit_to(&target_color.as_color_target(None).as_render_target());
-            Some(target_color)
+            target_color
         } else {
-            None
+            panic!("Cannot resolve color on a multisampled depth target")
         }
     }
 
-    pub fn resolve_depth(&self) -> Option<DepthTexture2D> {
+    pub fn resolve_depth(&self) -> DepthTexture2D {
         if let Some(source_depth) = &self.depth {
             let mut target_depth = DepthTexture2D::new::<D>(
                 &self.context,
@@ -141,13 +142,13 @@ impl<C: TextureDataType + Default, D: DepthTextureDataType + Default>
                 .as_depth_target()
                 .as_render_target()
                 .blit_to(&target_depth.as_depth_target().as_render_target());
-            Some(target_depth)
+            target_depth
         } else {
-            None
+            panic!("Cannot resolve depth on a multisampled color target")
         }
     }
 
-    pub fn resolve(&self) -> (Option<Texture2D>, Option<DepthTexture2D>) {
+    pub fn resolve(&self) -> (Texture2D, DepthTexture2D) {
         if let Some(source_color) = &self.color {
             if let Some(source_depth) = &self.depth {
                 let mut target_color = Texture2D::new_empty::<C>(
@@ -175,12 +176,14 @@ impl<C: TextureDataType + Default, D: DepthTextureDataType + Default>
                     target_color.as_color_target(None),
                     target_depth.as_depth_target(),
                 ));
-                (Some(target_color), Some(target_depth))
+                (target_color, target_depth)
             } else {
-                (self.resolve_color(), None)
+                panic!(
+                    "Cannot resolve both color and depth on a multisampled color or depth target"
+                )
             }
         } else {
-            (None, self.resolve_depth())
+            panic!("Cannot resolve both color and depth on a multisampled color or depth target")
         }
     }
 }
