@@ -22,6 +22,10 @@ mod color_target_multisample;
 #[doc(inline)]
 pub use color_target_multisample::*;
 
+mod depth_target_multisample;
+#[doc(inline)]
+pub use depth_target_multisample::*;
+
 use crate::core::*;
 
 use crate::context::Framebuffer;

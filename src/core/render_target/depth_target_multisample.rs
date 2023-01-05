@@ -1,10 +1,10 @@
 use crate::core::*;
 
-pub struct ColorTargetMultisample<C: TextureDataType>(RenderTargetMultisample<C, f32>);
+pub struct DepthTargetMultisample<D: DepthTextureDataType>(RenderTargetMultisample<u8, D>);
 
-impl<C: TextureDataType + Default> ColorTargetMultisample<C> {
+impl<D: DepthTextureDataType + Default> DepthTargetMultisample<D> {
     pub fn new(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
-        Self(RenderTargetMultisample::new_color(
+        Self(RenderTargetMultisample::new_depth(
             context,
             width,
             height,
@@ -31,7 +31,7 @@ impl<C: TextureDataType + Default> ColorTargetMultisample<C> {
         self.0.as_render_target()
     }
 
-    pub fn resolve(&self) -> Texture2D {
-        self.0.resolve_color()
+    pub fn resolve(&self) -> DepthTexture2D {
+        self.0.resolve_depth()
     }
 }
