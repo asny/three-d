@@ -31,7 +31,12 @@ impl<C: TextureDataType + Default, D: DepthTextureDataType + Default>
         }
     }
 
-    pub fn new_color(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
+    pub(in crate::core) fn new_color(
+        context: &Context,
+        width: u32,
+        height: u32,
+        number_of_samples: u32,
+    ) -> Self {
         Self {
             context: context.clone(),
             color: Some(Texture2DMultisample::new::<C>(
@@ -46,7 +51,12 @@ impl<C: TextureDataType + Default, D: DepthTextureDataType + Default>
         }
     }
 
-    pub fn new_depth(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
+    pub(in crate::core) fn new_depth(
+        context: &Context,
+        width: u32,
+        height: u32,
+        number_of_samples: u32,
+    ) -> Self {
         Self {
             context: context.clone(),
             color: None,
