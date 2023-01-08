@@ -76,6 +76,16 @@ impl<'a> RenderTarget<'a> {
         }
     }
 
+    /// The width of this target.
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// The height of this target.
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
     ///
     /// Clears the color and depth of this render target as defined by the given clear state.
     ///
@@ -349,13 +359,6 @@ impl<'a> RenderTarget<'a> {
                 },
             )
         })
-    }
-
-    ///
-    /// Returns the scissor box that encloses the entire target.
-    ///
-    pub fn scissor_box(&self) -> ScissorBox {
-        ScissorBox::new_at_origo(self.width, self.height)
     }
 
     ///

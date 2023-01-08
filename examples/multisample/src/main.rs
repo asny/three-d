@@ -178,7 +178,7 @@ pub fn main() {
 
             RenderMethod::ToMultisampledTexture(sample_count) => {
                 // Render the shapes to a multisampled texture, and copy the color texture to the screen framebuffer
-                let mut multisample_target = RenderTargetMultisample::<[u8; 4], f32>::new(
+                let multisample_target = RenderTargetMultisample::<[u8; 4], f32>::new(
                     &context,
                     frame_input.viewport.width,
                     frame_input.viewport.height,
@@ -186,11 +186,10 @@ pub fn main() {
                 );
 
                 multisample_target
-                    .as_render_target()
                     .clear(clear_state)
                     .render(&camera, renderable_things, &[]);
 
-                let color_texture = multisample_target.resolve_color().unwrap();
+                let color_texture = multisample_target.resolve_color();
 
                 frame_input.screen().clear(clear_state).copy_from_color(
                     ColorTexture::Single(&color_texture),

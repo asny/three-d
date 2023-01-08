@@ -1,7 +1,7 @@
 use crate::core::*;
 
 pub struct RenderTargetMultisample<C: TextureDataType, D: DepthTextureDataType> {
-    context: Context,
+    pub(crate) context: Context,
     color: Option<Texture2DMultisample>,
     depth: Option<DepthTexture2DMultisample>,
     _c: C,
@@ -71,6 +71,43 @@ impl<C: TextureDataType + Default, D: DepthTextureDataType + Default>
         }
     }
 
+    ///
+    /// Clears the color and depth of this target as defined by the given clear state.
+    ///
+    pub fn clear(&self, clear_state: ClearState) -> &Self {
+        self.clear_partially(
+            ScissorBox::new_at_origo(self.width(), self.height()),
+            clear_state,
+        )
+    }
+
+    ///
+    /// Clears the color and depth of the part of this target that is inside the given scissor box.
+    ///
+    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState) -> &Self {
+        self.as_render_target()
+            .clear_partially(scissor_box, clear_state);
+        self
+    }
+
+    ///
+    /// Writes whatever rendered in the `render` closure into this target.
+    ///
+    pub fn write(&self, render: impl FnOnce()) -> &Self {
+        self.write_partially(
+            ScissorBox::new_at_origo(self.width(), self.height()),
+            render,
+        )
+    }
+
+    ///
+    /// Writes whatever rendered in the `render` closure into the part of this target defined by the scissor box.
+    ///
+    pub fn write_partially(&self, scissor_box: ScissorBox, render: impl FnOnce()) -> &Self {
+        self.as_render_target().write_partially(scissor_box, render);
+        self
+    }
+
     /// The width of this target.
     pub fn width(&self) -> u32 {
         self.color
@@ -95,15 +132,15 @@ impl<C: TextureDataType + Default, D: DepthTextureDataType + Default>
             .unwrap_or_else(|| self.depth.as_ref().unwrap().number_of_samples())
     }
 
-    pub fn as_render_target(&mut self) -> RenderTarget<'_> {
-        if let Some(color) = &mut self.color {
-            if let Some(depth) = &mut self.depth {
+    pub(super) fn as_render_target(&self) -> RenderTarget<'_> {
+        if let Some(color) = &self.color {
+            if let Some(depth) = &self.depth {
                 RenderTarget::new(color.as_color_target(), depth.as_depth_target())
             } else {
                 RenderTarget::new_color(color.as_color_target())
             }
         } else {
-            RenderTarget::new_depth(self.depth.as_mut().unwrap().as_depth_target())
+            RenderTarget::new_depth(self.depth.as_ref().unwrap().as_depth_target())
         }
     }
 
