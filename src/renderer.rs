@@ -53,13 +53,6 @@ macro_rules! impl_render_target_extensions {
     ($t:ty) => {
         impl $t {
             ///
-            /// Returns the scissor box that encloses the entire target.
-            ///
-            pub fn scissor_box(&self) -> ScissorBox {
-                ScissorBox::new_at_origo(self.width(), self.height())
-            }
-
-            ///
             /// Render the objects using the given camera and lights into this render target.
             /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
             /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
