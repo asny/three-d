@@ -1,15 +1,20 @@
 use crate::core::*;
 
-pub struct DepthTargetMultisample<D: DepthTextureDataType> {
-    target: RenderTargetMultisample<u8, D>,
+pub struct DepthTargetMultisample {
     pub(crate) context: Context,
+    depth: DepthTexture2DMultisample,
 }
 
-impl<D: DepthTextureDataType + Default> DepthTargetMultisample<D> {
-    pub fn new(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
+impl DepthTargetMultisample {
+    pub fn new<D: DepthTextureDataType + Default>(
+        context: &Context,
+        width: u32,
+        height: u32,
+        number_of_samples: u32,
+    ) -> Self {
         Self {
-            target: RenderTargetMultisample::new_depth(context, width, height, number_of_samples),
             context: context.clone(),
+            depth: DepthTexture2DMultisample::new::<D>(context, width, height, number_of_samples),
         }
     }
 
@@ -17,10 +22,7 @@ impl<D: DepthTextureDataType + Default> DepthTargetMultisample<D> {
     /// Clears the color and depth of this target as defined by the given clear state.
     ///
     pub fn clear(&self, clear_state: ClearState) -> &Self {
-        self.clear_partially(
-            ScissorBox::new_at_origo(self.width(), self.height()),
-            clear_state,
-        )
+        self.clear_partially(self.scissor_box(), clear_state)
     }
 
     ///
@@ -41,10 +43,7 @@ impl<D: DepthTextureDataType + Default> DepthTargetMultisample<D> {
     /// Writes whatever rendered in the `render` closure into this target.
     ///
     pub fn write(&self, render: impl FnOnce()) -> &Self {
-        self.write_partially(
-            ScissorBox::new_at_origo(self.width(), self.height()),
-            render,
-        )
+        self.write_partially(self.scissor_box(), render)
     }
 
     ///
@@ -57,24 +56,24 @@ impl<D: DepthTextureDataType + Default> DepthTargetMultisample<D> {
 
     /// The width of this target.
     pub fn width(&self) -> u32 {
-        self.target.width()
+        self.depth.width()
     }
 
     /// The height of this target.
     pub fn height(&self) -> u32 {
-        self.target.height()
+        self.depth.height()
     }
 
     /// The number of samples for each fragment.
     pub fn number_of_samples(&self) -> u32 {
-        self.target.number_of_samples()
+        self.depth.number_of_samples()
     }
 
     fn as_render_target(&self) -> RenderTarget<'_> {
-        self.target.as_render_target()
+        DepthTarget::new_texture_2d_multisample(&self.context, &self.depth).as_render_target()
     }
 
-    pub fn resolve(&self) -> DepthTexture2D {
-        self.target.resolve_depth()
+    pub fn resolve(&self, target: &DepthTarget<'_>) {
+        self.as_render_target().blit_to(&target.as_render_target());
     }
 }

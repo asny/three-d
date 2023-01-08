@@ -41,10 +41,6 @@ impl DepthTexture2DMultisample {
         texture
     }
 
-    pub fn as_depth_target(&self) -> DepthTarget<'_> {
-        DepthTarget::new_texture_2d_multisample(&self.context, self)
-    }
-
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width
