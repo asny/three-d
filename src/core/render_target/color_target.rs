@@ -199,14 +199,7 @@ impl<'a> ColorTarget<'a> {
         }
     }
 
-    ///
-    /// Returns the scissor box that encloses the entire target.
-    ///
-    pub fn scissor_box(&self) -> ScissorBox {
-        ScissorBox::new_at_origo(self.width(), self.height())
-    }
-
-    pub(crate) fn as_render_target(&self) -> RenderTarget<'a> {
+    pub(super) fn as_render_target(&self) -> RenderTarget<'a> {
         RenderTarget::new_color(self.clone())
     }
 

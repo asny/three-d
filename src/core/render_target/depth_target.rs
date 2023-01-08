@@ -132,7 +132,7 @@ impl<'a> DepthTarget<'a> {
         self
     }
 
-    pub(crate) fn as_render_target(&self) -> RenderTarget<'a> {
+    pub(super) fn as_render_target(&self) -> RenderTarget<'a> {
         RenderTarget::new_depth(self.clone())
     }
 
@@ -164,13 +164,6 @@ impl<'a> DepthTarget<'a> {
         } else {
             self.multisample_target.as_ref().unwrap().height()
         }
-    }
-
-    ///
-    /// Returns the scissor box that encloses the entire target.
-    ///
-    pub fn scissor_box(&self) -> ScissorBox {
-        ScissorBox::new_at_origo(self.width(), self.height())
     }
 
     pub(super) fn bind(&self) {
