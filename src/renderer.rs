@@ -257,9 +257,9 @@ macro_rules! impl_render_target_extensions {
 impl_render_target_extensions!(RenderTarget<'_>);
 impl_render_target_extensions!(ColorTarget<'_>);
 impl_render_target_extensions!(DepthTarget<'_>);
-impl_render_target_extensions!(RenderTargetMultisample<[u8;4], f32>);
-impl_render_target_extensions!(ColorTargetMultisample<[u8; 4]>);
-impl_render_target_extensions!(DepthTargetMultisample<f32>);
+impl_render_target_extensions!(RenderTargetMultisample);
+impl_render_target_extensions!(ColorTargetMultisample);
+impl_render_target_extensions!(DepthTargetMultisample);
 
 ///
 /// Returns a camera for viewing 2D content.

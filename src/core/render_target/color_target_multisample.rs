@@ -1,31 +1,21 @@
 use crate::core::*;
 
-pub struct ColorTargetMultisample<C: TextureDataType> {
-    target: RenderTargetMultisample<C, f32>,
+pub struct ColorTargetMultisample {
+    color: Texture2DMultisample,
     pub(crate) context: Context,
 }
 
-impl<C: TextureDataType + Default> ColorTargetMultisample<C> {
-    pub fn new(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
+impl ColorTargetMultisample {
+    pub fn new<C: TextureDataType + Default>(
+        context: &Context,
+        width: u32,
+        height: u32,
+        number_of_samples: u32,
+    ) -> Self {
         Self {
-            target: RenderTargetMultisample::new_color(context, width, height, number_of_samples),
             context: context.clone(),
+            color: Texture2DMultisample::new::<C>(context, width, height, number_of_samples),
         }
-    }
-
-    /// The width of this target.
-    pub fn width(&self) -> u32 {
-        self.target.width()
-    }
-
-    /// The height of this target.
-    pub fn height(&self) -> u32 {
-        self.target.height()
-    }
-
-    /// The number of samples for each fragment.
-    pub fn number_of_samples(&self) -> u32 {
-        self.target.number_of_samples()
     }
 
     ///
@@ -70,11 +60,26 @@ impl<C: TextureDataType + Default> ColorTargetMultisample<C> {
         self
     }
 
-    fn as_render_target(&self) -> RenderTarget<'_> {
-        self.target.as_render_target()
+    /// The width of this target.
+    pub fn width(&self) -> u32 {
+        self.color.width()
     }
 
-    pub fn resolve(&self) -> Texture2D {
-        self.target.resolve_color()
+    /// The height of this target.
+    pub fn height(&self) -> u32 {
+        self.color.height()
+    }
+
+    /// The number of samples for each fragment.
+    pub fn number_of_samples(&self) -> u32 {
+        self.color.number_of_samples()
+    }
+
+    fn as_render_target(&self) -> RenderTarget<'_> {
+        ColorTarget::new_texture_2d_multisample(&self.context, &self.color).as_render_target()
+    }
+
+    pub fn resolve(&self, target: &ColorTarget<'_>) {
+        self.as_render_target().blit_to(&target.as_render_target());
     }
 }
