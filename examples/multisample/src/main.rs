@@ -177,18 +177,6 @@ pub fn main() {
             }
 
             RenderMethod::ToMultisampledTexture(sample_count) => {
-                // Render the shapes to a multisampled texture, and copy the color texture to the screen framebuffer
-                let multisample_target = RenderTargetMultisample::new::<[u8; 4], f32>(
-                    &context,
-                    frame_input.viewport.width,
-                    frame_input.viewport.height,
-                    sample_count,
-                );
-
-                multisample_target
-                    .clear(clear_state)
-                    .render(&camera, renderable_things, &[]);
-
                 let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
                     &context,
                     frame_input.viewport.width,
@@ -199,7 +187,17 @@ pub fn main() {
                     Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge,
                 );
-                multisample_target.resolve_color(&color_texture.as_color_target(None));
+
+                // Render the shapes to a multisampled texture, and copy the color texture to the screen framebuffer
+                ColorTargetMultisample::new::<[u8; 4]>(
+                    &context,
+                    frame_input.viewport.width,
+                    frame_input.viewport.height,
+                    sample_count,
+                )
+                .clear(clear_state)
+                .render(&camera, renderable_things, &[])
+                .resolve(&color_texture.as_color_target(None));
 
                 frame_input.screen().clear(clear_state).copy_from_color(
                     ColorTexture::Single(&color_texture),
