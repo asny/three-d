@@ -154,8 +154,8 @@ impl<'a> RenderTarget<'a> {
             vec![0u8; scissor_box.width as usize * scissor_box.height as usize * data_size];
         unsafe {
             self.context.read_pixels(
-                scissor_box.x as i32,
-                scissor_box.y as i32,
+                scissor_box.x,
+                scissor_box.y,
                 scissor_box.width as i32,
                 scissor_box.height as i32,
                 format_from_data_type::<T>(),
@@ -193,8 +193,8 @@ impl<'a> RenderTarget<'a> {
         let mut pixels = vec![0u8; scissor_box.width as usize * scissor_box.height as usize * 4];
         unsafe {
             self.context.read_pixels(
-                scissor_box.x as i32,
-                scissor_box.y as i32,
+                scissor_box.x,
+                scissor_box.y,
                 scissor_box.width as i32,
                 scissor_box.height as i32,
                 crate::context::DEPTH_COMPONENT,
@@ -486,3 +486,30 @@ fn new_framebuffer(context: &Context) -> crate::context::Framebuffer {
             .expect("Failed creating frame buffer")
     }
 }
+
+macro_rules! impl_render_target_core_extensions {
+    ($t:ty) => {
+        impl $t {
+            ///
+            /// Returns the scissor box that encloses the entire target.
+            ///
+            pub fn scissor_box(&self) -> ScissorBox {
+                ScissorBox::new_at_origo(self.width(), self.height())
+            }
+
+            ///
+            /// Returns the viewport that encloses the entire target.
+            ///
+            pub fn viewport(&self) -> Viewport {
+                Viewport::new_at_origo(self.width(), self.height())
+            }
+        }
+    };
+}
+
+impl_render_target_core_extensions!(RenderTarget<'_>);
+impl_render_target_core_extensions!(ColorTarget<'_>);
+impl_render_target_core_extensions!(DepthTarget<'_>);
+impl_render_target_core_extensions!(RenderTargetMultisample);
+impl_render_target_core_extensions!(ColorTargetMultisample);
+impl_render_target_core_extensions!(DepthTargetMultisample);
