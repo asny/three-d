@@ -249,8 +249,8 @@ impl Geometry for WaterPatch {
         let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context
             .program(
-                &include_str!("shaders/water.vert"),
-                &fragment_shader_source,
+                include_str!("shaders/water.vert").to_owned(),
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     self.draw(program, material.render_states(), camera);
@@ -271,8 +271,8 @@ impl Geometry for WaterPatch {
             material.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
             .program(
-                &include_str!("shaders/water.vert"),
-                &fragment_shader_source,
+                include_str!("shaders/water.vert").to_owned(),
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     self.draw(program, material.render_states(), camera);

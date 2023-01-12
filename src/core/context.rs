@@ -15,7 +15,7 @@ pub use crate::context::HasContext;
 pub struct Context {
     context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
-    programs: Arc<RwLock<HashMap<String, Program>>>,
+    programs: Arc<RwLock<HashMap<(String, String), Program>>>,
 }
 
 impl Context {
@@ -37,7 +37,7 @@ impl Context {
             // Create one Vertex Array Object which is then reused all the time.
             let vao = context
                 .create_vertex_array()
-                .map_err(|e| CoreError::ContextCreation(e))?;
+                .map_err(CoreError::ContextCreation)?;
             Self {
                 context,
                 vao,
@@ -53,18 +53,19 @@ impl Context {
     ///
     pub fn program(
         &self,
-        vertex_shader_source: &str,
-        fragment_shader_source: &str,
+        vertex_shader_source: String,
+        fragment_shader_source: String,
         callback: impl FnOnce(&Program),
     ) -> Result<(), CoreError> {
-        let key = format!("{}{}", vertex_shader_source, fragment_shader_source);
-        if !self.programs.read().unwrap().contains_key(&key) {
-            self.programs.write().unwrap().insert(
-                key.clone(),
-                Program::from_source(self, vertex_shader_source, fragment_shader_source)?,
-            );
-        };
-        callback(self.programs.read().unwrap().get(&key).unwrap());
+        let key = (vertex_shader_source, fragment_shader_source);
+        let mut programs = self.programs.write().unwrap();
+        if let Some(program) = programs.get(&key) {
+            callback(program);
+        } else {
+            let program = Program::from_source(self, &key.0, &key.1)?;
+            callback(&program);
+            programs.insert(key, program);
+        }
         Ok(())
     }
 

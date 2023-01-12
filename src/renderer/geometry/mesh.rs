@@ -197,8 +197,8 @@ impl Geometry for Mesh {
             material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
         self.context
             .program(
-                &Self::vertex_shader_source(&fragment_shader_source),
-                &fragment_shader_source,
+                Self::vertex_shader_source(&fragment_shader_source),
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     self.draw(program, material.render_states(), camera);
@@ -219,8 +219,8 @@ impl Geometry for Mesh {
             material.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
             .program(
-                &Self::vertex_shader_source(&fragment_shader_source),
-                &fragment_shader_source,
+                Self::vertex_shader_source(&fragment_shader_source),
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     self.draw(program, material.render_states(), camera);

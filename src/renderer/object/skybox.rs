@@ -141,8 +141,8 @@ impl Geometry for Skybox {
         let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context
             .program(
-                &include_str!("shaders/skybox.vert"),
-                &fragment_shader_source,
+                include_str!("shaders/skybox.vert").to_owned(),
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     program.use_uniform("view", camera.view());
@@ -166,8 +166,8 @@ impl Geometry for Skybox {
             material.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
             .program(
-                &include_str!("shaders/skybox.vert"),
-                &fragment_shader_source,
+                include_str!("shaders/skybox.vert").to_owned(),
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     program.use_uniform("view", camera.view());

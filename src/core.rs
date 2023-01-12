@@ -92,8 +92,9 @@ pub fn apply_effect(
                 uvs = 0.5 * position.xy + 0.5;
                 gl_Position = vec4(position, 1.0);
             }
-        ",
-            fragment_shader_source,
+        "
+            .to_owned(),
+            fragment_shader_source.to_owned(),
             |program| {
                 use_uniforms(program);
                 program.use_vertex_attribute("position", &position_buffer);
@@ -129,8 +130,9 @@ pub fn apply_cube_effect(
                 pos = up * position.y + right * position.x + direction;
                 gl_Position = vec4(position, 1.0);
             }
-        ",
-            fragment_shader_source,
+        "
+            .to_owned(),
+            fragment_shader_source.to_owned(),
             |program| {
                 use_uniforms(program);
                 program.use_uniform("direction", side.direction());

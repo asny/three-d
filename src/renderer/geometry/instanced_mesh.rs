@@ -445,8 +445,8 @@ impl Geometry for InstancedMesh {
         );
         self.context
             .program(
-                &self.vertex_shader_source(&fragment_shader_source, &instance_buffers),
-                &fragment_shader_source,
+                self.vertex_shader_source(&fragment_shader_source, &instance_buffers),
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     self.draw(program, material.render_states(), camera, instance_buffers);
@@ -475,8 +475,8 @@ impl Geometry for InstancedMesh {
             material.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
             .program(
-                &self.vertex_shader_source(&fragment_shader_source, &instance_buffers),
-                &fragment_shader_source,
+                self.vertex_shader_source(&fragment_shader_source, &instance_buffers),
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     self.draw(program, material.render_states(), camera, instance_buffers);
