@@ -127,25 +127,23 @@ impl Mesh {
         }
     }
 
-    fn vertex_shader_source(fragment_shader_source: &str) -> String {
-        let use_positions = fragment_shader_source.contains("in vec3 pos;");
-        let use_normals = fragment_shader_source.contains("in vec3 nor;");
-        let use_tangents = fragment_shader_source.contains("in vec3 tang;");
-        let use_uvs = fragment_shader_source.contains("in vec2 uvs;");
-        let use_colors = fragment_shader_source.contains("in vec4 col;");
+    fn vertex_shader_source(
+        fragment_shader_source: &str,
+        requires_attribute: impl Fn(MaterialAttribute) -> bool,
+    ) -> String {
         format!(
             "{}{}{}{}{}{}{}",
-            if use_positions {
+            if requires_attribute(MaterialAttribute::Position) {
                 "#define USE_POSITIONS\n"
             } else {
                 ""
             },
-            if use_normals {
+            if requires_attribute(MaterialAttribute::Normal) {
                 "#define USE_NORMALS\n"
             } else {
                 ""
             },
-            if use_tangents {
+            if requires_attribute(MaterialAttribute::Tangents) {
                 if !fragment_shader_source.contains("in vec3 bitang;") {
                     panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
                 }
@@ -153,8 +151,12 @@ impl Mesh {
             } else {
                 ""
             },
-            if use_uvs { "#define USE_UVS\n" } else { "" },
-            if use_colors {
+            if requires_attribute(MaterialAttribute::UvCoordinates) {
+                "#define USE_UVS\n"
+            } else {
+                ""
+            },
+            if requires_attribute(MaterialAttribute::Color) {
                 "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
             } else {
                 ""
@@ -197,7 +199,9 @@ impl Geometry for Mesh {
             material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
         self.context
             .program(
-                Self::vertex_shader_source(&fragment_shader_source),
+                Self::vertex_shader_source(&fragment_shader_source, |a| {
+                    material.requires_attribute(a)
+                }),
                 fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
@@ -219,7 +223,9 @@ impl Geometry for Mesh {
             material.fragment_shader_source(lights, color_texture, depth_texture);
         self.context
             .program(
-                Self::vertex_shader_source(&fragment_shader_source),
+                Self::vertex_shader_source(&fragment_shader_source, |a| {
+                    material.requires_attribute(a)
+                }),
                 fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);

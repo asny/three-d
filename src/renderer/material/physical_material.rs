@@ -164,6 +164,22 @@ impl Material for PhysicalMaterial {
         output.push_str(include_str!("shaders/physical_material.frag"));
         output
     }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        match attribute {
+            MaterialAttribute::Position | MaterialAttribute::Normal => true,
+            MaterialAttribute::UvCoordinates => {
+                self.albedo_texture.is_some()
+                    || self.metallic_roughness_texture.is_some()
+                    || self.normal_texture.is_some()
+                    || self.occlusion_texture.is_some()
+                    || self.emissive_texture.is_some()
+            }
+            MaterialAttribute::Tangents => self.normal_texture.is_some(),
+            MaterialAttribute::Color => todo!(),
+        }
+    }
+
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         if !lights.is_empty() {
             program.use_uniform_if_required("cameraPosition", camera.position());

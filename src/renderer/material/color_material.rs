@@ -94,6 +94,15 @@ impl Material for ColorMaterial {
         shader.push_str(include_str!("shaders/color_material.frag"));
         shader
     }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        match attribute {
+            MaterialAttribute::UvCoordinates => self.texture.is_some(),
+            MaterialAttribute::Color => todo!(),
+            _ => true,
+        }
+    }
+
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("surfaceColor", self.color);
         if let Some(ref tex) = self.texture {

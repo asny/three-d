@@ -30,6 +30,9 @@ impl Material for IsosurfaceMaterial {
         output.push_str(include_str!("shaders/isosurface_material.frag"));
         output
     }
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        matches!(attribute, MaterialAttribute::Position)
+    }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);

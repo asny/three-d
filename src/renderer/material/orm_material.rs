@@ -92,6 +92,10 @@ impl Material for ORMMaterial {
         output.push_str(include_str!("shaders/orm_material.frag"));
         output
     }
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        matches!(attribute, MaterialAttribute::UvCoordinates)
+            && (self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some())
+    }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", self.metallic);

@@ -224,6 +224,21 @@ impl Material for DeferredPhysicalMaterial {
         output
     }
 
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        match attribute {
+            MaterialAttribute::Position | MaterialAttribute::Normal => true,
+            MaterialAttribute::UvCoordinates => {
+                self.albedo_texture.is_some()
+                    || self.metallic_roughness_texture.is_some()
+                    || self.normal_texture.is_some()
+                    || self.occlusion_texture.is_some()
+                    || self.emissive_texture.is_some()
+            }
+            MaterialAttribute::Tangents => self.normal_texture.is_some(),
+            MaterialAttribute::Color => todo!(),
+        }
+    }
+
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);

@@ -100,24 +100,44 @@ pub enum MaterialType {
 }
 
 ///
+/// The possible attributes that a material needs to be able to calculate the color of a fragment.
+/// The attributes are provided by a [geometry], ie. calculated in the vertex shader and then sent to the fragment shader,
+/// for all the attributes that return true from [Material::requires_attribute] or [PostMaterial::requires_attribute].
+/// So to use an attribute for a material, implement the [Material::requires_attribute] or [PostMaterial::requires_attribute] to return true for the attribute
+/// and add the relevant shader code to the fragment shader source. The relevant shader code is documented for each enum type.
+///
+#[derive(Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Debug)]
+pub enum MaterialAttribute {
+    /// Position in world space: `in vec3 pos;`
+    Position,
+    /// Normal: `in vec3 nor;`,
+    Normal,
+    /// Tangent and bitangent: `in vec3 tang; in vec3 bitang;`
+    Tangents,
+    /// UV coordinates: `in vec2 uvs;`
+    UvCoordinates,
+    /// Color: `in vec4 col;`
+    Color,
+}
+
+///
 /// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].
 /// Alternatively, a geometry and a material can be combined in a [Gm],
 /// thereby creating an [Object] which can be used in a render call, for example [RenderTarget::render].
 ///
-/// The material can use an attribute by adding the folowing to the fragment shader source code.
-/// - position (in world space): `in vec3 pos;`
-/// - normal: `in vec3 nor;`,
-/// - tangent: `in vec3 tang;`
-/// - bitangent: `in vec3 bitang;`
-/// - uv coordinates: `in vec2 uvs;`
-/// - color: `in vec4 col;`
-/// The rendering will fail if the material requires one of these attributes and the [geometry] does not provide it.
-///
 pub trait Material {
     ///
     /// Returns the fragment shader source for this material. Should output the final fragment color.
+    /// Can take attributes from the vertex shader as input, see [Material::requires_attribute] and [MaterialAttribute] for more information.
     ///
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String;
+
+    ///
+    /// Returns whether this material requires the given [MaterialAttribute] to render.
+    /// The render call will panic if the material requires an attribute and the [geometry] does not provide it.
+    /// See [MaterialAttribute] for more information.
+    ///
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool;
 
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -168,6 +188,10 @@ impl<T: Material + ?Sized> Material for &T {
     fn material_type(&self) -> MaterialType {
         (*self).material_type()
     }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        (*self).requires_attribute(attribute)
+    }
 }
 
 impl<T: Material + ?Sized> Material for &mut T {
@@ -182,6 +206,10 @@ impl<T: Material + ?Sized> Material for &mut T {
     }
     fn material_type(&self) -> MaterialType {
         (**self).material_type()
+    }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        (**self).requires_attribute(attribute)
     }
 }
 
@@ -199,6 +227,10 @@ impl<T: Material> Material for Box<T> {
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
     }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.as_ref().requires_attribute(attribute)
+    }
 }
 
 impl<T: Material> Material for std::rc::Rc<T> {
@@ -214,6 +246,10 @@ impl<T: Material> Material for std::rc::Rc<T> {
     }
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
+    }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.as_ref().requires_attribute(attribute)
     }
 }
 
@@ -231,6 +267,10 @@ impl<T: Material> Material for std::sync::Arc<T> {
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
     }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.as_ref().requires_attribute(attribute)
+    }
 }
 
 impl<T: Material> Material for std::cell::RefCell<T> {
@@ -246,6 +286,10 @@ impl<T: Material> Material for std::cell::RefCell<T> {
     }
     fn material_type(&self) -> MaterialType {
         self.borrow().material_type()
+    }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.borrow().requires_attribute(attribute)
     }
 }
 
@@ -263,6 +307,10 @@ impl<T: Material> Material for std::sync::RwLock<T> {
     }
     fn material_type(&self) -> MaterialType {
         self.read().unwrap().material_type()
+    }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.read().unwrap().requires_attribute(attribute)
     }
 }
 
@@ -400,6 +448,7 @@ impl DepthTexture<'_> {
 pub trait PostMaterial {
     ///
     /// Returns the fragment shader source for this material. Should output the final fragment color.
+    /// Can take attributes from the vertex shader as input, see [PostMaterial::requires_attribute] and [MaterialAttribute] for more information.
     ///
     fn fragment_shader_source(
         &self,
@@ -407,6 +456,13 @@ pub trait PostMaterial {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) -> String;
+
+    ///
+    /// Returns whether this material requires the given [MaterialAttribute] to render.
+    /// The render call will panic if the material requires an attribute and the [geometry] does not provide it.
+    /// See [MaterialAttribute] for more information.
+    ///
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool;
 
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -424,6 +480,11 @@ pub trait PostMaterial {
     /// Returns the render states needed to render with this material.
     ///
     fn render_states(&self) -> RenderStates;
+
+    ///
+    /// Returns the type of material.
+    ///
+    fn material_type(&self) -> MaterialType;
 }
 
 impl<T: PostMaterial + ?Sized> PostMaterial for &T {
@@ -448,6 +509,14 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &T {
     fn render_states(&self) -> RenderStates {
         (*self).render_states()
     }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        (*self).requires_attribute(attribute)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        (*self).material_type()
+    }
 }
 
 impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
@@ -471,6 +540,14 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
     }
     fn render_states(&self) -> RenderStates {
         (**self).render_states()
+    }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        (**self).requires_attribute(attribute)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        (**self).material_type()
     }
 }
 
@@ -498,6 +575,14 @@ impl<T: PostMaterial> PostMaterial for Box<T> {
     fn render_states(&self) -> RenderStates {
         self.as_ref().render_states()
     }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.as_ref().requires_attribute(attribute)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
+    }
 }
 
 impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
@@ -523,6 +608,14 @@ impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
     }
     fn render_states(&self) -> RenderStates {
         self.as_ref().render_states()
+    }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.as_ref().requires_attribute(attribute)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
     }
 }
 
@@ -550,6 +643,14 @@ impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
     fn render_states(&self) -> RenderStates {
         self.as_ref().render_states()
     }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.as_ref().requires_attribute(attribute)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.as_ref().material_type()
+    }
 }
 
 impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
@@ -575,6 +676,14 @@ impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
     }
     fn render_states(&self) -> RenderStates {
         self.borrow().render_states()
+    }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.borrow().requires_attribute(attribute)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.borrow().material_type()
     }
 }
 
@@ -603,5 +712,13 @@ impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
     }
     fn render_states(&self) -> RenderStates {
         self.read().unwrap().render_states()
+    }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        self.read().unwrap().requires_attribute(attribute)
+    }
+
+    fn material_type(&self) -> MaterialType {
+        self.read().unwrap().material_type()
     }
 }

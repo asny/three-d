@@ -60,6 +60,17 @@ impl Material for NormalMaterial {
         shader.push_str(include_str!("shaders/normal_material.frag"));
         shader
     }
+
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        match attribute {
+            MaterialAttribute::Normal => true,
+            MaterialAttribute::Tangents | MaterialAttribute::UvCoordinates => {
+                self.normal_texture.is_some()
+            }
+            _ => false,
+        }
+    }
+
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         if let Some(ref tex) = self.normal_texture {
             program.use_uniform("normalScale", self.normal_scale);

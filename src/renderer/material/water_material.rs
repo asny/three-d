@@ -58,6 +58,15 @@ impl PostMaterial for WaterMaterial {
         )
     }
 
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        matches!(
+            attribute,
+            MaterialAttribute::Position
+                | MaterialAttribute::Normal
+                | MaterialAttribute::UvCoordinates
+        )
+    }
+
     fn render_states(&self) -> RenderStates {
         RenderStates {
             blend: Blend::TRANSPARENCY,
@@ -101,6 +110,10 @@ impl PostMaterial for WaterMaterial {
             Background::Color(color) => program.use_uniform("environmentColor", color),
             Background::Texture(tex) => program.use_texture_cube("environmentMap", tex),
         }
+    }
+
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }
 

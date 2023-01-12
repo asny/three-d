@@ -464,7 +464,13 @@ impl Geometry for InstancedMesh {
         depth_texture: Option<DepthTexture>,
     ) {
         // Update the instance buffers if required.
-        self.update_instance_buffers(None);
+        let update_pose = if material.material_type() == MaterialType::Transparent {
+            Some(*camera.position())
+        } else {
+            None
+        };
+
+        self.update_instance_buffers(update_pose);
         let instance_buffers = &self
             .instance_buffers
             .read()

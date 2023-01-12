@@ -231,6 +231,10 @@ impl Material for ImpostersMaterial {
         )
     }
 
+    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
+        matches!(attribute, MaterialAttribute::UvCoordinates)
+    }
+
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("no_views", &(NO_VIEW_ANGLES as i32));
         program.use_uniform("view", camera.view());
