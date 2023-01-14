@@ -1,6 +1,11 @@
 use crate::core::*;
 use crate::render_target::multisample_sanity_check;
 
+///
+/// A render target that supports multisample anti-aliasing. This is a combination of the functionality of [ColorTargetMultisample] and [DepthTargetMultisample].
+/// To resolve the multisampled buffer to a color texture, use [RenderTargetMultisample::resolve_color]. The variants [RenderTargetMultisample::resolve_depth], and [RenderTargetMultisample::resolve] resolve the buffer to a depth texture or a tuple of color and depth textures, respectively.
+/// It is possible to resolve to another render target via [RenderTargetMultisample::resolve_to] (and its variants), which will give greater control over the resolution.
+///
 pub struct RenderTargetMultisample<C: TextureDataType, D: DepthTextureDataType> {
     pub(crate) context: Context,
     color: Texture2DMultisample,
@@ -10,6 +15,9 @@ pub struct RenderTargetMultisample<C: TextureDataType, D: DepthTextureDataType> 
 }
 
 impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> {
+    ///
+    /// Constructs a new multisample render target with the given dimensions and number of samples.
+    ///
     pub fn new(
         context: &Context,
         width: u32,
@@ -79,22 +87,34 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
         )
     }
 
+    ///
+    /// Resolve the color buffer into the given color target.
+    ///
     pub fn resolve_color_to(&self, target: &ColorTarget<'_>) {
         ColorTarget::new_texture_2d_multisample(&self.context, &self.color)
             .as_render_target()
             .blit_to(&target.as_render_target());
     }
 
+    ///
+    /// Resolve the depth buffer into the given depth target.
+    ///
     pub fn resolve_depth_to(&self, target: &DepthTarget<'_>) {
         DepthTarget::new_texture_2d_multisample(&self.context, &self.depth)
             .as_render_target()
             .blit_to(&target.as_render_target());
     }
 
+    ///
+    /// Resolve both color and depth buffers into the given render target.
+    ///
     pub fn resolve_to(&self, target: &RenderTarget<'_>) {
         self.as_render_target().blit_to(target);
     }
 
+    ///
+    /// Resolve the color buffer to a color texture.
+    ///
     pub fn resolve_color(&self) -> Texture2D {
         let mut color_texture = Texture2D::new_empty::<C>(
             &self.context,
@@ -110,6 +130,9 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
         color_texture
     }
 
+    ///
+    /// Resolve the depth buffer to a depth texture.
+    ///
     pub fn resolve_depth(&self) -> DepthTexture2D {
         let mut depth_texture = DepthTexture2D::new::<D>(
             &self.context,
@@ -122,6 +145,9 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
         depth_texture
     }
 
+    ///
+    /// Resolve the color and depth buffers into a color texture and a depth texture.
+    ///
     pub fn resolve(&self) -> (Texture2D, DepthTexture2D) {
         let mut color_texture = Texture2D::new_empty::<C>(
             &self.context,

@@ -1,6 +1,10 @@
 use crate::core::*;
 use crate::render_target::multisample_sanity_check;
 
+///
+/// A multisampled render target for depth data.
+/// To resolve the multisampled buffer to a depth texture, use [DepthTargetMultisample::resolve]. Use [DepthTargetMultisample::resolve_to] to resolve to another render target.
+///
 pub struct DepthTargetMultisample<D: DepthTextureDataType> {
     pub(crate) context: Context,
     depth: DepthTexture2DMultisample,
@@ -8,6 +12,9 @@ pub struct DepthTargetMultisample<D: DepthTextureDataType> {
 }
 
 impl<D: DepthTextureDataType> DepthTargetMultisample<D> {
+    ///
+    /// Constructs a new multisampled depth target with the given dimensions and number of samples.
+    ///
     pub fn new(
         context: &Context,
         width: u32,
@@ -77,10 +84,16 @@ impl<D: DepthTextureDataType> DepthTargetMultisample<D> {
         DepthTarget::new_texture_2d_multisample(&self.context, &self.depth).as_render_target()
     }
 
+    ///
+    /// Resolves the depth buffer into the given depth target.
+    ///
     pub fn resolve_to(&self, target: &DepthTarget<'_>) {
         self.as_render_target().blit_to(&target.as_render_target());
     }
 
+    ///
+    /// Resolves the depth buffer to a depth texture.
+    ///
     pub fn resolve(&self) -> DepthTexture2D {
         let mut depth_texture = DepthTexture2D::new::<D>(
             &self.context,
