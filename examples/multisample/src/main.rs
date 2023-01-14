@@ -197,7 +197,7 @@ pub fn main() {
                 )
                 .clear(clear_state)
                 .render(&camera, renderable_things, &[])
-                .resolve(&color_texture.as_color_target(None));
+                .resolve_to(&color_texture.as_color_target(None));
 
                 frame_input.screen().clear(clear_state).copy_from_color(
                     ColorTexture::Single(&color_texture),

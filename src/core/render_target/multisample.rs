@@ -73,19 +73,19 @@ impl RenderTargetMultisample {
         )
     }
 
-    pub fn resolve_color(&self, target: &ColorTarget<'_>) {
+    pub fn resolve_color_to(&self, target: &ColorTarget<'_>) {
         ColorTarget::new_texture_2d_multisample(&self.context, &self.color)
             .as_render_target()
             .blit_to(&target.as_render_target());
     }
 
-    pub fn resolve_depth(&self, target: &DepthTarget<'_>) {
+    pub fn resolve_depth_to(&self, target: &DepthTarget<'_>) {
         DepthTarget::new_texture_2d_multisample(&self.context, &self.depth)
             .as_render_target()
             .blit_to(&target.as_render_target());
     }
 
-    pub fn resolve(&self, target: &RenderTarget<'_>) {
+    pub fn resolve_to(&self, target: &RenderTarget<'_>) {
         self.as_render_target().blit_to(target);
     }
 }
