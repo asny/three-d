@@ -92,4 +92,56 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
     pub fn resolve_to(&self, target: &RenderTarget<'_>) {
         self.as_render_target().blit_to(target);
     }
+
+    pub fn resolve_color(&self) -> Texture2D {
+        let mut color_texture = Texture2D::new_empty::<C>(
+            &self.context,
+            self.color.width(),
+            self.color.height(),
+            Interpolation::Nearest,
+            Interpolation::Nearest,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+        );
+        self.resolve_color_to(&color_texture.as_color_target(None));
+        color_texture
+    }
+
+    pub fn resolve_depth(&self) -> DepthTexture2D {
+        let mut depth_texture = DepthTexture2D::new::<D>(
+            &self.context,
+            self.width(),
+            self.height(),
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+        );
+        self.resolve_depth_to(&depth_texture.as_depth_target());
+        depth_texture
+    }
+
+    pub fn resolve(&self) -> (Texture2D, DepthTexture2D) {
+        let mut color_texture = Texture2D::new_empty::<C>(
+            &self.context,
+            self.color.width(),
+            self.color.height(),
+            Interpolation::Nearest,
+            Interpolation::Nearest,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+        );
+        let mut depth_texture = DepthTexture2D::new::<D>(
+            &self.context,
+            self.width(),
+            self.height(),
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+        );
+        self.resolve_to(&RenderTarget::new(
+            color_texture.as_color_target(None),
+            depth_texture.as_depth_target(),
+        ));
+        (color_texture, depth_texture)
+    }
 }
