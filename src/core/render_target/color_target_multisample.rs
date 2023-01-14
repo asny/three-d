@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::render_target::multisample_sanity_check;
 
 pub struct ColorTargetMultisample<C: TextureDataType> {
     pub(crate) context: Context,
@@ -13,6 +14,7 @@ impl<C: TextureDataType> ColorTargetMultisample<C> {
         height: u32,
         number_of_samples: u32,
     ) -> Self {
+        multisample_sanity_check(context, number_of_samples);
         Self {
             context: context.clone(),
             color: Texture2DMultisample::new::<C>(context, width, height, number_of_samples),

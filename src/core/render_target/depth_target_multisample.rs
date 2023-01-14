@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::render_target::multisample_sanity_check;
 
 pub struct DepthTargetMultisample<D: DepthTextureDataType> {
     pub(crate) context: Context,
@@ -13,6 +14,7 @@ impl<D: DepthTextureDataType> DepthTargetMultisample<D> {
         height: u32,
         number_of_samples: u32,
     ) -> Self {
+        multisample_sanity_check(context, number_of_samples);
         Self {
             context: context.clone(),
             depth: DepthTexture2DMultisample::new::<D>(context, width, height, number_of_samples),
