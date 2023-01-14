@@ -78,4 +78,16 @@ impl<D: DepthTextureDataType> DepthTargetMultisample<D> {
     pub fn resolve_to(&self, target: &DepthTarget<'_>) {
         self.as_render_target().blit_to(&target.as_render_target());
     }
+
+    pub fn resolve(&self) -> DepthTexture2D {
+        let mut depth_texture = DepthTexture2D::new::<D>(
+            &self.context,
+            self.width(),
+            self.height(),
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+        );
+        self.resolve_to(&depth_texture.as_depth_target());
+        depth_texture
+    }
 }

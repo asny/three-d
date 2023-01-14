@@ -81,4 +81,19 @@ impl<C: TextureDataType> ColorTargetMultisample<C> {
     pub fn resolve_to(&self, target: &ColorTarget<'_>) {
         self.as_render_target().blit_to(&target.as_render_target());
     }
+
+    pub fn resolve(&self) -> Texture2D {
+        let mut color_texture = Texture2D::new_empty::<C>(
+            &self.context,
+            self.width(),
+            self.height(),
+            Interpolation::Nearest,
+            Interpolation::Nearest,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+        );
+        self.resolve_to(&color_texture.as_color_target(None));
+        color_texture
+    }
 }
