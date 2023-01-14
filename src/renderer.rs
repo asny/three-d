@@ -245,7 +245,6 @@ macro_rules! impl_render_target_extensions_body {
     };
 }
 
-
 macro_rules! impl_render_target_extensions {
     // 2 generic arguments with bounds
     ($name:ident < $a:ident : $ta:tt , $b:ident : $tb:tt >) => {
@@ -272,7 +271,6 @@ macro_rules! impl_render_target_extensions {
         }
     };
 }
-
 
 impl_render_target_extensions!(RenderTarget<'a>);
 impl_render_target_extensions!(ColorTarget<'a>);
