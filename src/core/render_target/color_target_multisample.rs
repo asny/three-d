@@ -1,6 +1,10 @@
 use crate::core::*;
 use crate::render_target::multisample_sanity_check;
 
+///
+/// A multisampled render target for color data.
+/// To resolve the multisampled buffer to a color texture, use [ColorTargetMultisample::resolve]. Use [ColorTargetMultisample::resolve_to] to resolve to another render target.
+///
 pub struct ColorTargetMultisample<C: TextureDataType> {
     pub(crate) context: Context,
     color: Texture2DMultisample,
@@ -8,6 +12,9 @@ pub struct ColorTargetMultisample<C: TextureDataType> {
 }
 
 impl<C: TextureDataType> ColorTargetMultisample<C> {
+    ///
+    /// Constructs a new multisampled color target with the given dimensions and number of samples.
+    ///
     pub fn new(
         context: &Context,
         width: u32,
@@ -80,10 +87,16 @@ impl<C: TextureDataType> ColorTargetMultisample<C> {
         ColorTarget::new_texture_2d_multisample(&self.context, &self.color).as_render_target()
     }
 
+    ///
+    /// Resolves the color buffer into the given color target.
+    ///
     pub fn resolve_to(&self, target: &ColorTarget<'_>) {
         self.as_render_target().blit_to(&target.as_render_target());
     }
 
+    ///
+    /// Resolves the color buffer to a color texture.
+    ///
     pub fn resolve(&self) -> Texture2D {
         let mut color_texture = Texture2D::new_empty::<C>(
             &self.context,
