@@ -535,6 +535,6 @@ macro_rules! impl_render_target_core_extensions {
 impl_render_target_core_extensions!(RenderTarget<'a>);
 impl_render_target_core_extensions!(ColorTarget<'a>);
 impl_render_target_core_extensions!(DepthTarget<'a>);
-impl_render_target_core_extensions!(RenderTargetMultisample);
-impl_render_target_core_extensions!(ColorTargetMultisample);
-impl_render_target_core_extensions!(DepthTargetMultisample);
+impl_render_target_core_extensions!(RenderTargetMultisample<C: TextureDataType, D: DepthTextureDataType>);
+impl_render_target_core_extensions!(ColorTargetMultisample<C: TextureDataType>);
+impl_render_target_core_extensions!(DepthTargetMultisample<D: DepthTextureDataType>);
