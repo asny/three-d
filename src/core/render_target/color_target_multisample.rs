@@ -46,10 +46,7 @@ impl ColorTargetMultisample {
     /// Writes whatever rendered in the `render` closure into this target.
     ///
     pub fn write(&self, render: impl FnOnce()) -> &Self {
-        self.write_partially(
-            ScissorBox::new_at_origo(self.width(), self.height()),
-            render,
-        )
+        self.write_partially(self.scissor_box(), render)
     }
 
     ///
