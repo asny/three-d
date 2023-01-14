@@ -73,7 +73,7 @@ impl DepthTargetMultisample {
         DepthTarget::new_texture_2d_multisample(&self.context, &self.depth).as_render_target()
     }
 
-    pub fn resolve(&self, target: &DepthTarget<'_>) {
+    pub fn resolve_to(&self, target: &DepthTarget<'_>) {
         self.as_render_target().blit_to(&target.as_render_target());
     }
 }
