@@ -1,12 +1,13 @@
 use crate::core::*;
 
-pub struct ColorTargetMultisample {
-    color: Texture2DMultisample,
+pub struct ColorTargetMultisample<C: TextureDataType> {
     pub(crate) context: Context,
+    color: Texture2DMultisample,
+    _c: std::marker::PhantomData<C>,
 }
 
-impl ColorTargetMultisample {
-    pub fn new<C: TextureDataType + Default>(
+impl<C: TextureDataType> ColorTargetMultisample<C> {
+    pub fn new(
         context: &Context,
         width: u32,
         height: u32,
@@ -15,6 +16,7 @@ impl ColorTargetMultisample {
         Self {
             context: context.clone(),
             color: Texture2DMultisample::new::<C>(context, width, height, number_of_samples),
+            _c: std::marker::PhantomData,
         }
     }
 

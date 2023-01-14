@@ -1,12 +1,13 @@
 use crate::core::*;
 
-pub struct DepthTargetMultisample {
+pub struct DepthTargetMultisample<D: DepthTextureDataType> {
     pub(crate) context: Context,
     depth: DepthTexture2DMultisample,
+    _d: std::marker::PhantomData<D>,
 }
 
-impl DepthTargetMultisample {
-    pub fn new<D: DepthTextureDataType + Default>(
+impl<D: DepthTextureDataType> DepthTargetMultisample<D> {
+    pub fn new(
         context: &Context,
         width: u32,
         height: u32,
@@ -15,6 +16,7 @@ impl DepthTargetMultisample {
         Self {
             context: context.clone(),
             depth: DepthTexture2DMultisample::new::<D>(context, width, height, number_of_samples),
+            _d: std::marker::PhantomData,
         }
     }
 

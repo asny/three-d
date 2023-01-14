@@ -189,7 +189,7 @@ pub fn main() {
                 );
 
                 // Render the shapes to a multisampled texture, and copy the color texture to the screen framebuffer
-                ColorTargetMultisample::new::<[u8; 4]>(
+                ColorTargetMultisample::<[u8; 4]>::new(
                     &context,
                     frame_input.viewport.width,
                     frame_input.viewport.height,
