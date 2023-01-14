@@ -487,6 +487,18 @@ fn new_framebuffer(context: &Context) -> crate::context::Framebuffer {
     }
 }
 
+fn multisample_sanity_check(context: &Context, number_of_samples: u32) {
+    let max_samples: u32 = unsafe {
+        context.get_parameter_i32(crate::context::MAX_SAMPLES).try_into().unwrap()
+    };
+    if number_of_samples > max_samples {
+        panic!("number_of_samples ({}) for multisample target is larger than supported number of samples: {}", number_of_samples, max_samples);
+    }
+    if (number_of_samples != 0) && number_of_samples & (number_of_samples - 1) != 0 {
+        panic!("number_of_samples ({}) for multisample target must be a power of 2 (and larger than 0).", number_of_samples);
+    }
+}
+
 macro_rules! impl_render_target_core_extensions_body {
     () => {
         ///
