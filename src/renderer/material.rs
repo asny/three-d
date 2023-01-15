@@ -120,6 +120,36 @@ pub enum MaterialAttribute {
     Color,
 }
 
+pub struct FragmentAttributes {
+    pub position: bool,
+    pub normal: bool,
+    pub tangents: bool,
+    pub uv: bool,
+    pub color: bool,
+}
+
+impl FragmentAttributes {
+    pub const ALL: Self = Self {
+        position: true,
+        normal: true,
+        tangents: true,
+        uv: true,
+        color: true,
+    };
+    pub const NONE: Self = Self {
+        position: false,
+        normal: false,
+        tangents: false,
+        uv: false,
+        color: false,
+    };
+}
+
+pub struct FragmentShader {
+    pub source: String,
+    pub attributes: FragmentAttributes,
+}
+
 ///
 /// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].
 /// Alternatively, a geometry and a material can be combined in a [Gm],
@@ -127,17 +157,16 @@ pub enum MaterialAttribute {
 ///
 pub trait Material {
     ///
-    /// Returns the fragment shader source for this material. Should output the final fragment color.
-    /// Can take attributes from the vertex shader as input, see [Material::requires_attribute] and [MaterialAttribute] for more information.
+    /// Takes a [FragmentAttributes] struct describing which attributes could be provided by the [geometry] and a list of lights.
+    /// Returns a [FragmentShader], ie. the fragment shader source for this material
+    /// and a [FragmentAttributes] struct that describes which fragment attributes are required for rendering with this material.
+    /// Returns an error if this material requires a fragment attribute and the [geometry] does not provide it.
     ///
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String;
-
-    ///
-    /// Returns whether this material requires the given [MaterialAttribute] to render.
-    /// The render call will panic if the material requires an attribute and the [geometry] does not provide it.
-    /// See [MaterialAttribute] for more information.
-    ///
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool;
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError>;
 
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -176,8 +205,12 @@ pub trait FromCpuVoxelGrid: std::marker::Sized {
 }
 
 impl<T: Material + ?Sized> Material for &T {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
-        (*self).fragment_shader_source(use_vertex_colors, lights)
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        (*self).fragment_shader_source(provided_attributes, lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         (*self).use_uniforms(program, camera, lights)
@@ -188,15 +221,15 @@ impl<T: Material + ?Sized> Material for &T {
     fn material_type(&self) -> MaterialType {
         (*self).material_type()
     }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        (*self).requires_attribute(attribute)
-    }
 }
 
 impl<T: Material + ?Sized> Material for &mut T {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
-        (**self).fragment_shader_source(use_vertex_colors, lights)
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        (**self).fragment_shader_source(provided_attributes, lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         (**self).use_uniforms(program, camera, lights)
@@ -207,16 +240,16 @@ impl<T: Material + ?Sized> Material for &mut T {
     fn material_type(&self) -> MaterialType {
         (**self).material_type()
     }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        (**self).requires_attribute(attribute)
-    }
 }
 
 impl<T: Material> Material for Box<T> {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
         self.as_ref()
-            .fragment_shader_source(use_vertex_colors, lights)
+            .fragment_shader_source(provided_attributes, lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
@@ -226,17 +259,17 @@ impl<T: Material> Material for Box<T> {
     }
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.as_ref().requires_attribute(attribute)
     }
 }
 
 impl<T: Material> Material for std::rc::Rc<T> {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
         self.as_ref()
-            .fragment_shader_source(use_vertex_colors, lights)
+            .fragment_shader_source(provided_attributes, lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
@@ -246,17 +279,17 @@ impl<T: Material> Material for std::rc::Rc<T> {
     }
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.as_ref().requires_attribute(attribute)
     }
 }
 
 impl<T: Material> Material for std::sync::Arc<T> {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
         self.as_ref()
-            .fragment_shader_source(use_vertex_colors, lights)
+            .fragment_shader_source(provided_attributes, lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
@@ -267,16 +300,16 @@ impl<T: Material> Material for std::sync::Arc<T> {
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
     }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.as_ref().requires_attribute(attribute)
-    }
 }
 
 impl<T: Material> Material for std::cell::RefCell<T> {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
         self.borrow()
-            .fragment_shader_source(use_vertex_colors, lights)
+            .fragment_shader_source(provided_attributes, lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.borrow().use_uniforms(program, camera, lights)
@@ -287,17 +320,17 @@ impl<T: Material> Material for std::cell::RefCell<T> {
     fn material_type(&self) -> MaterialType {
         self.borrow().material_type()
     }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.borrow().requires_attribute(attribute)
-    }
 }
 
 impl<T: Material> Material for std::sync::RwLock<T> {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
         self.read()
             .unwrap()
-            .fragment_shader_source(use_vertex_colors, lights)
+            .fragment_shader_source(provided_attributes, lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.read().unwrap().use_uniforms(program, camera, lights)
@@ -307,10 +340,6 @@ impl<T: Material> Material for std::sync::RwLock<T> {
     }
     fn material_type(&self) -> MaterialType {
         self.read().unwrap().material_type()
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.read().unwrap().requires_attribute(attribute)
     }
 }
 
@@ -452,17 +481,17 @@ pub trait PostMaterial {
     ///
     fn fragment_shader_source(
         &self,
+        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> String;
+    ) -> Result<FragmentShader, RendererError>;
 
     ///
     /// Returns whether this material requires the given [MaterialAttribute] to render.
     /// The render call will panic if the material requires an attribute and the [geometry] does not provide it.
     /// See [MaterialAttribute] for more information.
     ///
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool;
 
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -490,11 +519,12 @@ pub trait PostMaterial {
 impl<T: PostMaterial + ?Sized> PostMaterial for &T {
     fn fragment_shader_source(
         &self,
+        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> String {
-        (*self).fragment_shader_source(lights, color_texture, depth_texture)
+    ) -> Result<FragmentShader, RendererError> {
+        (*self).fragment_shader_source(provided_attributes, lights, color_texture, depth_texture)
     }
     fn use_uniforms(
         &self,
@@ -510,10 +540,6 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &T {
         (*self).render_states()
     }
 
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        (*self).requires_attribute(attribute)
-    }
-
     fn material_type(&self) -> MaterialType {
         (*self).material_type()
     }
@@ -522,11 +548,12 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &T {
 impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
     fn fragment_shader_source(
         &self,
+        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> String {
-        (**self).fragment_shader_source(lights, color_texture, depth_texture)
+    ) -> Result<FragmentShader, RendererError> {
+        (**self).fragment_shader_source(provided_attributes, lights, color_texture, depth_texture)
     }
     fn use_uniforms(
         &self,
@@ -542,10 +569,6 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
         (**self).render_states()
     }
 
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        (**self).requires_attribute(attribute)
-    }
-
     fn material_type(&self) -> MaterialType {
         (**self).material_type()
     }
@@ -554,12 +577,17 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
 impl<T: PostMaterial> PostMaterial for Box<T> {
     fn fragment_shader_source(
         &self,
+        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> String {
-        self.as_ref()
-            .fragment_shader_source(lights, color_texture, depth_texture)
+    ) -> Result<FragmentShader, RendererError> {
+        self.as_ref().fragment_shader_source(
+            provided_attributes,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
     fn use_uniforms(
         &self,
@@ -574,10 +602,6 @@ impl<T: PostMaterial> PostMaterial for Box<T> {
     }
     fn render_states(&self) -> RenderStates {
         self.as_ref().render_states()
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.as_ref().requires_attribute(attribute)
     }
 
     fn material_type(&self) -> MaterialType {
@@ -588,12 +612,17 @@ impl<T: PostMaterial> PostMaterial for Box<T> {
 impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
     fn fragment_shader_source(
         &self,
+        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> String {
-        self.as_ref()
-            .fragment_shader_source(lights, color_texture, depth_texture)
+    ) -> Result<FragmentShader, RendererError> {
+        self.as_ref().fragment_shader_source(
+            provided_attributes,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
     fn use_uniforms(
         &self,
@@ -608,10 +637,6 @@ impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
     }
     fn render_states(&self) -> RenderStates {
         self.as_ref().render_states()
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.as_ref().requires_attribute(attribute)
     }
 
     fn material_type(&self) -> MaterialType {
@@ -622,12 +647,17 @@ impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
 impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
     fn fragment_shader_source(
         &self,
+        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> String {
-        self.as_ref()
-            .fragment_shader_source(lights, color_texture, depth_texture)
+    ) -> Result<FragmentShader, RendererError> {
+        self.as_ref().fragment_shader_source(
+            provided_attributes,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
     fn use_uniforms(
         &self,
@@ -644,10 +674,6 @@ impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
         self.as_ref().render_states()
     }
 
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.as_ref().requires_attribute(attribute)
-    }
-
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
     }
@@ -656,12 +682,17 @@ impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
 impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
     fn fragment_shader_source(
         &self,
+        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> String {
-        self.borrow()
-            .fragment_shader_source(lights, color_texture, depth_texture)
+    ) -> Result<FragmentShader, RendererError> {
+        self.borrow().fragment_shader_source(
+            provided_attributes,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
     fn use_uniforms(
         &self,
@@ -678,10 +709,6 @@ impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
         self.borrow().render_states()
     }
 
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.borrow().requires_attribute(attribute)
-    }
-
     fn material_type(&self) -> MaterialType {
         self.borrow().material_type()
     }
@@ -690,13 +717,17 @@ impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
 impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
     fn fragment_shader_source(
         &self,
+        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> String {
-        self.read()
-            .unwrap()
-            .fragment_shader_source(lights, color_texture, depth_texture)
+    ) -> Result<FragmentShader, RendererError> {
+        self.read().unwrap().fragment_shader_source(
+            provided_attributes,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
     fn use_uniforms(
         &self,
@@ -712,10 +743,6 @@ impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
     }
     fn render_states(&self) -> RenderStates {
         self.read().unwrap().render_states()
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        self.read().unwrap().requires_attribute(attribute)
     }
 
     fn material_type(&self) -> MaterialType {

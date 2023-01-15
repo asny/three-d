@@ -210,6 +210,15 @@ impl WaterPatch {
         }
     }
 
+    fn provided_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            normal: true,
+            position: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform(
             "offset",
@@ -246,11 +255,19 @@ impl Geometry for WaterPatch {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source = material.fragment_shader_source(false, lights);
+        let fragment_shader = material
+            .fragment_shader_source(self.provided_attributes(), lights)
+            .unwrap_or_else(|e| panic!("{}", e));
+        if !fragment_shader.attributes.position
+            || !fragment_shader.attributes.normal
+            || !fragment_shader.attributes.uv
+        {
+            todo!()
+        }
         self.context
             .program(
                 include_str!("shaders/water.vert").to_owned(),
-                fragment_shader_source,
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     self.draw(program, material.render_states(), camera);
@@ -267,12 +284,24 @@ impl Geometry for WaterPatch {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(lights, color_texture, depth_texture);
+        let fragment_shader = material
+            .fragment_shader_source(
+                self.provided_attributes(),
+                lights,
+                color_texture,
+                depth_texture,
+            )
+            .unwrap_or_else(|e| panic!("{}", e));
+        if !fragment_shader.attributes.position
+            || !fragment_shader.attributes.normal
+            || !fragment_shader.attributes.uv
+        {
+            todo!()
+        }
         self.context
             .program(
                 include_str!("shaders/water.vert").to_owned(),
-                fragment_shader_source,
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     self.draw(program, material.render_states(), camera);

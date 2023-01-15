@@ -335,6 +335,16 @@ impl TerrainPatch {
         data
     }
 
+    fn provided_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            normal: true,
+            position: true,
+            tangents: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         let transformation = Mat4::identity();
         program.use_uniform("modelMatrix", &transformation);
@@ -360,11 +370,21 @@ impl Geometry for TerrainPatch {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source = material.fragment_shader_source(false, lights);
+        let fragment_shader = material
+            .fragment_shader_source(self.provided_attributes(), lights)
+            .unwrap_or_else(|e| panic!("{}", e));
+        if !fragment_shader.attributes.position
+            || !fragment_shader.attributes.normal
+            || !fragment_shader.attributes.uv
+            || !fragment_shader.attributes.tangents
+            || !fragment_shader.attributes.uv
+        {
+            todo!()
+        }
         self.context
             .program(
                 include_str!("shaders/terrain.vert").to_owned(),
-                fragment_shader_source,
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     self.draw(program, material.render_states(), camera);
@@ -381,12 +401,26 @@ impl Geometry for TerrainPatch {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(lights, color_texture, depth_texture);
+        let fragment_shader = material
+            .fragment_shader_source(
+                self.provided_attributes(),
+                lights,
+                color_texture,
+                depth_texture,
+            )
+            .unwrap_or_else(|e| panic!("{}", e));
+        if !fragment_shader.attributes.position
+            || !fragment_shader.attributes.normal
+            || !fragment_shader.attributes.uv
+            || !fragment_shader.attributes.tangents
+            || !fragment_shader.attributes.uv
+        {
+            todo!()
+        }
         self.context
             .program(
                 include_str!("shaders/terrain.vert").to_owned(),
-                fragment_shader_source,
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     self.draw(program, material.render_states(), camera);

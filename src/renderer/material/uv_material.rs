@@ -18,17 +18,32 @@ impl FromCpuMaterial for UVMaterial {
 }
 
 impl Material for UVMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        include_str!("shaders/uv_material.frag").to_string()
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        if !provided_attributes.uv {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "uv coordinates".to_owned(),
+            ))?;
+        }
+        Ok(FragmentShader {
+            source: include_str!("shaders/uv_material.frag").to_string(),
+            attributes: FragmentAttributes {
+                uv: true,
+                ..FragmentAttributes::NONE
+            },
+        })
     }
 
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        matches!(attribute, MaterialAttribute::UvCoordinates)
-    }
     fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
+
     fn render_states(&self) -> RenderStates {
         self.render_states
     }
+
     fn material_type(&self) -> MaterialType {
         MaterialType::Opaque
     }

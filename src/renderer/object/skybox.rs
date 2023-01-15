@@ -138,11 +138,13 @@ impl Geometry for Skybox {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source = material.fragment_shader_source(false, lights);
+        let fragment_shader = material
+            .fragment_shader_source(FragmentAttributes::NONE, lights)
+            .unwrap();
         self.context
             .program(
                 include_str!("shaders/skybox.vert").to_owned(),
-                fragment_shader_source,
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     program.use_uniform("view", camera.view());
@@ -162,12 +164,18 @@ impl Geometry for Skybox {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(lights, color_texture, depth_texture);
+        let fragment_shader = material
+            .fragment_shader_source(
+                FragmentAttributes::NONE,
+                lights,
+                color_texture,
+                depth_texture,
+            )
+            .unwrap();
         self.context
             .program(
                 include_str!("shaders/skybox.vert").to_owned(),
-                fragment_shader_source,
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     program.use_uniform("view", camera.view());

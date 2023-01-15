@@ -223,16 +223,28 @@ impl ImpostersMaterial {
 }
 
 impl Material for ImpostersMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        format!(
-            "{}{}",
-            include_str!("../../core/shared.frag"),
-            include_str!("shaders/imposter.frag")
-        )
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        matches!(attribute, MaterialAttribute::UvCoordinates)
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        if !provided_attributes.uv {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "uv coordinates".to_owned(),
+            ))?;
+        }
+        Ok(FragmentShader {
+            source: format!(
+                "{}{}",
+                include_str!("../../core/shared.frag"),
+                include_str!("shaders/imposter.frag")
+            ),
+            attributes: FragmentAttributes {
+                uv: true,
+                ..FragmentAttributes::NONE
+            },
+        })
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {

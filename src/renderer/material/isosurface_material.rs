@@ -25,14 +25,28 @@ pub struct IsosurfaceMaterial {
 }
 
 impl Material for IsosurfaceMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
-        let mut output = lights_shader_source(lights, self.lighting_model);
-        output.push_str(include_str!("shaders/isosurface_material.frag"));
-        output
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        if !provided_attributes.position {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "position".to_owned(),
+            ))?;
+        }
+        let mut source = lights_shader_source(lights, self.lighting_model);
+        source.push_str(include_str!("shaders/isosurface_material.frag"));
+        Ok(FragmentShader {
+            source,
+            attributes: FragmentAttributes {
+                position: true,
+                ..FragmentAttributes::NONE
+            },
+        })
     }
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        matches!(attribute, MaterialAttribute::Position)
-    }
+
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);

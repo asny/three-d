@@ -127,43 +127,51 @@ impl Mesh {
         }
     }
 
-    fn vertex_shader_source(
-        fragment_shader_source: &str,
-        requires_attribute: impl Fn(MaterialAttribute) -> bool,
-    ) -> String {
-        format!(
+    fn program(&self, fragment_shader: FragmentShader, callback: impl FnOnce(&Program)) {
+        let vertex_shader_source = format!(
             "{}{}{}{}{}{}{}",
-            if requires_attribute(MaterialAttribute::Position) {
+            if fragment_shader.attributes.position {
                 "#define USE_POSITIONS\n"
             } else {
                 ""
             },
-            if requires_attribute(MaterialAttribute::Normal) {
+            if fragment_shader.attributes.normal {
                 "#define USE_NORMALS\n"
             } else {
                 ""
             },
-            if requires_attribute(MaterialAttribute::Tangents) {
-                if !fragment_shader_source.contains("in vec3 bitang;") {
-                    panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
-                }
+            if fragment_shader.attributes.tangents {
                 "#define USE_TANGENTS\n"
             } else {
                 ""
             },
-            if requires_attribute(MaterialAttribute::UvCoordinates) {
+            if fragment_shader.attributes.uv {
                 "#define USE_UVS\n"
             } else {
                 ""
             },
-            if requires_attribute(MaterialAttribute::Color) {
+            if fragment_shader.attributes.color {
                 "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
-        )
+        );
+        self.context
+            .program(vertex_shader_source, fragment_shader.source, callback)
+            .expect("Failed compiling shader")
+    }
+
+    fn provided_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            position: true,
+            normal: self.vertex_buffers.contains_key("normal"),
+            tangents: self.vertex_buffers.contains_key("normal")
+                && self.vertex_buffers.contains_key("tangent"),
+            uv: self.vertex_buffers.contains_key("uv_coordinates"),
+            color: self.vertex_buffers.contains_key("color"),
+        }
     }
 }
 
@@ -195,20 +203,13 @@ impl Geometry for Mesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
-        self.context
-            .program(
-                Self::vertex_shader_source(&fragment_shader_source, |a| {
-                    material.requires_attribute(a)
-                }),
-                fragment_shader_source,
-                |program| {
-                    material.use_uniforms(program, camera, lights);
-                    self.draw(program, material.render_states(), camera);
-                },
-            )
-            .expect("Failed compiling shader")
+        let fragment_shader = material
+            .fragment_shader_source(self.provided_attributes(), lights)
+            .unwrap_or_else(|e| panic!("{}", e));
+        self.program(fragment_shader, |program| {
+            material.use_uniforms(program, camera, lights);
+            self.draw(program, material.render_states(), camera);
+        });
     }
 
     fn render_with_post_material(
@@ -219,19 +220,17 @@ impl Geometry for Mesh {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(lights, color_texture, depth_texture);
-        self.context
-            .program(
-                Self::vertex_shader_source(&fragment_shader_source, |a| {
-                    material.requires_attribute(a)
-                }),
-                fragment_shader_source,
-                |program| {
-                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, material.render_states(), camera);
-                },
+        let fragment_shader = material
+            .fragment_shader_source(
+                self.provided_attributes(),
+                lights,
+                color_texture,
+                depth_texture,
             )
-            .expect("Failed compiling shader")
+            .unwrap_or_else(|e| panic!("{}", e));
+        self.program(fragment_shader, |program| {
+            material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+            self.draw(program, material.render_states(), camera);
+        });
     }
 }

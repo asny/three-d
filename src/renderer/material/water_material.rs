@@ -37,34 +37,52 @@ pub struct WaterMaterial {
 impl PostMaterial for WaterMaterial {
     fn fragment_shader_source(
         &self,
+        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> String {
-        format!(
-            "{}\n{}\n{}\n{}\n{}",
-            match &self.background {
-                Background::Color(_) => "",
-                Background::Texture(_) => "#define USE_BACKGROUND_TEXTURE",
+    ) -> Result<FragmentShader, RendererError> {
+        if !provided_attributes.position {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "position".to_owned(),
+            ))?;
+        }
+        if !provided_attributes.normal {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "normal".to_owned(),
+            ))?;
+        }
+        if !provided_attributes.uv {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "uv coordinates".to_owned(),
+            ))?;
+        }
+        Ok(FragmentShader {
+            source: format!(
+                "{}\n{}\n{}\n{}\n{}",
+                match &self.background {
+                    Background::Color(_) => "",
+                    Background::Texture(_) => "#define USE_BACKGROUND_TEXTURE",
+                },
+                color_texture
+                    .expect("Must supply a color texture to apply a water effect")
+                    .fragment_shader_source(),
+                depth_texture
+                    .expect("Must supply a depth texture to apply a water effect")
+                    .fragment_shader_source(),
+                lights_shader_source(lights, self.lighting_model),
+                include_str!("shaders/water_material.frag")
+            ),
+            attributes: FragmentAttributes {
+                position: true,
+                normal: true,
+                uv: true,
+                ..FragmentAttributes::NONE
             },
-            color_texture
-                .expect("Must supply a color texture to apply a water effect")
-                .fragment_shader_source(),
-            depth_texture
-                .expect("Must supply a depth texture to apply a water effect")
-                .fragment_shader_source(),
-            lights_shader_source(lights, self.lighting_model),
-            include_str!("shaders/water_material.frag")
-        )
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        matches!(
-            attribute,
-            MaterialAttribute::Position
-                | MaterialAttribute::Normal
-                | MaterialAttribute::UvCoordinates
-        )
+        })
     }
 
     fn render_states(&self) -> RenderStates {

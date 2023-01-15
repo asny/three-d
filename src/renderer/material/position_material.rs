@@ -18,17 +18,32 @@ impl FromCpuMaterial for PositionMaterial {
 }
 
 impl Material for PositionMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        include_str!("shaders/position_material.frag").to_string()
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        if !provided_attributes.position {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "position".to_owned(),
+            ))?;
+        }
+        Ok(FragmentShader {
+            source: include_str!("shaders/position_material.frag").to_string(),
+            attributes: FragmentAttributes {
+                position: true,
+                ..FragmentAttributes::NONE
+            },
+        })
     }
 
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        matches!(attribute, MaterialAttribute::Position)
-    }
     fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
+
     fn render_states(&self) -> RenderStates {
         self.render_states
     }
+
     fn material_type(&self) -> MaterialType {
         MaterialType::Opaque
     }

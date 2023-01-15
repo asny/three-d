@@ -52,23 +52,41 @@ impl FromCpuMaterial for NormalMaterial {
 }
 
 impl Material for NormalMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        let mut shader = String::new();
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        if !provided_attributes.normal {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "normal".to_owned(),
+            ))?;
+        }
+        let mut attributes = FragmentAttributes {
+            position: true,
+            ..FragmentAttributes::NONE
+        };
+        let mut source = String::new();
         if self.normal_texture.is_some() {
-            shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\nin vec3 tang;\nin vec3 bitang;\n");
-        }
-        shader.push_str(include_str!("shaders/normal_material.frag"));
-        shader
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        match attribute {
-            MaterialAttribute::Normal => true,
-            MaterialAttribute::Tangents | MaterialAttribute::UvCoordinates => {
-                self.normal_texture.is_some()
+            if !provided_attributes.uv {
+                Err(RendererError::MissingFragmentAttribute(
+                    std::any::type_name::<Self>().to_owned(),
+                    "uv coordinates".to_owned(),
+                ))?;
             }
-            _ => false,
+            if !provided_attributes.tangents {
+                Err(RendererError::MissingFragmentAttribute(
+                    std::any::type_name::<Self>().to_owned(),
+                    "tangent and bitangent".to_owned(),
+                ))?;
+            }
+            attributes.uv = true;
+            attributes.tangents = true;
+            source.push_str("#define USE_TEXTURE\nin vec2 uvs;\nin vec3 tang;\nin vec3 bitang;\n");
         }
+        source.push_str(include_str!("shaders/normal_material.frag"));
+        Ok(FragmentShader { source, attributes })
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

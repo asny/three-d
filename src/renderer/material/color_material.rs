@@ -82,25 +82,33 @@ impl FromCpuMaterial for ColorMaterial {
 }
 
 impl Material for ColorMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        _lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        let mut attributes = FragmentAttributes::NONE;
         let mut shader = String::new();
         if self.texture.is_some() {
+            if !provided_attributes.uv {
+                Err(RendererError::MissingFragmentAttribute(
+                    "ColorMaterial".to_owned(),
+                    "uv coordinates".to_owned(),
+                ))?;
+            }
+            attributes.uv = true;
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
         }
-        if use_vertex_colors {
+        if provided_attributes.color {
+            attributes.color = true;
             shader.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));
-        shader
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        match attribute {
-            MaterialAttribute::UvCoordinates => self.texture.is_some(),
-            MaterialAttribute::Color => todo!(),
-            _ => true,
-        }
+        Ok(FragmentShader {
+            source: shader,
+            attributes,
+        })
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

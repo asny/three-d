@@ -133,7 +133,28 @@ impl FromCpuMaterial for PhysicalMaterial {
 }
 
 impl Material for PhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        if !provided_attributes.position {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "position".to_owned(),
+            ))?;
+        }
+        if !provided_attributes.normal {
+            Err(RendererError::MissingFragmentAttribute(
+                std::any::type_name::<Self>().to_owned(),
+                "normal".to_owned(),
+            ))?;
+        }
+        let mut attributes = FragmentAttributes {
+            position: true,
+            normal: true,
+            ..FragmentAttributes::NONE
+        };
         let mut output = lights_shader_source(lights, self.lighting_model);
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
@@ -141,6 +162,13 @@ impl Material for PhysicalMaterial {
             || self.occlusion_texture.is_some()
             || self.emissive_texture.is_some()
         {
+            if !provided_attributes.uv {
+                Err(RendererError::MissingFragmentAttribute(
+                    std::any::type_name::<Self>().to_owned(),
+                    "uv coordinates".to_owned(),
+                ))?;
+            }
+            attributes.uv = true;
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
                 output.push_str("#define USE_ALBEDO_TEXTURE;\n");
@@ -152,32 +180,28 @@ impl Material for PhysicalMaterial {
                 output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
             }
             if self.normal_texture.is_some() {
+                if !provided_attributes.tangents {
+                    Err(RendererError::MissingFragmentAttribute(
+                        std::any::type_name::<Self>().to_owned(),
+                        "tangent and bitangent".to_owned(),
+                    ))?;
+                }
+                attributes.tangents = true;
                 output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
             }
             if self.emissive_texture.is_some() {
                 output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
             }
         }
-        if use_vertex_colors {
+        if provided_attributes.color {
+            attributes.color = true;
             output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         output.push_str(include_str!("shaders/physical_material.frag"));
-        output
-    }
-
-    fn requires_attribute(&self, attribute: MaterialAttribute) -> bool {
-        match attribute {
-            MaterialAttribute::Position | MaterialAttribute::Normal => true,
-            MaterialAttribute::UvCoordinates => {
-                self.albedo_texture.is_some()
-                    || self.metallic_roughness_texture.is_some()
-                    || self.normal_texture.is_some()
-                    || self.occlusion_texture.is_some()
-                    || self.emissive_texture.is_some()
-            }
-            MaterialAttribute::Tangents => self.normal_texture.is_some(),
-            MaterialAttribute::Color => todo!(),
-        }
+        Ok(FragmentShader {
+            source: output,
+            attributes,
+        })
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
