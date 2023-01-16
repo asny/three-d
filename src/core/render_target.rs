@@ -487,6 +487,7 @@ fn new_framebuffer(context: &Context) -> crate::context::Framebuffer {
     }
 }
 
+#[cfg(debug_assertions)]
 fn multisample_sanity_check(context: &Context, number_of_samples: u32) {
     let max_samples: u32 = unsafe {
         context

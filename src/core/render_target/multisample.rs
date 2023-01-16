@@ -1,5 +1,4 @@
 use crate::core::*;
-use crate::render_target::multisample_sanity_check;
 
 ///
 /// A render target that supports multisample anti-aliasing. This is a combination of the functionality of [ColorTargetMultisample] and [DepthTargetMultisample].
@@ -19,7 +18,8 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
     /// Constructs a new multisample render target with the given dimensions and number of samples.
     ///
     pub fn new(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
-        multisample_sanity_check(context, number_of_samples);
+        #[cfg(debug_assertions)]
+        super::multisample_sanity_check(context, number_of_samples);
         Self {
             context: context.clone(),
             color: Texture2DMultisample::new::<C>(context, width, height, number_of_samples),
