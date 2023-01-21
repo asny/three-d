@@ -1,8 +1,12 @@
 use crate::core::*;
 
 ///
-/// A multisampled render target for color data.
-/// To resolve the multisampled buffer to a color texture, use [ColorTargetMultisample::resolve]. Use [ColorTargetMultisample::resolve_to] to resolve to another render target.
+/// A multisample render target for color data. Use this if you want to avoid aliasing, ie. jagged edges, when rendering to a [ColorTarget].
+///
+/// After rendering into this target, it needs to be resolved to a non-multisample texture to be able to sample it in a shader.
+/// To do this, use the [ColorTargetMultisample::resolve] or [ColorTargetMultisample::resolve_to] methods.
+///
+/// Also see [RenderTargetMultisample] and [DepthTargetMultisample].
 ///
 pub struct ColorTargetMultisample<C: TextureDataType> {
     pub(crate) context: Context,
@@ -12,7 +16,8 @@ pub struct ColorTargetMultisample<C: TextureDataType> {
 
 impl<C: TextureDataType> ColorTargetMultisample<C> {
     ///
-    /// Constructs a new multisampled color target with the given dimensions and number of samples.
+    /// Constructs a new multisample color target with the given dimensions and number of samples.
+    /// The number of samples must be larger than 0, less than or equal to the maximum number of samples supported by the hardware and power of two.
     ///
     pub fn new(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
         #[cfg(debug_assertions)]
@@ -83,14 +88,16 @@ impl<C: TextureDataType> ColorTargetMultisample<C> {
     }
 
     ///
-    /// Resolves the color buffer into the given color target.
+    /// Resolves the multisample color target into the given non-multisample color target.
+    /// The target must have the same width, height and [TextureDataType] as this target.
     ///
     pub fn resolve_to(&self, target: &ColorTarget<'_>) {
         self.as_render_target().blit_to(&target.as_render_target());
     }
 
     ///
-    /// Resolves the color buffer to a color texture.
+    /// Resolves the multisample color target to a default non-multisample [Texture2D].
+    /// Use [ColorTargetMultisample::resolve_to] to resolve to a custom non-multisample texture.
     ///
     pub fn resolve(&self) -> Texture2D {
         let mut color_texture = Texture2D::new_empty::<C>(
