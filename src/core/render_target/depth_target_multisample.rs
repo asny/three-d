@@ -1,8 +1,12 @@
 use crate::core::*;
 
 ///
-/// A multisampled render target for depth data.
-/// To resolve the multisampled buffer to a depth texture, use [DepthTargetMultisample::resolve]. Use [DepthTargetMultisample::resolve_to] to resolve to another render target.
+/// A multisample render target for depth data. Use this if you want to avoid aliasing, ie. jagged edges, when rendering to a [DepthTarget].
+///
+/// After rendering into this target, it needs to be resolved to a non-multisample texture to be able to sample it in a shader.
+/// To do this, use the [DepthTargetMultisample::resolve] or [DepthTargetMultisample::resolve_to] methods.
+///
+/// Also see [RenderTargetMultisample] and [ColorTargetMultisample].
 ///
 pub struct DepthTargetMultisample<D: DepthTextureDataType> {
     pub(crate) context: Context,
@@ -12,7 +16,8 @@ pub struct DepthTargetMultisample<D: DepthTextureDataType> {
 
 impl<D: DepthTextureDataType> DepthTargetMultisample<D> {
     ///
-    /// Constructs a new multisampled depth target with the given dimensions and number of samples.
+    /// Constructs a new multisample depth target with the given dimensions and number of samples.
+    /// The number of samples must be larger than 0, less than or equal to the maximum number of samples supported by the hardware and power of two.
     ///
     pub fn new(context: &Context, width: u32, height: u32, number_of_samples: u32) -> Self {
         #[cfg(debug_assertions)]
@@ -80,14 +85,16 @@ impl<D: DepthTextureDataType> DepthTargetMultisample<D> {
     }
 
     ///
-    /// Resolves the depth buffer into the given depth target.
+    /// Resolves the multisample depth target into the given non-multisample depth target.
+    /// The target must have the same width, height and [DepthTextureDataType] as this target.
     ///
     pub fn resolve_to(&self, target: &DepthTarget<'_>) {
         self.as_render_target().blit_to(&target.as_render_target());
     }
 
     ///
-    /// Resolves the depth buffer to a depth texture.
+    /// Resolves the multisample depth target to a default non-multisample [DepthTexture2D].
+    /// Use [DepthTargetMultisample::resolve_to] to resolve to a custom non-multisample texture.
     ///
     pub fn resolve(&self) -> DepthTexture2D {
         let mut depth_texture = DepthTexture2D::new::<D>(
