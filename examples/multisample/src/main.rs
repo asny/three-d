@@ -88,11 +88,11 @@ pub fn main() {
                 use three_d::egui::*;
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
-                    ui.radio_value(&mut render_steps, RenderMethod::Direct, "Direct");
+                    ui.radio_value(&mut render_steps, RenderMethod::Direct, "Direct (MSAA x4)");
                     ui.radio_value(
                         &mut render_steps,
                         RenderMethod::ToTexture,
-                        "To texture (normal)",
+                        "To texture (No MSAA)",
                     );
                     ui.radio_value(
                         &mut render_steps,
@@ -135,7 +135,7 @@ pub fn main() {
         // Render according to the selected render steps
         match render_steps {
             RenderMethod::Direct => {
-                // Render the shapes directly to the screen framebuffer
+                // Render the shapes directly to the screen.
                 frame_input
                     .screen()
                     .clear(clear_state)
@@ -143,7 +143,7 @@ pub fn main() {
             }
 
             RenderMethod::ToTexture => {
-                // Render the shapes to a texture, and copy the color texture to the screen framebuffer
+                // Render the shapes to a non-multisample texture, and copy the color texture to the screen.
                 let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
                     &context,
                     frame_input.viewport.width,
@@ -177,7 +177,8 @@ pub fn main() {
             }
 
             RenderMethod::ToMultisampledTexture(sample_count) => {
-                // Render the shapes to a multisampled buffer, and copy the color texture to the screen framebuffer
+                // Render the shapes to a multisampled render target, resolve that render target into a non-multisampled color texture,
+                // and copy that color texture to the screen.
                 let color_texture = RenderTargetMultisample::<[u8; 4], f32>::new(
                     &context,
                     frame_input.viewport.width,
