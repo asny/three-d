@@ -392,13 +392,14 @@ impl<'a> RenderTarget<'a> {
     pub(in crate::core) fn blit_to(&self, target: &RenderTarget) {
         self.bind(crate::context::DRAW_FRAMEBUFFER);
         target.bind(crate::context::DRAW_FRAMEBUFFER);
-        let mask = if self.color.is_some() && target.color.is_some() {
+        let target_is_screen = target.color.is_none() && target.depth.is_none();
+        let mask = if self.color.is_some() && (target.color.is_some() || target_is_screen) {
             let mut mask = crate::context::COLOR_BUFFER_BIT;
-            if self.depth.is_some() && target.depth.is_some() {
+            if self.depth.is_some() && (target.depth.is_some() || target_is_screen) {
                 mask |= crate::context::DEPTH_BUFFER_BIT;
             }
             mask
-        } else if self.depth.is_some() && target.depth.is_some() {
+        } else if self.depth.is_some() && (target.depth.is_some() || target_is_screen) {
             crate::context::DEPTH_BUFFER_BIT
         } else {
             unreachable!()
