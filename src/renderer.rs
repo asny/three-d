@@ -49,6 +49,9 @@ pub use object::*;
 pub mod control;
 pub use control::*;
 
+pub mod text;
+pub use text::*;
+
 impl DepthTarget<'_> {
     ///
     /// Render the objects using the given camera and lights into this depth target.
