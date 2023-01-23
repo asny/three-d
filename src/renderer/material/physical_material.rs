@@ -137,7 +137,7 @@ impl Material for PhysicalMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    ) -> Result<String, RendererError> {
         let mut attributes = FragmentAttributes {
             position: true,
             normal: true,
@@ -175,10 +175,7 @@ impl Material for PhysicalMaterial {
         }
         output.push_str(include_str!("shaders/physical_material.frag"));
         provided_attributes.contains(attributes)?;
-        Ok(FragmentShader {
-            source: output,
-            attributes,
-        })
+        Ok(output)
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {

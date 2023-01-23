@@ -120,23 +120,14 @@ impl Mesh {
         }
     }
 
-    fn program(&self, fragment_shader: FragmentShader, callback: impl FnOnce(&Program)) {
+    fn program(&self, fragment_shader_source: String, callback: impl FnOnce(&Program)) {
         let vertex_shader_source = format!(
-            "{}{}{}{}{}{}{}",
-            if true { "#define USE_POSITIONS\n" } else { "" },
-            if true { "#define USE_NORMALS\n" } else { "" },
-            if true { "#define USE_TANGENTS\n" } else { "" },
-            if true { "#define USE_UVS\n" } else { "" },
-            if true {
-                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
-            } else {
-                ""
-            },
+            "#define USE_VERTEX_COLORS\n{}{}",
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
         );
         self.context
-            .program(vertex_shader_source, fragment_shader.source, callback)
+            .program(vertex_shader_source, fragment_shader_source, callback)
             .expect("Failed compiling shader")
     }
 
@@ -200,7 +191,7 @@ impl Geometry for Mesh {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material
+        let fragment_shader_source = material
             .fragment_shader_source(
                 self.provided_attributes(),
                 lights,
@@ -208,7 +199,7 @@ impl Geometry for Mesh {
                 depth_texture,
             )
             .unwrap_or_else(|e| panic!("{}", e));
-        self.program(fragment_shader, |program| {
+        self.program(fragment_shader_source, |program| {
             material.use_uniforms(program, camera, lights, color_texture, depth_texture);
             self.draw(program, material.render_states(), camera);
         });

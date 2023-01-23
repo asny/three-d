@@ -346,27 +346,23 @@ impl InstancedMesh {
     }
     fn program(
         &self,
-        fragment_shader: FragmentShader,
+        fragment_shader_source: String,
         instance_buffers: &HashMap<String, InstanceBuffer>,
         callback: impl FnOnce(&Program),
     ) {
         let vertex_shader_source = format!(
-            "{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}",
             if instance_buffers.contains_key("instance_translation") {
                 "#define USE_INSTANCE_TRANSLATIONS\n"
             } else {
                 "#define USE_INSTANCE_TRANSFORMS\n"
             },
-            if true { "#define USE_POSITIONS\n" } else { "" },
-            if true { "#define USE_NORMALS\n" } else { "" },
-            if true { "#define USE_TANGENTS\n" } else { "" },
-            if true { "#define USE_UVS\n" } else { "" },
             if instance_buffers.contains_key("instance_color") {
-                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
             } else if instance_buffers.contains_key("instance_color") {
-                "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
+                "#define USE_INSTANCE_COLORS\n"
             } else {
-                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
+                "#define USE_VERTEX_COLORS\n"
             },
             if instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
@@ -377,7 +373,7 @@ impl InstancedMesh {
             include_str!("shaders/mesh.vert"),
         );
         self.context
-            .program(vertex_shader_source, fragment_shader.source, callback)
+            .program(vertex_shader_source, fragment_shader_source, callback)
             .expect("Failed compiling shader")
     }
 }

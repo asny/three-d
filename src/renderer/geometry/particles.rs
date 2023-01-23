@@ -256,22 +256,18 @@ impl ParticleSystem {
     }
     fn program(&self, fragment_shader_source: String, callback: impl FnOnce(&Program)) {
         let vertex_shader_source = format!(
-            "#define PARTICLES\n{}{}{}{}{}{}{}{}{}",
+            "#define PARTICLES\n{}{}{}{}{}",
             if self.instance_buffers.contains_key("instance_translation") {
                 "#define USE_INSTANCE_TRANSLATIONS\n"
             } else {
                 "#define USE_INSTANCE_TRANSFORMS\n"
             },
-            if true { "#define USE_POSITIONS\n" } else { "" },
-            if true { "#define USE_NORMALS\n" } else { "" },
-            if true { "#define USE_TANGENTS\n" } else { "" },
-            if true { "#define USE_UVS\n" } else { "" },
             if self.instance_buffers.contains_key("instance_color") {
-                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
             } else if self.instance_buffers.contains_key("instance_color") {
-                "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
+                "#define USE_INSTANCE_COLORS\n"
             } else {
-                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
+                "#define USE_VERTEX_COLORS\n"
             },
             if self.instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
@@ -307,10 +303,10 @@ impl Geometry for ParticleSystem {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material
+        let fragment_shader_source = material
             .fragment_shader_source(self.provided_attributes(), lights)
             .unwrap_or_else(|e| panic!("{}", e));
-        self.program(fragment_shader.source, |program| {
+        self.program(fragment_shader_source, |program| {
             material.use_uniforms(program, camera, lights);
             self.draw(program, material.render_states(), camera);
         });
@@ -324,7 +320,7 @@ impl Geometry for ParticleSystem {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material
+        let fragment_shader_source = material
             .fragment_shader_source(
                 self.provided_attributes(),
                 lights,
@@ -332,7 +328,7 @@ impl Geometry for ParticleSystem {
                 depth_texture,
             )
             .unwrap_or_else(|e| panic!("{}", e));
-        self.program(fragment_shader.source, |program| {
+        self.program(fragment_shader_source, |program| {
             material.use_uniforms(program, camera, lights, color_texture, depth_texture);
             self.draw(program, material.render_states(), camera);
         });

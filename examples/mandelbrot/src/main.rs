@@ -7,13 +7,13 @@ impl Material for MandelbrotMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    ) -> Result<String, RendererError> {
         let attributes = FragmentAttributes {
             position: true,
             ..FragmentAttributes::NONE
         };
         provided_attributes.contains(attributes)?;
-        Ok(FragmentShader {
+        Ok(String {
             source: include_str!("mandelbrot.frag").to_string(),
             attributes,
         })

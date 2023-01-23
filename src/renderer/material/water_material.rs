@@ -41,7 +41,7 @@ impl PostMaterial for WaterMaterial {
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError> {
+    ) -> Result<String, RendererError> {
         let attributes = FragmentAttributes {
             position: true,
             normal: true,
@@ -49,24 +49,21 @@ impl PostMaterial for WaterMaterial {
             ..FragmentAttributes::NONE
         };
         provided_attributes.contains(attributes)?;
-        Ok(FragmentShader {
-            source: format!(
-                "{}\n{}\n{}\n{}\n{}",
-                match &self.background {
-                    Background::Color(_) => "",
-                    Background::Texture(_) => "#define USE_BACKGROUND_TEXTURE",
-                },
-                color_texture
-                    .expect("Must supply a color texture to apply a water effect")
-                    .fragment_shader_source(),
-                depth_texture
-                    .expect("Must supply a depth texture to apply a water effect")
-                    .fragment_shader_source(),
-                lights_shader_source(lights, self.lighting_model),
-                include_str!("shaders/water_material.frag")
-            ),
-            attributes,
-        })
+        Ok(format!(
+            "{}\n{}\n{}\n{}\n{}",
+            match &self.background {
+                Background::Color(_) => "",
+                Background::Texture(_) => "#define USE_BACKGROUND_TEXTURE",
+            },
+            color_texture
+                .expect("Must supply a color texture to apply a water effect")
+                .fragment_shader_source(),
+            depth_texture
+                .expect("Must supply a depth texture to apply a water effect")
+                .fragment_shader_source(),
+            lights_shader_source(lights, self.lighting_model),
+            include_str!("shaders/water_material.frag")
+        ))
     }
 
     fn render_states(&self) -> RenderStates {

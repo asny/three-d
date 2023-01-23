@@ -82,7 +82,7 @@ impl Material for ORMMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    ) -> Result<String, RendererError> {
         let mut attributes = FragmentAttributes::NONE;
         let mut source = String::new();
         if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {
@@ -97,7 +97,7 @@ impl Material for ORMMaterial {
         }
         source.push_str(include_str!("shaders/orm_material.frag"));
         provided_attributes.contains(attributes)?;
-        Ok(FragmentShader { source, attributes })
+        Ok(source)
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

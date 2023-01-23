@@ -20,25 +20,17 @@ in vec4 row2;
 in vec4 row3;
 #endif
 
-#ifdef USE_POSITIONS
 out vec3 pos;
-#endif
 
-#ifdef USE_NORMALS 
 uniform mat4 normalMatrix;
 in vec3 normal;
 out vec3 nor;
 
-#ifdef USE_TANGENTS 
 in vec4 tangent;
 out vec3 tang;
 out vec3 bitang;
-#endif
-
-#endif
 
 
-#ifdef USE_UVS 
 #ifdef USE_INSTANCE_TEXTURE_TRANSFORMATION
 in vec3 tex_transform_row1;
 in vec3 tex_transform_row2;
@@ -46,7 +38,6 @@ in vec3 tex_transform_row2;
 uniform mat3 textureTransform;
 in vec2 uv_coordinates;
 out vec2 uvs;
-#endif
 
 #ifdef USE_VERTEX_COLORS 
 in vec4 color;
@@ -54,9 +45,7 @@ in vec4 color;
 #ifdef USE_INSTANCE_COLORS
 in vec4 instance_color;
 #endif
-#ifdef USE_COLORS 
 out vec4 col;
-#endif
 
 void main()
 {
@@ -82,12 +71,9 @@ void main()
 #endif
     gl_Position = viewProjection * worldPosition;
 
-#ifdef USE_POSITIONS
     pos = worldPosition.xyz;
-#endif
 
     // *** NORMAL ***
-#ifdef USE_NORMALS 
 #ifdef USE_INSTANCE_TRANSFORMS
     mat3 normalMat = mat3(transpose(inverse(local2World)));
 #else
@@ -95,15 +81,10 @@ void main()
 #endif
     nor = normalize(normalMat * normal);
 
-#ifdef USE_TANGENTS 
     tang = normalize(normalMat * tangent.xyz);
     bitang = normalize(cross(nor, tang) * tangent.w);
-#endif
-
-#endif
 
     // *** UV ***
-#ifdef USE_UVS 
     mat3 texTransform = textureTransform;
 #ifdef USE_INSTANCE_TEXTURE_TRANSFORMATION
     mat3 instancedTexTransform;
@@ -113,16 +94,13 @@ void main()
     texTransform *= instancedTexTransform;
 #endif
     uvs = (texTransform * vec3(uv_coordinates, 1.0)).xy;
-#endif
 
     // *** COLOR ***
-#ifdef USE_COLORS
     col = vec4(1.0, 1.0, 1.0, 1.0);
 #ifdef USE_VERTEX_COLORS 
     col *= color / 255.0;
 #endif
 #ifdef USE_INSTANCE_COLORS
     col *= instance_color / 255.0;
-#endif
 #endif
 }

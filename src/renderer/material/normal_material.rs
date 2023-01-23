@@ -56,7 +56,7 @@ impl Material for NormalMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    ) -> Result<String, RendererError> {
         let mut attributes = FragmentAttributes {
             position: true,
             ..FragmentAttributes::NONE
@@ -69,7 +69,7 @@ impl Material for NormalMaterial {
         }
         source.push_str(include_str!("shaders/normal_material.frag"));
         provided_attributes.contains(attributes)?;
-        Ok(FragmentShader { source, attributes })
+        Ok(source)
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

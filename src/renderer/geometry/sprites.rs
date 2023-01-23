@@ -116,7 +116,7 @@ impl Geometry for Sprites {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material
+        let fragment_shader_source = material
             .fragment_shader_source(
                 FragmentAttributes {
                     uv: true,
@@ -128,7 +128,7 @@ impl Geometry for Sprites {
         self.context
             .program(
                 include_str!("shaders/sprites.vert").to_owned(),
-                fragment_shader.source,
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     self.draw(program, material.render_states(), camera);
@@ -145,7 +145,7 @@ impl Geometry for Sprites {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material
+        let fragment_shader_source = material
             .fragment_shader_source(
                 FragmentAttributes {
                     uv: true,
@@ -159,7 +159,7 @@ impl Geometry for Sprites {
         self.context
             .program(
                 include_str!("shaders/sprites.vert").to_owned(),
-                fragment_shader.source,
+                fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     self.draw(program, material.render_states(), camera);

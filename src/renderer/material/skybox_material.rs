@@ -11,15 +11,12 @@ impl Material for SkyboxMaterial {
         &self,
         _provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        Ok(FragmentShader {
-            source: format!(
-                "{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/skybox_material.frag")
-            ),
-            attributes: FragmentAttributes::NONE,
-        })
+    ) -> Result<String, RendererError> {
+        Ok(format!(
+            "{}{}",
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/skybox_material.frag")
+        ))
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

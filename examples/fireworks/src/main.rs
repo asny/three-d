@@ -14,14 +14,14 @@ impl Material for FireworksMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    ) -> Result<String, RendererError> {
         let attributes = FragmentAttributes {
             uv: true,
             color: true,
             ..FragmentAttributes::NONE
         };
         provided_attributes.contains(attributes)?;
-        Ok(FragmentShader {
+        Ok(String {
             source: include_str!("particles.frag").to_string(),
             attributes,
         })

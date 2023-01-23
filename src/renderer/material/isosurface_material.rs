@@ -29,7 +29,7 @@ impl Material for IsosurfaceMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    ) -> Result<String, RendererError> {
         let attributes = FragmentAttributes {
             position: true,
             ..FragmentAttributes::NONE
@@ -37,7 +37,7 @@ impl Material for IsosurfaceMaterial {
         let mut source = lights_shader_source(lights, self.lighting_model);
         source.push_str(include_str!("shaders/isosurface_material.frag"));
         provided_attributes.contains(attributes)?;
-        Ok(FragmentShader { source, attributes })
+        Ok(source)
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {

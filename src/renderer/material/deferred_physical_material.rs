@@ -186,7 +186,7 @@ impl Material for DeferredPhysicalMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    ) -> Result<String, RendererError> {
         let mut attributes = FragmentAttributes {
             position: true,
             normal: true,
@@ -234,10 +234,7 @@ impl Material for DeferredPhysicalMaterial {
         }
         output.push_str(include_str!("shaders/deferred_physical_material.frag"));
         provided_attributes.contains(attributes)?;
-        Ok(FragmentShader {
-            source: output,
-            attributes,
-        })
+        Ok(output)
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
