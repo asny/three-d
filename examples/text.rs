@@ -29,19 +29,22 @@ pub async fn run() {
 
     let font = Font::default();
     let effect = TextEffect {
-        text: 'a',
+        text: "Your mama".to_owned(),
         size: 40.,
     };
 
     let texture2d = font.rasterize(effect, &context);
+    let ratio = texture2d.width as f32 / texture2d.height as f32;
+    let material = ColorMaterial::new_transparent(
+        &context,
+        &CpuMaterial {
+            albedo_texture: Some(texture2d),
+            ..Default::default()
+        },
+    );
 
-    let material = ColorMaterial {
-        color: Color::WHITE,
-        texture: Some(std::sync::Arc::new(texture2d).into()),
-        ..Default::default()
-    };
-
-    let billboards = Sprites::new(&context, &[vec3(-20.0, 0.0, -5.0)], None);
+    let mut billboards = Sprites::new(&context, &[vec3(5., 0.0, 0.)], None);
+    billboards.set_transformation(Mat4::from_nonuniform_scale(ratio, 1.0, 1.0));
 
     window.render_loop(move |mut frame_input: FrameInput| {
         camera.set_viewport(frame_input.viewport);

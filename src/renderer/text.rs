@@ -55,32 +55,82 @@ impl Font {
         &self.font
     }
 
-    pub fn rasterize(&self, effect: TextEffect, context: &Context) -> Texture2D {
-        let (metrics, bitmap) = self.font.rasterize(effect.text, effect.size);
+    pub fn rasterize(&self, effect: TextEffect, context: &Context) -> CpuTexture {
+        // Compute a bitmap for each letter
+        let results: Vec<_> = effect
+            .text
+            .chars()
+            .map(|letter| self.font.rasterize(letter, effect.size))
+            .collect();
 
-        Texture2D::new(
-            context,
-            &CpuTexture {
-                name: "text".to_string(), // not necessary for text rendering?
-                data: TextureData::RU8(bitmap),
-                width: metrics.width as u32,
-                height: metrics.height as u32,
-                min_filter: Interpolation::Linear,
-                mag_filter: Interpolation::Linear,
-                mip_map_filter: Some(Interpolation::Linear),
-                wrap_s: Wrapping::ClampToEdge,
-                wrap_t: Wrapping::ClampToEdge,
-            },
-        )
+        // Get the size of the `Texture2D`.
+        let width: usize = results.iter().map(|(m, _)| m.width).sum();
+        let height: Option<usize> = results.iter().map(|(m, _)| m.height).max();
+        let max_height = match height {
+            Some(height) => height,
+            None => todo!(),
+        };
+
+        // Transform the letters from single textures into a union `Texture2D`.
+        //
+        // Three things are to be considered.
+        // 1. Not each letter has the same height. Letters with smaller height
+        // than the maximum height of all letters have transparent texel, where the
+        // texture height outreachs their own height.
+        // 2. The new canvas for the texture of all unified letters has the size
+        // (max height of all letters) * sum over all letters width.
+        // 3. Each letter follows its own unique column-first ordering of values.
+        // To fill in the values of each letter into the unified texture,
+        // we go through each row of the vector and manually compute the slice
+        // of values of each letter and append to the texture.
+        let mut data: Vec<[u8; 4]> = Vec::new();
+        for row in 0..max_height {
+            let cur_height = max_height - row;
+            for (metrics, letter) in &results {
+                // Region of texture, where individual letters are smaller than canvas.
+                if cur_height > metrics.height {
+                    data.extend_from_slice(&vec![[0u8; 4]; metrics.width])
+                }
+                // Region of texture, where each letter has values to fill into texture.
+                else {
+                    // Compute offseted index into letter's bitmap data.
+                    let row = row - (max_height - metrics.height);
+                    let start = row * metrics.width;
+                    let end = row * metrics.width + metrics.width;
+                    data.extend_from_slice(
+                        &letter[start..end]
+                            .iter()
+                            .map(|u| [0u8, 0u8, 0u8, *u])
+                            .collect::<Vec<[u8; 4]>>(),
+                    );
+                }
+            }
+        }
+
+        CpuTexture {
+            name: "text".to_string(), // not necessary for text rendering?
+            data: TextureData::RgbaU8(data),
+            width: width as u32,
+            height: max_height as u32,
+            min_filter: Interpolation::Linear,
+            mag_filter: Interpolation::Linear,
+            mip_map_filter: Some(Interpolation::Linear),
+            wrap_s: Wrapping::ClampToEdge,
+            wrap_t: Wrapping::ClampToEdge,
+        }
     }
 }
 
 ///
-/// A text effect contains a character to be rendered. Use `Font::rasterize` to transform the effect into
+/// An texture atlas with all UTF-8 symbols. Use the hashmap to find the index of a specific character.
+///
+
+///
+/// A text effect contains a string to be rendered. Use `Font::rasterize` to transform the effect into
 /// a `Texture2D`.
 ///
 #[derive(Clone, Debug)]
 pub struct TextEffect {
-    pub text: char,
+    pub text: String,
     pub size: f32,
 }
