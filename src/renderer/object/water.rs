@@ -258,12 +258,6 @@ impl Geometry for WaterPatch {
         let fragment_shader = material
             .fragment_shader_source(self.provided_attributes(), lights)
             .unwrap_or_else(|e| panic!("{}", e));
-        if !fragment_shader.attributes.position
-            || !fragment_shader.attributes.normal
-            || !fragment_shader.attributes.uv
-        {
-            todo!()
-        }
         self.context
             .program(
                 include_str!("shaders/water.vert").to_owned(),
@@ -292,12 +286,6 @@ impl Geometry for WaterPatch {
                 depth_texture,
             )
             .unwrap_or_else(|e| panic!("{}", e));
-        if !fragment_shader.attributes.position
-            || !fragment_shader.attributes.normal
-            || !fragment_shader.attributes.uv
-        {
-            todo!()
-        }
         self.context
             .program(
                 include_str!("shaders/water.vert").to_owned(),

@@ -125,9 +125,6 @@ impl Geometry for Sprites {
                 lights,
             )
             .unwrap_or_else(|e| panic!("{}", e));
-        if !fragment_shader.attributes.uv {
-            todo!()
-        }
         self.context
             .program(
                 include_str!("shaders/sprites.vert").to_owned(),
@@ -159,9 +156,6 @@ impl Geometry for Sprites {
                 depth_texture,
             )
             .unwrap_or_else(|e| panic!("{}", e));
-        if !fragment_shader.attributes.uv {
-            todo!()
-        }
         self.context
             .program(
                 include_str!("shaders/sprites.vert").to_owned(),

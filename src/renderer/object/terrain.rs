@@ -373,14 +373,6 @@ impl Geometry for TerrainPatch {
         let fragment_shader = material
             .fragment_shader_source(self.provided_attributes(), lights)
             .unwrap_or_else(|e| panic!("{}", e));
-        if !fragment_shader.attributes.position
-            || !fragment_shader.attributes.normal
-            || !fragment_shader.attributes.uv
-            || !fragment_shader.attributes.tangents
-            || !fragment_shader.attributes.uv
-        {
-            todo!()
-        }
         self.context
             .program(
                 include_str!("shaders/terrain.vert").to_owned(),
@@ -409,14 +401,6 @@ impl Geometry for TerrainPatch {
                 depth_texture,
             )
             .unwrap_or_else(|e| panic!("{}", e));
-        if !fragment_shader.attributes.position
-            || !fragment_shader.attributes.normal
-            || !fragment_shader.attributes.uv
-            || !fragment_shader.attributes.tangents
-            || !fragment_shader.attributes.uv
-        {
-            todo!()
-        }
         self.context
             .program(
                 include_str!("shaders/terrain.vert").to_owned(),
