@@ -55,7 +55,7 @@ impl Material for NormalMaterial {
     fn fragment_shader_source(
         &self,
         provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
+        _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
         let mut attributes = FragmentAttributes {
             position: true,

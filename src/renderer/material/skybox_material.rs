@@ -9,8 +9,8 @@ pub struct SkyboxMaterial {
 impl Material for SkyboxMaterial {
     fn fragment_shader_source(
         &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
+        _provided_attributes: FragmentAttributes,
+        _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
         Ok(FragmentShader {
             source: format!(

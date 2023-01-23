@@ -305,7 +305,6 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     }
 }
 
-use std::collections::HashMap;
 fn vertex_buffers_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Vec<(String, VertexBuffer)> {
     #[cfg(debug_assertions)]
     cpu_mesh.validate().expect("invalid cpu mesh");

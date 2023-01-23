@@ -279,11 +279,11 @@ impl InstancedMesh {
         instance_buffers: &HashMap<String, InstanceBuffer>,
     ) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", &self.current_transformation);
-        program.use_uniform("textureTransform", &self.texture_transform);
+        program.use_uniform("modelMatrix", self.current_transformation);
+        program.use_uniform("textureTransform", self.texture_transform);
         program.use_uniform(
             "normalMatrix",
-            &self.current_transformation.invert().unwrap().transpose(),
+            self.current_transformation.invert().unwrap().transpose(),
         );
 
         for (attribute_name, buffer) in self.vertex_buffers.iter() {
@@ -303,7 +303,7 @@ impl InstancedMesh {
                 program.use_instance_attribute(
                     attribute_name,
                     instance_buffers
-                    .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
+                    .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
                 );
             }
         }

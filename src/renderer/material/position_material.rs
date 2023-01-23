@@ -21,7 +21,7 @@ impl Material for PositionMaterial {
     fn fragment_shader_source(
         &self,
         provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
+        _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
         let attributes = FragmentAttributes {
             position: true,
