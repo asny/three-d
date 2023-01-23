@@ -122,7 +122,7 @@ impl Mesh {
 
     fn program(&self, fragment_shader_source: String, callback: impl FnOnce(&Program)) {
         let vertex_shader_source = format!(
-            "#define USE_VERTEX_COLORS\n{}{}",
+            "{}{}",
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
         );

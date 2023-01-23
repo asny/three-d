@@ -263,11 +263,9 @@ impl ParticleSystem {
                 "#define USE_INSTANCE_TRANSFORMS\n"
             },
             if self.instance_buffers.contains_key("instance_color") {
-                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-            } else if self.instance_buffers.contains_key("instance_color") {
                 "#define USE_INSTANCE_COLORS\n"
             } else {
-                "#define USE_VERTEX_COLORS\n"
+                ""
             },
             if self.instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"

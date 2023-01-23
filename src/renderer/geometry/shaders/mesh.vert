@@ -39,9 +39,7 @@ uniform mat3 textureTransform;
 in vec2 uv_coordinates;
 out vec2 uvs;
 
-#ifdef USE_VERTEX_COLORS 
 in vec4 color;
-#endif
 #ifdef USE_INSTANCE_COLORS
 in vec4 instance_color;
 #endif
@@ -96,10 +94,7 @@ void main()
     uvs = (texTransform * vec3(uv_coordinates, 1.0)).xy;
 
     // *** COLOR ***
-    col = vec4(1.0, 1.0, 1.0, 1.0);
-#ifdef USE_VERTEX_COLORS 
-    col *= color / 255.0;
-#endif
+    col = color / 255.0;
 #ifdef USE_INSTANCE_COLORS
     col *= instance_color / 255.0;
 #endif

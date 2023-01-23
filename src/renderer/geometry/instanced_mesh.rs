@@ -358,11 +358,9 @@ impl InstancedMesh {
                 "#define USE_INSTANCE_TRANSFORMS\n"
             },
             if instance_buffers.contains_key("instance_color") {
-                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-            } else if instance_buffers.contains_key("instance_color") {
                 "#define USE_INSTANCE_COLORS\n"
             } else {
-                "#define USE_VERTEX_COLORS\n"
+                ""
             },
             if instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
