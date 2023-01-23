@@ -301,9 +301,8 @@ impl Geometry for ParticleSystem {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source = material
-            .fragment_shader_source(self.provided_attributes(), lights)
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader_source =
+            material.fragment_shader_source(self.provided_attributes(), lights);
         self.program(fragment_shader_source, |program| {
             material.use_uniforms(program, camera, lights);
             self.draw(program, material.render_states(), camera);
@@ -318,14 +317,12 @@ impl Geometry for ParticleSystem {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source = material
-            .fragment_shader_source(
-                self.provided_attributes(),
-                lights,
-                color_texture,
-                depth_texture,
-            )
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader_source = material.fragment_shader_source(
+            self.provided_attributes(),
+            lights,
+            color_texture,
+            depth_texture,
+        );
         self.program(fragment_shader_source, |program| {
             material.use_uniforms(program, camera, lights, color_texture, depth_texture);
             self.draw(program, material.render_states(), camera);

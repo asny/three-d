@@ -86,7 +86,7 @@ impl Material for ColorMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<String, RendererError> {
+    ) -> String {
         let mut attributes = FragmentAttributes::NONE;
         let mut shader = String::new();
         if self.texture.is_some() {
@@ -99,8 +99,10 @@ impl Material for ColorMaterial {
         }
         shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));
-        provided_attributes.contains(attributes)?;
-        Ok(shader)
+        provided_attributes
+            .check(attributes)
+            .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
+        shader
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

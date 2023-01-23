@@ -370,9 +370,8 @@ impl Geometry for TerrainPatch {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source = material
-            .fragment_shader_source(self.provided_attributes(), lights)
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader_source =
+            material.fragment_shader_source(self.provided_attributes(), lights);
         self.context
             .program(
                 include_str!("shaders/terrain.vert").to_owned(),
@@ -393,14 +392,12 @@ impl Geometry for TerrainPatch {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source = material
-            .fragment_shader_source(
-                self.provided_attributes(),
-                lights,
-                color_texture,
-                depth_texture,
-            )
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader_source = material.fragment_shader_source(
+            self.provided_attributes(),
+            lights,
+            color_texture,
+            depth_texture,
+        );
         self.context
             .program(
                 include_str!("shaders/terrain.vert").to_owned(),

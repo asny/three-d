@@ -186,7 +186,7 @@ impl Material for DeferredPhysicalMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<String, RendererError> {
+    ) -> String {
         let mut attributes = FragmentAttributes {
             position: true,
             normal: true,
@@ -233,8 +233,10 @@ impl Material for DeferredPhysicalMaterial {
             output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         output.push_str(include_str!("shaders/deferred_physical_material.frag"));
-        provided_attributes.contains(attributes)?;
-        Ok(output)
+        provided_attributes
+            .check(attributes)
+            .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
+        output
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

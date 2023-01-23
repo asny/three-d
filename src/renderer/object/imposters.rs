@@ -227,17 +227,19 @@ impl Material for ImpostersMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<String, RendererError> {
+    ) -> String {
         let attributes = FragmentAttributes {
             uv: true,
             ..FragmentAttributes::NONE
         };
-        provided_attributes.contains(attributes)?;
-        Ok(format!(
+        provided_attributes
+            .check(attributes)
+            .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
+        format!(
             "{}{}",
             include_str!("../../core/shared.frag"),
             include_str!("shaders/imposter.frag")
-        ))
+        )
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {

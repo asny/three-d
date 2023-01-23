@@ -41,15 +41,17 @@ impl PostMaterial for WaterMaterial {
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<String, RendererError> {
+    ) -> String {
         let attributes = FragmentAttributes {
             position: true,
             normal: true,
             uv: true,
             ..FragmentAttributes::NONE
         };
-        provided_attributes.contains(attributes)?;
-        Ok(format!(
+        provided_attributes
+            .check(attributes)
+            .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
+        format!(
             "{}\n{}\n{}\n{}\n{}",
             match &self.background {
                 Background::Color(_) => "",
@@ -63,7 +65,7 @@ impl PostMaterial for WaterMaterial {
                 .fragment_shader_source(),
             lights_shader_source(lights, self.lighting_model),
             include_str!("shaders/water_material.frag")
-        ))
+        )
     }
 
     fn render_states(&self) -> RenderStates {

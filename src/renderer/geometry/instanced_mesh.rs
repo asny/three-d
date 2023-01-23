@@ -423,9 +423,7 @@ impl Geometry for InstancedMesh {
             .expect("failed to acquire read access")
             .0;
 
-        let fragment_shader = material
-            .fragment_shader_source(self.provided_attributes(), lights)
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader = material.fragment_shader_source(self.provided_attributes(), lights);
         self.program(fragment_shader, instance_buffers, |program| {
             material.use_uniforms(program, camera, lights);
             self.draw(program, material.render_states(), camera, instance_buffers);
@@ -454,14 +452,12 @@ impl Geometry for InstancedMesh {
             .expect("failed to acquire read access")
             .0;
 
-        let fragment_shader = material
-            .fragment_shader_source(
-                self.provided_attributes(),
-                lights,
-                color_texture,
-                depth_texture,
-            )
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader = material.fragment_shader_source(
+            self.provided_attributes(),
+            lights,
+            color_texture,
+            depth_texture,
+        );
         self.program(fragment_shader, instance_buffers, |program| {
             material.use_uniforms(program, camera, lights, color_texture, depth_texture);
             self.draw(program, material.render_states(), camera, instance_buffers);

@@ -14,7 +14,7 @@ impl Material for FireworksMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<String, RendererError> {
+    ) -> String {
         let attributes = FragmentAttributes {
             uv: true,
             color: true,

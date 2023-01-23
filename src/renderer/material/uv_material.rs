@@ -22,13 +22,15 @@ impl Material for UVMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
-    ) -> Result<String, RendererError> {
+    ) -> String {
         let attributes = FragmentAttributes {
             uv: true,
             ..FragmentAttributes::NONE
         };
-        provided_attributes.contains(attributes)?;
-        Ok(include_str!("shaders/uv_material.frag").to_string())
+        provided_attributes
+            .check(attributes)
+            .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
+        include_str!("shaders/uv_material.frag").to_string()
     }
 
     fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}

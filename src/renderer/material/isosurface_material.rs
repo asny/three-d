@@ -29,15 +29,17 @@ impl Material for IsosurfaceMaterial {
         &self,
         provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
-    ) -> Result<String, RendererError> {
+    ) -> String {
         let attributes = FragmentAttributes {
             position: true,
             ..FragmentAttributes::NONE
         };
         let mut source = lights_shader_source(lights, self.lighting_model);
         source.push_str(include_str!("shaders/isosurface_material.frag"));
-        provided_attributes.contains(attributes)?;
-        Ok(source)
+        provided_attributes
+            .check(attributes)
+            .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
+        source
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
