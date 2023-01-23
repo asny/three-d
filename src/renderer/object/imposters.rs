@@ -20,7 +20,7 @@ impl Imposters {
     /// Constructs a new [Imposters] and render the imposter texture from the given objects with the given lights.
     /// The imposters are placed at the given positions.
     ///
-    pub fn new<'a>(
+    pub fn new(
         context: &Context,
         positions: &[Vec3],
         objects: impl IntoIterator<Item = impl Object> + Clone,
@@ -51,7 +51,7 @@ impl Imposters {
     /// Render the imposter texture from the given objects with the given lights.
     /// Use this if you want to update the look of the imposters.
     ///
-    pub fn update_texture<'a>(
+    pub fn update_texture(
         &mut self,
         objects: impl IntoIterator<Item = impl Object> + Clone,
         lights: &[&dyn Light],
@@ -137,7 +137,7 @@ struct ImpostersMaterial {
 }
 
 impl ImpostersMaterial {
-    pub fn new<'a>(
+    pub fn new(
         context: &Context,
         aabb: AxisAlignedBoundingBox,
         objects: impl IntoIterator<Item = impl Object> + Clone,
@@ -161,7 +161,7 @@ impl ImpostersMaterial {
         m.update(aabb, objects, lights, max_texture_size);
         m
     }
-    pub fn update<'a>(
+    pub fn update(
         &mut self,
         aabb: AxisAlignedBoundingBox,
         objects: impl IntoIterator<Item = impl Object> + Clone,
@@ -244,7 +244,7 @@ impl Material for ImpostersMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
-        program.use_uniform("no_views", &(NO_VIEW_ANGLES as i32));
+        program.use_uniform("no_views", NO_VIEW_ANGLES as i32);
         program.use_uniform("view", camera.view());
         program.use_texture_array("tex", &self.texture);
     }

@@ -319,7 +319,7 @@ impl InstancedMesh {
             program.draw_arrays_instanced(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.first().unwrap().1.vertex_count() as u32,
+                self.vertex_buffers.first().unwrap().1.vertex_count(),
                 self.instance_count,
             )
         }
@@ -534,7 +534,7 @@ impl From<PointCloud> for Instances {
                 .positions
                 .to_f32()
                 .into_iter()
-                .map(|p| Mat4::from_translation(p))
+                .map(Mat4::from_translation)
                 .collect(),
             colors: points.colors,
             ..Default::default()

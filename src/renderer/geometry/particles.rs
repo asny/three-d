@@ -187,20 +187,20 @@ impl ParticleSystem {
         if let Some(instance_colors) = &particles.colors {
             self.instance_buffers.insert(
                 "instance_color".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_colors),
+                InstanceBuffer::new_with_data(&self.context, instance_colors),
             );
         }
     }
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", &self.transformation);
-        program.use_uniform("acceleration", &self.acceleration);
-        program.use_uniform("time", &self.time);
-        program.use_uniform("textureTransform", &self.texture_transform);
+        program.use_uniform("modelMatrix", self.transformation);
+        program.use_uniform("acceleration", self.acceleration);
+        program.use_uniform("time", self.time);
+        program.use_uniform("textureTransform", self.texture_transform);
         program.use_uniform(
             "normalMatrix",
-            &self.transformation.invert().unwrap().transpose(),
+            self.transformation.invert().unwrap().transpose(),
         );
 
         for (attribute_name, buffer) in self.vertex_buffers.iter() {
@@ -218,7 +218,7 @@ impl ParticleSystem {
                 program.use_instance_attribute(
                     attribute_name,
                     self.instance_buffers
-                    .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
+                    .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
                 );
             }
         }
@@ -234,7 +234,7 @@ impl ParticleSystem {
             program.draw_arrays_instanced(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.first().unwrap().1.vertex_count() as u32,
+                self.vertex_buffers.first().unwrap().1.vertex_count(),
                 self.instance_count,
             )
         }

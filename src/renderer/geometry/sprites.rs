@@ -24,7 +24,7 @@ impl Sprites {
     ///
     pub fn new(context: &Context, centers: &[Vec3], direction: Option<Vec3>) -> Self {
         let position_buffer = VertexBuffer::new_with_data(
-            &context,
+            context,
             &[
                 vec3(-1.0, -1.0, 0.0),
                 vec3(1.0, -1.0, 0.0),
@@ -35,7 +35,7 @@ impl Sprites {
             ],
         );
         let uv_buffer = VertexBuffer::new_with_data(
-            &context,
+            context,
             &[
                 vec2(0.0, 0.0),
                 vec2(1.0, 0.0),

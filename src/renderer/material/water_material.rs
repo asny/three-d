@@ -96,12 +96,12 @@ impl PostMaterial for WaterMaterial {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform(
             "viewProjectionInverse",
-            &(camera.projection() * camera.view()).invert().unwrap(),
+            (camera.projection() * camera.view()).invert().unwrap(),
         );
         program.use_uniform("cameraPosition", camera.position());
         program.use_uniform(
             "screenSize",
-            &vec2(
+            vec2(
                 camera.viewport().width as f32,
                 camera.viewport().height as f32,
             ),
