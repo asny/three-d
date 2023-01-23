@@ -86,12 +86,6 @@ impl Material for ORMMaterial {
         let mut attributes = FragmentAttributes::NONE;
         let mut source = String::new();
         if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {
-            if !provided_attributes.uv {
-                Err(RendererError::MissingFragmentAttribute(
-                    std::any::type_name::<Self>().to_owned(),
-                    "uv coordinates".to_owned(),
-                ))?;
-            }
             attributes.uv = true;
             source.push_str("in vec2 uvs;\n");
             if self.metallic_roughness_texture.is_some() {
@@ -102,6 +96,7 @@ impl Material for ORMMaterial {
             }
         }
         source.push_str(include_str!("shaders/orm_material.frag"));
+        provided_attributes.contains(attributes)?;
         Ok(FragmentShader { source, attributes })
     }
 

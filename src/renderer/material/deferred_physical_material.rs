@@ -187,18 +187,6 @@ impl Material for DeferredPhysicalMaterial {
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
-        if !provided_attributes.position {
-            Err(RendererError::MissingFragmentAttribute(
-                std::any::type_name::<Self>().to_owned(),
-                "position".to_owned(),
-            ))?;
-        }
-        if !provided_attributes.normal {
-            Err(RendererError::MissingFragmentAttribute(
-                std::any::type_name::<Self>().to_owned(),
-                "normal".to_owned(),
-            ))?;
-        }
         let mut attributes = FragmentAttributes {
             position: true,
             normal: true,
@@ -212,12 +200,6 @@ impl Material for DeferredPhysicalMaterial {
             || self.emissive_texture.is_some()
             || self.alpha_cutout.is_some()
         {
-            if !provided_attributes.uv {
-                Err(RendererError::MissingFragmentAttribute(
-                    std::any::type_name::<Self>().to_owned(),
-                    "uv coordinates".to_owned(),
-                ))?;
-            }
             attributes.uv = true;
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
@@ -230,12 +212,6 @@ impl Material for DeferredPhysicalMaterial {
                 output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
             }
             if self.normal_texture.is_some() {
-                if !provided_attributes.tangents {
-                    Err(RendererError::MissingFragmentAttribute(
-                        std::any::type_name::<Self>().to_owned(),
-                        "tangent and bitangent".to_owned(),
-                    ))?;
-                }
                 attributes.tangents = true;
                 output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
             }
@@ -257,6 +233,7 @@ impl Material for DeferredPhysicalMaterial {
             output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         output.push_str(include_str!("shaders/deferred_physical_material.frag"));
+        provided_attributes.contains(attributes)?;
         Ok(FragmentShader {
             source: output,
             attributes,

@@ -226,24 +226,20 @@ impl Material for ImpostersMaterial {
     fn fragment_shader_source(
         &self,
         provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
+        _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
-        if !provided_attributes.uv {
-            Err(RendererError::MissingFragmentAttribute(
-                std::any::type_name::<Self>().to_owned(),
-                "uv coordinates".to_owned(),
-            ))?;
-        }
+        let attributes = FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        };
+        provided_attributes.contains(attributes)?;
         Ok(FragmentShader {
             source: format!(
                 "{}{}",
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/imposter.frag")
             ),
-            attributes: FragmentAttributes {
-                uv: true,
-                ..FragmentAttributes::NONE
-            },
+            attributes,
         })
     }
 

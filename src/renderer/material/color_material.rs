@@ -90,12 +90,6 @@ impl Material for ColorMaterial {
         let mut attributes = FragmentAttributes::NONE;
         let mut shader = String::new();
         if self.texture.is_some() {
-            if !provided_attributes.uv {
-                Err(RendererError::MissingFragmentAttribute(
-                    "ColorMaterial".to_owned(),
-                    "uv coordinates".to_owned(),
-                ))?;
-            }
             attributes.uv = true;
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
         }
@@ -105,6 +99,7 @@ impl Material for ColorMaterial {
         }
         shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));
+        provided_attributes.contains(attributes)?;
         Ok(FragmentShader {
             source: shader,
             attributes,

@@ -30,9 +30,9 @@ pub enum RendererError {
     #[error("the material {0} is required by the geometry {1} but could not be found")]
     MissingMaterial(String, String),
     #[error(
-        "the material {0} requires the fragment attribute {1} but the geometry did not provide it"
+        "the material requires the fragment attribute {0} but the geometry did not provide it"
     )]
-    MissingFragmentAttribute(String, String),
+    MissingFragmentAttribute(String),
 }
 
 pub mod material;

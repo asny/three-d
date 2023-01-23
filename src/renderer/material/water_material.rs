@@ -42,24 +42,13 @@ impl PostMaterial for WaterMaterial {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) -> Result<FragmentShader, RendererError> {
-        if !provided_attributes.position {
-            Err(RendererError::MissingFragmentAttribute(
-                std::any::type_name::<Self>().to_owned(),
-                "position".to_owned(),
-            ))?;
-        }
-        if !provided_attributes.normal {
-            Err(RendererError::MissingFragmentAttribute(
-                std::any::type_name::<Self>().to_owned(),
-                "normal".to_owned(),
-            ))?;
-        }
-        if !provided_attributes.uv {
-            Err(RendererError::MissingFragmentAttribute(
-                std::any::type_name::<Self>().to_owned(),
-                "uv coordinates".to_owned(),
-            ))?;
-        }
+        let attributes = FragmentAttributes {
+            position: true,
+            normal: true,
+            uv: true,
+            ..FragmentAttributes::NONE
+        };
+        provided_attributes.contains(attributes)?;
         Ok(FragmentShader {
             source: format!(
                 "{}\n{}\n{}\n{}\n{}",
@@ -76,12 +65,7 @@ impl PostMaterial for WaterMaterial {
                 lights_shader_source(lights, self.lighting_model),
                 include_str!("shaders/water_material.frag")
             ),
-            attributes: FragmentAttributes {
-                position: true,
-                normal: true,
-                uv: true,
-                ..FragmentAttributes::NONE
-            },
+            attributes,
         })
     }
 

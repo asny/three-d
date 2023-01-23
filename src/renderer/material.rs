@@ -120,6 +120,7 @@ pub enum MaterialAttribute {
     Color,
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct FragmentAttributes {
     pub position: bool,
     pub normal: bool,
@@ -143,6 +144,31 @@ impl FragmentAttributes {
         uv: false,
         color: false,
     };
+
+    pub fn contains(&self, required: FragmentAttributes) -> Result<(), RendererError> {
+        if required.position && !self.position {
+            Err(RendererError::MissingFragmentAttribute(
+                "position".to_owned(),
+            ))?;
+        }
+        if required.normal && !self.normal {
+            Err(RendererError::MissingFragmentAttribute("normal".to_owned()))?;
+        }
+        if required.tangents && !self.tangents {
+            Err(RendererError::MissingFragmentAttribute(
+                "tangents".to_owned(),
+            ))?;
+        }
+        if required.uv && !self.uv {
+            Err(RendererError::MissingFragmentAttribute(
+                "uv coordinates".to_owned(),
+            ))?;
+        }
+        if required.color && !self.color {
+            Err(RendererError::MissingFragmentAttribute("color".to_owned()))?;
+        }
+        Ok(())
+    }
 }
 
 pub struct FragmentShader {

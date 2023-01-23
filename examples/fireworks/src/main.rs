@@ -10,8 +10,21 @@ struct FireworksMaterial {
 }
 
 impl Material for FireworksMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        include_str!("particles.frag").to_string()
+    fn fragment_shader_source(
+        &self,
+        provided_attributes: FragmentAttributes,
+        _lights: &[&dyn Light],
+    ) -> Result<FragmentShader, RendererError> {
+        let attributes = FragmentAttributes {
+            uv: true,
+            color: true,
+            ..FragmentAttributes::NONE
+        };
+        provided_attributes.contains(attributes)?;
+        Ok(FragmentShader {
+            source: include_str!("particles.frag").to_string(),
+            attributes,
+        })
     }
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("color", self.color);

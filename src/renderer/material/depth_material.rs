@@ -27,18 +27,14 @@ impl Material for DepthMaterial {
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
-        if !provided_attributes.position {
-            Err(RendererError::MissingFragmentAttribute(
-                std::any::type_name::<Self>().to_owned(),
-                "position".to_owned(),
-            ))?;
-        }
+        let attributes = FragmentAttributes {
+            position: true,
+            ..FragmentAttributes::NONE
+        };
+        provided_attributes.contains(attributes)?;
         Ok(FragmentShader {
             source: include_str!("shaders/depth_material.frag").to_string(),
-            attributes: FragmentAttributes {
-                position: true,
-                ..FragmentAttributes::NONE
-            },
+            attributes,
         })
     }
 

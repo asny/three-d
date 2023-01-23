@@ -23,18 +23,14 @@ impl Material for UVMaterial {
         provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
-        if !provided_attributes.uv {
-            Err(RendererError::MissingFragmentAttribute(
-                std::any::type_name::<Self>().to_owned(),
-                "uv coordinates".to_owned(),
-            ))?;
-        }
+        let attributes = FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        };
+        provided_attributes.contains(attributes)?;
         Ok(FragmentShader {
             source: include_str!("shaders/uv_material.frag").to_string(),
-            attributes: FragmentAttributes {
-                uv: true,
-                ..FragmentAttributes::NONE
-            },
+            attributes,
         })
     }
 
