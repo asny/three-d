@@ -20,11 +20,10 @@ impl Material for FireworksMaterial {
             color: true,
             ..FragmentAttributes::NONE
         };
-        provided_attributes.contains(attributes)?;
-        Ok(String {
-            source: include_str!("particles.frag").to_string(),
-            attributes,
-        })
+        provided_attributes
+            .check(attributes)
+            .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
+        include_str!("particles.frag").to_string()
     }
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("color", self.color);
