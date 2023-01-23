@@ -166,8 +166,8 @@ impl FragmentAttributes {
 ///
 pub trait Material {
     ///
-    /// Takes a [FragmentAttributes] struct describing which attributes could be provided by the [geometry] and a list of lights.
     /// Returns the fragment shader source for this material.
+    /// The [FragmentAttributes] struct describing which attributes could be provided by the [geometry].
     ///
     /// # Panic
     /// If this material requires a fragment attribute and the [geometry] does not provide it.
@@ -485,6 +485,13 @@ impl DepthTexture<'_> {
 /// Therefore this type of material is always applied one at a time and after the scene has been rendered with the regular [Material].
 ///
 pub trait PostMaterial {
+    ///
+    /// Returns the fragment shader source for this material.
+    /// The [FragmentAttributes] struct describing which attributes could be provided by the [geometry].
+    ///
+    /// # Panic
+    /// If this material requires a fragment attribute and the [geometry] does not provide it.
+    ///
     fn fragment_shader_source(
         &self,
         provided_attributes: FragmentAttributes,
