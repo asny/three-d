@@ -8,7 +8,7 @@ use std::sync::RwLock;
 ///
 pub struct InstancedMesh {
     context: Context,
-    vertex_buffers: HashMap<String, VertexBuffer>,
+    vertex_buffers: Vec<(String, VertexBuffer)>,
     instance_buffers: RwLock<(HashMap<String, InstanceBuffer>, Vec3)>,
     index_buffer: Option<ElementBuffer>,
     aabb: AxisAlignedBoundingBox,
@@ -280,20 +280,14 @@ impl InstancedMesh {
     ) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", &self.current_transformation);
-        program.use_uniform_if_required("textureTransform", &self.texture_transform);
-        program.use_uniform_if_required(
+        program.use_uniform("textureTransform", &self.texture_transform);
+        program.use_uniform(
             "normalMatrix",
             &self.current_transformation.invert().unwrap().transpose(),
         );
 
-        for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
-            if program.requires_attribute(attribute_name) {
-                program.use_vertex_attribute(
-                    attribute_name,
-                    self.vertex_buffers
-                        .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                );
-            }
+        for (attribute_name, buffer) in self.vertex_buffers.iter() {
+            program.use_vertex_attribute(attribute_name, buffer);
         }
 
         for attribute_name in [
@@ -325,7 +319,7 @@ impl InstancedMesh {
             program.draw_arrays_instanced(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
+                self.vertex_buffers.first().unwrap().1.vertex_count() as u32,
                 self.instance_count,
             )
         }
@@ -334,11 +328,14 @@ impl InstancedMesh {
     fn provided_attributes(&self) -> FragmentAttributes {
         FragmentAttributes {
             position: true,
-            normal: self.vertex_buffers.contains_key("normal"),
-            tangents: self.vertex_buffers.contains_key("normal")
-                && self.vertex_buffers.contains_key("tangent"),
-            uv: self.vertex_buffers.contains_key("uv_coordinates"),
-            color: self.vertex_buffers.contains_key("color")
+            normal: self.vertex_buffers.iter().any(|(n, _)| n == "normal"),
+            tangents: self.vertex_buffers.iter().any(|(n, _)| n == "normal")
+                && self.vertex_buffers.iter().any(|(n, _)| n == "tangent"),
+            uv: self
+                .vertex_buffers
+                .iter()
+                .any(|(n, _)| n == "uv_coordinates"),
+            color: self.vertex_buffers.iter().any(|(n, _)| n == "color")
                 || self
                     .instance_buffers
                     .read()
@@ -360,38 +357,16 @@ impl InstancedMesh {
             } else {
                 "#define USE_INSTANCE_TRANSFORMS\n"
             },
-            if fragment_shader.attributes.position {
-                "#define USE_POSITIONS\n"
+            if true { "#define USE_POSITIONS\n" } else { "" },
+            if true { "#define USE_NORMALS\n" } else { "" },
+            if true { "#define USE_TANGENTS\n" } else { "" },
+            if true { "#define USE_UVS\n" } else { "" },
+            if instance_buffers.contains_key("instance_color") {
+                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+            } else if instance_buffers.contains_key("instance_color") {
+                "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
             } else {
-                ""
-            },
-            if fragment_shader.attributes.normal {
-                "#define USE_NORMALS\n"
-            } else {
-                ""
-            },
-            if fragment_shader.attributes.tangents {
-                "#define USE_TANGENTS\n"
-            } else {
-                ""
-            },
-            if fragment_shader.attributes.uv {
-                "#define USE_UVS\n"
-            } else {
-                ""
-            },
-            if fragment_shader.attributes.color {
-                if instance_buffers.contains_key("instance_color")
-                    && self.vertex_buffers.contains_key("color")
-                {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else if instance_buffers.contains_key("instance_color") {
-                    "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
-                }
-            } else {
-                ""
+                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
             },
             if instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
