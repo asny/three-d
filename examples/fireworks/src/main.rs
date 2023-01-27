@@ -21,7 +21,7 @@ impl Material for FireworksMaterial {
             ..FragmentAttributes::NONE
         };
         provided_attributes
-            .check(attributes)
+            .ensure_contains_all(attributes)
             .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
         include_str!("particles.frag").to_string()
     }

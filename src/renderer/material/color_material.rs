@@ -100,7 +100,7 @@ impl Material for ColorMaterial {
         shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));
         provided_attributes
-            .check(attributes)
+            .ensure_contains_all(attributes)
             .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
         shader
     }

@@ -69,7 +69,7 @@ impl Material for NormalMaterial {
         }
         source.push_str(include_str!("shaders/normal_material.frag"));
         provided_attributes
-            .check(attributes)
+            .ensure_contains_all(attributes)
             .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
         source
     }

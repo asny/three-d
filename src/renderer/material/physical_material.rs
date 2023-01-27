@@ -175,7 +175,7 @@ impl Material for PhysicalMaterial {
         }
         output.push_str(include_str!("shaders/physical_material.frag"));
         provided_attributes
-            .check(attributes)
+            .ensure_contains_all(attributes)
             .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
         output
     }

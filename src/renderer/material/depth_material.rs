@@ -32,7 +32,7 @@ impl Material for DepthMaterial {
             ..FragmentAttributes::NONE
         };
         provided_attributes
-            .check(attributes)
+            .ensure_contains_all(attributes)
             .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
         include_str!("shaders/depth_material.frag").to_string()
     }

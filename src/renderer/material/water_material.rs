@@ -49,7 +49,7 @@ impl PostMaterial for WaterMaterial {
             ..FragmentAttributes::NONE
         };
         provided_attributes
-            .check(attributes)
+            .ensure_contains_all(attributes)
             .unwrap_or_else(|e| panic!("{}: {}", std::any::type_name::<Self>(), e));
         format!(
             "{}\n{}\n{}\n{}\n{}",

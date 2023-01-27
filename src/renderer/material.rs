@@ -118,6 +118,7 @@ pub struct FragmentAttributes {
 }
 
 impl FragmentAttributes {
+    /// All attributes
     pub const ALL: Self = Self {
         position: true,
         normal: true,
@@ -125,6 +126,7 @@ impl FragmentAttributes {
         uv: true,
         color: true,
     };
+    /// No attributes
     pub const NONE: Self = Self {
         position: false,
         normal: false,
@@ -133,26 +135,29 @@ impl FragmentAttributes {
         color: false,
     };
 
-    pub fn check(&self, required: FragmentAttributes) -> Result<(), RendererError> {
-        if required.position && !self.position {
+    ///
+    /// Returns an error if this do not contain all of the given attributes.
+    ///
+    pub fn ensure_contains_all(&self, attributes: FragmentAttributes) -> Result<(), RendererError> {
+        if attributes.position && !self.position {
             Err(RendererError::MissingFragmentAttribute(
                 "position".to_owned(),
             ))?;
         }
-        if required.normal && !self.normal {
+        if attributes.normal && !self.normal {
             Err(RendererError::MissingFragmentAttribute("normal".to_owned()))?;
         }
-        if required.tangents && !self.tangents {
+        if attributes.tangents && !self.tangents {
             Err(RendererError::MissingFragmentAttribute(
                 "tangents".to_owned(),
             ))?;
         }
-        if required.uv && !self.uv {
+        if attributes.uv && !self.uv {
             Err(RendererError::MissingFragmentAttribute(
                 "uv coordinates".to_owned(),
             ))?;
         }
-        if required.color && !self.color {
+        if attributes.color && !self.color {
             Err(RendererError::MissingFragmentAttribute("color".to_owned()))?;
         }
         Ok(())

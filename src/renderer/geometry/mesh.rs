@@ -174,8 +174,9 @@ impl Geometry for Mesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader_source(self.provided_attributes(), lights);
-        self.program(fragment_shader, |program| {
+        let fragment_shader_source =
+            material.fragment_shader_source(self.provided_attributes(), lights);
+        self.program(fragment_shader_source, |program| {
             material.use_uniforms(program, camera, lights);
             self.draw(program, material.render_states(), camera);
         });
