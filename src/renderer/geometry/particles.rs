@@ -198,10 +198,12 @@ impl ParticleSystem {
         program.use_uniform("acceleration", self.acceleration);
         program.use_uniform("time", self.time);
         program.use_uniform("textureTransform", self.texture_transform);
-        program.use_uniform(
-            "normalMatrix",
-            self.transformation.invert().unwrap().transpose(),
-        );
+        if self.instance_buffers.contains_key("instance_translation") {
+            program.use_uniform(
+                "normalMatrix",
+                self.transformation.invert().unwrap().transpose(),
+            );
+        }
 
         for (attribute_name, buffer) in self.vertex_buffers.iter() {
             program.use_vertex_attribute(attribute_name, buffer);
