@@ -125,8 +125,8 @@ impl Geometry for Sprites {
         );
         self.context
             .program(
-                include_str!("shaders/sprites.vert").to_owned(),
-                fragment_shader_source,
+                &include_str!("shaders/sprites.vert").to_owned(),
+                &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     self.draw(program, material.render_states(), camera);
@@ -154,8 +154,8 @@ impl Geometry for Sprites {
         );
         self.context
             .program(
-                include_str!("shaders/sprites.vert").to_owned(),
-                fragment_shader_source,
+                &include_str!("shaders/sprites.vert").to_owned(),
+                &fragment_shader_source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     self.draw(program, material.render_states(), camera);

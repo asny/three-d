@@ -371,7 +371,7 @@ impl InstancedMesh {
             include_str!("shaders/mesh.vert"),
         );
         self.context
-            .program(vertex_shader_source, fragment_shader_source, callback)
+            .program(&vertex_shader_source, &fragment_shader_source, callback)
             .expect("Failed compiling shader")
     }
 }

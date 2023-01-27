@@ -15,7 +15,7 @@ pub use crate::context::HasContext;
 pub struct Context {
     context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
-    programs: Arc<RwLock<HashMap<(String, String), Program>>>,
+    programs: Arc<RwLock<HashMap<String, Program>>>,
 }
 
 impl Context {
@@ -53,16 +53,16 @@ impl Context {
     ///
     pub fn program(
         &self,
-        vertex_shader_source: String,
-        fragment_shader_source: String,
+        vertex_shader_source: &str,
+        fragment_shader_source: &str,
         callback: impl FnOnce(&Program),
     ) -> Result<(), CoreError> {
-        let key = (vertex_shader_source, fragment_shader_source);
+        let key = format!("{}{}", vertex_shader_source, fragment_shader_source);
         let mut programs = self.programs.write().unwrap();
         if let Some(program) = programs.get(&key) {
             callback(program);
         } else {
-            let program = Program::from_source(self, &key.0, &key.1)?;
+            let program = Program::from_source(self, vertex_shader_source, fragment_shader_source)?;
             callback(&program);
             programs.insert(key, program);
         }
