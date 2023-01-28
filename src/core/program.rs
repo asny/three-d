@@ -301,21 +301,13 @@ impl Program {
             let location = unsafe {
                 self.context
                     .get_uniform_block_index(self.id, name)
-                    .expect(&format!(
-                        "the uniform block {} is sent to the shader but not defined or never used",
-                        name
-                    ))
+                    .unwrap_or_else(|| panic!("the uniform block {} is sent to the shader but not defined or never used",
+                        name))
             };
             let index = map.len() as u32;
             map.insert(name.to_owned(), (location, index));
         };
-        let (location, index) = self
-            .uniform_blocks
-            .read()
-            .unwrap()
-            .get(name)
-            .unwrap()
-            .clone();
+        let (location, index) = *self.uniform_blocks.read().unwrap().get(name).unwrap();
         unsafe {
             self.context.uniform_block_binding(self.id, location, index);
             buffer.bind(index);
@@ -585,10 +577,12 @@ impl Program {
 
     fn location(&self, name: &str) -> u32 {
         self.use_program();
-        *self.attributes.get(name).expect(&format!(
-            "the attribute {} is sent to the shader but not defined or never used",
-            name
-        ))
+        *self.attributes.get(name).unwrap_or_else(|| {
+            panic!(
+                "the attribute {} is sent to the shader but not defined or never used",
+                name
+            )
+        })
     }
 
     fn use_program(&self) {
