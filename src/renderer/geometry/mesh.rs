@@ -1,12 +1,11 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::collections::HashMap;
 
 ///
 /// A triangle mesh [Geometry].
 ///
 pub struct Mesh {
-    vertex_buffers: HashMap<String, VertexBuffer>,
+    vertex_buffers: Vec<(String, VertexBuffer)>,
     index_buffer: Option<ElementBuffer>,
     context: Context,
     aabb: AxisAlignedBoundingBox,
@@ -106,13 +105,9 @@ impl Mesh {
             self.current_transformation.invert().unwrap().transpose(),
         );
 
-        for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
+        for (attribute_name, buffer) in &self.vertex_buffers {
             if program.requires_attribute(attribute_name) {
-                program.use_vertex_attribute(
-                    attribute_name,
-                    self.vertex_buffers
-                        .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                );
+                program.use_vertex_attribute(attribute_name, buffer);
             }
         }
 
@@ -122,7 +117,7 @@ impl Mesh {
             program.draw_arrays(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.get("position").unwrap().vertex_count(),
+                self.vertex_buffers.first().unwrap().1.vertex_count(),
             )
         }
     }
@@ -166,11 +161,17 @@ impl Mesh {
     fn provided_attributes(&self) -> FragmentAttributes {
         FragmentAttributes {
             position: true,
-            normal: self.vertex_buffers.contains_key("normal"),
-            tangents: self.vertex_buffers.contains_key("normal")
-                && self.vertex_buffers.contains_key("tangent"),
-            uv: self.vertex_buffers.contains_key("uv_coordinates"),
-            color: self.vertex_buffers.contains_key("color"),
+            normal: self.vertex_buffers.iter().any(|(name, _)| name == "normal"),
+            tangents: self.vertex_buffers.iter().any(|(name, _)| name == "normal")
+                && self
+                    .vertex_buffers
+                    .iter()
+                    .any(|(name, _)| name == "tangent"),
+            uv: self
+                .vertex_buffers
+                .iter()
+                .any(|(name, _)| name == "uv_coordinates"),
+            color: self.vertex_buffers.iter().any(|(name, _)| name == "color"),
         }
     }
 }

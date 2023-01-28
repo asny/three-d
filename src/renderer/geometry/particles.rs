@@ -70,7 +70,7 @@ impl Particles {
 ///
 pub struct ParticleSystem {
     context: Context,
-    vertex_buffers: HashMap<String, VertexBuffer>,
+    vertex_buffers: Vec<(String, VertexBuffer)>,
     instance_buffers: HashMap<String, InstanceBuffer>,
     index_buffer: Option<ElementBuffer>,
     /// The acceleration applied to all particles defined in the world coordinate system.
@@ -187,29 +187,25 @@ impl ParticleSystem {
         if let Some(instance_colors) = &particles.colors {
             self.instance_buffers.insert(
                 "instance_color".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_colors),
+                InstanceBuffer::new_with_data(&self.context, instance_colors),
             );
         }
     }
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", &self.transformation);
-        program.use_uniform("acceleration", &self.acceleration);
-        program.use_uniform("time", &self.time);
-        program.use_uniform_if_required("textureTransform", &self.texture_transform);
+        program.use_uniform("modelMatrix", self.transformation);
+        program.use_uniform("acceleration", self.acceleration);
+        program.use_uniform("time", self.time);
+        program.use_uniform_if_required("textureTransform", self.texture_transform);
         program.use_uniform_if_required(
             "normalMatrix",
-            &self.transformation.invert().unwrap().transpose(),
+            self.transformation.invert().unwrap().transpose(),
         );
 
-        for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
+        for (attribute_name, buffer) in &self.vertex_buffers {
             if program.requires_attribute(attribute_name) {
-                program.use_vertex_attribute(
-                    attribute_name,
-                    self.vertex_buffers
-                        .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                );
+                program.use_vertex_attribute(attribute_name, buffer);
             }
         }
 
@@ -224,7 +220,7 @@ impl ParticleSystem {
                 program.use_instance_attribute(
                     attribute_name,
                     self.instance_buffers
-                    .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
+                    .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
                 );
             }
         }
@@ -240,7 +236,7 @@ impl ParticleSystem {
             program.draw_arrays_instanced(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
+                self.vertex_buffers.first().unwrap().1.vertex_count(),
                 self.instance_count,
             )
         }
@@ -249,11 +245,17 @@ impl ParticleSystem {
     fn provided_attributes(&self) -> FragmentAttributes {
         FragmentAttributes {
             position: true,
-            normal: self.vertex_buffers.contains_key("normal"),
-            tangents: self.vertex_buffers.contains_key("normal")
-                && self.vertex_buffers.contains_key("tangent"),
-            uv: self.vertex_buffers.contains_key("uv_coordinates"),
-            color: self.vertex_buffers.contains_key("color")
+            normal: self.vertex_buffers.iter().any(|(name, _)| name == "normal"),
+            tangents: self.vertex_buffers.iter().any(|(name, _)| name == "normal")
+                && self
+                    .vertex_buffers
+                    .iter()
+                    .any(|(name, _)| name == "tangent"),
+            uv: self
+                .vertex_buffers
+                .iter()
+                .any(|(name, _)| name == "uv_coordinates"),
+            color: self.vertex_buffers.iter().any(|(name, _)| name == "color")
                 || self.instance_buffers.contains_key("instance_color"),
         }
     }
@@ -287,7 +289,7 @@ impl ParticleSystem {
             },
             if fragment_shader.attributes.color {
                 if self.instance_buffers.contains_key("instance_color")
-                    && self.vertex_buffers.contains_key("color")
+                    && self.vertex_buffers.iter().any(|(name, _)| name == "color")
                 {
                     "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
                 } else if self.instance_buffers.contains_key("instance_color") {

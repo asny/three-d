@@ -305,33 +305,29 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     }
 }
 
-use std::collections::HashMap;
-fn vertex_buffers_from_mesh(
-    context: &Context,
-    cpu_mesh: &CpuMesh,
-) -> HashMap<String, VertexBuffer> {
+fn vertex_buffers_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Vec<(String, VertexBuffer)> {
     #[cfg(debug_assertions)]
     cpu_mesh.validate().expect("invalid cpu mesh");
 
-    let mut buffers = HashMap::new();
-    buffers.insert(
+    let mut buffers = Vec::new();
+    buffers.push((
         "position".to_string(),
         VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
-    );
+    ));
     if let Some(ref normals) = cpu_mesh.normals {
-        buffers.insert(
+        buffers.push((
             "normal".to_string(),
             VertexBuffer::new_with_data(context, normals),
-        );
+        ));
     };
     if let Some(ref tangents) = cpu_mesh.tangents {
-        buffers.insert(
+        buffers.push((
             "tangent".to_string(),
             VertexBuffer::new_with_data(context, tangents),
-        );
+        ));
     };
     if let Some(ref uvs) = cpu_mesh.uvs {
-        buffers.insert(
+        buffers.push((
             "uv_coordinates".to_string(),
             VertexBuffer::new_with_data(
                 context,
@@ -339,13 +335,13 @@ fn vertex_buffers_from_mesh(
                     .map(|uv| vec2(uv.x, 1.0 - uv.y))
                     .collect::<Vec<_>>(),
             ),
-        );
+        ));
     };
     if let Some(ref colors) = cpu_mesh.colors {
-        buffers.insert(
+        buffers.push((
             "color".to_string(),
             VertexBuffer::new_with_data(context, colors),
-        );
+        ));
     };
     buffers
 }
