@@ -58,7 +58,7 @@ impl Material for NormalMaterial {
         _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
         let mut attributes = FragmentAttributes {
-            position: true,
+            normal: true,
             ..FragmentAttributes::NONE
         };
         let mut source = String::new();
