@@ -36,7 +36,7 @@ impl Material for IsosurfaceMaterial {
         };
         let mut source = lights_shader_source(lights, self.lighting_model);
         source.push_str(include_str!("shaders/isosurface_material.frag"));
-        provided_attributes.contains(attributes)?;
+        provided_attributes.ensure_contains_all(attributes)?;
         Ok(FragmentShader { source, attributes })
     }
 
@@ -74,7 +74,7 @@ impl Material for IsosurfaceMaterial {
 impl FromCpuVoxelGrid for IsosurfaceMaterial {
     fn from_cpu_voxel_grid(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> Self {
         Self {
-            voxels: std::sync::Arc::new(Texture3D::new(&context, &cpu_voxel_grid.voxels)),
+            voxels: std::sync::Arc::new(Texture3D::new(context, &cpu_voxel_grid.voxels)),
             lighting_model: LightingModel::Blinn,
             size: cpu_voxel_grid.size,
             threshold: 0.15,

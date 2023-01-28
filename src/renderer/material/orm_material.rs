@@ -81,7 +81,7 @@ impl Material for ORMMaterial {
     fn fragment_shader_source(
         &self,
         provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
+        _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
         let mut attributes = FragmentAttributes::NONE;
         let mut source = String::new();
@@ -96,7 +96,7 @@ impl Material for ORMMaterial {
             }
         }
         source.push_str(include_str!("shaders/orm_material.frag"));
-        provided_attributes.contains(attributes)?;
+        provided_attributes.ensure_contains_all(attributes)?;
         Ok(FragmentShader { source, attributes })
     }
 

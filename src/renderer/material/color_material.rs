@@ -99,7 +99,7 @@ impl Material for ColorMaterial {
         }
         shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));
-        provided_attributes.contains(attributes)?;
+        provided_attributes.ensure_contains_all(attributes)?;
         Ok(FragmentShader {
             source: shader,
             attributes,

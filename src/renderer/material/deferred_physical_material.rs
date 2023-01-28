@@ -233,7 +233,7 @@ impl Material for DeferredPhysicalMaterial {
             output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         output.push_str(include_str!("shaders/deferred_physical_material.frag"));
-        provided_attributes.contains(attributes)?;
+        provided_attributes.ensure_contains_all(attributes)?;
         Ok(FragmentShader {
             source: output,
             attributes,

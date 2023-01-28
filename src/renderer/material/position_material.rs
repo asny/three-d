@@ -21,13 +21,13 @@ impl Material for PositionMaterial {
     fn fragment_shader_source(
         &self,
         provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
+        _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
         let attributes = FragmentAttributes {
             position: true,
             ..FragmentAttributes::NONE
         };
-        provided_attributes.contains(attributes)?;
+        provided_attributes.ensure_contains_all(attributes)?;
         Ok(FragmentShader {
             source: include_str!("shaders/position_material.frag").to_string(),
             attributes,

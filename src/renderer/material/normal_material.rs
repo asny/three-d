@@ -55,7 +55,7 @@ impl Material for NormalMaterial {
     fn fragment_shader_source(
         &self,
         provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
+        _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
         let mut attributes = FragmentAttributes {
             position: true,
@@ -68,7 +68,7 @@ impl Material for NormalMaterial {
             source.push_str("#define USE_TEXTURE\nin vec2 uvs;\nin vec3 tang;\nin vec3 bitang;\n");
         }
         source.push_str(include_str!("shaders/normal_material.frag"));
-        provided_attributes.contains(attributes)?;
+        provided_attributes.ensure_contains_all(attributes)?;
         Ok(FragmentShader { source, attributes })
     }
 

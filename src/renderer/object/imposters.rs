@@ -232,7 +232,7 @@ impl Material for ImpostersMaterial {
             uv: true,
             ..FragmentAttributes::NONE
         };
-        provided_attributes.contains(attributes)?;
+        provided_attributes.ensure_contains_all(attributes)?;
         Ok(FragmentShader {
             source: format!(
                 "{}{}",

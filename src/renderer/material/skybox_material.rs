@@ -9,8 +9,8 @@ pub struct SkyboxMaterial {
 impl Material for SkyboxMaterial {
     fn fragment_shader_source(
         &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
+        _provided_attributes: FragmentAttributes,
+        _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
         Ok(FragmentShader {
             source: format!(
@@ -23,7 +23,7 @@ impl Material for SkyboxMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
-        program.use_uniform("isHDR", if self.texture.is_hdr() { 1 } else { 0 });
+        program.use_uniform("isHDR", i32::from(self.texture.is_hdr()));
         program.use_texture_cube("texture0", &self.texture);
     }
 
