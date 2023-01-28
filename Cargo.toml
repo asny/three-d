@@ -136,10 +136,6 @@ name = "fog"
 path = "examples/fog/src/main.rs"
 
 [[example]]
-name = "fireworks"
-path = "examples/fireworks/src/main.rs"
-
-[[example]]
 name = "terrain"
 path = "examples/terrain/src/main.rs"
 required-features = ["egui-gui"]
