@@ -280,9 +280,9 @@ impl InstancedMesh {
     ) {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", self.current_transformation);
-        program.use_uniform("textureTransform", self.texture_transform);
+        program.use_uniform_if_required("textureTransform", self.texture_transform);
         if instance_buffers.contains_key("instance_translation") {
-            program.use_uniform(
+            program.use_uniform_if_required(
                 "normalMatrix",
                 self.current_transformation.invert().unwrap().transpose(),
             );

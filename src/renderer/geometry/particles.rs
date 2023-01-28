@@ -197,9 +197,9 @@ impl ParticleSystem {
         program.use_uniform("modelMatrix", self.transformation);
         program.use_uniform("acceleration", self.acceleration);
         program.use_uniform("time", self.time);
-        program.use_uniform("textureTransform", self.texture_transform);
+        program.use_uniform_if_required("textureTransform", self.texture_transform);
         if self.instance_buffers.contains_key("instance_translation") {
-            program.use_uniform(
+            program.use_uniform_if_required(
                 "normalMatrix",
                 self.transformation.invert().unwrap().transpose(),
             );
