@@ -12,7 +12,7 @@ impl Material for MandelbrotMaterial {
             position: true,
             ..FragmentAttributes::NONE
         };
-        provided_attributes.contains(attributes)?;
+        provided_attributes.ensure_contains_all(attributes)?;
         Ok(FragmentShader {
             source: include_str!("mandelbrot.frag").to_string(),
             attributes,

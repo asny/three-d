@@ -20,7 +20,7 @@ impl Material for FireworksMaterial {
             color: true,
             ..FragmentAttributes::NONE
         };
-        provided_attributes.contains(attributes)?;
+        provided_attributes.ensure_contains_all(attributes)?;
         Ok(FragmentShader {
             source: include_str!("particles.frag").to_string(),
             attributes,
