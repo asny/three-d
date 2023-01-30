@@ -282,7 +282,7 @@ fn check_data_length<T: TextureDataType>(
     let actual_bytes = data_len * std::mem::size_of::<T>();
     if expected_bytes != actual_bytes {
         panic!(
-            "invalid size of texture data (got {} bytes but expected {} bytes)",
+            "invalid size of texture data (expected {} bytes but got {} bytes)",
             expected_bytes, actual_bytes
         )
     }
