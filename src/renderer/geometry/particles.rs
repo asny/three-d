@@ -261,12 +261,7 @@ impl ParticleSystem {
     }
     fn program(&self, fragment_shader: FragmentShader, callback: impl FnOnce(&Program)) {
         let vertex_shader_source = format!(
-            "#define PARTICLES\n{}{}{}{}{}{}{}{}{}",
-            if self.instance_buffers.contains_key("instance_translation") {
-                "#define USE_INSTANCE_TRANSLATIONS\n"
-            } else {
-                "#define USE_INSTANCE_TRANSFORMS\n"
-            },
+            "#define PARTICLES\n{}{}{}{}{}{}{}{}",
             if fragment_shader.attributes.position {
                 "#define USE_POSITIONS\n"
             } else {
