@@ -61,6 +61,11 @@ path = "examples/screen/src/main.rs"
 required-features = ["egui-gui"]
 
 [[example]]
+name = "multisample"
+path = "examples/multisample/src/main.rs"
+required-features = ["egui-gui"]
+
+[[example]]
 name = "mandelbrot"
 path = "examples/mandelbrot/src/main.rs"
 

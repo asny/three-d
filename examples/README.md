@@ -67,6 +67,10 @@ This example shows how depth ordering is currently working for `InstancedMesh` o
 
 ![Screen example](https://asny.github.io/three-d/0.15/screen.png)
 
+## Multisample [[code](https://github.com/asny/three-d/tree/master/examples/multisample/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/multisample.html)]
+
+![Screen example](https://asny.github.io/three-d/0.15/multisample.png)
+
 ## Sprites [[code](https://github.com/asny/three-d/tree/master/examples/sprites/src/main.rs)] [[demo](https://asny.github.io/three-d/0.15/sprites.html)]
 
 ![Sprites example](https://asny.github.io/three-d/0.15/sprites.png)

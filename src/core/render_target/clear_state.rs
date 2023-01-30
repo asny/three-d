@@ -97,12 +97,10 @@ impl ClearState {
             }
             context.clear(if clear_color && self.depth.is_some() {
                 crate::context::COLOR_BUFFER_BIT | crate::context::DEPTH_BUFFER_BIT
+            } else if clear_color {
+                crate::context::COLOR_BUFFER_BIT
             } else {
-                if clear_color {
-                    crate::context::COLOR_BUFFER_BIT
-                } else {
-                    crate::context::DEPTH_BUFFER_BIT
-                }
+                crate::context::DEPTH_BUFFER_BIT
             });
         }
     }

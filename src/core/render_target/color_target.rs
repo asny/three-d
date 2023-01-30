@@ -12,7 +12,8 @@ use super::*;
 pub struct ColorTarget<'a> {
     pub(crate) context: Context,
     mip_level: Option<u32>,
-    target: ColorTexture<'a>,
+    target: Option<ColorTexture<'a>>,
+    multisample_target: Option<&'a Texture2DMultisample>,
 }
 
 impl<'a> ColorTarget<'a> {
@@ -24,7 +25,8 @@ impl<'a> ColorTarget<'a> {
         ColorTarget {
             context: context.clone(),
             mip_level,
-            target: ColorTexture::Single(texture),
+            target: Some(ColorTexture::Single(texture)),
+            multisample_target: None,
         }
     }
 
@@ -37,7 +39,8 @@ impl<'a> ColorTarget<'a> {
         ColorTarget {
             context: context.clone(),
             mip_level,
-            target: ColorTexture::CubeMap { texture, sides },
+            target: Some(ColorTexture::CubeMap { texture, sides }),
+            multisample_target: None,
         }
     }
 
@@ -50,7 +53,20 @@ impl<'a> ColorTarget<'a> {
         ColorTarget {
             context: context.clone(),
             mip_level,
-            target: ColorTexture::Array { texture, layers },
+            target: Some(ColorTexture::Array { texture, layers }),
+            multisample_target: None,
+        }
+    }
+
+    pub(in crate::core) fn new_texture_2d_multisample(
+        context: &Context,
+        texture: &'a Texture2DMultisample,
+    ) -> Self {
+        ColorTarget {
+            context: context.clone(),
+            mip_level: None,
+            target: None,
+            multisample_target: Some(texture),
         }
     }
 
@@ -148,10 +164,18 @@ impl<'a> ColorTarget<'a> {
     /// If using the zero mip level of the underlying texture, then this is simply the width of that texture, otherwise it is the width of the given mip level.
     ///
     pub fn width(&self) -> u32 {
-        match self.target {
-            ColorTexture::Single(texture) => size_with_mip(texture.width(), self.mip_level),
-            ColorTexture::Array { texture, .. } => size_with_mip(texture.width(), self.mip_level),
-            ColorTexture::CubeMap { texture, .. } => size_with_mip(texture.width(), self.mip_level),
+        if let Some(target) = self.target {
+            match target {
+                ColorTexture::Single(texture) => size_with_mip(texture.width(), self.mip_level),
+                ColorTexture::Array { texture, .. } => {
+                    size_with_mip(texture.width(), self.mip_level)
+                }
+                ColorTexture::CubeMap { texture, .. } => {
+                    size_with_mip(texture.width(), self.mip_level)
+                }
+            }
+        } else {
+            self.multisample_target.as_ref().unwrap().width()
         }
     }
 
@@ -160,80 +184,91 @@ impl<'a> ColorTarget<'a> {
     /// If using the zero mip level of the underlying texture, then this is simply the height of that texture, otherwise it is the height of the given mip level.
     ///
     pub fn height(&self) -> u32 {
-        match self.target {
-            ColorTexture::Single(texture) => size_with_mip(texture.height(), self.mip_level),
-            ColorTexture::Array { texture, .. } => size_with_mip(texture.height(), self.mip_level),
-            ColorTexture::CubeMap { texture, .. } => {
-                size_with_mip(texture.height(), self.mip_level)
+        if let Some(target) = self.target {
+            match target {
+                ColorTexture::Single(texture) => size_with_mip(texture.height(), self.mip_level),
+                ColorTexture::Array { texture, .. } => {
+                    size_with_mip(texture.height(), self.mip_level)
+                }
+                ColorTexture::CubeMap { texture, .. } => {
+                    size_with_mip(texture.height(), self.mip_level)
+                }
             }
+        } else {
+            self.multisample_target.as_ref().unwrap().height()
         }
     }
 
-    ///
-    /// Returns the scissor box that encloses the entire target.
-    ///
-    pub fn scissor_box(&self) -> ScissorBox {
-        ScissorBox::new_at_origo(self.width(), self.height())
-    }
-
-    pub(crate) fn as_render_target(&self) -> RenderTarget<'a> {
+    pub(super) fn as_render_target(&self) -> RenderTarget<'a> {
         RenderTarget::new_color(self.clone())
     }
 
     pub(super) fn generate_mip_maps(&self) {
-        match self.target {
-            ColorTexture::Single(texture) => {
-                if self.mip_level.is_none() {
-                    texture.generate_mip_maps()
+        if let Some(target) = self.target {
+            match target {
+                ColorTexture::Single(texture) => {
+                    if self.mip_level.is_none() {
+                        texture.generate_mip_maps()
+                    }
                 }
-            }
-            ColorTexture::Array { texture, .. } => {
-                if self.mip_level.is_none() {
-                    texture.generate_mip_maps()
+                ColorTexture::Array { texture, .. } => {
+                    if self.mip_level.is_none() {
+                        texture.generate_mip_maps()
+                    }
                 }
-            }
-            ColorTexture::CubeMap { texture, .. } => {
-                if self.mip_level.is_none() {
-                    texture.generate_mip_maps()
+                ColorTexture::CubeMap { texture, .. } => {
+                    if self.mip_level.is_none() {
+                        texture.generate_mip_maps()
+                    }
                 }
             }
         }
     }
 
     pub(super) fn bind(&self, context: &Context) {
-        match self.target {
-            ColorTexture::Single(texture) => unsafe {
+        if let Some(target) = self.target {
+            match target {
+                ColorTexture::Single(texture) => unsafe {
+                    context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
+                    texture.bind_as_color_target(0, self.mip_level.unwrap_or(0));
+                },
+                ColorTexture::Array { texture, layers } => unsafe {
+                    context.draw_buffers(
+                        &(0..layers.len())
+                            .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
+                            .collect::<Vec<u32>>(),
+                    );
+                    for channel in 0..layers.len() {
+                        texture.bind_as_color_target(
+                            layers[channel],
+                            channel as u32,
+                            self.mip_level.unwrap_or(0),
+                        );
+                    }
+                },
+                ColorTexture::CubeMap { texture, sides } => unsafe {
+                    context.draw_buffers(
+                        &(0..sides.len())
+                            .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
+                            .collect::<Vec<u32>>(),
+                    );
+                    for channel in 0..sides.len() {
+                        texture.bind_as_color_target(
+                            sides[channel],
+                            channel as u32,
+                            self.mip_level.unwrap_or(0),
+                        );
+                    }
+                },
+            }
+        } else {
+            unsafe {
                 context.draw_buffers(&[crate::context::COLOR_ATTACHMENT0]);
-                texture.bind_as_color_target(0, self.mip_level.unwrap_or(0));
-            },
-            ColorTexture::Array { texture, layers } => unsafe {
-                context.draw_buffers(
-                    &(0..layers.len())
-                        .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
-                        .collect::<Vec<u32>>(),
-                );
-                for channel in 0..layers.len() {
-                    texture.bind_as_color_target(
-                        layers[channel],
-                        channel as u32,
-                        self.mip_level.unwrap_or(0),
-                    );
-                }
-            },
-            ColorTexture::CubeMap { texture, sides } => unsafe {
-                context.draw_buffers(
-                    &(0..sides.len())
-                        .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
-                        .collect::<Vec<u32>>(),
-                );
-                for channel in 0..sides.len() {
-                    texture.bind_as_color_target(
-                        sides[channel],
-                        channel as u32,
-                        self.mip_level.unwrap_or(0),
-                    );
-                }
-            },
+                self.multisample_target
+                    .as_ref()
+                    .unwrap()
+                    .bind_as_color_target(0);
+            }
         }
     }
 }

@@ -17,6 +17,10 @@ mod texture2d_array;
 #[doc(inline)]
 pub use texture2d_array::*;
 
+mod texture2d_multisample;
+#[doc(inline)]
+pub(in crate::core) use texture2d_multisample::*;
+
 mod texture3d;
 #[doc(inline)]
 pub use texture3d::*;
@@ -28,6 +32,10 @@ pub use depth_texture2d_array::*;
 mod depth_texture_cube_map;
 #[doc(inline)]
 pub use depth_texture_cube_map::*;
+
+mod depth_texture2d_multisample;
+#[doc(inline)]
+pub(in crate::core) use depth_texture2d_multisample::*;
 
 use data_type::*;
 pub use three_d_asset::texture::{
@@ -274,7 +282,7 @@ fn check_data_length<T: TextureDataType>(
     let actual_bytes = data_len * std::mem::size_of::<T>();
     if expected_bytes != actual_bytes {
         panic!(
-            "invalid size of texture data (got {} bytes but expected {} bytes)",
+            "invalid size of texture data (expected {} bytes but got {} bytes)",
             expected_bytes, actual_bytes
         )
     }

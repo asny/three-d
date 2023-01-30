@@ -14,6 +14,18 @@ mod depth_target;
 #[doc(inline)]
 pub use depth_target::*;
 
+mod multisample;
+#[doc(inline)]
+pub use multisample::*;
+
+mod color_target_multisample;
+#[doc(inline)]
+pub use color_target_multisample::*;
+
+mod depth_target_multisample;
+#[doc(inline)]
+pub use depth_target_multisample::*;
+
 use crate::core::*;
 
 use crate::context::Framebuffer;
@@ -62,6 +74,16 @@ impl<'a> RenderTarget<'a> {
             width,
             height,
         }
+    }
+
+    /// The width of this target.
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// The height of this target.
+    pub fn height(&self) -> u32 {
+        self.height
     }
 
     ///
@@ -132,8 +154,8 @@ impl<'a> RenderTarget<'a> {
             vec![0u8; scissor_box.width as usize * scissor_box.height as usize * data_size];
         unsafe {
             self.context.read_pixels(
-                scissor_box.x as i32,
-                scissor_box.y as i32,
+                scissor_box.x,
+                scissor_box.y,
                 scissor_box.width as i32,
                 scissor_box.height as i32,
                 format_from_data_type::<T>(),
@@ -171,8 +193,8 @@ impl<'a> RenderTarget<'a> {
         let mut pixels = vec![0u8; scissor_box.width as usize * scissor_box.height as usize * 4];
         unsafe {
             self.context.read_pixels(
-                scissor_box.x as i32,
-                scissor_box.y as i32,
+                scissor_box.x,
+                scissor_box.y,
                 scissor_box.width as i32,
                 scissor_box.height as i32,
                 crate::context::DEPTH_COMPONENT,
@@ -340,13 +362,6 @@ impl<'a> RenderTarget<'a> {
     }
 
     ///
-    /// Returns the scissor box that encloses the entire target.
-    ///
-    pub fn scissor_box(&self) -> ScissorBox {
-        ScissorBox::new_at_origo(self.width, self.height)
-    }
-
-    ///
     /// Creates a [RenderTarget] with the given low-level [Framebuffer]. Should only be used if the [Framebuffer] is used for something else, ie. to be able
     /// to combine this crate with functionality of another crate. Also see [Self::into_framebuffer].
     ///
@@ -372,6 +387,40 @@ impl<'a> RenderTarget<'a> {
     ///
     pub fn into_framebuffer(mut self) -> Option<Framebuffer> {
         self.id.take()
+    }
+
+    pub(in crate::core) fn blit_to(&self, target: &RenderTarget) {
+        self.bind(crate::context::DRAW_FRAMEBUFFER);
+        target.bind(crate::context::DRAW_FRAMEBUFFER);
+        let target_is_screen = target.color.is_none() && target.depth.is_none();
+        let mask = if self.color.is_some() && (target.color.is_some() || target_is_screen) {
+            let mut mask = crate::context::COLOR_BUFFER_BIT;
+            if self.depth.is_some() && (target.depth.is_some() || target_is_screen) {
+                mask |= crate::context::DEPTH_BUFFER_BIT;
+            }
+            mask
+        } else if self.depth.is_some() && (target.depth.is_some() || target_is_screen) {
+            crate::context::DEPTH_BUFFER_BIT
+        } else {
+            unreachable!()
+        };
+        unsafe {
+            self.context
+                .bind_framebuffer(crate::context::READ_FRAMEBUFFER, self.id);
+
+            self.context.blit_framebuffer(
+                0,
+                0,
+                self.width as i32,
+                self.height as i32,
+                0,
+                0,
+                target.width as i32,
+                target.height as i32,
+                mask,
+                crate::context::NEAREST,
+            );
+        }
     }
 
     fn new_color(color: ColorTarget<'a>) -> Self {
@@ -438,3 +487,71 @@ fn new_framebuffer(context: &Context) -> crate::context::Framebuffer {
             .expect("Failed creating frame buffer")
     }
 }
+
+#[cfg(debug_assertions)]
+fn multisample_sanity_check(context: &Context, number_of_samples: u32) {
+    let max_samples: u32 = unsafe {
+        context
+            .get_parameter_i32(crate::context::MAX_SAMPLES)
+            .try_into()
+            .unwrap()
+    };
+    if number_of_samples > max_samples {
+        panic!("number_of_samples ({}) for multisample target is larger than supported number of samples: {}", number_of_samples, max_samples);
+    }
+    if (number_of_samples != 0) && number_of_samples & (number_of_samples - 1) != 0 {
+        panic!("number_of_samples ({}) for multisample target must be a power of 2 (and larger than 0).", number_of_samples);
+    }
+}
+
+macro_rules! impl_render_target_core_extensions_body {
+    () => {
+        ///
+        /// Returns the scissor box that encloses the entire target.
+        ///
+        pub fn scissor_box(&self) -> ScissorBox {
+            ScissorBox::new_at_origo(self.width(), self.height())
+        }
+
+        ///
+        /// Returns the viewport that encloses the entire target.
+        ///
+        pub fn viewport(&self) -> Viewport {
+            Viewport::new_at_origo(self.width(), self.height())
+        }
+    };
+}
+
+macro_rules! impl_render_target_core_extensions {
+    // 2 generic arguments with bounds
+    ($name:ident < $a:ident : $ta:tt , $b:ident : $tb:tt >) => {
+        impl<$a: $ta, $b: $tb> $name<$a, $b> {
+            impl_render_target_core_extensions_body!();
+        }
+    };
+    // 1 generic argument with bound
+    ($name:ident < $a:ident : $ta:tt >) => {
+        impl<$a: $ta> $name<$a> {
+            impl_render_target_core_extensions_body!();
+        }
+    };
+    // 1 liftetime argument
+    ($name:ident < $lt:lifetime >) => {
+        impl<$lt> $name<$lt> {
+            impl_render_target_core_extensions_body!();
+        }
+    };
+    // without any arguments
+    ($name:ty) => {
+        impl $name {
+            impl_render_target_core_extensions_body!();
+        }
+    };
+}
+
+impl_render_target_core_extensions!(RenderTarget<'a>);
+impl_render_target_core_extensions!(ColorTarget<'a>);
+impl_render_target_core_extensions!(DepthTarget<'a>);
+impl_render_target_core_extensions!(RenderTargetMultisample<C: TextureDataType, D: DepthTextureDataType>);
+impl_render_target_core_extensions!(ColorTargetMultisample<C: TextureDataType>);
+impl_render_target_core_extensions!(DepthTargetMultisample<D: DepthTextureDataType>);
