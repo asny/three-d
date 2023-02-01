@@ -193,15 +193,19 @@ impl ParticleSystem {
     }
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+        if program.requires_uniform("normalMatrix") {
+            if let Some(inverse) = self.transformation.invert() {
+                program.use_uniform("normalMatrix", inverse.transpose());
+            } else {
+                // determinant is float zero
+                return;
+            }
+        }
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", &self.transformation);
         program.use_uniform("acceleration", &self.acceleration);
         program.use_uniform("time", &self.time);
         program.use_uniform_if_required("textureTransform", &self.texture_transform);
-        program.use_uniform_if_required(
-            "normalMatrix",
-            &self.transformation.invert().unwrap().transpose(),
-        );
 
         for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
             if program.requires_attribute(attribute_name) {
