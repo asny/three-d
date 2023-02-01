@@ -98,11 +98,13 @@ impl Mesh {
     }
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
-        if let Some(inverse) = self.current_transformation.invert() {
-            program.use_uniform_if_required("normalMatrix", inverse.transpose());
-        } else {
-            // determinant is float zero
-            return;
+        if program.requires_uniform("normalMatrix") {
+            if let Some(inverse) = self.current_transformation.invert() {
+                program.use_uniform("normalMatrix", inverse.transpose());
+            } else {
+                // determinant is float zero
+                return;
+            }
         }
 
         program.use_uniform("viewProjection", camera.projection() * camera.view());
