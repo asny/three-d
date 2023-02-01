@@ -278,13 +278,17 @@ impl InstancedMesh {
         camera: &Camera,
         instance_buffers: &HashMap<String, InstanceBuffer>,
     ) {
+        if program.requires_uniform("normalMatrix") {
+            if let Some(inverse) = self.current_transformation.invert() {
+                program.use_uniform("normalMatrix", inverse.transpose());
+            } else {
+                // determinant is float zero
+                return;
+            }
+        }
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", self.current_transformation);
         program.use_uniform_if_required("textureTransform", self.texture_transform);
-        program.use_uniform_if_required(
-            "normalMatrix",
-            self.current_transformation.invert().unwrap().transpose(),
-        );
 
         for (attribute_name, buffer) in &self.vertex_buffers {
             if program.requires_attribute(attribute_name) {
