@@ -297,7 +297,7 @@ impl TerrainPatch {
     fn normals(
         height_map: impl Fn(f32, f32) -> f32,
         offset: Vec2,
-        positions: &Vec<Vec3>,
+        positions: &[Vec3],
         vertex_distance: f32,
     ) -> Vec<Vec3> {
         let mut data = vec![vec3(0.0, 0.0, 0.0); VERTICES_PER_SIDE * VERTICES_PER_SIDE];
@@ -345,20 +345,32 @@ impl TerrainPatch {
         }
     }
 
-    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
-        let transformation = Mat4::identity();
-        program.use_uniform("modelMatrix", &transformation);
-        program.use_uniform(
-            "viewProjectionMatrix",
-            &(camera.projection() * camera.view()),
-        );
-        program.use_uniform(
-            "normalMatrix",
-            &transformation.invert().unwrap().transpose(),
-        );
+    fn vertex_shader_source(&self, required_attributes: &FragmentAttributes) -> String {
+        if required_attributes.normal || required_attributes.tangents {
+            format!(
+                "#define USE_NORMALS\n{}",
+                include_str!("shaders/terrain.vert")
+            )
+        } else {
+            include_str!("shaders/terrain.vert").to_owned()
+        }
+    }
 
+    fn draw(
+        &self,
+        program: &Program,
+        required_attributes: &FragmentAttributes,
+        render_states: RenderStates,
+        camera: &Camera,
+    ) {
+        let transformation = Mat4::identity();
+        program.use_uniform("modelMatrix", transformation);
+        program.use_uniform("viewProjectionMatrix", camera.projection() * camera.view());
         program.use_vertex_attribute("position", &self.positions_buffer);
-        program.use_vertex_attribute("normal", &self.normals_buffer);
+        if required_attributes.normal || required_attributes.tangents {
+            program.use_uniform("normalMatrix", transformation.invert().unwrap().transpose());
+            program.use_vertex_attribute("normal", &self.normals_buffer);
+        }
         program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
     }
 }
@@ -373,21 +385,18 @@ impl Geometry for TerrainPatch {
         let fragment_shader = material
             .fragment_shader_source(self.provided_attributes(), lights)
             .unwrap_or_else(|e| panic!("{}", e));
-        if !fragment_shader.attributes.position
-            || !fragment_shader.attributes.normal
-            || !fragment_shader.attributes.uv
-            || !fragment_shader.attributes.tangents
-            || !fragment_shader.attributes.uv
-        {
-            todo!()
-        }
         self.context
             .program(
-                include_str!("shaders/terrain.vert").to_owned(),
+                self.vertex_shader_source(&fragment_shader.attributes),
                 fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
-                    self.draw(program, material.render_states(), camera);
+                    self.draw(
+                        program,
+                        &fragment_shader.attributes,
+                        material.render_states(),
+                        camera,
+                    );
                 },
             )
             .expect("Failed compiling shader");
@@ -409,21 +418,18 @@ impl Geometry for TerrainPatch {
                 depth_texture,
             )
             .unwrap_or_else(|e| panic!("{}", e));
-        if !fragment_shader.attributes.position
-            || !fragment_shader.attributes.normal
-            || !fragment_shader.attributes.uv
-            || !fragment_shader.attributes.tangents
-            || !fragment_shader.attributes.uv
-        {
-            todo!()
-        }
         self.context
             .program(
-                include_str!("shaders/terrain.vert").to_owned(),
+                self.vertex_shader_source(&fragment_shader.attributes),
                 fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, material.render_states(), camera);
+                    self.draw(
+                        program,
+                        &fragment_shader.attributes,
+                        material.render_states(),
+                        camera,
+                    );
                 },
             )
             .expect("Failed compiling shader");
