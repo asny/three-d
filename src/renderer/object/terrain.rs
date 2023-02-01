@@ -67,7 +67,7 @@ impl<M: Material + Clone> Terrain<M> {
             index_buffer4: Self::indices(context, 4),
             index_buffer16: Self::indices(context, 16),
             lod: Arc::new(|_| Lod::High),
-            material: material.clone(),
+            material,
             height_map,
             side_length,
             vertex_distance,
@@ -363,12 +363,9 @@ impl TerrainPatch {
         render_states: RenderStates,
         camera: &Camera,
     ) {
-        let transformation = Mat4::identity();
-        program.use_uniform("modelMatrix", transformation);
         program.use_uniform("viewProjectionMatrix", camera.projection() * camera.view());
         program.use_vertex_attribute("position", &self.positions_buffer);
         if required_attributes.normal || required_attributes.tangents {
-            program.use_uniform("normalMatrix", transformation.invert().unwrap().transpose());
             program.use_vertex_attribute("normal", &self.normals_buffer);
         }
         program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
