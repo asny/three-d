@@ -49,7 +49,7 @@ pub fn main() {
     let mut is_instanced = false;
 
     let mut gui = three_d::GUI::new(&context);
-    window.render_loop(move |mut frame_input: FrameInput| {
+    window.render_loop(move |mut frame_input| {
         // Gui panel to control the number of cubes and whether or not instancing is turned on.
         let mut panel_width = 0.0;
         gui.update(

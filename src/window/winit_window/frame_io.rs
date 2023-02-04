@@ -5,9 +5,9 @@ use crate::core::*;
 /// Input from the window to the rendering (and whatever else needs it) each frame.
 ///
 #[derive(Clone, Debug)]
-pub struct FrameInput {
+pub struct FrameInput<T: 'static + Clone> {
     /// A list of [events](crate::Event) which has occurred since last frame.
-    pub events: Vec<Event>,
+    pub events: Vec<Event<T>>,
 
     /// Milliseconds since last frame.
     pub elapsed_time: f64,
@@ -34,7 +34,7 @@ pub struct FrameInput {
     pub context: Context,
 }
 
-impl FrameInput {
+impl<T: 'static + Clone> FrameInput<T> {
     ///
     /// Returns the screen render target, which is used for drawing to the screen, for this window.
     /// Same as

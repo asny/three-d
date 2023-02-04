@@ -58,7 +58,7 @@ pub async fn run() {
     // Construct a model, with a default color material, thereby transferring the mesh data to the GPU
     let model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
 
-    window.render_loop(move |frame_input: FrameInput| {
+    window.render_loop(move |frame_input| {
         let viewport = Viewport {
             x: (frame_input.viewport.width / 2 - frame_input.viewport.height / 2) as i32,
             y: 0,

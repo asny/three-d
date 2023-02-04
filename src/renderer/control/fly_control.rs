@@ -28,7 +28,10 @@ impl FlyControl {
     }
 
     /// Handles the events. Must be called each frame.
-    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> bool {
+    pub fn handle_events<T>(&mut self, camera: &mut Camera, events: &mut [Event<T>]) -> bool
+    where
+        T: 'static + Clone,
+    {
         self.control.handle_events(camera, events)
     }
 }

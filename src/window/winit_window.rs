@@ -64,18 +64,26 @@ pub enum WindowError {
 /// Window and event handling.
 /// Use [Window::new] to create a new window or [Window::from_winit_window] which provides full control over the creation of the window.
 ///
-pub struct Window {
+pub struct Window<T: 'static + Clone> {
     window: winit::window::Window,
-    event_loop: EventLoop<()>,
+    event_loop: EventLoop<T>,
     #[cfg(target_arch = "wasm32")]
     closure: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
     gl: WindowedContext,
 }
 
-impl Window {
+impl Window<()> {
+    ///
+    /// Constructs a new window with the given settings.
+    ///
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn new(window_settings: WindowSettings) -> Result<Window<()>, WindowError> {
+        Self::from_event_loop(window_settings, EventLoop::new())
+    }
+
     /// function to create window on web platforms
     #[cfg(target_arch = "wasm32")]
-    pub fn new(window_settings: WindowSettings) -> Result<Window, WindowError> {
+    pub fn new(window_settings: WindowSettings) -> Result<Window<()>, WindowError> {
         use wasm_bindgen::JsCast;
         use winit::platform::web::WindowBuilderExtWebSys;
 
@@ -84,15 +92,18 @@ impl Window {
             .document()
             .ok_or(WindowError::DocumentMissing)?;
 
-        let canvas =
-            if let Some(canvas) = window_settings.canvas {
-                canvas
-            } else {
-                document.get_elements_by_tag_name("canvas").item(0)
-            .expect("settings doesn't contain canvas and DOM doesn't have a canvas element either")
-            .dyn_into::<web_sys::HtmlCanvasElement>()
-            .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
-            };
+        let canvas = if let Some(canvas) = window_settings.canvas {
+            canvas
+        } else {
+            document
+                .get_elements_by_tag_name("canvas")
+                .item(0)
+                .expect(
+                    "settings doesn't contain canvas and DOM doesn't have a canvas element either",
+                )
+                .dyn_into::<web_sys::HtmlCanvasElement>()
+                .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
+        };
 
         let event_loop = EventLoop::new();
         let winit_window = WindowBuilder::new()
@@ -103,13 +114,19 @@ impl Window {
 
         Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
     }
+}
 
+impl<T: 'static + Clone> Window<T> {
+    /// Exactly the same as [`Window::new()`] except with the ability to supply
+    /// an existing [`EventLoop`]. Use the event loop's [proxy] to push custom
+    /// events into the render loop (from any thread). Not available for web.
     ///
-    /// Constructs a new window with the given settings.
-    ///
+    /// [proxy]: winit::event_loop::EventLoopProxy
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn new(window_settings: WindowSettings) -> Result<Self, WindowError> {
-        let event_loop = EventLoop::new();
+    pub fn from_event_loop(
+        window_settings: WindowSettings,
+        event_loop: EventLoop<T>,
+    ) -> Result<Self, WindowError> {
         let borderless = window_settings.borderless;
         let winit_window = if let Some((width, height)) = window_settings.max_size {
             WindowBuilder::new()
@@ -142,7 +159,7 @@ impl Window {
     ///
     pub fn from_winit_window(
         winit_window: window::Window,
-        event_loop: EventLoop<()>,
+        event_loop: EventLoop<T>,
         mut surface_settings: SurfaceSettings,
     ) -> Result<Self, WindowError> {
         let mut gl = WindowedContext::from_winit_window(&winit_window, surface_settings);
@@ -178,7 +195,7 @@ impl Window {
     ///
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
-    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
+    pub fn render_loop<F: 'static + FnMut(FrameInput<T>) -> FrameOutput>(self, mut callback: F) {
         #[cfg(not(target_arch = "wasm32"))]
         let mut last_time = std::time::Instant::now();
         #[cfg(target_arch = "wasm32")]
@@ -192,6 +209,9 @@ impl Window {
         let mut mouse_pressed = None;
         self.event_loop.run(move |event, _, control_flow| {
             match event {
+                Event::UserEvent(t) => {
+                    events.push(crate::Event::UserEvent(t));
+                }
                 Event::LoopDestroyed => {
                     #[cfg(target_arch = "wasm32")]
                     {
@@ -443,6 +463,17 @@ impl Window {
     ///
     pub fn gl(&self) -> Context {
         (*self.gl).clone()
+    }
+
+    ///
+    /// Returns an event loop proxy that can be used to send a `T` into the
+    /// render loop using the proxy's [`send_event`] method. The event can be
+    /// handled in the render loop by matching [`Event::UserEvent`].
+    ///
+    /// [`Event::UserEvent`]: crate::control::Event::UserEvent
+    /// [`send_event`]: winit::event_loop::EventLoopProxy::send_event
+    pub fn event_loop_proxy(&self) -> winit::event_loop::EventLoopProxy<T> {
+        self.event_loop.create_proxy()
     }
 }
 
