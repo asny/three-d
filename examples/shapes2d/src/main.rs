@@ -39,7 +39,7 @@ pub fn main() {
         },
     );
 
-    window.render_loop(move |frame_input: FrameInput| {
+    window.render_loop(move |frame_input| {
         for event in frame_input.events.iter() {
             match event {
                 Event::MousePress {

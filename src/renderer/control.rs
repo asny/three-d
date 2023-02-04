@@ -31,7 +31,7 @@ pub enum MouseButton {
 
 /// An input event (from mouse, keyboard or similar).
 #[derive(Clone, Debug)]
-pub enum Event {
+pub enum Event<T: 'static + Clone> {
     /// Fired when a button is pressed or the screen is touched.
     MousePress {
         /// Type of button
@@ -115,6 +115,8 @@ pub enum Event {
     },
     /// Fires when some text has been written.
     Text(String),
+    /// User created custom event.
+    UserEvent(T),
 }
 
 /// Keyboard key input.

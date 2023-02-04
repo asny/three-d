@@ -72,7 +72,7 @@ pub async fn run() {
 
     let ambient = AmbientLight::new(&context, 1.0, Color::WHITE);
 
-    window.render_loop(move |mut frame_input: FrameInput| {
+    window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 

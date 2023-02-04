@@ -38,7 +38,7 @@ pub fn main() {
     let mut gui = three_d::GUI::new(&context);
     let mut viewport_zoom = 1.0;
     let mut scissor_zoom = 1.0;
-    window.render_loop(move |mut frame_input: FrameInput| {
+    window.render_loop(move |mut frame_input| {
         model.set_transformation(Mat4::from_angle_y(radians(
             (frame_input.accumulated_time * 0.005) as f32,
         )));
