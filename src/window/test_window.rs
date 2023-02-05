@@ -68,20 +68,24 @@ where
 ///
 /// Only for testing purposes!
 ///
-pub struct Window {
+pub struct Window<T> {
     context: HeadlessContext,
     size: (u32, u32),
+    phantom: std::marker::PhantomData<T>,
 }
 
-impl Window {
-    pub fn new(window_settings: WindowSettings) -> Result<Self, HeadlessError> {
-        Ok(Self {
+impl Window<()> {
+    pub fn new(window_settings: WindowSettings) -> Result<Window<()>, HeadlessError> {
+        Ok(Window::<()> {
             context: HeadlessContext::new()?,
             size: window_settings.max_size.unwrap_or(window_settings.min_size),
+            phantom: std::marker::PhantomData,
         })
     }
+}
 
-    pub fn render_loop<T>(self, mut callback: impl 'static + FnMut(FrameInput<T>) -> FrameOutput)
+impl<T> Window<T> {
+    pub fn render_loop(self, mut callback: impl 'static + FnMut(FrameInput<T>) -> FrameOutput)
     where
         T: 'static + Clone,
     {
