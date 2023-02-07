@@ -74,45 +74,12 @@ pub struct Window<T: 'static + Clone> {
 
 impl Window<()> {
     ///
-    /// Constructs a new window with the given settings.
+    /// Constructs a new Window with the given [settings].
     ///
-    #[cfg(not(target_arch = "wasm32"))]
+    ///
+    /// [settings]: WindowSettings
     pub fn new(window_settings: WindowSettings) -> Result<Window<()>, WindowError> {
         Self::from_event_loop(window_settings, EventLoop::new())
-    }
-
-    /// function to create window on web platforms
-    #[cfg(target_arch = "wasm32")]
-    pub fn new(window_settings: WindowSettings) -> Result<Window<()>, WindowError> {
-        use wasm_bindgen::JsCast;
-        use winit::platform::web::WindowBuilderExtWebSys;
-
-        let websys_window = web_sys::window().ok_or(WindowError::WindowCreation)?;
-        let document = websys_window
-            .document()
-            .ok_or(WindowError::DocumentMissing)?;
-
-        let canvas = if let Some(canvas) = window_settings.canvas {
-            canvas
-        } else {
-            document
-                .get_elements_by_tag_name("canvas")
-                .item(0)
-                .expect(
-                    "settings doesn't contain canvas and DOM doesn't have a canvas element either",
-                )
-                .dyn_into::<web_sys::HtmlCanvasElement>()
-                .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
-        };
-
-        let event_loop = EventLoop::new();
-        let winit_window = WindowBuilder::new()
-            .with_title(window_settings.title)
-            .with_canvas(Some(canvas))
-            .with_prevent_default(true)
-            .build(&event_loop)?;
-
-        Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
     }
 }
 
@@ -149,6 +116,46 @@ impl<T: 'static + Clone> Window<T> {
                 .with_maximized(true)
         }
         .build(&event_loop)?;
+        Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
+    }
+
+    /// Exactly the same as [`Window::new()`] except with the ability to supply
+    /// an existing [`EventLoop`]. Use the event loop's [proxy] to push custom
+    /// events into the render loop (from any thread). Not available for web.
+    ///
+    /// [proxy]: winit::event_loop::EventLoopProxy
+    #[cfg(target_arch = "wasm32")]
+    pub fn from_event_loop(
+        window_settings: WindowSettings,
+        event_loop: EventLoop<T>,
+    ) -> Result<Self, WindowError> {
+        use wasm_bindgen::JsCast;
+        use winit::platform::web::WindowBuilderExtWebSys;
+
+        let websys_window = web_sys::window().ok_or(WindowError::WindowCreation)?;
+        let document = websys_window
+            .document()
+            .ok_or(WindowError::DocumentMissing)?;
+
+        let canvas = if let Some(canvas) = window_settings.canvas {
+            canvas
+        } else {
+            document
+                .get_elements_by_tag_name("canvas")
+                .item(0)
+                .expect(
+                    "settings doesn't contain canvas and DOM doesn't have a canvas element either",
+                )
+                .dyn_into::<web_sys::HtmlCanvasElement>()
+                .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
+        };
+
+        let winit_window = WindowBuilder::new()
+            .with_title(window_settings.title)
+            .with_canvas(Some(canvas))
+            .with_prevent_default(true)
+            .build(&event_loop)?;
+
         Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
     }
 
