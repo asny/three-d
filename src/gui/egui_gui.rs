@@ -82,6 +82,7 @@ impl GUI {
                                 key: kind.into(),
                                 pressed: true,
                                 modifiers: modifiers.into(),
+                                repeat: false // TODO: fix after winit 0.28 upgrade
                             })
                         } else {
                             None
@@ -97,6 +98,7 @@ impl GUI {
                                 key: kind.into(),
                                 pressed: false,
                                 modifiers: modifiers.into(),
+                                repeat: false // TODO: fix after winit 0.28 upgrade
                             })
                         } else {
                             None
