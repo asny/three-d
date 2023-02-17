@@ -9,10 +9,12 @@ in vec3 position;
 in vec2 uv_coordinate;
 
 out vec2 uvs;
+out vec4 col;
 
 void main()
 {
     uvs = uv_coordinate;
+    col = vec4(1.0);
 
     vec3 z = normalize(eye - center);
     vec3 y = direction;
