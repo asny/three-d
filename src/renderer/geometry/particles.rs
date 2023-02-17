@@ -267,12 +267,7 @@ impl ParticleSystem {
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
         format!(
-            "#define PARTICLES\n{}{}{}{}{}{}{}{}",
-            if required_attributes.position {
-                "#define USE_POSITIONS\n"
-            } else {
-                ""
-            },
+            "#define PARTICLES\n{}{}{}{}{}{}{}",
             if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {

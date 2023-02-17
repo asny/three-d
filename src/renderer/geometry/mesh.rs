@@ -129,12 +129,7 @@ impl Mesh {
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
         format!(
-            "{}{}{}{}{}{}{}",
-            if required_attributes.position {
-                "#define USE_POSITIONS\n"
-            } else {
-                ""
-            },
+            "{}{}{}{}{}{}",
             if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {

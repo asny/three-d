@@ -247,10 +247,7 @@ impl Geometry for WaterPatch {
         lights: &[&dyn Light],
     ) {
         let fragment_shader = material.fragment_shader(lights);
-        if !fragment_shader.attributes.position
-            || !fragment_shader.attributes.normal
-            || !fragment_shader.attributes.uv
-        {
+        if !fragment_shader.attributes.normal || !fragment_shader.attributes.uv {
             todo!()
         }
         if fragment_shader.attributes.tangents {
@@ -277,10 +274,7 @@ impl Geometry for WaterPatch {
         depth_texture: Option<DepthTexture>,
     ) {
         let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        if !fragment_shader.attributes.position
-            || !fragment_shader.attributes.normal
-            || !fragment_shader.attributes.uv
-        {
+        if !fragment_shader.attributes.normal || !fragment_shader.attributes.uv {
             todo!()
         }
         if fragment_shader.attributes.tangents {

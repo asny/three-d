@@ -356,16 +356,11 @@ impl InstancedMesh {
         instance_buffers: &HashMap<String, InstanceBuffer>,
     ) -> String {
         format!(
-            "{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}",
             if instance_buffers.contains_key("instance_translation") {
                 "#define USE_INSTANCE_TRANSLATIONS\n"
             } else {
                 "#define USE_INSTANCE_TRANSFORMS\n"
-            },
-            if required_attributes.position {
-                "#define USE_POSITIONS\n"
-            } else {
-                ""
             },
             if required_attributes.normal {
                 "#define USE_NORMALS\n"

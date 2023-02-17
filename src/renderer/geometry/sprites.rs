@@ -120,10 +120,7 @@ impl Geometry for Sprites {
         if !fragment_shader.attributes.uv {
             todo!()
         }
-        if fragment_shader.attributes.position
-            || fragment_shader.attributes.normal
-            || fragment_shader.attributes.tangents
-        {
+        if fragment_shader.attributes.normal || fragment_shader.attributes.tangents {
             todo!()
         }
         self.context
@@ -150,10 +147,7 @@ impl Geometry for Sprites {
         if !fragment_shader.attributes.uv {
             todo!()
         }
-        if fragment_shader.attributes.position
-            || fragment_shader.attributes.normal
-            || fragment_shader.attributes.tangents
-        {
+        if fragment_shader.attributes.normal || fragment_shader.attributes.tangents {
             todo!()
         }
         self.context

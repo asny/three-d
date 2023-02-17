@@ -20,9 +20,7 @@ in vec4 row2;
 in vec4 row3;
 #endif
 
-#ifdef USE_POSITIONS
 out vec3 pos;
-#endif
 
 #ifdef USE_NORMALS 
 uniform mat4 normalMatrix;
@@ -72,7 +70,7 @@ void main()
 #endif
 
     vec4 worldPosition = local2World * vec4(position, 1.);
-    worldPosition.xyz /= worldPosition.w;
+    worldPosition /= worldPosition.w;
 #ifdef PARTICLES
     worldPosition.xyz += start_position + start_velocity * time + 0.5 * acceleration * time * time;
 #endif
@@ -81,9 +79,7 @@ void main()
 #endif
     gl_Position = viewProjection * worldPosition;
 
-#ifdef USE_POSITIONS
     pos = worldPosition.xyz;
-#endif
 
     // *** NORMAL ***
 #ifdef USE_NORMALS 
