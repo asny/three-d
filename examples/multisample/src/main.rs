@@ -75,7 +75,7 @@ pub fn main() {
 
     let mut gui = three_d::GUI::new(&context);
 
-    window.render_loop(move |mut frame_input: FrameInput| {
+    window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
 
         let mut panel_width = 0.0;

@@ -48,7 +48,7 @@ pub fn main() {
 
     // Start the main render loop
     window.render_loop(
-        move |frame_input: FrameInput| // Begin a new frame with an updated frame input
+        move |frame_input| // Begin a new frame with an updated frame input
     {
         // Ensure the viewport matches the current window viewport which changes if the window is resized
         camera.set_viewport(frame_input.viewport);

@@ -24,13 +24,13 @@ egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features
 test = ["headless"] # Only for testing purposes (CI)
 
 [dependencies]
-glow = "0.11"
+glow = "0.12"
 cgmath = "0.18"
 three-d-asset = {git="https://github.com/asny/three-d-asset"}
 thiserror = "1"
-winit = {version = "0.27", optional = true}
-egui = { version = "0.20", optional = true }
-egui_glow = { version = "0.20", optional = true }
+winit = {version = "0.28", optional = true}
+egui = { version = "0.21", optional = true }
+egui_glow = { version = "0.21", optional = true }
 getrandom = { version = "0.2", features = ["js"], optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

@@ -125,7 +125,7 @@ pub fn main() {
     let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
     let ambient_light = three_d::renderer::light::AmbientLight::new(&context, 0.1, Color::WHITE);
 
-    window.render_loop(move |mut frame_input: FrameInput| {
+    window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 

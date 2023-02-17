@@ -10,7 +10,7 @@ use three_d::*;
 pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "Logo!".to_string(),
-        max_size: Some((1280, 300)),
+        max_size: Some((2048, 512)),
         ..Default::default()
     })
     .unwrap();
@@ -26,65 +26,66 @@ pub async fn run() {
         10.0,
     );
 
-    let mut cpu_mesh = CpuMesh::sphere(37);
-    let mut colors = Vec::new();
-    for i in 0..cpu_mesh.positions.len() {
-        let mut c = [0, 0, 0, 0];
-        for j in 0..4 {
-            let t = i * 4 + j;
-            c[j] = if t % 4 == 3 {
-                255
-            } else {
-                if t % 3 == 1 {
-                    (100 / ((t + 1) % 2 + 1)) as u8
-                } else {
-                    (100 / ((t + 2) % 3 + 1)) as u8
-                }
-            };
-        }
-        colors.push(Color::new(c[0], c[1], c[2], c[3]));
-    }
-    cpu_mesh.colors = Some(colors);
-    let material = PhysicalMaterial::new(
-        &context,
-        &CpuMaterial {
-            roughness: 0.6,
-            metallic: 0.6,
-            lighting_model: LightingModel::Cook(
-                NormalDistributionFunction::TrowbridgeReitzGGX,
-                GeometryFunction::SmithSchlickGGX,
-            ),
-            ..Default::default()
-        },
-    );
-    let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), material);
-    model.set_transformation(Mat4::from_angle_y(degrees(35.0)));
-
-    // Source: https://polyhaven.com/
     let mut loaded = if let Ok(loaded) =
-        three_d_asset::io::load_async(&["../assets/syferfontein_18d_clear_4k.hdr"]).await
+        three_d_asset::io::load_async(&["../assets/rust_logo.png"]).await
     {
         loaded
     } else {
         three_d_asset::io::load_async(&[
-            "https://asny.github.io/three-d/assets/syferfontein_18d_clear_4k.hdr",
+            "https://asny.github.io/three-d/assets/rust_logo.png",
         ])
         .await
         .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
     };
-    let environment_map =
-        TextureCubeMap::new_from_equirectangular::<f16>(&context, &loaded.deserialize("").unwrap());
-    let light = AmbientLight {
-        environment: Some(Environment::new(&context, &environment_map)),
+    let image = Texture2D::new(&context, &loaded.deserialize("").unwrap());
+
+    let positions = vec![
+        vec3(0.55, -0.4, 0.0),  // bottom right
+        vec3(-0.55, -0.4, 0.0), // bottom left
+        vec3(0.0, 0.6, 0.0),    // top
+    ];
+    let colors = vec![
+        Color::new(255, 0, 0, 255), // bottom right
+        Color::new(0, 255, 0, 255), // bottom left
+        Color::new(0, 0, 255, 255), // top
+    ];
+    let cpu_mesh = CpuMesh {
+        positions: Positions::F32(positions),
+        colors: Some(colors),
         ..Default::default()
     };
 
-    window.render_loop(move |frame_input: FrameInput| {
-        camera.set_viewport(frame_input.viewport);
+    // Construct a model, with a default color material, thereby transferring the mesh data to the GPU
+    let model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
+
+    window.render_loop(move |frame_input| {
+        let viewport = Viewport {
+            x: (frame_input.viewport.width / 2 - frame_input.viewport.height / 2) as i32,
+            y: 0,
+            width: frame_input.viewport.height,
+            height: frame_input.viewport.height,
+        };
+        camera.set_viewport(viewport);
+
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-            .render(&camera, &model, &[&light]);
+            .write(|| {
+                apply_effect(
+                    &context,
+                    include_str!("shader.frag"),
+                    RenderStates {
+                        write_mask: WriteMask::COLOR,
+                        blend: Blend::TRANSPARENCY,
+                        ..Default::default()
+                    },
+                    viewport,
+                    |program| {
+                        program.use_texture("image", &image);
+                    },
+                );
+            })
+            .render(&camera, &model, &[]);
 
         FrameOutput::default()
     });

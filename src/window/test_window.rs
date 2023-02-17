@@ -14,9 +14,9 @@ pub use inner_mod::FrameOutput;
 /// Input from the window to the rendering (and whatever else needs it) each frame.
 ///
 #[derive(Clone)]
-pub struct FrameInput<'a> {
+pub struct FrameInput<'a, T: 'static + Clone> {
     /// A list of [events](crate::Event) which has occurred since last frame.
-    pub events: Vec<Event>,
+    pub events: Vec<Event<T>>,
 
     /// Milliseconds since last frame.
     pub elapsed_time: f64,
@@ -46,13 +46,19 @@ pub struct FrameInput<'a> {
     pub render_target: std::rc::Rc<RenderTarget<'a>>,
 }
 
-impl<'a> FrameInput<'a> {
+impl<'a, T> FrameInput<'a, T>
+where
+    T: 'static + Clone,
+{
     pub fn screen(&'a self) -> &'a RenderTarget {
         self.render_target.as_ref()
     }
 }
 
-impl std::fmt::Debug for FrameInput<'_> {
+impl<T> std::fmt::Debug for FrameInput<'_, T>
+where
+    T: 'static + Clone,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut d = f.debug_struct("FrameInput");
         d.finish()
@@ -62,20 +68,27 @@ impl std::fmt::Debug for FrameInput<'_> {
 ///
 /// Only for testing purposes!
 ///
-pub struct Window {
+pub struct Window<T> {
     context: HeadlessContext,
     size: (u32, u32),
+    phantom: std::marker::PhantomData<T>,
 }
 
-impl Window {
-    pub fn new(window_settings: WindowSettings) -> Result<Self, HeadlessError> {
-        Ok(Self {
+impl Window<()> {
+    pub fn new(window_settings: WindowSettings) -> Result<Window<()>, HeadlessError> {
+        Ok(Window::<()> {
             context: HeadlessContext::new()?,
             size: window_settings.max_size.unwrap_or(window_settings.min_size),
+            phantom: std::marker::PhantomData,
         })
     }
+}
 
-    pub fn render_loop(self, mut callback: impl 'static + FnMut(FrameInput) -> FrameOutput) {
+impl<T> Window<T> {
+    pub fn render_loop(self, mut callback: impl 'static + FnMut(FrameInput<T>) -> FrameOutput)
+    where
+        T: 'static + Clone,
+    {
         let exit_time = if let Ok(v) = std::env::var("THREE_D_EXIT") {
             v.parse::<f64>().unwrap()
         } else {
