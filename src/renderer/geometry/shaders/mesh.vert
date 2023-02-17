@@ -54,9 +54,8 @@ in vec4 color;
 #ifdef USE_INSTANCE_COLORS
 in vec4 instance_color;
 #endif
-#ifdef USE_COLORS 
+
 out vec4 col;
-#endif
 
 void main()
 {
@@ -116,13 +115,11 @@ void main()
 #endif
 
     // *** COLOR ***
-#ifdef USE_COLORS
-    col = vec4(1.0, 1.0, 1.0, 1.0);
+    col = vec4(1.0);
 #ifdef USE_VERTEX_COLORS 
     col *= color / 255.0;
 #endif
 #ifdef USE_INSTANCE_COLORS
     col *= instance_color / 255.0;
-#endif
 #endif
 }

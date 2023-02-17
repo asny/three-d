@@ -13,6 +13,7 @@ in vec3 position;
 out vec2 uvs;
 out vec3 nor;
 out vec3 pos;
+out vec4 col;
 
 void main()
 {
@@ -52,4 +53,5 @@ void main()
     
     gl_Position = viewProjection * vec4(pos, 1.);
     uvs = pos.xz;
+    col = vec4(1.0);
 }

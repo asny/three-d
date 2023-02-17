@@ -336,13 +336,7 @@ impl TerrainPatch {
     }
 
     fn provided_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            normal: true,
-            position: true,
-            tangents: true,
-            ..FragmentAttributes::NONE
-        }
+        FragmentAttributes::ALL
     }
 
     fn vertex_shader_source(&self, required_attributes: &FragmentAttributes) -> String {

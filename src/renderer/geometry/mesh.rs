@@ -150,8 +150,8 @@ impl Mesh {
             } else {
                 ""
             },
-            if required_attributes.color {
-                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
+            if self.vertex_buffers.iter().any(|(name, _)| name == "color") {
+                "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },
@@ -173,7 +173,7 @@ impl Mesh {
                 .vertex_buffers
                 .iter()
                 .any(|(name, _)| name == "uv_coordinates"),
-            color: self.vertex_buffers.iter().any(|(name, _)| name == "color"),
+            color: true,
         }
     }
 }

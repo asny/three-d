@@ -190,6 +190,7 @@ impl Material for DeferredPhysicalMaterial {
         let mut attributes = FragmentAttributes {
             position: true,
             normal: true,
+            color: true,
             ..FragmentAttributes::NONE
         };
         let mut output = include_str!("../../core/shared.frag").to_string();
@@ -227,10 +228,6 @@ impl Material for DeferredPhysicalMaterial {
                     .as_str(),
                 );
             }
-        }
-        if provided_attributes.color {
-            attributes.color = true;
-            output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         output.push_str(include_str!("shaders/deferred_physical_material.frag"));
         provided_attributes.ensure_contains_all(attributes)?;

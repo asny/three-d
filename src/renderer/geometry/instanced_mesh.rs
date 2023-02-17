@@ -344,13 +344,7 @@ impl InstancedMesh {
                 .vertex_buffers
                 .iter()
                 .any(|(name, _)| name == "uv_coordinates"),
-            color: self.vertex_buffers.iter().any(|(name, _)| name == "color")
-                || self
-                    .instance_buffers
-                    .read()
-                    .unwrap()
-                    .0
-                    .contains_key("instance_color"),
+            color: true,
         }
     }
     fn program(
@@ -386,16 +380,14 @@ impl InstancedMesh {
             } else {
                 ""
             },
-            if fragment_shader.attributes.color {
-                if instance_buffers.contains_key("instance_color")
-                    && self.vertex_buffers.iter().any(|(name, _)| name == "color")
-                {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else if instance_buffers.contains_key("instance_color") {
-                    "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
-                }
+            if instance_buffers.contains_key("instance_color")
+                && self.vertex_buffers.iter().any(|(name, _)| name == "color")
+            {
+                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+            } else if instance_buffers.contains_key("instance_color") {
+                "#define USE_INSTANCE_COLORS\n"
+            } else if self.vertex_buffers.iter().any(|(name, _)| name == "color") {
+                "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },

@@ -87,15 +87,14 @@ impl Material for ColorMaterial {
         provided_attributes: FragmentAttributes,
         _lights: &[&dyn Light],
     ) -> Result<FragmentShader, RendererError> {
-        let mut attributes = FragmentAttributes::NONE;
+        let mut attributes = FragmentAttributes {
+            color: true,
+            ..FragmentAttributes::NONE
+        };
         let mut shader = String::new();
         if self.texture.is_some() {
             attributes.uv = true;
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
-        }
-        if provided_attributes.color {
-            attributes.color = true;
-            shader.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));

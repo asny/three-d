@@ -259,8 +259,7 @@ impl ParticleSystem {
                 .vertex_buffers
                 .iter()
                 .any(|(name, _)| name == "uv_coordinates"),
-            color: self.vertex_buffers.iter().any(|(name, _)| name == "color")
-                || self.instance_buffers.contains_key("instance_color"),
+            color: true,
         }
     }
     fn program(&self, fragment_shader: FragmentShader, callback: impl FnOnce(&Program)) {
@@ -286,16 +285,14 @@ impl ParticleSystem {
             } else {
                 ""
             },
-            if fragment_shader.attributes.color {
-                if self.instance_buffers.contains_key("instance_color")
-                    && self.vertex_buffers.iter().any(|(name, _)| name == "color")
-                {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else if self.instance_buffers.contains_key("instance_color") {
-                    "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
-                }
+            if self.instance_buffers.contains_key("instance_color")
+                && self.vertex_buffers.iter().any(|(name, _)| name == "color")
+            {
+                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+            } else if self.instance_buffers.contains_key("instance_color") {
+                "#define USE_INSTANCE_COLORS\n"
+            } else if self.vertex_buffers.iter().any(|(name, _)| name == "color") {
+                "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },

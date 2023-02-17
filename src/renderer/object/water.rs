@@ -215,17 +215,18 @@ impl WaterPatch {
             uv: true,
             normal: true,
             position: true,
-            ..FragmentAttributes::NONE
+            color: true,
+            tangents: false,
         }
     }
 
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform(
             "offset",
-            &self.center + vec3(self.offset.x, 0.0, self.offset.y),
+            self.center + vec3(self.offset.x, 0.0, self.offset.y),
         );
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("time", &(self.time as f32 * 0.001));
+        program.use_uniform("time", self.time * 0.001);
         program.use_uniform_array(
             "waveParameters",
             &self

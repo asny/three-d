@@ -141,6 +141,7 @@ impl Material for PhysicalMaterial {
         let mut attributes = FragmentAttributes {
             position: true,
             normal: true,
+            color: true,
             ..FragmentAttributes::NONE
         };
         let mut output = lights_shader_source(lights, self.lighting_model);
@@ -168,10 +169,6 @@ impl Material for PhysicalMaterial {
             if self.emissive_texture.is_some() {
                 output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
             }
-        }
-        if provided_attributes.color {
-            attributes.color = true;
-            output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         output.push_str(include_str!("shaders/physical_material.frag"));
         provided_attributes.ensure_contains_all(attributes)?;
