@@ -100,27 +100,6 @@ pub enum MaterialType {
 }
 
 ///
-/// The possible attributes that a material needs to be able to calculate the color of a fragment.
-/// The attributes are provided by a [geometry], ie. calculated in the vertex shader and then sent to the fragment shader,
-/// for all the attributes that return true from [Material::requires_attribute] or [PostMaterial::requires_attribute].
-/// So to use an attribute for a material, implement the [Material::requires_attribute] or [PostMaterial::requires_attribute] to return true for the attribute
-/// and add the relevant shader code to the fragment shader source. The relevant shader code is documented for each enum type.
-///
-#[derive(Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Debug)]
-pub enum MaterialAttribute {
-    /// Position in world space: `in vec3 pos;`
-    Position,
-    /// Normal: `in vec3 nor;`,
-    Normal,
-    /// Tangent and bitangent: `in vec3 tang; in vec3 bitang;`
-    Tangents,
-    /// UV coordinates: `in vec2 uvs;`
-    UvCoordinates,
-    /// Color: `in vec4 col;`
-    Color,
-}
-
-///
 /// Describes the set of attributes provided by a [geometry] and possibly consumed by a [Material], ie. calculated in the vertex shader and then sent to the fragment shader.
 /// To use an attribute for a material, add the relevant shader code to the fragment shader source (documented for each attribute) and return this struct with the relevant attribute to true from [Material::fragment_shader].
 ///
