@@ -122,7 +122,7 @@ pub enum MaterialAttribute {
 
 ///
 /// Describes the set of attributes provided by a [geometry] and possibly consumed by a [Material], ie. calculated in the vertex shader and then sent to the fragment shader.
-/// To use an attribute in a fragment shader add the relevant shader code to the fragment shader source (documented for each attribute).
+/// To use an attribute for a material, add the relevant shader code to the fragment shader source (documented for each attribute) and return this struct with the relevant attribute to true from [Material::fragment_shader].
 ///
 #[derive(Clone, Copy, Debug)]
 pub struct FragmentAttributes {
@@ -197,16 +197,10 @@ pub struct FragmentShader {
 ///
 pub trait Material {
     ///
-    /// Takes a [FragmentAttributes] struct describing which attributes could be provided by the [geometry] and a list of lights.
     /// Returns a [FragmentShader], ie. the fragment shader source for this material
     /// and a [FragmentAttributes] struct that describes which fragment attributes are required for rendering with this material.
-    /// Returns an error if this material requires a fragment attribute and the [geometry] does not provide it.
     ///
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError>;
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader;
 
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -245,12 +239,8 @@ pub trait FromCpuVoxelGrid: std::marker::Sized {
 }
 
 impl<T: Material + ?Sized> Material for &T {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        (*self).fragment_shader_source(provided_attributes, lights)
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+        (*self).fragment_shader(lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         (*self).use_uniforms(program, camera, lights)
@@ -264,12 +254,8 @@ impl<T: Material + ?Sized> Material for &T {
 }
 
 impl<T: Material + ?Sized> Material for &mut T {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        (**self).fragment_shader_source(provided_attributes, lights)
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+        (**self).fragment_shader(lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         (**self).use_uniforms(program, camera, lights)
@@ -283,13 +269,8 @@ impl<T: Material + ?Sized> Material for &mut T {
 }
 
 impl<T: Material> Material for Box<T> {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        self.as_ref()
-            .fragment_shader_source(provided_attributes, lights)
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+        self.as_ref().fragment_shader(lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
@@ -303,13 +284,8 @@ impl<T: Material> Material for Box<T> {
 }
 
 impl<T: Material> Material for std::rc::Rc<T> {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        self.as_ref()
-            .fragment_shader_source(provided_attributes, lights)
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+        self.as_ref().fragment_shader(lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
@@ -323,13 +299,8 @@ impl<T: Material> Material for std::rc::Rc<T> {
 }
 
 impl<T: Material> Material for std::sync::Arc<T> {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        self.as_ref()
-            .fragment_shader_source(provided_attributes, lights)
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+        self.as_ref().fragment_shader(lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
@@ -343,13 +314,8 @@ impl<T: Material> Material for std::sync::Arc<T> {
 }
 
 impl<T: Material> Material for std::cell::RefCell<T> {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        self.borrow()
-            .fragment_shader_source(provided_attributes, lights)
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+        self.borrow().fragment_shader(lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.borrow().use_uniforms(program, camera, lights)
@@ -363,14 +329,8 @@ impl<T: Material> Material for std::cell::RefCell<T> {
 }
 
 impl<T: Material> Material for std::sync::RwLock<T> {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        self.read()
-            .unwrap()
-            .fragment_shader_source(provided_attributes, lights)
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+        self.read().unwrap().fragment_shader(lights)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.read().unwrap().use_uniforms(program, camera, lights)
@@ -516,22 +476,15 @@ impl DepthTexture<'_> {
 ///
 pub trait PostMaterial {
     ///
-    /// Returns the fragment shader source for this material. Should output the final fragment color.
-    /// Can take attributes from the vertex shader as input, see [PostMaterial::requires_attribute] and [MaterialAttribute] for more information.
+    /// Returns a [FragmentShader], ie. the fragment shader source for this material
+    /// and a [FragmentAttributes] struct that describes which fragment attributes are required for rendering with this material.
     ///
-    fn fragment_shader_source(
+    fn fragment_shader(
         &self,
-        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError>;
-
-    ///
-    /// Returns whether this material requires the given [MaterialAttribute] to render.
-    /// The render call will panic if the material requires an attribute and the [geometry] does not provide it.
-    /// See [MaterialAttribute] for more information.
-    ///
+    ) -> FragmentShader;
 
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -557,14 +510,13 @@ pub trait PostMaterial {
 }
 
 impl<T: PostMaterial + ?Sized> PostMaterial for &T {
-    fn fragment_shader_source(
+    fn fragment_shader(
         &self,
-        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError> {
-        (*self).fragment_shader_source(provided_attributes, lights, color_texture, depth_texture)
+    ) -> FragmentShader {
+        (*self).fragment_shader(lights, color_texture, depth_texture)
     }
     fn use_uniforms(
         &self,
@@ -586,14 +538,13 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &T {
 }
 
 impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
-    fn fragment_shader_source(
+    fn fragment_shader(
         &self,
-        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError> {
-        (**self).fragment_shader_source(provided_attributes, lights, color_texture, depth_texture)
+    ) -> FragmentShader {
+        (**self).fragment_shader(lights, color_texture, depth_texture)
     }
     fn use_uniforms(
         &self,
@@ -615,19 +566,14 @@ impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
 }
 
 impl<T: PostMaterial> PostMaterial for Box<T> {
-    fn fragment_shader_source(
+    fn fragment_shader(
         &self,
-        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError> {
-        self.as_ref().fragment_shader_source(
-            provided_attributes,
-            lights,
-            color_texture,
-            depth_texture,
-        )
+    ) -> FragmentShader {
+        self.as_ref()
+            .fragment_shader(lights, color_texture, depth_texture)
     }
     fn use_uniforms(
         &self,
@@ -650,19 +596,14 @@ impl<T: PostMaterial> PostMaterial for Box<T> {
 }
 
 impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
-    fn fragment_shader_source(
+    fn fragment_shader(
         &self,
-        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError> {
-        self.as_ref().fragment_shader_source(
-            provided_attributes,
-            lights,
-            color_texture,
-            depth_texture,
-        )
+    ) -> FragmentShader {
+        self.as_ref()
+            .fragment_shader(lights, color_texture, depth_texture)
     }
     fn use_uniforms(
         &self,
@@ -685,19 +626,14 @@ impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
 }
 
 impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
-    fn fragment_shader_source(
+    fn fragment_shader(
         &self,
-        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError> {
-        self.as_ref().fragment_shader_source(
-            provided_attributes,
-            lights,
-            color_texture,
-            depth_texture,
-        )
+    ) -> FragmentShader {
+        self.as_ref()
+            .fragment_shader(lights, color_texture, depth_texture)
     }
     fn use_uniforms(
         &self,
@@ -720,19 +656,14 @@ impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
 }
 
 impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
-    fn fragment_shader_source(
+    fn fragment_shader(
         &self,
-        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError> {
-        self.borrow().fragment_shader_source(
-            provided_attributes,
-            lights,
-            color_texture,
-            depth_texture,
-        )
+    ) -> FragmentShader {
+        self.borrow()
+            .fragment_shader(lights, color_texture, depth_texture)
     }
     fn use_uniforms(
         &self,
@@ -755,19 +686,15 @@ impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
 }
 
 impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
-    fn fragment_shader_source(
+    fn fragment_shader(
         &self,
-        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError> {
-        self.read().unwrap().fragment_shader_source(
-            provided_attributes,
-            lights,
-            color_texture,
-            depth_texture,
-        )
+    ) -> FragmentShader {
+        self.read()
+            .unwrap()
+            .fragment_shader(lights, color_texture, depth_texture)
     }
     fn use_uniforms(
         &self,

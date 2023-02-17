@@ -82,11 +82,7 @@ impl FromCpuMaterial for ColorMaterial {
 }
 
 impl Material for ColorMaterial {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         let mut attributes = FragmentAttributes {
             color: true,
             ..FragmentAttributes::NONE
@@ -98,11 +94,10 @@ impl Material for ColorMaterial {
         }
         shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));
-        provided_attributes.ensure_contains_all(attributes)?;
-        Ok(FragmentShader {
+        FragmentShader {
             source: shader,
             attributes,
-        })
+        }
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

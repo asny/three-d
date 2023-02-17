@@ -210,16 +210,6 @@ impl WaterPatch {
         }
     }
 
-    fn provided_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            normal: true,
-            position: true,
-            color: true,
-            tangents: false,
-        }
-    }
-
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform(
             "offset",
@@ -256,14 +246,15 @@ impl Geometry for WaterPatch {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(self.provided_attributes(), lights)
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader = material.fragment_shader(lights);
         if !fragment_shader.attributes.position
             || !fragment_shader.attributes.normal
             || !fragment_shader.attributes.uv
         {
             todo!()
+        }
+        if fragment_shader.attributes.tangents {
+            todo!() // Water should be able to provide tangents
         }
         self.context
             .program(
@@ -285,19 +276,15 @@ impl Geometry for WaterPatch {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(
-                self.provided_attributes(),
-                lights,
-                color_texture,
-                depth_texture,
-            )
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
         if !fragment_shader.attributes.position
             || !fragment_shader.attributes.normal
             || !fragment_shader.attributes.uv
         {
             todo!()
+        }
+        if fragment_shader.attributes.tangents {
+            todo!() // Water should be able to provide tangents
         }
         self.context
             .program(

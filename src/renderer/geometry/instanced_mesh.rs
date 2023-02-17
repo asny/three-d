@@ -331,7 +331,7 @@ impl InstancedMesh {
         }
     }
 
-    fn provided_attributes(&self) -> FragmentAttributes {
+    fn attributes_check(&self, required_attributes: FragmentAttributes) {
         FragmentAttributes {
             position: true,
             normal: self.vertex_buffers.iter().any(|(name, _)| name == "normal"),
@@ -346,36 +346,38 @@ impl InstancedMesh {
                 .any(|(name, _)| name == "uv_coordinates"),
             color: true,
         }
+        .ensure_contains_all(required_attributes)
+        .unwrap_or_else(|e| panic!("{}", e));
     }
-    fn program(
+
+    fn vertex_shader_source(
         &self,
-        fragment_shader: FragmentShader,
+        required_attributes: FragmentAttributes,
         instance_buffers: &HashMap<String, InstanceBuffer>,
-        callback: impl FnOnce(&Program),
-    ) {
-        let vertex_shader_source = format!(
+    ) -> String {
+        format!(
             "{}{}{}{}{}{}{}{}{}",
             if instance_buffers.contains_key("instance_translation") {
                 "#define USE_INSTANCE_TRANSLATIONS\n"
             } else {
                 "#define USE_INSTANCE_TRANSFORMS\n"
             },
-            if fragment_shader.attributes.position {
+            if required_attributes.position {
                 "#define USE_POSITIONS\n"
             } else {
                 ""
             },
-            if fragment_shader.attributes.normal {
+            if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {
                 ""
             },
-            if fragment_shader.attributes.tangents {
+            if required_attributes.tangents {
                 "#define USE_TANGENTS\n"
             } else {
                 ""
             },
-            if fragment_shader.attributes.uv {
+            if required_attributes.uv {
                 "#define USE_UVS\n"
             } else {
                 ""
@@ -398,10 +400,7 @@ impl InstancedMesh {
             },
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
-        );
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, callback)
-            .expect("Failed compiling shader")
+        )
     }
 }
 
@@ -452,13 +451,16 @@ impl Geometry for InstancedMesh {
             .expect("failed to acquire read access")
             .0;
 
-        let fragment_shader = material
-            .fragment_shader_source(self.provided_attributes(), lights)
-            .unwrap_or_else(|e| panic!("{}", e));
-        self.program(fragment_shader, instance_buffers, |program| {
-            material.use_uniforms(program, camera, lights);
-            self.draw(program, material.render_states(), camera, instance_buffers);
-        });
+        let fragment_shader = material.fragment_shader(lights);
+        self.attributes_check(fragment_shader.attributes);
+        let vertex_shader_source =
+            self.vertex_shader_source(fragment_shader.attributes, instance_buffers);
+        self.context
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights);
+                self.draw(program, material.render_states(), camera, instance_buffers);
+            })
+            .expect("Failed compiling shader");
     }
 
     fn render_with_post_material(
@@ -483,18 +485,16 @@ impl Geometry for InstancedMesh {
             .expect("failed to acquire read access")
             .0;
 
-        let fragment_shader = material
-            .fragment_shader_source(
-                self.provided_attributes(),
-                lights,
-                color_texture,
-                depth_texture,
-            )
-            .unwrap_or_else(|e| panic!("{}", e));
-        self.program(fragment_shader, instance_buffers, |program| {
-            material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-            self.draw(program, material.render_states(), camera, instance_buffers);
-        });
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
+        self.attributes_check(fragment_shader.attributes);
+        let vertex_shader_source =
+            self.vertex_shader_source(fragment_shader.attributes, instance_buffers);
+        self.context
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                self.draw(program, material.render_states(), camera, instance_buffers);
+            })
+            .expect("Failed compiling shader");
     }
 }
 

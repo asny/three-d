@@ -3,20 +3,14 @@ use three_d::*;
 struct MandelbrotMaterial {}
 
 impl Material for MandelbrotMaterial {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        let attributes = FragmentAttributes {
-            position: true,
-            ..FragmentAttributes::NONE
-        };
-        provided_attributes.ensure_contains_all(attributes)?;
-        Ok(FragmentShader {
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
+        FragmentShader {
             source: include_str!("mandelbrot.frag").to_string(),
-            attributes,
-        })
+            attributes: FragmentAttributes {
+                position: true,
+                ..FragmentAttributes::NONE
+            },
+        }
     }
     fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
     fn render_states(&self) -> RenderStates {

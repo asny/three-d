@@ -25,19 +25,16 @@ pub struct IsosurfaceMaterial {
 }
 
 impl Material for IsosurfaceMaterial {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        let attributes = FragmentAttributes {
-            position: true,
-            ..FragmentAttributes::NONE
-        };
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         let mut source = lights_shader_source(lights, self.lighting_model);
         source.push_str(include_str!("shaders/isosurface_material.frag"));
-        provided_attributes.ensure_contains_all(attributes)?;
-        Ok(FragmentShader { source, attributes })
+        FragmentShader {
+            source,
+            attributes: FragmentAttributes {
+                position: true,
+                ..FragmentAttributes::NONE
+            },
+        }
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {

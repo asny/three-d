@@ -116,16 +116,14 @@ impl Geometry for Sprites {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(
-                FragmentAttributes {
-                    uv: true,
-                    ..FragmentAttributes::NONE
-                },
-                lights,
-            )
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader = material.fragment_shader(lights);
         if !fragment_shader.attributes.uv {
+            todo!()
+        }
+        if fragment_shader.attributes.position
+            || fragment_shader.attributes.normal
+            || fragment_shader.attributes.tangents
+        {
             todo!()
         }
         self.context
@@ -148,18 +146,14 @@ impl Geometry for Sprites {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(
-                FragmentAttributes {
-                    uv: true,
-                    ..FragmentAttributes::NONE
-                },
-                lights,
-                color_texture,
-                depth_texture,
-            )
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
         if !fragment_shader.attributes.uv {
+            todo!()
+        }
+        if fragment_shader.attributes.position
+            || fragment_shader.attributes.normal
+            || fragment_shader.attributes.tangents
+        {
             todo!()
         }
         self.context

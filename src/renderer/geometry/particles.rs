@@ -246,7 +246,7 @@ impl ParticleSystem {
         }
     }
 
-    fn provided_attributes(&self) -> FragmentAttributes {
+    fn attributes_check(&self, required_attributes: FragmentAttributes) {
         FragmentAttributes {
             position: true,
             normal: self.vertex_buffers.iter().any(|(name, _)| name == "normal"),
@@ -261,26 +261,29 @@ impl ParticleSystem {
                 .any(|(name, _)| name == "uv_coordinates"),
             color: true,
         }
+        .ensure_contains_all(required_attributes)
+        .unwrap_or_else(|e| panic!("{}", e));
     }
-    fn program(&self, fragment_shader: FragmentShader, callback: impl FnOnce(&Program)) {
-        let vertex_shader_source = format!(
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        format!(
             "#define PARTICLES\n{}{}{}{}{}{}{}{}",
-            if fragment_shader.attributes.position {
+            if required_attributes.position {
                 "#define USE_POSITIONS\n"
             } else {
                 ""
             },
-            if fragment_shader.attributes.normal {
+            if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {
                 ""
             },
-            if fragment_shader.attributes.tangents {
+            if required_attributes.tangents {
                 "#define USE_TANGENTS\n"
             } else {
                 ""
             },
-            if fragment_shader.attributes.uv {
+            if required_attributes.uv {
                 "#define USE_UVS\n"
             } else {
                 ""
@@ -303,10 +306,7 @@ impl ParticleSystem {
             },
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
-        );
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, callback)
-            .expect("Failed compiling shader")
+        )
     }
 }
 
@@ -330,13 +330,15 @@ impl Geometry for ParticleSystem {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(self.provided_attributes(), lights)
-            .unwrap_or_else(|e| panic!("{}", e));
-        self.program(fragment_shader, |program| {
-            material.use_uniforms(program, camera, lights);
-            self.draw(program, material.render_states(), camera);
-        });
+        let fragment_shader = material.fragment_shader(lights);
+        self.attributes_check(fragment_shader.attributes);
+        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
+        self.context
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights);
+                self.draw(program, material.render_states(), camera);
+            })
+            .expect("Failed compiling shader");
     }
 
     fn render_with_post_material(
@@ -347,18 +349,15 @@ impl Geometry for ParticleSystem {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(
-                self.provided_attributes(),
-                lights,
-                color_texture,
-                depth_texture,
-            )
-            .unwrap_or_else(|e| panic!("{}", e));
-        self.program(fragment_shader, |program| {
-            material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-            self.draw(program, material.render_states(), camera);
-        });
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
+        self.attributes_check(fragment_shader.attributes);
+        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
+        self.context
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                self.draw(program, material.render_states(), camera);
+            })
+            .expect("Failed compiling shader");
     }
 
     fn animate(&mut self, time: f32) {

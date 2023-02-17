@@ -223,24 +223,18 @@ impl ImpostersMaterial {
 }
 
 impl Material for ImpostersMaterial {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
-        let attributes = FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        };
-        provided_attributes.ensure_contains_all(attributes)?;
-        Ok(FragmentShader {
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
+        FragmentShader {
             source: format!(
                 "{}{}",
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/imposter.frag")
             ),
-            attributes,
-        })
+            attributes: FragmentAttributes {
+                uv: true,
+                ..FragmentAttributes::NONE
+            },
+        }
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {

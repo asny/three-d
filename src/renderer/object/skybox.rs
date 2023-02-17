@@ -116,10 +116,6 @@ impl Skybox {
     pub fn texture(&self) -> &Arc<TextureCubeMap> {
         &self.material.texture
     }
-
-    fn provided_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes::NONE
-    }
 }
 
 impl<'a> IntoIterator for &'a Skybox {
@@ -142,9 +138,7 @@ impl Geometry for Skybox {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(self.provided_attributes(), lights)
-            .unwrap();
+        let fragment_shader = material.fragment_shader(lights);
         self.context
             .program(
                 include_str!("shaders/skybox.vert").to_owned(),
@@ -168,14 +162,7 @@ impl Geometry for Skybox {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(
-                self.provided_attributes(),
-                lights,
-                color_texture,
-                depth_texture,
-            )
-            .unwrap();
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
         self.context
             .program(
                 include_str!("shaders/skybox.vert").to_owned(),

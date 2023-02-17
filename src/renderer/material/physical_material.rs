@@ -133,11 +133,7 @@ impl FromCpuMaterial for PhysicalMaterial {
 }
 
 impl Material for PhysicalMaterial {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         let mut attributes = FragmentAttributes {
             position: true,
             normal: true,
@@ -171,11 +167,10 @@ impl Material for PhysicalMaterial {
             }
         }
         output.push_str(include_str!("shaders/physical_material.frag"));
-        provided_attributes.ensure_contains_all(attributes)?;
-        Ok(FragmentShader {
+        FragmentShader {
             source: output,
             attributes,
-        })
+        }
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {

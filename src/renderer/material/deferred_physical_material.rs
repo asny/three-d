@@ -182,11 +182,7 @@ impl FromCpuMaterial for DeferredPhysicalMaterial {
 }
 
 impl Material for DeferredPhysicalMaterial {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         let mut attributes = FragmentAttributes {
             position: true,
             normal: true,
@@ -230,11 +226,10 @@ impl Material for DeferredPhysicalMaterial {
             }
         }
         output.push_str(include_str!("shaders/deferred_physical_material.frag"));
-        provided_attributes.ensure_contains_all(attributes)?;
-        Ok(FragmentShader {
+        FragmentShader {
             source: output,
             attributes,
-        })
+        }
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

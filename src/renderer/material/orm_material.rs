@@ -78,11 +78,7 @@ impl FromCpuMaterial for ORMMaterial {
 }
 
 impl Material for ORMMaterial {
-    fn fragment_shader_source(
-        &self,
-        provided_attributes: FragmentAttributes,
-        _lights: &[&dyn Light],
-    ) -> Result<FragmentShader, RendererError> {
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         let mut attributes = FragmentAttributes::NONE;
         let mut source = String::new();
         if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {
@@ -96,8 +92,7 @@ impl Material for ORMMaterial {
             }
         }
         source.push_str(include_str!("shaders/orm_material.frag"));
-        provided_attributes.ensure_contains_all(attributes)?;
-        Ok(FragmentShader { source, attributes })
+        FragmentShader { source, attributes }
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

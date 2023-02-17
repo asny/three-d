@@ -160,7 +160,7 @@ impl Mesh {
         )
     }
 
-    fn provided_attributes(&self) -> FragmentAttributes {
+    fn attributes_check(&self, required_attributes: FragmentAttributes) {
         FragmentAttributes {
             position: true,
             normal: self.vertex_buffers.iter().any(|(name, _)| name == "normal"),
@@ -175,6 +175,8 @@ impl Mesh {
                 .any(|(name, _)| name == "uv_coordinates"),
             color: true,
         }
+        .ensure_contains_all(required_attributes)
+        .unwrap_or_else(|e| panic!("{}", e));
     }
 }
 
@@ -206,16 +208,15 @@ impl Geometry for Mesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(self.provided_attributes(), lights)
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader = material.fragment_shader(lights);
+        self.attributes_check(fragment_shader.attributes);
         let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
         self.context
             .program(vertex_shader_source, fragment_shader.source, |program| {
                 material.use_uniforms(program, camera, lights);
                 self.draw(program, material.render_states(), camera);
             })
-            .expect("Failed compiling shader")
+            .expect("Failed compiling shader");
     }
 
     fn render_with_post_material(
@@ -226,20 +227,14 @@ impl Geometry for Mesh {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material
-            .fragment_shader_source(
-                self.provided_attributes(),
-                lights,
-                color_texture,
-                depth_texture,
-            )
-            .unwrap_or_else(|e| panic!("{}", e));
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
+        self.attributes_check(fragment_shader.attributes);
         let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
         self.context
             .program(vertex_shader_source, fragment_shader.source, |program| {
                 material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                 self.draw(program, material.render_states(), camera);
             })
-            .expect("Failed compiling shader")
+            .expect("Failed compiling shader");
     }
 }

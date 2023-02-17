@@ -35,21 +35,13 @@ pub struct WaterMaterial {
 }
 
 impl PostMaterial for WaterMaterial {
-    fn fragment_shader_source(
+    fn fragment_shader(
         &self,
-        provided_attributes: FragmentAttributes,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
-    ) -> Result<FragmentShader, RendererError> {
-        let attributes = FragmentAttributes {
-            position: true,
-            normal: true,
-            uv: true,
-            ..FragmentAttributes::NONE
-        };
-        provided_attributes.ensure_contains_all(attributes)?;
-        Ok(FragmentShader {
+    ) -> FragmentShader {
+        FragmentShader {
             source: format!(
                 "{}\n{}\n{}\n{}\n{}",
                 match &self.background {
@@ -65,8 +57,13 @@ impl PostMaterial for WaterMaterial {
                 lights_shader_source(lights, self.lighting_model),
                 include_str!("shaders/water_material.frag")
             ),
-            attributes,
-        })
+            attributes: FragmentAttributes {
+                position: true,
+                normal: true,
+                uv: true,
+                ..FragmentAttributes::NONE
+            },
+        }
     }
 
     fn render_states(&self) -> RenderStates {
