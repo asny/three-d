@@ -382,20 +382,17 @@ impl Geometry for TerrainPatch {
         let fragment_shader = material
             .fragment_shader_source(self.provided_attributes(), lights)
             .unwrap_or_else(|e| panic!("{}", e));
+        let vertex_shader_source = self.vertex_shader_source(&fragment_shader.attributes);
         self.context
-            .program(
-                self.vertex_shader_source(&fragment_shader.attributes),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights);
-                    self.draw(
-                        program,
-                        &fragment_shader.attributes,
-                        material.render_states(),
-                        camera,
-                    );
-                },
-            )
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights);
+                self.draw(
+                    program,
+                    &fragment_shader.attributes,
+                    material.render_states(),
+                    camera,
+                );
+            })
             .expect("Failed compiling shader");
     }
 
@@ -415,20 +412,17 @@ impl Geometry for TerrainPatch {
                 depth_texture,
             )
             .unwrap_or_else(|e| panic!("{}", e));
+        let vertex_shader_source = self.vertex_shader_source(&fragment_shader.attributes);
         self.context
-            .program(
-                self.vertex_shader_source(&fragment_shader.attributes),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(
-                        program,
-                        &fragment_shader.attributes,
-                        material.render_states(),
-                        camera,
-                    );
-                },
-            )
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                self.draw(
+                    program,
+                    &fragment_shader.attributes,
+                    material.render_states(),
+                    camera,
+                );
+            })
             .expect("Failed compiling shader");
     }
 
