@@ -134,34 +134,6 @@ impl FragmentAttributes {
         uv: false,
         color: false,
     };
-
-    ///
-    /// Returns an error if this do not contain all of the given attributes.
-    ///
-    pub fn ensure_contains_all(&self, required: FragmentAttributes) -> Result<(), RendererError> {
-        if required.position && !self.position {
-            Err(RendererError::MissingFragmentAttribute(
-                "position".to_owned(),
-            ))?;
-        }
-        if required.normal && !self.normal {
-            Err(RendererError::MissingFragmentAttribute("normal".to_owned()))?;
-        }
-        if required.tangents && !self.tangents {
-            Err(RendererError::MissingFragmentAttribute(
-                "tangents".to_owned(),
-            ))?;
-        }
-        if required.uv && !self.uv {
-            Err(RendererError::MissingFragmentAttribute(
-                "uv coordinates".to_owned(),
-            ))?;
-        }
-        if required.color && !self.color {
-            Err(RendererError::MissingFragmentAttribute("color".to_owned()))?;
-        }
-        Ok(())
-    }
 }
 
 #[derive(Debug, Clone)]
