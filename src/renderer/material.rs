@@ -164,6 +164,7 @@ impl FragmentAttributes {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct FragmentShader {
     pub source: String,
     pub attributes: FragmentAttributes,

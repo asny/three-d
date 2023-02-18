@@ -305,6 +305,87 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     }
 }
 
+struct VertexBuffers {
+    positions: VertexBuffer,
+    normals: Option<VertexBuffer>,
+    tangents: Option<VertexBuffer>,
+    uvs: Option<VertexBuffer>,
+    colors: Option<VertexBuffer>,
+}
+
+impl VertexBuffers {
+    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
+        #[cfg(debug_assertions)]
+        cpu_mesh.validate().expect("invalid cpu mesh");
+
+        Self {
+            positions: VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
+            normals: cpu_mesh
+                .normals
+                .as_ref()
+                .map(|data| VertexBuffer::new_with_data(context, data)),
+            tangents: cpu_mesh
+                .tangents
+                .as_ref()
+                .map(|data| VertexBuffer::new_with_data(context, data)),
+            uvs: cpu_mesh.uvs.as_ref().map(|data| {
+                VertexBuffer::new_with_data(
+                    context,
+                    &data
+                        .iter()
+                        .map(|uv| vec2(uv.x, 1.0 - uv.y))
+                        .collect::<Vec<_>>(),
+                )
+            }),
+            colors: cpu_mesh
+                .colors
+                .as_ref()
+                .map(|data| VertexBuffer::new_with_data(context, data)),
+        }
+    }
+
+    pub fn use_attributes(&self, program: &Program, attributes: FragmentAttributes) {
+        program.use_vertex_attribute("position", &self.positions);
+
+        if attributes.normal {
+            program.use_vertex_attribute(
+                "normal",
+                self.normals.as_ref().unwrap_or_else(|| {
+                    panic!(
+                        "the material requires normal attributes but the geometry did not provide it"
+                    )
+                }),
+            );
+        }
+
+        if attributes.tangents {
+            program.use_vertex_attribute(
+                "tangent",
+                self.tangents.as_ref().unwrap_or_else(|| {
+                    panic!(
+                        "the material requires tangent attributes but the geometry did not provide it"
+                    )
+                }),
+            );
+        }
+
+        if attributes.uv {
+            program.use_vertex_attribute(
+                "uv_coordinates",
+                self.uvs.as_ref().unwrap_or_else(|| {
+                    panic!(
+                        "the material requires uv coordinate attributes but the geometry did not provide it"
+                    )
+                }),
+            );
+        }
+
+        if let Some(colors) = &self.colors {
+            program.use_vertex_attribute("color", colors);
+        }
+    }
+}
+
 fn vertex_buffers_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Vec<(String, VertexBuffer)> {
     #[cfg(debug_assertions)]
     cpu_mesh.validate().expect("invalid cpu mesh");
