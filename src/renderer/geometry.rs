@@ -305,7 +305,8 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     }
 }
 
-struct VertexBuffers {
+struct BaseMesh {
+    indices: Option<ElementBuffer>,
     positions: VertexBuffer,
     normals: Option<VertexBuffer>,
     tangents: Option<VertexBuffer>,
@@ -313,12 +314,18 @@ struct VertexBuffers {
     colors: Option<VertexBuffer>,
 }
 
-impl VertexBuffers {
+impl BaseMesh {
     pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
         #[cfg(debug_assertions)]
         cpu_mesh.validate().expect("invalid cpu mesh");
 
         Self {
+            indices: match &cpu_mesh.indices {
+                Indices::U8(ind) => Some(ElementBuffer::new_with_data(context, ind)),
+                Indices::U16(ind) => Some(ElementBuffer::new_with_data(context, ind)),
+                Indices::U32(ind) => Some(ElementBuffer::new_with_data(context, ind)),
+                Indices::None => None,
+            },
             positions: VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
             normals: cpu_mesh
                 .normals
@@ -383,14 +390,5 @@ impl VertexBuffers {
         if let Some(colors) = &self.colors {
             program.use_vertex_attribute("color", colors);
         }
-    }
-}
-
-fn index_buffer_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Option<ElementBuffer> {
-    match &cpu_mesh.indices {
-        Indices::U8(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-        Indices::U16(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-        Indices::U32(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-        Indices::None => None,
     }
 }

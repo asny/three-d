@@ -3,16 +3,15 @@ use crate::renderer::*;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-use super::VertexBuffers;
+use super::BaseMesh;
 
 ///
 /// Similar to [Mesh], except it is possible to render many instances of the same mesh efficiently.
 ///
 pub struct InstancedMesh {
     context: Context,
-    vertex_buffers: VertexBuffers,
+    base_mesh: BaseMesh,
     instance_buffers: RwLock<(HashMap<String, InstanceBuffer>, Vec3)>,
-    index_buffer: Option<ElementBuffer>,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     current_transformation: Mat4,
@@ -32,8 +31,7 @@ impl InstancedMesh {
         let aabb = cpu_mesh.compute_aabb();
         let mut instanced_mesh = Self {
             context: context.clone(),
-            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
-            vertex_buffers: VertexBuffers::new(context, cpu_mesh),
+            base_mesh: BaseMesh::new(context, cpu_mesh),
             instance_buffers: RwLock::new((Default::default(), vec3(0.0, 0.0, 0.0))),
             aabb,
             transformation: Mat4::identity(),
@@ -296,7 +294,7 @@ impl InstancedMesh {
             program.use_uniform("textureTransform", self.texture_transform);
         }
 
-        self.vertex_buffers.use_attributes(program, attributes);
+        self.base_mesh.use_attributes(program, attributes);
 
         for attribute_name in [
             "instance_translation",
@@ -316,7 +314,7 @@ impl InstancedMesh {
             }
         }
 
-        if let Some(ref index_buffer) = self.index_buffer {
+        if let Some(ref index_buffer) = self.base_mesh.indices {
             program.draw_elements_instanced(
                 render_states,
                 camera.viewport(),
@@ -327,7 +325,7 @@ impl InstancedMesh {
             program.draw_arrays_instanced(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.positions.vertex_count(),
+                self.base_mesh.positions.vertex_count(),
                 self.instance_count,
             )
         }
@@ -360,13 +358,11 @@ impl InstancedMesh {
             } else {
                 ""
             },
-            if instance_buffers.contains_key("instance_color")
-                && self.vertex_buffers.colors.is_some()
-            {
+            if instance_buffers.contains_key("instance_color") && self.base_mesh.colors.is_some() {
                 "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
             } else if instance_buffers.contains_key("instance_color") {
                 "#define USE_INSTANCE_COLORS\n"
-            } else if self.vertex_buffers.colors.is_some() {
+            } else if self.base_mesh.colors.is_some() {
                 "#define USE_VERTEX_COLORS\n"
             } else {
                 ""

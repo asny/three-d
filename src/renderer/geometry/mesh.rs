@@ -1,14 +1,13 @@
 use crate::core::*;
 use crate::renderer::*;
 
-use super::VertexBuffers;
+use super::BaseMesh;
 
 ///
 /// A triangle mesh [Geometry].
 ///
 pub struct Mesh {
-    vertex_buffers: VertexBuffers,
-    index_buffer: Option<ElementBuffer>,
+    base_mesh: BaseMesh,
     context: Context,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -26,8 +25,7 @@ impl Mesh {
         let aabb = cpu_mesh.compute_aabb();
         Self {
             context: context.clone(),
-            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
-            vertex_buffers: VertexBuffers::new(context, cpu_mesh),
+            base_mesh: BaseMesh::new(context, cpu_mesh),
             aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
@@ -120,15 +118,15 @@ impl Mesh {
             program.use_uniform("textureTransform", self.texture_transform);
         }
 
-        self.vertex_buffers.use_attributes(program, attributes);
+        self.base_mesh.use_attributes(program, attributes);
 
-        if let Some(ref index_buffer) = self.index_buffer {
+        if let Some(index_buffer) = &self.base_mesh.indices {
             program.draw_elements(render_states, camera.viewport(), index_buffer)
         } else {
             program.draw_arrays(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.positions.vertex_count(),
+                self.base_mesh.positions.vertex_count(),
             )
         }
     }
@@ -151,7 +149,7 @@ impl Mesh {
             } else {
                 ""
             },
-            if self.vertex_buffers.colors.is_some() {
+            if self.base_mesh.colors.is_some() {
                 "#define USE_VERTEX_COLORS\n"
             } else {
                 ""

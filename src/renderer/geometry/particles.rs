@@ -3,7 +3,7 @@ use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
 
-use super::VertexBuffers;
+use super::BaseMesh;
 
 ///
 /// Used for defining the attributes for each particle in a [ParticleSystem], for example its starting position and velocity.
@@ -72,9 +72,8 @@ impl Particles {
 ///
 pub struct ParticleSystem {
     context: Context,
-    vertex_buffers: VertexBuffers,
+    base_mesh: BaseMesh,
     instance_buffers: HashMap<String, InstanceBuffer>,
-    index_buffer: Option<ElementBuffer>,
     /// The acceleration applied to all particles defined in the world coordinate system.
     pub acceleration: Vec3,
     instance_count: u32,
@@ -101,8 +100,7 @@ impl ParticleSystem {
 
         let mut particles_system = Self {
             context: context.clone(),
-            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
-            vertex_buffers: VertexBuffers::new(context, cpu_mesh),
+            base_mesh: BaseMesh::new(context, cpu_mesh),
             instance_buffers: HashMap::new(),
             acceleration,
             instance_count: 0,
@@ -218,7 +216,7 @@ impl ParticleSystem {
             program.use_uniform("textureTransform", self.texture_transform);
         }
 
-        self.vertex_buffers.use_attributes(program, attributes);
+        self.base_mesh.use_attributes(program, attributes);
 
         for attribute_name in [
             "start_position",
@@ -236,7 +234,7 @@ impl ParticleSystem {
             }
         }
 
-        if let Some(ref index_buffer) = self.index_buffer {
+        if let Some(ref index_buffer) = self.base_mesh.indices {
             program.draw_elements_instanced(
                 render_states,
                 camera.viewport(),
@@ -247,7 +245,7 @@ impl ParticleSystem {
             program.draw_arrays_instanced(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.positions.vertex_count(),
+                self.base_mesh.positions.vertex_count(),
                 self.instance_count,
             )
         }
@@ -272,12 +270,12 @@ impl ParticleSystem {
                 ""
             },
             if self.instance_buffers.contains_key("instance_color")
-                && self.vertex_buffers.colors.is_some()
+                && self.base_mesh.colors.is_some()
             {
                 "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
             } else if self.instance_buffers.contains_key("instance_color") {
                 "#define USE_INSTANCE_COLORS\n"
-            } else if self.vertex_buffers.colors.is_some() {
+            } else if self.base_mesh.colors.is_some() {
                 "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
