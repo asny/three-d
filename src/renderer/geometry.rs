@@ -386,47 +386,6 @@ impl VertexBuffers {
     }
 }
 
-fn vertex_buffers_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Vec<(String, VertexBuffer)> {
-    #[cfg(debug_assertions)]
-    cpu_mesh.validate().expect("invalid cpu mesh");
-
-    let mut buffers = Vec::new();
-    buffers.push((
-        "position".to_string(),
-        VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
-    ));
-    if let Some(ref normals) = cpu_mesh.normals {
-        buffers.push((
-            "normal".to_string(),
-            VertexBuffer::new_with_data(context, normals),
-        ));
-    };
-    if let Some(ref tangents) = cpu_mesh.tangents {
-        buffers.push((
-            "tangent".to_string(),
-            VertexBuffer::new_with_data(context, tangents),
-        ));
-    };
-    if let Some(ref uvs) = cpu_mesh.uvs {
-        buffers.push((
-            "uv_coordinates".to_string(),
-            VertexBuffer::new_with_data(
-                context,
-                &uvs.iter()
-                    .map(|uv| vec2(uv.x, 1.0 - uv.y))
-                    .collect::<Vec<_>>(),
-            ),
-        ));
-    };
-    if let Some(ref colors) = cpu_mesh.colors {
-        buffers.push((
-            "color".to_string(),
-            VertexBuffer::new_with_data(context, colors),
-        ));
-    };
-    buffers
-}
-
 fn index_buffer_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Option<ElementBuffer> {
     match &cpu_mesh.indices {
         Indices::U8(ind) => Some(ElementBuffer::new_with_data(context, ind)),
