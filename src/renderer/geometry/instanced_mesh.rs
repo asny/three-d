@@ -3,12 +3,14 @@ use crate::renderer::*;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
+use super::VertexBuffers;
+
 ///
 /// Similar to [Mesh], except it is possible to render many instances of the same mesh efficiently.
 ///
 pub struct InstancedMesh {
     context: Context,
-    vertex_buffers: Vec<(String, VertexBuffer)>,
+    vertex_buffers: VertexBuffers,
     instance_buffers: RwLock<(HashMap<String, InstanceBuffer>, Vec3)>,
     index_buffer: Option<ElementBuffer>,
     aabb: AxisAlignedBoundingBox,
@@ -31,7 +33,7 @@ impl InstancedMesh {
         let mut instanced_mesh = Self {
             context: context.clone(),
             index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
-            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
+            vertex_buffers: VertexBuffers::new(context, cpu_mesh),
             instance_buffers: RwLock::new((Default::default(), vec3(0.0, 0.0, 0.0))),
             aabb,
             transformation: Mat4::identity(),
@@ -276,9 +278,10 @@ impl InstancedMesh {
         program: &Program,
         render_states: RenderStates,
         camera: &Camera,
+        attributes: FragmentAttributes,
         instance_buffers: &HashMap<String, InstanceBuffer>,
     ) {
-        if program.requires_uniform("normalMatrix") {
+        if attributes.normal && instance_buffers.contains_key("instance_translation") {
             if let Some(inverse) = self.current_transformation.invert() {
                 program.use_uniform("normalMatrix", inverse.transpose());
             } else {
@@ -288,13 +291,12 @@ impl InstancedMesh {
         }
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", self.current_transformation);
-        program.use_uniform_if_required("textureTransform", self.texture_transform);
 
-        for (attribute_name, buffer) in &self.vertex_buffers {
-            if program.requires_attribute(attribute_name) {
-                program.use_vertex_attribute(attribute_name, buffer);
-            }
+        if attributes.uv {
+            program.use_uniform("textureTransform", self.texture_transform);
         }
+
+        self.vertex_buffers.use_attributes(program, attributes);
 
         for attribute_name in [
             "instance_translation",
@@ -325,29 +327,10 @@ impl InstancedMesh {
             program.draw_arrays_instanced(
                 render_states,
                 camera.viewport(),
-                self.vertex_buffers.first().unwrap().1.vertex_count(),
+                self.vertex_buffers.positions.vertex_count(),
                 self.instance_count,
             )
         }
-    }
-
-    fn attributes_check(&self, required_attributes: FragmentAttributes) {
-        FragmentAttributes {
-            position: true,
-            normal: self.vertex_buffers.iter().any(|(name, _)| name == "normal"),
-            tangents: self.vertex_buffers.iter().any(|(name, _)| name == "normal")
-                && self
-                    .vertex_buffers
-                    .iter()
-                    .any(|(name, _)| name == "tangent"),
-            uv: self
-                .vertex_buffers
-                .iter()
-                .any(|(name, _)| name == "uv_coordinates"),
-            color: true,
-        }
-        .ensure_contains_all(required_attributes)
-        .unwrap_or_else(|e| panic!("{}", e));
     }
 
     fn vertex_shader_source(
@@ -378,12 +361,12 @@ impl InstancedMesh {
                 ""
             },
             if instance_buffers.contains_key("instance_color")
-                && self.vertex_buffers.iter().any(|(name, _)| name == "color")
+                && self.vertex_buffers.colors.is_some()
             {
                 "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
             } else if instance_buffers.contains_key("instance_color") {
                 "#define USE_INSTANCE_COLORS\n"
-            } else if self.vertex_buffers.iter().any(|(name, _)| name == "color") {
+            } else if self.vertex_buffers.colors.is_some() {
                 "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
@@ -447,13 +430,18 @@ impl Geometry for InstancedMesh {
             .0;
 
         let fragment_shader = material.fragment_shader(lights);
-        self.attributes_check(fragment_shader.attributes);
         let vertex_shader_source =
             self.vertex_shader_source(fragment_shader.attributes, instance_buffers);
         self.context
             .program(vertex_shader_source, fragment_shader.source, |program| {
                 material.use_uniforms(program, camera, lights);
-                self.draw(program, material.render_states(), camera, instance_buffers);
+                self.draw(
+                    program,
+                    material.render_states(),
+                    camera,
+                    fragment_shader.attributes,
+                    instance_buffers,
+                );
             })
             .expect("Failed compiling shader");
     }
@@ -481,13 +469,18 @@ impl Geometry for InstancedMesh {
             .0;
 
         let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        self.attributes_check(fragment_shader.attributes);
         let vertex_shader_source =
             self.vertex_shader_source(fragment_shader.attributes, instance_buffers);
         self.context
             .program(vertex_shader_source, fragment_shader.source, |program| {
                 material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                self.draw(program, material.render_states(), camera, instance_buffers);
+                self.draw(
+                    program,
+                    material.render_states(),
+                    camera,
+                    fragment_shader.attributes,
+                    instance_buffers,
+                );
             })
             .expect("Failed compiling shader");
     }
