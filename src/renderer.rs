@@ -29,10 +29,6 @@ pub enum RendererError {
     InvalidBufferLength(String, usize, usize),
     #[error("the material {0} is required by the geometry {1} but could not be found")]
     MissingMaterial(String, String),
-    #[error(
-        "the material requires the fragment attribute {0} but the geometry did not provide it"
-    )]
-    MissingFragmentAttribute(String),
 }
 
 pub mod material;
