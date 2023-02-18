@@ -109,7 +109,7 @@ fn build_context<T1: ContextCurrentState>(
         Err(err) => err,
     };
 
-    let err3 = match build_context_osmesa(cb) {
+    let _err3 = match build_context_osmesa(cb) {
         Ok(ctx) => return Ok((ctx, el)),
         Err(err) => err,
     };

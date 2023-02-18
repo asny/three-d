@@ -1,13 +1,13 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::collections::HashMap;
+
+use super::BaseMesh;
 
 ///
 /// A triangle mesh [Geometry].
 ///
 pub struct Mesh {
-    vertex_buffers: HashMap<String, VertexBuffer>,
-    index_buffer: Option<ElementBuffer>,
+    base_mesh: BaseMesh,
     context: Context,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -25,8 +25,7 @@ impl Mesh {
         let aabb = cpu_mesh.compute_aabb();
         Self {
             context: context.clone(),
-            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
-            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
+            base_mesh: BaseMesh::new(context, cpu_mesh),
             aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
@@ -97,8 +96,14 @@ impl Mesh {
         self.texture_transform = texture_transform;
     }
 
-    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
-        if program.requires_uniform("normalMatrix") {
+    fn draw(
+        &self,
+        program: &Program,
+        render_states: RenderStates,
+        camera: &Camera,
+        attributes: FragmentAttributes,
+    ) {
+        if attributes.normal {
             if let Some(inverse) = self.current_transformation.invert() {
                 program.use_uniform("normalMatrix", inverse.transpose());
             } else {
@@ -109,58 +114,34 @@ impl Mesh {
 
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", self.current_transformation);
-        program.use_uniform_if_required("textureTransform", self.texture_transform);
-
-        for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
-            if program.requires_attribute(attribute_name) {
-                program.use_vertex_attribute(
-                    attribute_name,
-                    self.vertex_buffers
-                        .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                );
-            }
+        if attributes.uv {
+            program.use_uniform("textureTransform", self.texture_transform);
         }
 
-        if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements(render_states, camera.viewport(), index_buffer)
-        } else {
-            program.draw_arrays(
-                render_states,
-                camera.viewport(),
-                self.vertex_buffers.get("position").unwrap().vertex_count(),
-            )
-        }
+        self.base_mesh
+            .draw(program, render_states, camera, attributes);
     }
 
-    fn vertex_shader_source(fragment_shader_source: &str) -> String {
-        let use_positions = fragment_shader_source.contains("in vec3 pos;");
-        let use_normals = fragment_shader_source.contains("in vec3 nor;");
-        let use_tangents = fragment_shader_source.contains("in vec3 tang;");
-        let use_uvs = fragment_shader_source.contains("in vec2 uvs;");
-        let use_colors = fragment_shader_source.contains("in vec4 col;");
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
         format!(
-            "{}{}{}{}{}{}{}",
-            if use_positions {
-                "#define USE_POSITIONS\n"
-            } else {
-                ""
-            },
-            if use_normals {
+            "{}{}{}{}{}{}",
+            if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {
                 ""
             },
-            if use_tangents {
-                if !fragment_shader_source.contains("in vec3 bitang;") {
-                    panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
-                }
+            if required_attributes.tangents {
                 "#define USE_TANGENTS\n"
             } else {
                 ""
             },
-            if use_uvs { "#define USE_UVS\n" } else { "" },
-            if use_colors {
-                "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
+            if required_attributes.uv {
+                "#define USE_UVS\n"
+            } else {
+                ""
+            },
+            if self.base_mesh.colors.is_some() {
+                "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },
@@ -198,18 +179,19 @@ impl Geometry for Mesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(self.vertex_buffers.contains_key("color"), lights);
+        let fragment_shader = material.fragment_shader(lights);
+        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
         self.context
-            .program(
-                &Self::vertex_shader_source(&fragment_shader_source),
-                &fragment_shader_source,
-                |program| {
-                    material.use_uniforms(program, camera, lights);
-                    self.draw(program, material.render_states(), camera);
-                },
-            )
-            .expect("Failed compiling shader")
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights);
+                self.draw(
+                    program,
+                    material.render_states(),
+                    camera,
+                    fragment_shader.attributes,
+                );
+            })
+            .expect("Failed compiling shader");
     }
 
     fn render_with_post_material(
@@ -220,17 +202,18 @@ impl Geometry for Mesh {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(lights, color_texture, depth_texture);
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
+        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
         self.context
-            .program(
-                &Self::vertex_shader_source(&fragment_shader_source),
-                &fragment_shader_source,
-                |program| {
-                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, material.render_states(), camera);
-                },
-            )
-            .expect("Failed compiling shader")
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                self.draw(
+                    program,
+                    material.render_states(),
+                    camera,
+                    fragment_shader.attributes,
+                );
+            })
+            .expect("Failed compiling shader");
     }
 }

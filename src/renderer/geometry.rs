@@ -305,56 +305,136 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     }
 }
 
-use std::collections::HashMap;
-fn vertex_buffers_from_mesh(
-    context: &Context,
-    cpu_mesh: &CpuMesh,
-) -> HashMap<String, VertexBuffer> {
-    #[cfg(debug_assertions)]
-    cpu_mesh.validate().expect("invalid cpu mesh");
-
-    let mut buffers = HashMap::new();
-    buffers.insert(
-        "position".to_string(),
-        VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
-    );
-    if let Some(ref normals) = cpu_mesh.normals {
-        buffers.insert(
-            "normal".to_string(),
-            VertexBuffer::new_with_data(context, normals),
-        );
-    };
-    if let Some(ref tangents) = cpu_mesh.tangents {
-        buffers.insert(
-            "tangent".to_string(),
-            VertexBuffer::new_with_data(context, tangents),
-        );
-    };
-    if let Some(ref uvs) = cpu_mesh.uvs {
-        buffers.insert(
-            "uv_coordinates".to_string(),
-            VertexBuffer::new_with_data(
-                context,
-                &uvs.iter()
-                    .map(|uv| vec2(uv.x, 1.0 - uv.y))
-                    .collect::<Vec<_>>(),
-            ),
-        );
-    };
-    if let Some(ref colors) = cpu_mesh.colors {
-        buffers.insert(
-            "color".to_string(),
-            VertexBuffer::new_with_data(context, colors),
-        );
-    };
-    buffers
+struct BaseMesh {
+    indices: Option<ElementBuffer>,
+    positions: VertexBuffer,
+    normals: Option<VertexBuffer>,
+    tangents: Option<VertexBuffer>,
+    uvs: Option<VertexBuffer>,
+    colors: Option<VertexBuffer>,
 }
 
-fn index_buffer_from_mesh(context: &Context, cpu_mesh: &CpuMesh) -> Option<ElementBuffer> {
-    match &cpu_mesh.indices {
-        Indices::U8(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-        Indices::U16(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-        Indices::U32(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-        Indices::None => None,
+impl BaseMesh {
+    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
+        #[cfg(debug_assertions)]
+        cpu_mesh.validate().expect("invalid cpu mesh");
+
+        Self {
+            indices: match &cpu_mesh.indices {
+                Indices::U8(ind) => Some(ElementBuffer::new_with_data(context, ind)),
+                Indices::U16(ind) => Some(ElementBuffer::new_with_data(context, ind)),
+                Indices::U32(ind) => Some(ElementBuffer::new_with_data(context, ind)),
+                Indices::None => None,
+            },
+            positions: VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
+            normals: cpu_mesh
+                .normals
+                .as_ref()
+                .map(|data| VertexBuffer::new_with_data(context, data)),
+            tangents: cpu_mesh
+                .tangents
+                .as_ref()
+                .map(|data| VertexBuffer::new_with_data(context, data)),
+            uvs: cpu_mesh.uvs.as_ref().map(|data| {
+                VertexBuffer::new_with_data(
+                    context,
+                    &data
+                        .iter()
+                        .map(|uv| vec2(uv.x, 1.0 - uv.y))
+                        .collect::<Vec<_>>(),
+                )
+            }),
+            colors: cpu_mesh
+                .colors
+                .as_ref()
+                .map(|data| VertexBuffer::new_with_data(context, data)),
+        }
+    }
+
+    pub fn draw(
+        &self,
+        program: &Program,
+        render_states: RenderStates,
+        camera: &Camera,
+        attributes: FragmentAttributes,
+    ) {
+        self.use_attributes(program, attributes);
+        if let Some(index_buffer) = &self.indices {
+            program.draw_elements(render_states, camera.viewport(), index_buffer)
+        } else {
+            program.draw_arrays(
+                render_states,
+                camera.viewport(),
+                self.positions.vertex_count(),
+            )
+        }
+    }
+
+    pub fn draw_instanced(
+        &self,
+        program: &Program,
+        render_states: RenderStates,
+        camera: &Camera,
+        attributes: FragmentAttributes,
+        instance_count: u32,
+    ) {
+        self.use_attributes(program, attributes);
+
+        if let Some(index_buffer) = &self.indices {
+            program.draw_elements_instanced(
+                render_states,
+                camera.viewport(),
+                index_buffer,
+                instance_count,
+            )
+        } else {
+            program.draw_arrays_instanced(
+                render_states,
+                camera.viewport(),
+                self.positions.vertex_count(),
+                instance_count,
+            )
+        }
+    }
+
+    fn use_attributes(&self, program: &Program, attributes: FragmentAttributes) {
+        program.use_vertex_attribute("position", &self.positions);
+
+        if attributes.normal {
+            program.use_vertex_attribute(
+                "normal",
+                self.normals.as_ref().unwrap_or_else(|| {
+                    panic!(
+                        "the material requires normal attributes but the geometry did not provide it"
+                    )
+                }),
+            );
+        }
+
+        if attributes.tangents {
+            program.use_vertex_attribute(
+                "tangent",
+                self.tangents.as_ref().unwrap_or_else(|| {
+                    panic!(
+                        "the material requires tangent attributes but the geometry did not provide it"
+                    )
+                }),
+            );
+        }
+
+        if attributes.uv {
+            program.use_vertex_attribute(
+                "uv_coordinates",
+                self.uvs.as_ref().unwrap_or_else(|| {
+                    panic!(
+                        "the material requires uv coordinate attributes but the geometry did not provide it"
+                    )
+                }),
+            );
+        }
+
+        if let Some(colors) = &self.colors {
+            program.use_vertex_attribute("color", colors);
+        }
     }
 }

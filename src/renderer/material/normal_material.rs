@@ -52,14 +52,21 @@ impl FromCpuMaterial for NormalMaterial {
 }
 
 impl Material for NormalMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        let mut shader = String::new();
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
+        let mut attributes = FragmentAttributes {
+            normal: true,
+            ..FragmentAttributes::NONE
+        };
+        let mut source = String::new();
         if self.normal_texture.is_some() {
-            shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\nin vec3 tang;\nin vec3 bitang;\n");
+            attributes.uv = true;
+            attributes.tangents = true;
+            source.push_str("#define USE_TEXTURE\nin vec2 uvs;\nin vec3 tang;\nin vec3 bitang;\n");
         }
-        shader.push_str(include_str!("shaders/normal_material.frag"));
-        shader
+        source.push_str(include_str!("shaders/normal_material.frag"));
+        FragmentShader { source, attributes }
     }
+
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         if let Some(ref tex) = self.normal_texture {
             program.use_uniform("normalScale", self.normal_scale);

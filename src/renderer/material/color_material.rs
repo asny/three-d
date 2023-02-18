@@ -82,18 +82,24 @@ impl FromCpuMaterial for ColorMaterial {
 }
 
 impl Material for ColorMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
+        let mut attributes = FragmentAttributes {
+            color: true,
+            ..FragmentAttributes::NONE
+        };
         let mut shader = String::new();
         if self.texture.is_some() {
+            attributes.uv = true;
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
-        }
-        if use_vertex_colors {
-            shader.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));
-        shader
+        FragmentShader {
+            source: shader,
+            attributes,
+        }
     }
+
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("surfaceColor", self.color);
         if let Some(ref tex) = self.texture {

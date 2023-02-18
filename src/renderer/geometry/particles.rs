@@ -3,6 +3,8 @@ use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
 
+use super::BaseMesh;
+
 ///
 /// Used for defining the attributes for each particle in a [ParticleSystem], for example its starting position and velocity.
 ///
@@ -70,9 +72,8 @@ impl Particles {
 ///
 pub struct ParticleSystem {
     context: Context,
-    vertex_buffers: HashMap<String, VertexBuffer>,
+    base_mesh: BaseMesh,
     instance_buffers: HashMap<String, InstanceBuffer>,
-    index_buffer: Option<ElementBuffer>,
     /// The acceleration applied to all particles defined in the world coordinate system.
     pub acceleration: Vec3,
     instance_count: u32,
@@ -99,8 +100,7 @@ impl ParticleSystem {
 
         let mut particles_system = Self {
             context: context.clone(),
-            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
-            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
+            base_mesh: BaseMesh::new(context, cpu_mesh),
             instance_buffers: HashMap::new(),
             acceleration,
             instance_count: 0,
@@ -187,13 +187,19 @@ impl ParticleSystem {
         if let Some(instance_colors) = &particles.colors {
             self.instance_buffers.insert(
                 "instance_color".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_colors),
+                InstanceBuffer::new_with_data(&self.context, instance_colors),
             );
         }
     }
 
-    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
-        if program.requires_uniform("normalMatrix") {
+    fn draw(
+        &self,
+        program: &Program,
+        render_states: RenderStates,
+        camera: &Camera,
+        attributes: FragmentAttributes,
+    ) {
+        if attributes.normal {
             if let Some(inverse) = self.transformation.invert() {
                 program.use_uniform("normalMatrix", inverse.transpose());
             } else {
@@ -202,20 +208,15 @@ impl ParticleSystem {
             }
         }
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", &self.transformation);
-        program.use_uniform("acceleration", &self.acceleration);
-        program.use_uniform("time", &self.time);
-        program.use_uniform_if_required("textureTransform", &self.texture_transform);
+        program.use_uniform("modelMatrix", self.transformation);
+        program.use_uniform("acceleration", self.acceleration);
+        program.use_uniform("time", self.time);
 
-        for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
-            if program.requires_attribute(attribute_name) {
-                program.use_vertex_attribute(
-                    attribute_name,
-                    self.vertex_buffers
-                        .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                );
-            }
+        if attributes.uv {
+            program.use_uniform("textureTransform", self.texture_transform);
         }
+
+        self.base_mesh.use_attributes(program, attributes);
 
         for attribute_name in [
             "start_position",
@@ -228,65 +229,45 @@ impl ParticleSystem {
                 program.use_instance_attribute(
                     attribute_name,
                     self.instance_buffers
-                    .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
+                    .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
                 );
             }
         }
-
-        if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements_instanced(
-                render_states,
-                camera.viewport(),
-                index_buffer,
-                self.instance_count,
-            )
-        } else {
-            program.draw_arrays_instanced(
-                render_states,
-                camera.viewport(),
-                self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
-                self.instance_count,
-            )
-        }
+        self.base_mesh.draw_instanced(
+            program,
+            render_states,
+            camera,
+            attributes,
+            self.instance_count,
+        );
     }
 
-    fn vertex_shader_source(&self, fragment_shader_source: &str) -> String {
-        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
-        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
-        let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
-        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
-        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
         format!(
-            "#define PARTICLES\n{}{}{}{}{}{}{}{}",
-            if use_positions {
-                "#define USE_POSITIONS\n"
-            } else {
-                ""
-            },
-            if use_normals {
+            "#define PARTICLES\n{}{}{}{}{}{}{}",
+            if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {
                 ""
             },
-            if use_tangents {
-                if fragment_shader_source.find("in vec3 bitang;").is_none() {
-                    panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
-                }
+            if required_attributes.tangents {
                 "#define USE_TANGENTS\n"
             } else {
                 ""
             },
-            if use_uvs { "#define USE_UVS\n" } else { "" },
-            if use_colors {
-                if self.instance_buffers.contains_key("instance_color")
-                    && self.vertex_buffers.contains_key("color")
-                {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else if self.instance_buffers.contains_key("instance_color") {
-                    "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
-                }
+            if required_attributes.uv {
+                "#define USE_UVS\n"
+            } else {
+                ""
+            },
+            if self.instance_buffers.contains_key("instance_color")
+                && self.base_mesh.colors.is_some()
+            {
+                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+            } else if self.instance_buffers.contains_key("instance_color") {
+                "#define USE_INSTANCE_COLORS\n"
+            } else if self.base_mesh.colors.is_some() {
+                "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },
@@ -321,21 +302,19 @@ impl Geometry for ParticleSystem {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source = material.fragment_shader_source(
-            self.vertex_buffers.contains_key("color")
-                || self.instance_buffers.contains_key("instance_color"),
-            lights,
-        );
+        let fragment_shader = material.fragment_shader(lights);
+        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
         self.context
-            .program(
-                &self.vertex_shader_source(&fragment_shader_source),
-                &fragment_shader_source,
-                |program| {
-                    material.use_uniforms(program, camera, lights);
-                    self.draw(program, material.render_states(), camera);
-                },
-            )
-            .expect("Failed compiling shader")
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights);
+                self.draw(
+                    program,
+                    material.render_states(),
+                    camera,
+                    fragment_shader.attributes,
+                );
+            })
+            .expect("Failed compiling shader");
     }
 
     fn render_with_post_material(
@@ -346,18 +325,19 @@ impl Geometry for ParticleSystem {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(lights, color_texture, depth_texture);
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
+        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
         self.context
-            .program(
-                &self.vertex_shader_source(&fragment_shader_source),
-                &fragment_shader_source,
-                |program| {
-                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, material.render_states(), camera);
-                },
-            )
-            .expect("Failed compiling shader")
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                self.draw(
+                    program,
+                    material.render_states(),
+                    camera,
+                    fragment_shader.attributes,
+                );
+            })
+            .expect("Failed compiling shader");
     }
 
     fn animate(&mut self, time: f32) {

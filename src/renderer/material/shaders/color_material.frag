@@ -5,15 +5,13 @@ uniform sampler2D tex;
 uniform mat3 textureTransformation;
 #endif
 
+in vec4 col;
+
 layout (location = 0) out vec4 outColor;
 
 void main()
 {
-    outColor = surfaceColor;
-    
-    #ifdef USE_VERTEX_COLORS
-    outColor *= col;
-    #endif
+    outColor = surfaceColor * col;
     
     #ifdef USE_TEXTURE
     vec4 tex_color = texture(tex, (textureTransformation * vec3(uvs, 1.0)).xy);

@@ -25,11 +25,18 @@ pub struct IsosurfaceMaterial {
 }
 
 impl Material for IsosurfaceMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
-        let mut output = lights_shader_source(lights, self.lighting_model);
-        output.push_str(include_str!("shaders/isosurface_material.frag"));
-        output
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+        let mut source = lights_shader_source(lights, self.lighting_model);
+        source.push_str(include_str!("shaders/isosurface_material.frag"));
+        FragmentShader {
+            source,
+            attributes: FragmentAttributes {
+                position: true,
+                ..FragmentAttributes::NONE
+            },
+        }
     }
+
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);
@@ -64,7 +71,7 @@ impl Material for IsosurfaceMaterial {
 impl FromCpuVoxelGrid for IsosurfaceMaterial {
     fn from_cpu_voxel_grid(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> Self {
         Self {
-            voxels: std::sync::Arc::new(Texture3D::new(&context, &cpu_voxel_grid.voxels)),
+            voxels: std::sync::Arc::new(Texture3D::new(context, &cpu_voxel_grid.voxels)),
             lighting_model: LightingModel::Blinn,
             size: cpu_voxel_grid.size,
             threshold: 0.15,

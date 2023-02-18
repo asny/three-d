@@ -133,7 +133,13 @@ impl FromCpuMaterial for PhysicalMaterial {
 }
 
 impl Material for PhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+        let mut attributes = FragmentAttributes {
+            position: true,
+            normal: true,
+            color: true,
+            ..FragmentAttributes::NONE
+        };
         let mut output = lights_shader_source(lights, self.lighting_model);
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
@@ -141,6 +147,7 @@ impl Material for PhysicalMaterial {
             || self.occlusion_texture.is_some()
             || self.emissive_texture.is_some()
         {
+            attributes.uv = true;
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
                 output.push_str("#define USE_ALBEDO_TEXTURE;\n");
@@ -152,18 +159,20 @@ impl Material for PhysicalMaterial {
                 output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
             }
             if self.normal_texture.is_some() {
+                attributes.tangents = true;
                 output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
             }
             if self.emissive_texture.is_some() {
                 output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
             }
         }
-        if use_vertex_colors {
-            output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
-        }
         output.push_str(include_str!("shaders/physical_material.frag"));
-        output
+        FragmentShader {
+            source: output,
+            attributes,
+        }
     }
+
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         if !lights.is_empty() {
             program.use_uniform_if_required("cameraPosition", camera.position());

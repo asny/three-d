@@ -24,7 +24,7 @@ impl Sprites {
     ///
     pub fn new(context: &Context, centers: &[Vec3], direction: Option<Vec3>) -> Self {
         let position_buffer = VertexBuffer::new_with_data(
-            &context,
+            context,
             &[
                 vec3(-1.0, -1.0, 0.0),
                 vec3(1.0, -1.0, 0.0),
@@ -35,7 +35,7 @@ impl Sprites {
             ],
         );
         let uv_buffer = VertexBuffer::new_with_data(
-            &context,
+            context,
             &[
                 vec2(0.0, 0.0),
                 vec2(1.0, 0.0),
@@ -116,11 +116,17 @@ impl Geometry for Sprites {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source = material.fragment_shader_source(false, lights);
+        let fragment_shader = material.fragment_shader(lights);
+        if !fragment_shader.attributes.uv {
+            todo!()
+        }
+        if fragment_shader.attributes.normal || fragment_shader.attributes.tangents {
+            todo!()
+        }
         self.context
             .program(
-                &include_str!("shaders/sprites.vert"),
-                &fragment_shader_source,
+                include_str!("shaders/sprites.vert").to_owned(),
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     self.draw(program, material.render_states(), camera);
@@ -137,12 +143,17 @@ impl Geometry for Sprites {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(lights, color_texture, depth_texture);
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
+        if !fragment_shader.attributes.uv {
+            todo!()
+        }
+        if fragment_shader.attributes.normal || fragment_shader.attributes.tangents {
+            todo!()
+        }
         self.context
             .program(
-                &include_str!("shaders/sprites.vert"),
-                &fragment_shader_source,
+                include_str!("shaders/sprites.vert").to_owned(),
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     self.draw(program, material.render_states(), camera);

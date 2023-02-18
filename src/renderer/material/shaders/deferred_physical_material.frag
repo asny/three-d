@@ -33,6 +33,7 @@ uniform float normalScale;
 
 in vec3 pos;
 in vec3 nor;
+in vec4 col;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 outNormal;
@@ -40,16 +41,13 @@ layout (location = 2) out vec4 outEmissive;
 
 void main()
 {
-    vec4 surface_color = albedo;
+    vec4 surface_color = albedo * col;
 #ifdef USE_ALBEDO_TEXTURE
     vec4 c = texture(albedoTexture, (albedoTexTransform * vec3(uvs, 1.0)).xy);
     #ifdef ALPHACUT
         if (c.a < acut) discard;
     #endif
     surface_color *= vec4(rgb_from_srgb(c.rgb), c.a);
-#endif
-#ifdef USE_VERTEX_COLORS
-    surface_color *= col;
 #endif
 
     float metallic_factor = metallic;

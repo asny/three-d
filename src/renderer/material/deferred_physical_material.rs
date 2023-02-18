@@ -182,7 +182,13 @@ impl FromCpuMaterial for DeferredPhysicalMaterial {
 }
 
 impl Material for DeferredPhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
+        let mut attributes = FragmentAttributes {
+            position: true,
+            normal: true,
+            color: true,
+            ..FragmentAttributes::NONE
+        };
         let mut output = include_str!("../../core/shared.frag").to_string();
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
@@ -191,6 +197,7 @@ impl Material for DeferredPhysicalMaterial {
             || self.emissive_texture.is_some()
             || self.alpha_cutout.is_some()
         {
+            attributes.uv = true;
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
                 output.push_str("#define USE_ALBEDO_TEXTURE;\n");
@@ -202,6 +209,7 @@ impl Material for DeferredPhysicalMaterial {
                 output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
             }
             if self.normal_texture.is_some() {
+                attributes.tangents = true;
                 output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
             }
             if self.emissive_texture.is_some() {
@@ -217,11 +225,11 @@ impl Material for DeferredPhysicalMaterial {
                 );
             }
         }
-        if use_vertex_colors {
-            output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
-        }
         output.push_str(include_str!("shaders/deferred_physical_material.frag"));
-        output
+        FragmentShader {
+            source: output,
+            attributes,
+        }
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

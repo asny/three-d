@@ -213,10 +213,10 @@ impl WaterPatch {
     fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
         program.use_uniform(
             "offset",
-            &self.center + vec3(self.offset.x, 0.0, self.offset.y),
+            self.center + vec3(self.offset.x, 0.0, self.offset.y),
         );
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("time", &(self.time as f32 * 0.001));
+        program.use_uniform("time", self.time * 0.001);
         program.use_uniform_array(
             "waveParameters",
             &self
@@ -246,11 +246,14 @@ impl Geometry for WaterPatch {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader_source = material.fragment_shader_source(false, lights);
+        let fragment_shader = material.fragment_shader(lights);
+        if fragment_shader.attributes.tangents {
+            todo!() // Water should be able to provide tangents
+        }
         self.context
             .program(
-                &include_str!("shaders/water.vert"),
-                &fragment_shader_source,
+                include_str!("shaders/water.vert").to_owned(),
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights);
                     self.draw(program, material.render_states(), camera);
@@ -267,12 +270,14 @@ impl Geometry for WaterPatch {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader_source =
-            material.fragment_shader_source(lights, color_texture, depth_texture);
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
+        if fragment_shader.attributes.tangents {
+            todo!() // Water should be able to provide tangents
+        }
         self.context
             .program(
-                &include_str!("shaders/water.vert"),
-                &fragment_shader_source,
+                include_str!("shaders/water.vert").to_owned(),
+                fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                     self.draw(program, material.render_states(), camera);

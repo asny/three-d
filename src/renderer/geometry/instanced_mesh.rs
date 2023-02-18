@@ -3,14 +3,15 @@ use crate::renderer::*;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
+use super::BaseMesh;
+
 ///
 /// Similar to [Mesh], except it is possible to render many instances of the same mesh efficiently.
 ///
 pub struct InstancedMesh {
     context: Context,
-    vertex_buffers: HashMap<String, VertexBuffer>,
+    base_mesh: BaseMesh,
     instance_buffers: RwLock<(HashMap<String, InstanceBuffer>, Vec3)>,
-    index_buffer: Option<ElementBuffer>,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     current_transformation: Mat4,
@@ -30,8 +31,7 @@ impl InstancedMesh {
         let aabb = cpu_mesh.compute_aabb();
         let mut instanced_mesh = Self {
             context: context.clone(),
-            index_buffer: super::index_buffer_from_mesh(context, cpu_mesh),
-            vertex_buffers: super::vertex_buffers_from_mesh(context, cpu_mesh),
+            base_mesh: BaseMesh::new(context, cpu_mesh),
             instance_buffers: RwLock::new((Default::default(), vec3(0.0, 0.0, 0.0))),
             aabb,
             transformation: Mat4::identity(),
@@ -276,9 +276,10 @@ impl InstancedMesh {
         program: &Program,
         render_states: RenderStates,
         camera: &Camera,
+        attributes: FragmentAttributes,
         instance_buffers: &HashMap<String, InstanceBuffer>,
     ) {
-        if program.requires_uniform("normalMatrix") {
+        if attributes.normal && instance_buffers.contains_key("instance_translation") {
             if let Some(inverse) = self.current_transformation.invert() {
                 program.use_uniform("normalMatrix", inverse.transpose());
             } else {
@@ -287,17 +288,10 @@ impl InstancedMesh {
             }
         }
         program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", &self.current_transformation);
-        program.use_uniform_if_required("textureTransform", &self.texture_transform);
+        program.use_uniform("modelMatrix", self.current_transformation);
 
-        for attribute_name in ["position", "normal", "tangent", "color", "uv_coordinates"] {
-            if program.requires_attribute(attribute_name) {
-                program.use_vertex_attribute(
-                    attribute_name,
-                    self.vertex_buffers
-                        .get(attribute_name).expect(&format!("the render call requires the {} vertex buffer which is missing on the given geometry", attribute_name))
-                );
-            }
+        if attributes.uv {
+            program.use_uniform("textureTransform", self.texture_transform);
         }
 
         for attribute_name in [
@@ -313,74 +307,52 @@ impl InstancedMesh {
                 program.use_instance_attribute(
                     attribute_name,
                     instance_buffers
-                    .get(attribute_name).expect(&format!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
+                    .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
                 );
             }
         }
-
-        if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements_instanced(
-                render_states,
-                camera.viewport(),
-                index_buffer,
-                self.instance_count,
-            )
-        } else {
-            program.draw_arrays_instanced(
-                render_states,
-                camera.viewport(),
-                self.vertex_buffers.get("position").unwrap().vertex_count() as u32,
-                self.instance_count,
-            )
-        }
+        self.base_mesh.draw_instanced(
+            program,
+            render_states,
+            camera,
+            attributes,
+            self.instance_count,
+        );
     }
 
     fn vertex_shader_source(
         &self,
-        fragment_shader_source: &str,
+        required_attributes: FragmentAttributes,
         instance_buffers: &HashMap<String, InstanceBuffer>,
     ) -> String {
-        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
-        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
-        let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
-        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
-        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         format!(
-            "{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}",
             if instance_buffers.contains_key("instance_translation") {
                 "#define USE_INSTANCE_TRANSLATIONS\n"
             } else {
                 "#define USE_INSTANCE_TRANSFORMS\n"
             },
-            if use_positions {
-                "#define USE_POSITIONS\n"
-            } else {
-                ""
-            },
-            if use_normals {
+            if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {
                 ""
             },
-            if use_tangents {
-                if fragment_shader_source.find("in vec3 bitang;").is_none() {
-                    panic!("if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'");
-                }
+            if required_attributes.tangents {
                 "#define USE_TANGENTS\n"
             } else {
                 ""
             },
-            if use_uvs { "#define USE_UVS\n" } else { "" },
-            if use_colors {
-                if instance_buffers.contains_key("instance_color")
-                    && self.vertex_buffers.contains_key("color")
-                {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else if instance_buffers.contains_key("instance_color") {
-                    "#define USE_COLORS\n#define USE_INSTANCE_COLORS\n"
-                } else {
-                    "#define USE_COLORS\n#define USE_VERTEX_COLORS\n"
-                }
+            if required_attributes.uv {
+                "#define USE_UVS\n"
+            } else {
+                ""
+            },
+            if instance_buffers.contains_key("instance_color") && self.base_mesh.colors.is_some() {
+                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+            } else if instance_buffers.contains_key("instance_color") {
+                "#define USE_INSTANCE_COLORS\n"
+            } else if self.base_mesh.colors.is_some() {
+                "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },
@@ -442,21 +414,21 @@ impl Geometry for InstancedMesh {
             .expect("failed to acquire read access")
             .0;
 
-        let fragment_shader_source = material.fragment_shader_source(
-            self.vertex_buffers.contains_key("color")
-                || instance_buffers.contains_key("instance_color"),
-            lights,
-        );
+        let fragment_shader = material.fragment_shader(lights);
+        let vertex_shader_source =
+            self.vertex_shader_source(fragment_shader.attributes, instance_buffers);
         self.context
-            .program(
-                &self.vertex_shader_source(&fragment_shader_source, &instance_buffers),
-                &fragment_shader_source,
-                |program| {
-                    material.use_uniforms(program, camera, lights);
-                    self.draw(program, material.render_states(), camera, instance_buffers);
-                },
-            )
-            .expect("Failed compiling shader")
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights);
+                self.draw(
+                    program,
+                    material.render_states(),
+                    camera,
+                    fragment_shader.attributes,
+                    instance_buffers,
+                );
+            })
+            .expect("Failed compiling shader");
     }
 
     fn render_with_post_material(
@@ -468,25 +440,34 @@ impl Geometry for InstancedMesh {
         depth_texture: Option<DepthTexture>,
     ) {
         // Update the instance buffers if required.
-        self.update_instance_buffers(None);
+        let update_pose = if material.material_type() == MaterialType::Transparent {
+            Some(*camera.position())
+        } else {
+            None
+        };
+
+        self.update_instance_buffers(update_pose);
         let instance_buffers = &self
             .instance_buffers
             .read()
             .expect("failed to acquire read access")
             .0;
 
-        let fragment_shader_source =
-            material.fragment_shader_source(lights, color_texture, depth_texture);
+        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
+        let vertex_shader_source =
+            self.vertex_shader_source(fragment_shader.attributes, instance_buffers);
         self.context
-            .program(
-                &self.vertex_shader_source(&fragment_shader_source, &instance_buffers),
-                &fragment_shader_source,
-                |program| {
-                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, material.render_states(), camera, instance_buffers);
-                },
-            )
-            .expect("Failed compiling shader")
+            .program(vertex_shader_source, fragment_shader.source, |program| {
+                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+                self.draw(
+                    program,
+                    material.render_states(),
+                    camera,
+                    fragment_shader.attributes,
+                    instance_buffers,
+                );
+            })
+            .expect("Failed compiling shader");
     }
 }
 
@@ -549,7 +530,7 @@ impl From<PointCloud> for Instances {
                 .positions
                 .to_f32()
                 .into_iter()
-                .map(|p| Mat4::from_translation(p))
+                .map(Mat4::from_translation)
                 .collect(),
             colors: points.colors,
             ..Default::default()

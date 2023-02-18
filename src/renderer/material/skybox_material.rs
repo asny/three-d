@@ -7,16 +7,19 @@ pub struct SkyboxMaterial {
 }
 
 impl Material for SkyboxMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        format!(
-            "{}{}",
-            include_str!("../../core/shared.frag"),
-            include_str!("shaders/skybox_material.frag")
-        )
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
+        FragmentShader {
+            source: format!(
+                "{}{}",
+                include_str!("../../core/shared.frag"),
+                include_str!("shaders/skybox_material.frag")
+            ),
+            attributes: FragmentAttributes::NONE,
+        }
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
-        program.use_uniform("isHDR", if self.texture.is_hdr() { 1 } else { 0 });
+        program.use_uniform("isHDR", i32::from(self.texture.is_hdr()));
         program.use_texture_cube("texture0", &self.texture);
     }
 

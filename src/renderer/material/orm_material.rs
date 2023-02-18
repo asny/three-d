@@ -78,19 +78,21 @@ impl FromCpuMaterial for ORMMaterial {
 }
 
 impl Material for ORMMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        let mut output = String::new();
+    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
+        let mut attributes = FragmentAttributes::NONE;
+        let mut source = String::new();
         if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {
-            output.push_str("in vec2 uvs;\n");
+            attributes.uv = true;
+            source.push_str("in vec2 uvs;\n");
             if self.metallic_roughness_texture.is_some() {
-                output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
+                source.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
             }
             if self.occlusion_texture.is_some() {
-                output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
+                source.push_str("#define USE_OCCLUSION_TEXTURE;\n");
             }
         }
-        output.push_str(include_str!("shaders/orm_material.frag"));
-        output
+        source.push_str(include_str!("shaders/orm_material.frag"));
+        FragmentShader { source, attributes }
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

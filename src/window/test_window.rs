@@ -117,7 +117,7 @@ impl<T> Window<T> {
         let mut last_time = std::time::Instant::now();
         let mut accumulated_time = 0.0;
         let mut frame_count = 0;
-        while exit_time > accumulated_time {
+        while exit_time > accumulated_time || frame_count < 10 {
             let now = std::time::Instant::now();
             let duration = now.duration_since(last_time);
             if duration.as_millis() > 30 {

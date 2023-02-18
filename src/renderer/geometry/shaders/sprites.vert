@@ -9,10 +9,13 @@ in vec3 position;
 in vec2 uv_coordinate;
 
 out vec2 uvs;
+out vec4 col;
+out vec3 pos;
 
 void main()
 {
     uvs = uv_coordinate;
+    col = vec4(1.0);
 
     vec3 z = normalize(eye - center);
     vec3 y = direction;
@@ -32,5 +35,7 @@ void main()
                 y, 0.0,
                 z, 0.0,
                 center.x, center.y, center.z, 1.0);
-    gl_Position = viewProjection * instanced_transform * transformation * vec4(position, 1.);
+    vec4 world_pos = instanced_transform * transformation * vec4(position, 1.);
+    pos = world_pos.xyz / world_pos.w;
+    gl_Position = viewProjection * world_pos;
 }
