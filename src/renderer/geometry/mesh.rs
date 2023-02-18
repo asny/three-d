@@ -118,17 +118,8 @@ impl Mesh {
             program.use_uniform("textureTransform", self.texture_transform);
         }
 
-        self.base_mesh.use_attributes(program, attributes);
-
-        if let Some(index_buffer) = &self.base_mesh.indices {
-            program.draw_elements(render_states, camera.viewport(), index_buffer)
-        } else {
-            program.draw_arrays(
-                render_states,
-                camera.viewport(),
-                self.base_mesh.positions.vertex_count(),
-            )
-        }
+        self.base_mesh
+            .draw(program, render_states, camera, attributes);
     }
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {

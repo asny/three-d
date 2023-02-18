@@ -233,22 +233,13 @@ impl ParticleSystem {
                 );
             }
         }
-
-        if let Some(ref index_buffer) = self.base_mesh.indices {
-            program.draw_elements_instanced(
-                render_states,
-                camera.viewport(),
-                index_buffer,
-                self.instance_count,
-            )
-        } else {
-            program.draw_arrays_instanced(
-                render_states,
-                camera.viewport(),
-                self.base_mesh.positions.vertex_count(),
-                self.instance_count,
-            )
-        }
+        self.base_mesh.draw_instanced(
+            program,
+            render_states,
+            camera,
+            attributes,
+            self.instance_count,
+        );
     }
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {

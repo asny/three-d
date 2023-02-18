@@ -351,7 +351,53 @@ impl BaseMesh {
         }
     }
 
-    pub fn use_attributes(&self, program: &Program, attributes: FragmentAttributes) {
+    pub fn draw(
+        &self,
+        program: &Program,
+        render_states: RenderStates,
+        camera: &Camera,
+        attributes: FragmentAttributes,
+    ) {
+        self.use_attributes(program, attributes);
+        if let Some(index_buffer) = &self.indices {
+            program.draw_elements(render_states, camera.viewport(), index_buffer)
+        } else {
+            program.draw_arrays(
+                render_states,
+                camera.viewport(),
+                self.positions.vertex_count(),
+            )
+        }
+    }
+
+    pub fn draw_instanced(
+        &self,
+        program: &Program,
+        render_states: RenderStates,
+        camera: &Camera,
+        attributes: FragmentAttributes,
+        instance_count: u32,
+    ) {
+        self.use_attributes(program, attributes);
+
+        if let Some(index_buffer) = &self.indices {
+            program.draw_elements_instanced(
+                render_states,
+                camera.viewport(),
+                index_buffer,
+                instance_count,
+            )
+        } else {
+            program.draw_arrays_instanced(
+                render_states,
+                camera.viewport(),
+                self.positions.vertex_count(),
+                instance_count,
+            )
+        }
+    }
+
+    fn use_attributes(&self, program: &Program, attributes: FragmentAttributes) {
         program.use_vertex_attribute("position", &self.positions);
 
         if attributes.normal {
