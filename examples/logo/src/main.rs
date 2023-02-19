@@ -10,7 +10,7 @@ use three_d::*;
 pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "Logo!".to_string(),
-        max_size: Some((2048, 512)),
+        max_size: Some((1536, 512)),
         ..Default::default()
     })
     .unwrap();
