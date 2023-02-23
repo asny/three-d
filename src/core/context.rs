@@ -26,10 +26,11 @@ impl Context {
     /// you can also call this method with a reference counter to a glow context created using glow and not the re-export in [context](crate::context).
     ///
     pub fn from_gl_context(context: Arc<crate::context::Context>) -> Result<Self, CoreError> {
-        #[cfg(not(target_arch = "wasm32"))]
         unsafe {
-            // Enable seamless cube map textures
-            context.enable(crate::context::TEXTURE_CUBE_MAP_SEAMLESS);
+            if !context.version().is_embedded {
+                // Enable seamless cube map textures - not available on OpenGL ES and WebGL
+                context.enable(crate::context::TEXTURE_CUBE_MAP_SEAMLESS);
+            }
             context.pixel_store_i32(crate::context::UNPACK_ALIGNMENT, 1);
             context.pixel_store_i32(crate::context::PACK_ALIGNMENT, 1);
         };
