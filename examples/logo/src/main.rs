@@ -10,7 +10,7 @@ use three_d::*;
 pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "Logo!".to_string(),
-        max_size: Some((1536, 512)),
+        max_size: Some((512, 512)),
         ..Default::default()
     })
     .unwrap();
@@ -59,13 +59,7 @@ pub async fn run() {
     let model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
 
     window.render_loop(move |frame_input| {
-        let viewport = Viewport {
-            x: (frame_input.viewport.width / 2 - frame_input.viewport.height / 2) as i32,
-            y: 0,
-            width: frame_input.viewport.height,
-            height: frame_input.viewport.height,
-        };
-        camera.set_viewport(viewport);
+        camera.set_viewport(frame_input.viewport);
 
         frame_input
             .screen()
@@ -79,7 +73,7 @@ pub async fn run() {
                         blend: Blend::TRANSPARENCY,
                         ..Default::default()
                     },
-                    viewport,
+                    frame_input.viewport,
                     |program| {
                         program.use_texture("image", &image);
                     },
