@@ -1,4 +1,6 @@
-![Logo](https://asny.github.io/three-d/0.15/logo.png)
+<div align="center">
+  <img width="50%" src="https://asny.github.io/three-d/0.15/logo.png" alt="three-d logo">
+</div>
 
 # `three-d`
 
@@ -31,27 +33,34 @@ A OpenGL/WebGL/OpenGL ES renderer which seeks to make graphics simple but still 
 
 Quotes from issues, discussions and pull requests:
 
-_<center>..., thanks for writing such a nice 3d crate. I'm able to get what I want done without thousands of lines of boilerplate. It's truly a pleasure.</center>_
+<div align="center">
+<em>
 
-_<center>I must say: Man, you did a hell of a job with this library! It's really beyond performant, easy and understanable to use and I am grateful, you made it open source! Thank you so much.</center>_
+..., thanks for writing such a nice 3d crate. I'm able to get what I want done without thousands of lines of boilerplate. It's truly a pleasure.
 
-_<center>Thank you for making such a great 3d tool, It has been such a great use to me as most other rust based 3d tooling is either too low level, or a whole fully fledged game engine which does not fit my needs.</center>_
+I must say: Man, you did a hell of a job with this library! It's really beyond performant, easy and understanable to use and I am grateful, you made it open source! Thank you so much.
 
-_<center>First off, three-d is a joy to work with, even for someone with little experience in Rust (though admittedly, I do have some experience working with OpenGL).</center>_
+Thank you for making such a great 3d tool, It has been such a great use to me as most other rust based 3d tooling is either too low level, or a whole fully fledged game engine which does not fit my needs.
 
-_<center>Thanks for offering a really cool and simple to get started 3D Library in rust :)</center>_
+First off, three-d is a joy to work with, even for someone with little experience in Rust (though admittedly, I do have some experience working with OpenGL).
 
-_<center>Hi, thanks for such a cool and easy-to-use project!</center>_
+Thanks for offering a really cool and simple to get started 3D Library in rust :)
 
-_<center>Thanks for this library, it's been a joy to work with so far!</center>_
+Hi, thanks for such a cool and easy-to-use project!
 
-_<center>First of, Great job for the library and therefore thank you!</center>_
+Thanks for this library, it's been a joy to work with so far!
 
-_<center>Thanks so much for this library, it's looking excellent!</center>_
+First of, Great job for the library and therefore thank you!
 
-_<center>Thanks for the great project.</center>_
+Thanks so much for this library, it's looking excellent!
 
-_<center>This project has been wonderful to use so far, thank you so much for you time and dedication.</center>_
+Thanks for the great project.
+
+This project has been wonderful to use so far, thank you so much for you time and dedication.
+
+</em>
+
+</div>
 
 ### Structure
 
