@@ -125,7 +125,7 @@ mod inner {
                 glutin::display::DisplayApiPreference::WglThenEgl(Some(raw_window_handle));
             // try egl and fallback to x11 glx
             #[cfg(target_os = "linux")]
-            let preference = glutin::display::DisplayApiPreference::GlxThenEgl(Box::new(
+            let preference = glutin::display::DisplayApiPreference::EglThenGlx(Box::new(
                 winit::platform::x11::register_xlib_error_hook,
             ));
             #[cfg(target_os = "macos")]
