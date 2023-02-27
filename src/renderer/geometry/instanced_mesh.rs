@@ -13,6 +13,7 @@ pub struct InstancedMesh {
     base_mesh: BaseMesh,
     instance_buffers: RwLock<(HashMap<String, InstanceBuffer>, Vec3)>,
     aabb: AxisAlignedBoundingBox,
+    aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
     current_transformation: Mat4,
     animation: Option<Box<dyn Fn(f32) -> Mat4>>,
@@ -34,6 +35,7 @@ impl InstancedMesh {
             base_mesh: BaseMesh::new(context, cpu_mesh),
             instance_buffers: RwLock::new((Default::default(), vec3(0.0, 0.0, 0.0))),
             aabb,
+            aabb_local: aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
             animation: None,
@@ -97,6 +99,7 @@ impl InstancedMesh {
     /// `instance_count` will be set to the number of instances when they are defined by `set_instances`, so all instanced are rendered by default.
     pub fn set_instance_count(&mut self, instance_count: u32) {
         self.instance_count = instance_count.min(self.instances.transformations.len() as u32);
+        self.update_aabb();
     }
 
     ///
@@ -107,6 +110,7 @@ impl InstancedMesh {
         instances.validate().expect("invalid instances");
         self.instance_count = instances.count();
         self.instances = instances.clone();
+        self.update_aabb();
 
         {
             let mut s = self
@@ -115,6 +119,16 @@ impl InstancedMesh {
                 .expect("failed acquiring write accesss");
             s.0.clear();
         }
+    }
+
+    fn update_aabb(&mut self) {
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for i in 0..self.instance_count as usize {
+            let mut aabb2 = self.aabb_local;
+            aabb2.transform(&(self.instances.transformations[i] * self.transformation));
+            aabb.expand_with_aabb(&aabb2);
+        }
+        self.aabb = aabb;
     }
 
     /// Update the instance buffers, if depth_ordering_pose is populated depth ordering is performed
@@ -378,12 +392,7 @@ impl<'a> IntoIterator for &'a InstancedMesh {
 
 impl Geometry for InstancedMesh {
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for i in 0..self.instance_count as usize {
-            let mut aabb2 = self.aabb;
-            aabb2.transform(&self.instances.transformations[i]);
-            aabb.expand_with_aabb(&aabb2);
-        }
+        let mut aabb = self.aabb;
         aabb.transform(&self.current_transformation);
         aabb
     }
