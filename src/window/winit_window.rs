@@ -277,7 +277,7 @@ impl<T: 'static + Clone> Window<T> {
                         .to_logical::<f64>(device_pixel_ratio)
                         .into();
                     let frame_input = FrameInput {
-                        events: events.clone(),
+                        events: events.drain(..).collect(),
                         elapsed_time,
                         accumulated_time,
                         viewport: Viewport::new_at_origo(physical_width, physical_height),
@@ -288,7 +288,6 @@ impl<T: 'static + Clone> Window<T> {
                         context: self.gl.clone(),
                     };
                     first_frame = false;
-                    events.clear();
                     let frame_output = callback(frame_input);
                     if frame_output.exit {
                         *control_flow = ControlFlow::Exit;
