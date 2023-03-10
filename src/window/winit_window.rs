@@ -305,7 +305,6 @@ impl<T: 'static + Clone> Window<T> {
                     }
                 }
                 Event::WindowEvent { ref event, .. } => match event {
-                    #[cfg(not(target_arch = "wasm32"))]
                     WindowEvent::Resized(physical_size) => {
                         self.gl.resize(*physical_size);
                     }
