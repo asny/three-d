@@ -13,8 +13,8 @@ impl OrbitControl {
     pub fn new(target: Vec3, min_distance: f32, max_distance: f32) -> Self {
         Self {
             control: CameraControl {
-                left_drag_horizontal: CameraAction::OrbitLeft { target, speed: 0.5 },
-                left_drag_vertical: CameraAction::OrbitUp { target, speed: 0.5 },
+                left_drag_horizontal: CameraAction::OrbitLeft { target, speed: 0.1 },
+                left_drag_vertical: CameraAction::OrbitUp { target, speed: 0.1 },
                 scroll_vertical: CameraAction::Zoom {
                     min: min_distance,
                     max: max_distance,
