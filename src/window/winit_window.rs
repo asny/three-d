@@ -1,6 +1,7 @@
 #![allow(unsafe_code)]
 use crate::control::*;
 use crate::core::{Context, CoreError, Viewport};
+use cgmath::MetricSpace;
 use winit::event::{Event, TouchPhase, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
@@ -212,6 +213,8 @@ impl<T: 'static + Clone> Window<T> {
         let mut events = Vec::new();
         let mut cursor_pos = None;
         let mut finger_id = None;
+        let mut secondary_cursor_pos = None;
+        let mut secondary_finger_id = None;
         let mut modifiers = Modifiers::default();
         let mut first_frame = true;
         let mut mouse_pressed = None;
@@ -447,47 +450,80 @@ impl<T: 'static + Clone> Window<T> {
                         match touch.phase {
                             TouchPhase::Started => {
                                 if finger_id.is_none() {
-                                    cursor_pos = Some(position);
-                                    finger_id = Some(touch.id);
                                     events.push(crate::Event::MousePress {
                                         button: MouseButton::Left,
                                         position,
                                         modifiers,
                                         handled: false,
                                     });
+                                    cursor_pos = Some(position);
+                                    finger_id = Some(touch.id);
+                                } else if secondary_finger_id.is_none() {
+                                    secondary_cursor_pos = Some(position);
+                                    secondary_finger_id = Some(touch.id);
                                 }
                             }
                             TouchPhase::Ended | TouchPhase::Cancelled => {
-                                if let Some(id) = finger_id {
-                                    if id == touch.id {
-                                        cursor_pos = None;
-                                        finger_id = None;
-                                        events.push(crate::Event::MouseRelease {
-                                            button: MouseButton::Left,
-                                            position,
-                                            modifiers,
-                                            handled: false,
-                                        });
-                                    }
+                                if finger_id.map(|id| id == touch.id).unwrap_or(false) {
+                                    events.push(crate::Event::MouseRelease {
+                                        button: MouseButton::Left,
+                                        position,
+                                        modifiers,
+                                        handled: false,
+                                    });
+                                    cursor_pos = None;
+                                    finger_id = None;
+                                } else if secondary_finger_id
+                                    .map(|id| id == touch.id)
+                                    .unwrap_or(false)
+                                {
+                                    secondary_cursor_pos = None;
+                                    secondary_finger_id = None;
                                 }
                             }
                             TouchPhase::Moved => {
-                                if let Some(id) = finger_id {
-                                    if id == touch.id {
-                                        let delta = if let Some(last_pos) = cursor_pos {
-                                            (position.0 - last_pos.0, position.1 - last_pos.1)
-                                        } else {
-                                            (0.0, 0.0)
-                                        };
-                                        cursor_pos = Some(position);
+                                if finger_id.map(|id| id == touch.id).unwrap_or(false) {
+                                    let last_pos = cursor_pos.unwrap();
+                                    if let Some(p) = secondary_cursor_pos {
+                                        events.push(crate::Event::MouseWheel {
+                                            position,
+                                            modifiers,
+                                            handled: false,
+                                            delta: (
+                                                (position.0 - p.0).abs() - (last_pos.0 - p.0).abs(),
+                                                (position.1 - p.1).abs() - (last_pos.1 - p.1).abs(),
+                                            ),
+                                        });
+                                    } else {
                                         events.push(crate::Event::MouseMotion {
                                             button: Some(MouseButton::Left),
                                             position,
                                             modifiers,
                                             handled: false,
-                                            delta,
+                                            delta: (
+                                                position.0 - last_pos.0,
+                                                position.1 - last_pos.1,
+                                            ),
                                         });
                                     }
+                                    cursor_pos = Some(position);
+                                } else if secondary_finger_id
+                                    .map(|id| id == touch.id)
+                                    .unwrap_or(false)
+                                {
+                                    let last_pos = secondary_cursor_pos.unwrap();
+                                    if let Some(p) = cursor_pos {
+                                        events.push(crate::Event::MouseWheel {
+                                            position: p,
+                                            modifiers,
+                                            handled: false,
+                                            delta: (
+                                                (position.0 - p.0).abs() - (last_pos.0 - p.0).abs(),
+                                                (position.1 - p.1).abs() - (last_pos.1 - p.1).abs(),
+                                            ),
+                                        });
+                                    }
+                                    secondary_cursor_pos = Some(position);
                                 }
                             }
                         }
