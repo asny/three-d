@@ -211,6 +211,7 @@ impl<T: 'static + Clone> Window<T> {
         let mut accumulated_time = 0.0;
         let mut events = Vec::new();
         let mut cursor_pos = None;
+        let mut finger_id = None;
         let mut modifiers = Modifiers::default();
         let mut first_frame = true;
         let mut mouse_pressed = None;
@@ -445,37 +446,49 @@ impl<T: 'static + Clone> Window<T> {
                             .into();
                         match touch.phase {
                             TouchPhase::Started => {
-                                cursor_pos = Some(position);
-                                events.push(crate::Event::MousePress {
-                                    button: MouseButton::Left,
-                                    position,
-                                    modifiers,
-                                    handled: false,
-                                });
+                                if finger_id.is_none() {
+                                    cursor_pos = Some(position);
+                                    finger_id = Some(touch.id);
+                                    events.push(crate::Event::MousePress {
+                                        button: MouseButton::Left,
+                                        position,
+                                        modifiers,
+                                        handled: false,
+                                    });
+                                }
                             }
                             TouchPhase::Ended | TouchPhase::Cancelled => {
-                                cursor_pos = None;
-                                events.push(crate::Event::MouseRelease {
-                                    button: MouseButton::Left,
-                                    position,
-                                    modifiers,
-                                    handled: false,
-                                })
+                                if let Some(id) = finger_id {
+                                    if id == touch.id {
+                                        cursor_pos = None;
+                                        finger_id = None;
+                                        events.push(crate::Event::MouseRelease {
+                                            button: MouseButton::Left,
+                                            position,
+                                            modifiers,
+                                            handled: false,
+                                        });
+                                    }
+                                }
                             }
                             TouchPhase::Moved => {
-                                let delta = if let Some(last_pos) = cursor_pos {
-                                    (position.0 - last_pos.0, position.1 - last_pos.1)
-                                } else {
-                                    (0.0, 0.0)
-                                };
-                                cursor_pos = Some(position);
-                                events.push(crate::Event::MouseMotion {
-                                    button: Some(MouseButton::Left),
-                                    position,
-                                    modifiers,
-                                    handled: false,
-                                    delta,
-                                });
+                                if let Some(id) = finger_id {
+                                    if id == touch.id {
+                                        let delta = if let Some(last_pos) = cursor_pos {
+                                            (position.0 - last_pos.0, position.1 - last_pos.1)
+                                        } else {
+                                            (0.0, 0.0)
+                                        };
+                                        cursor_pos = Some(position);
+                                        events.push(crate::Event::MouseMotion {
+                                            button: Some(MouseButton::Left),
+                                            position,
+                                            modifiers,
+                                            handled: false,
+                                            delta,
+                                        });
+                                    }
+                                }
                             }
                         }
                     }
