@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 use crate::control::*;
 use crate::core::{Context, CoreError, Viewport};
-use winit::event::{Event, WindowEvent};
+use winit::event::{Event, TouchPhase, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit::*;
@@ -437,6 +437,47 @@ impl<T: 'static + Clone> Window<T> {
                     WindowEvent::CursorLeft { .. } => {
                         mouse_pressed = None;
                         events.push(crate::Event::MouseLeave);
+                    }
+                    WindowEvent::Touch(touch) => {
+                        let position = touch
+                            .location
+                            .to_logical::<f64>(self.window.scale_factor())
+                            .into();
+                        match touch.phase {
+                            TouchPhase::Started => {
+                                cursor_pos = Some(position);
+                                events.push(crate::Event::MousePress {
+                                    button: MouseButton::Left,
+                                    position,
+                                    modifiers,
+                                    handled: false,
+                                });
+                            }
+                            TouchPhase::Ended | TouchPhase::Cancelled => {
+                                cursor_pos = None;
+                                events.push(crate::Event::MouseRelease {
+                                    button: MouseButton::Left,
+                                    position,
+                                    modifiers,
+                                    handled: false,
+                                })
+                            }
+                            TouchPhase::Moved => {
+                                let delta = if let Some(last_pos) = cursor_pos {
+                                    (position.0 - last_pos.0, position.1 - last_pos.1)
+                                } else {
+                                    (0.0, 0.0)
+                                };
+                                cursor_pos = Some(position);
+                                events.push(crate::Event::MouseMotion {
+                                    button: Some(MouseButton::Left),
+                                    position,
+                                    modifiers,
+                                    handled: false,
+                                    delta,
+                                });
+                            }
+                        }
                     }
                     _ => (),
                 },
