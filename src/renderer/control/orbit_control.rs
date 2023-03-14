@@ -31,13 +31,7 @@ impl OrbitControl {
     where
         T: 'static + Clone,
     {
-        if let CameraAction::Zoom {
-            speed,
-            target,
-            min,
-            max,
-        } = &mut self.control.scroll_vertical
-        {
+        if let CameraAction::Zoom { speed, target, .. } = &mut self.control.scroll_vertical {
             let x = target.distance(*camera.position());
             *speed = 0.01 * x + 0.001;
         }
@@ -51,9 +45,4 @@ impl OrbitControl {
         }
         self.control.handle_events(camera, events)
     }
-}
-
-fn smoothstep(edge0: f32, edge1: f32, x: f32) -> f32 {
-    let t = ((x - edge0) / (edge1 - edge0)).max(0.0).min(1.0);
-    t * t * (3.0 - 2.0 * t)
 }
