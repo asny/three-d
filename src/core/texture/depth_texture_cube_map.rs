@@ -3,12 +3,6 @@ use crate::core::texture::*;
 ///
 /// A depth texture cube map that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
 ///
-#[deprecated = "Renamed to DepthTextureCubeMap"]
-pub type DepthTargetTextureCubeMap = DepthTextureCubeMap;
-
-///
-/// A depth texture cube map that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
-///
 pub struct DepthTextureCubeMap {
     context: Context,
     id: crate::context::Texture,

@@ -1,4 +1,3 @@
-#![allow(deprecated)]
 use crate::core::*;
 use crate::renderer::*;
 use std::collections::HashMap;
@@ -79,9 +78,7 @@ pub struct ParticleSystem {
     instance_count: u32,
     transformation: Mat4,
     texture_transform: Mat3,
-    /// A time variable that should be updated each frame.
-    #[deprecated = "call the animate method each frame instead"]
-    pub time: f32,
+    time: f32,
 }
 
 impl ParticleSystem {

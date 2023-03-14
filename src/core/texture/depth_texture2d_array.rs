@@ -3,12 +3,6 @@ use crate::core::texture::*;
 ///
 /// An array of 2D depth textures that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
 ///
-#[deprecated = "Renamed to DepthTexture2DArray"]
-pub type DepthTargetTexture2DArray = DepthTexture2DArray;
-
-///
-/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTarget] and [DepthTarget].
-///
 pub struct DepthTexture2DArray {
     context: Context,
     id: crate::context::Texture,

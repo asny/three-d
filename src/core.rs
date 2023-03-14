@@ -24,14 +24,6 @@ mod uniform;
 #[doc(inline)]
 pub use uniform::*;
 
-mod image_effect;
-#[doc(inline)]
-pub use image_effect::*;
-
-mod image_cube_effect;
-#[doc(inline)]
-pub use image_cube_effect::*;
-
 mod program;
 #[doc(inline)]
 pub use program::*;
