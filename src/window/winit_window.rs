@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
 use crate::control::*;
 use crate::core::{Context, CoreError, Viewport};
-use cgmath::MetricSpace;
 use winit::event::{Event, TouchPhase, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
