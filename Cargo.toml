@@ -26,7 +26,7 @@ test = ["headless"] # Only for testing purposes (CI)
 [dependencies]
 glow = "0.12"
 cgmath = "0.18"
-three-d-asset = {git="https://github.com/asny/three-d-asset"}
+three-d-asset = "0.5"
 thiserror = "1"
 winit = {version = "0.28", optional = true}
 egui = { version = "0.21", optional = true }
@@ -47,7 +47,7 @@ instant = "0.1.12"
 
 [dev-dependencies]
 rand = "0.7"
-three-d-asset = {git="https://github.com/asny/three-d-asset", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
+three-d-asset = {version="0.5", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 noise = {version = "0.6", default-features = false}
 
