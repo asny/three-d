@@ -41,7 +41,6 @@ out vec3 bitang;
 in vec3 tex_transform_row1;
 in vec3 tex_transform_row2;
 #endif
-uniform mat3 textureTransform;
 in vec2 uv_coordinates;
 out vec2 uvs;
 #endif
@@ -99,15 +98,15 @@ void main()
 
     // *** UV ***
 #ifdef USE_UVS 
-    mat3 texTransform = textureTransform;
 #ifdef USE_INSTANCE_TEXTURE_TRANSFORMATION
-    mat3 instancedTexTransform;
-    instancedTexTransform[0] = vec3(tex_transform_row1.x, tex_transform_row2.x, 0.0);
-    instancedTexTransform[1] = vec3(tex_transform_row1.y, tex_transform_row2.y, 0.0);
-    instancedTexTransform[2] = vec3(tex_transform_row1.z, tex_transform_row2.z, 1.0);
-    texTransform *= instancedTexTransform;
-#endif
+    mat3 texTransform;
+    texTransform[0] = vec3(tex_transform_row1.x, tex_transform_row2.x, 0.0);
+    texTransform[1] = vec3(tex_transform_row1.y, tex_transform_row2.y, 0.0);
+    texTransform[2] = vec3(tex_transform_row1.z, tex_transform_row2.z, 1.0);
     uvs = (texTransform * vec3(uv_coordinates, 1.0)).xy;
+#else
+    uvs = uv_coordinates;
+#endif
 #endif
 
     // *** COLOR ***

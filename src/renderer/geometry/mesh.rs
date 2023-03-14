@@ -13,7 +13,6 @@ pub struct Mesh {
     transformation: Mat4,
     current_transformation: Mat4,
     animation: Option<Box<dyn Fn(f32) -> Mat4 + Send + Sync>>,
-    texture_transform: Mat3,
 }
 
 impl Mesh {
@@ -29,7 +28,6 @@ impl Mesh {
             aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
-            texture_transform: Mat3::identity(),
             animation: None,
         }
     }
@@ -80,22 +78,6 @@ impl Mesh {
         self.animation = Some(Box::new(animation));
     }
 
-    ///
-    /// Get the texture transform applied to the uv coordinates of the model.
-    ///
-    #[deprecated]
-    pub fn texture_transform(&mut self) -> &Mat3 {
-        &self.texture_transform
-    }
-
-    ///
-    /// Set the texture transform applied to the uv coordinates of the model.
-    ///
-    #[deprecated = "Set the texture transformation of Texture2DRef for a material instead"]
-    pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
-        self.texture_transform = texture_transform;
-    }
-
     fn draw(
         &self,
         program: &Program,
@@ -114,9 +96,6 @@ impl Mesh {
 
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", self.current_transformation);
-        if attributes.uv {
-            program.use_uniform("textureTransform", self.texture_transform);
-        }
 
         self.base_mesh
             .draw(program, render_states, camera, attributes);

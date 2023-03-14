@@ -18,7 +18,6 @@ pub struct InstancedMesh {
     current_transformation: Mat4,
     animation: Option<Box<dyn Fn(f32) -> Mat4 + Send + Sync>>,
     instance_count: u32,
-    texture_transform: Mat3,
     instances: Instances,
 }
 
@@ -40,7 +39,6 @@ impl InstancedMesh {
             current_transformation: Mat4::identity(),
             animation: None,
             instance_count: 0,
-            texture_transform: Mat3::identity(),
             instances: instances.clone(),
         };
         instanced_mesh.set_instances(instances);
@@ -70,23 +68,6 @@ impl InstancedMesh {
     ///
     pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + Send + Sync + 'static) {
         self.animation = Some(Box::new(animation));
-    }
-
-    ///
-    /// Get the texture transform applied to the uv coordinates of all of the instances.
-    ///
-    #[deprecated]
-    pub fn texture_transform(&self) -> &Mat3 {
-        &self.texture_transform
-    }
-
-    ///
-    /// Set the texture transform applied to the uv coordinates of all of the model instances.
-    /// This is applied before the texture transform for each instance.
-    ///
-    #[deprecated = "Set the texture transformation of Texture2DRef for a material instead"]
-    pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
-        self.texture_transform = texture_transform;
     }
 
     /// Returns the number of instances that is rendered.
@@ -303,10 +284,6 @@ impl InstancedMesh {
         }
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", self.current_transformation);
-
-        if attributes.uv {
-            program.use_uniform("textureTransform", self.texture_transform);
-        }
 
         for attribute_name in [
             "instance_translation",
