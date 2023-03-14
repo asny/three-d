@@ -25,7 +25,7 @@ impl Skybox {
         front: &CpuTexture,
         back: &CpuTexture,
     ) -> Self {
-        let texture = TextureCubeMap::new(&context, right, left, top, bottom, front, back);
+        let texture = TextureCubeMap::new(context, right, left, top, bottom, front, back);
         Self::new_with_texture(context, Arc::new(texture))
     }
 

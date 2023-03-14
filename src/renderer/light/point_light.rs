@@ -56,16 +56,16 @@ impl Light for PointLight {
     fn use_uniforms(&self, program: &Program, i: u32) {
         program.use_uniform(
             &format!("color{}", i),
-            &(self.color.to_vec3() * self.intensity),
+            self.color.to_vec3() * self.intensity,
         );
         program.use_uniform(
             &format!("attenuation{}", i),
-            &vec3(
+            vec3(
                 self.attenuation.constant,
                 self.attenuation.linear,
                 self.attenuation.quadratic,
             ),
         );
-        program.use_uniform(&format!("position{}", i), &self.position);
+        program.use_uniform(&format!("position{}", i), self.position);
     }
 }

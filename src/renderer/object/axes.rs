@@ -21,15 +21,15 @@ impl Axes {
             .unwrap();
         let model = Gm::new(Mesh::new(context, &mesh), ColorMaterial::default());
         let mut aabb = model.aabb();
-        let mut aabb2 = aabb.clone();
+        let mut aabb2 = aabb;
         aabb2.transform(&Mat4::from_angle_z(degrees(90.0)));
         aabb.expand_with_aabb(&aabb2);
-        let mut aabb3 = aabb.clone();
+        let mut aabb3 = aabb;
         aabb3.transform(&Mat4::from_angle_y(degrees(-90.0)));
         aabb.expand_with_aabb(&aabb3);
         Self {
             model: std::sync::RwLock::new(model),
-            aabb: aabb.clone(),
+            aabb,
             aabb_local: aabb,
             transformation: Mat4::identity(),
         }
@@ -48,7 +48,7 @@ impl Axes {
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
-        let mut aabb = self.aabb_local.clone();
+        let mut aabb = self.aabb_local;
         aabb.transform(&self.transformation);
         self.aabb = aabb;
     }

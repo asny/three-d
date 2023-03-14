@@ -21,7 +21,7 @@ impl<M: Material + FromCpuVoxelGrid> VoxelGrid<M> {
         ))
         .expect("Invalid size for VoxelGrid");
         let gm = Gm::new(
-            Mesh::new(&context, &cube),
+            Mesh::new(context, &cube),
             M::from_cpu_voxel_grid(context, cpu_voxel_grid),
         );
         Self(gm)

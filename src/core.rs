@@ -139,7 +139,7 @@ pub fn apply_cube_effect(
 fn full_screen_buffer(context: &Context) -> VertexBuffer {
     VertexBuffer::new_with_data(
         context,
-        &vec![
+        &[
             vec3(-3.0, -1.0, 0.0),
             vec3(3.0, -1.0, 0.0),
             vec3(0.0, 2.0, 0.0),
@@ -149,7 +149,7 @@ fn full_screen_buffer(context: &Context) -> VertexBuffer {
 
 mod data_type;
 use data_type::DataType;
-fn to_byte_slice<'a, T: DataType>(data: &'a [T]) -> &'a [u8] {
+fn to_byte_slice<T: DataType>(data: &[T]) -> &[u8] {
     unsafe {
         std::slice::from_raw_parts(
             data.as_ptr() as *const _,
@@ -158,7 +158,7 @@ fn to_byte_slice<'a, T: DataType>(data: &'a [T]) -> &'a [u8] {
     }
 }
 
-fn from_byte_slice<'a, T: DataType>(data: &'a [u8]) -> &'a [T] {
+fn from_byte_slice<T: DataType>(data: &[u8]) -> &[T] {
     unsafe {
         let (_prefix, values, _suffix) = data.align_to::<T>();
         values

@@ -108,7 +108,7 @@ fn vertex_transformations(cpu_mesh: &CpuMesh) -> Instances {
             .positions
             .to_f32()
             .into_iter()
-            .map(|p| Mat4::from_translation(p))
+            .map(Mat4::from_translation)
             .collect(),
         ..Default::default()
     }

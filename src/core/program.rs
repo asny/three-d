@@ -65,7 +65,7 @@ impl Program {
 
             if !context.get_program_link_status(id) {
                 let log = context.get_shader_info_log(vert_shader);
-                if log.len() > 0 {
+                if !log.is_empty() {
                     Err(CoreError::ShaderCompilation(
                         "vertex".to_string(),
                         log,
@@ -73,7 +73,7 @@ impl Program {
                     ))?;
                 }
                 let log = context.get_shader_info_log(frag_shader);
-                if log.len() > 0 {
+                if !log.is_empty() {
                     Err(CoreError::ShaderCompilation(
                         "fragment".to_string(),
                         log,
@@ -81,7 +81,7 @@ impl Program {
                     ))?;
                 }
                 let log = context.get_program_info_log(id);
-                if log.len() > 0 {
+                if !log.is_empty() {
                     Err(CoreError::ShaderLink(log))?;
                 }
                 unreachable!();
@@ -99,9 +99,9 @@ impl Program {
                 if let Some(crate::context::ActiveAttribute { name, .. }) =
                     context.get_active_attribute(id, i)
                 {
-                    let location = context
-                        .get_attrib_location(id, &name)
-                        .expect(&format!("Could not get the location of uniform {}", name));
+                    let location = context.get_attrib_location(id, &name).unwrap_or_else(|| {
+                        panic!("Could not get the location of uniform {}", name)
+                    });
                     /*println!(
                         "Attribute location: {}, name: {}, type: {}, size: {}",
                         location, name, atype, size
@@ -180,10 +180,12 @@ impl Program {
 
     fn get_uniform_location(&self, name: &str) -> &crate::context::UniformLocation {
         self.use_program();
-        self.uniforms.get(name).expect(&format!(
-            "the uniform {} is sent to the shader but not defined or never used",
-            name
-        ))
+        self.uniforms.get(name).unwrap_or_else(|| {
+            panic!(
+                "the uniform {} is sent to the shader but not defined or never used",
+                name
+            )
+        })
     }
 
     ///
@@ -283,7 +285,7 @@ impl Program {
             let index = map.len() as u32;
             map.insert(name.to_owned(), index);
         };
-        let index = self.textures.read().unwrap().get(name).unwrap().clone();
+        let index = *self.textures.read().unwrap().get(name).unwrap();
         self.use_uniform(name, index as i32);
         unsafe {
             self.context
@@ -301,21 +303,13 @@ impl Program {
             let location = unsafe {
                 self.context
                     .get_uniform_block_index(self.id, name)
-                    .expect(&format!(
-                        "the uniform block {} is sent to the shader but not defined or never used",
-                        name
-                    ))
+                    .unwrap_or_else(|| panic!("the uniform block {} is sent to the shader but not defined or never used",
+                        name))
             };
             let index = map.len() as u32;
             map.insert(name.to_owned(), (location, index));
         };
-        let (location, index) = self
-            .uniform_blocks
-            .read()
-            .unwrap()
-            .get(name)
-            .unwrap()
-            .clone();
+        let (location, index) = *self.uniform_blocks.read().unwrap().get(name).unwrap();
         unsafe {
             self.context.uniform_block_binding(self.id, location, index);
             buffer.bind(index);
@@ -585,10 +579,12 @@ impl Program {
 
     fn location(&self, name: &str) -> u32 {
         self.use_program();
-        *self.attributes.get(name).expect(&format!(
-            "the attribute {} is sent to the shader but not defined or never used",
-            name
-        ))
+        *self.attributes.get(name).unwrap_or_else(|| {
+            panic!(
+                "the attribute {} is sent to the shader but not defined or never used",
+                name
+            )
+        })
     }
 
     fn use_program(&self) {

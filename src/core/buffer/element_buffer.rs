@@ -54,7 +54,7 @@ impl ElementBuffer {
     ///
     pub fn new_with_data<T: ElementBufferDataType>(context: &Context, data: &[T]) -> Self {
         let mut buffer = Self::new(context);
-        if data.len() > 0 {
+        if !data.is_empty() {
             buffer.fill(data);
         }
         buffer

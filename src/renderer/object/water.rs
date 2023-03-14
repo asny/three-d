@@ -153,13 +153,13 @@ impl<M: Material> Water<M> {
     }
 
     fn positions(context: &Context, vertex_distance: f32) -> Arc<VertexBuffer> {
-        let mut data = vec![vec3(0.0, 0.0, 0.0); (VERTICES_PER_SIDE * VERTICES_PER_SIDE) as usize];
+        let mut data = vec![vec3(0.0, 0.0, 0.0); VERTICES_PER_SIDE * VERTICES_PER_SIDE];
         for r in 0..VERTICES_PER_SIDE {
             for c in 0..VERTICES_PER_SIDE {
                 let vertex_id = r * VERTICES_PER_SIDE + c;
                 let x = r as f32 * vertex_distance;
                 let z = c as f32 * vertex_distance;
-                data[vertex_id as usize] = vec3(x, 0.0, z);
+                data[vertex_id] = vec3(x, 0.0, z);
             }
         }
         Arc::new(VertexBuffer::new_with_data(context, &data))

@@ -31,7 +31,7 @@ impl UniformBuffer {
             context: context.clone(),
             id,
             offsets,
-            data: vec![0.0; length as usize],
+            data: vec![0.0; length],
         };
         buffer.send();
         buffer

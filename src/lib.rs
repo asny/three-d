@@ -1,5 +1,6 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
-//#![warn(clippy::all)]
+#![warn(clippy::all)]
+#![allow(clippy::too_many_arguments)]
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 //!

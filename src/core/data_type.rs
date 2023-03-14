@@ -421,7 +421,7 @@ impl<T: PrimitiveDataType> DataType for [T; 2] {
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
-        let data = data.iter().flatten().map(|v| *v).collect::<Vec<_>>();
+        let data = data.iter().flatten().copied().collect::<Vec<_>>();
         T::send_uniform_with_type(context, location, &data, UniformType::Vec2)
     }
 }
@@ -460,7 +460,7 @@ impl<T: PrimitiveDataType> DataType for [T; 3] {
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
-        let data = data.iter().flatten().map(|v| *v).collect::<Vec<_>>();
+        let data = data.iter().flatten().copied().collect::<Vec<_>>();
         T::send_uniform_with_type(context, location, &data, UniformType::Vec3)
     }
 }
@@ -501,7 +501,7 @@ impl<T: PrimitiveDataType> DataType for [T; 4] {
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
-        let data = data.iter().flatten().map(|v| *v).collect::<Vec<_>>();
+        let data = data.iter().flatten().copied().collect::<Vec<_>>();
         T::send_uniform_with_type(context, location, &data, UniformType::Vec4)
     }
 }

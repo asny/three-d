@@ -78,8 +78,8 @@ impl Context {
             if scissor_box.width > 0 && scissor_box.height > 0 {
                 self.enable(crate::context::SCISSOR_TEST);
                 self.scissor(
-                    scissor_box.x as i32,
-                    scissor_box.y as i32,
+                    scissor_box.x,
+                    scissor_box.y,
                     scissor_box.width as i32,
                     scissor_box.height as i32,
                 );

@@ -35,7 +35,13 @@ impl CubeMapSideIterator {
     }
 }
 
-impl<'a> Iterator for CubeMapSideIterator {
+impl Default for CubeMapSideIterator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Iterator for CubeMapSideIterator {
     type Item = CubeMapSide;
     fn next(&mut self) -> Option<Self::Item> {
         self.index += 1;
@@ -59,7 +65,7 @@ impl CubeMapSide {
         CubeMapSideIterator::new()
     }
 
-    pub(in crate::core) fn to_const(&self) -> u32 {
+    pub(in crate::core) fn to_const(self) -> u32 {
         match self {
             CubeMapSide::Right => crate::context::TEXTURE_CUBE_MAP_POSITIVE_X,
             CubeMapSide::Left => crate::context::TEXTURE_CUBE_MAP_NEGATIVE_X,
@@ -439,7 +445,7 @@ impl TextureCubeMap {
     ) -> Self {
         let texture_size = cpu_texture.width / 4;
         let mut texture = Self::new_empty::<[T; 4]>(
-            &context,
+            context,
             texture_size,
             texture_size,
             Interpolation::Linear,

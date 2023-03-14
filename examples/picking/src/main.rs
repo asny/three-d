@@ -59,24 +59,22 @@ pub async fn run() {
         change |= camera.set_viewport(frame_input.viewport);
 
         for event in frame_input.events.iter() {
-            match event {
-                Event::MousePress {
-                    button, position, ..
-                } => {
-                    if *button == MouseButton::Left {
-                        let pixel = (
-                            (frame_input.device_pixel_ratio * position.0) as f32,
-                            (frame_input.viewport.height as f64
-                                - frame_input.device_pixel_ratio * position.1)
-                                as f32,
-                        );
-                        if let Some(pick) = pick(&context, &camera, pixel, &monkey) {
-                            pick_mesh.set_transformation(Mat4::from_translation(pick));
-                            change = true;
-                        }
+            if let Event::MousePress {
+                button, position, ..
+            } = event
+            {
+                if *button == MouseButton::Left {
+                    let pixel = (
+                        (frame_input.device_pixel_ratio * position.0) as f32,
+                        (frame_input.viewport.height as f64
+                            - frame_input.device_pixel_ratio * position.1)
+                            as f32,
+                    );
+                    if let Some(pick) = pick(&context, &camera, pixel, &monkey) {
+                        pick_mesh.set_transformation(Mat4::from_translation(pick));
+                        change = true;
                     }
                 }
-                _ => {}
             }
         }
 

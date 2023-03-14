@@ -94,7 +94,7 @@ impl Light for AmbientLight {
             program.use_texture_cube("prefilterMap", &environment.prefilter_map);
             program.use_texture("brdfLUT", &environment.brdf_map);
         }
-        program.use_uniform("ambientColor", &(self.color.to_vec3() * self.intensity));
+        program.use_uniform("ambientColor", self.color.to_vec3() * self.intensity);
     }
 }
 

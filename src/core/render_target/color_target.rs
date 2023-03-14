@@ -238,13 +238,13 @@ impl<'a> ColorTarget<'a> {
                             .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
                             .collect::<Vec<u32>>(),
                     );
-                    for channel in 0..layers.len() {
+                    (0..layers.len()).for_each(|channel| {
                         texture.bind_as_color_target(
                             layers[channel],
                             channel as u32,
                             self.mip_level.unwrap_or(0),
                         );
-                    }
+                    });
                 },
                 ColorTexture::CubeMap { texture, sides } => unsafe {
                     context.draw_buffers(
@@ -252,13 +252,13 @@ impl<'a> ColorTarget<'a> {
                             .map(|i| crate::context::COLOR_ATTACHMENT0 + i as u32)
                             .collect::<Vec<u32>>(),
                     );
-                    for channel in 0..sides.len() {
+                    (0..sides.len()).for_each(|channel| {
                         texture.bind_as_color_target(
                             sides[channel],
                             channel as u32,
                             self.mip_level.unwrap_or(0),
                         );
-                    }
+                    });
                 },
             }
         } else {

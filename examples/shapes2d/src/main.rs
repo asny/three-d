@@ -41,33 +41,31 @@ pub fn main() {
 
     window.render_loop(move |frame_input| {
         for event in frame_input.events.iter() {
-            match event {
-                Event::MousePress {
-                    button,
-                    position,
-                    modifiers,
-                    ..
-                } => {
-                    let pos = vec2(
-                        (frame_input.device_pixel_ratio * position.0) as f32,
-                        (frame_input.device_pixel_ratio * position.1) as f32,
-                    );
-                    if *button == MouseButton::Left && !modifiers.ctrl {
-                        rectangle.set_center(pos);
-                    }
-                    if *button == MouseButton::Right && !modifiers.ctrl {
-                        circle.set_center(pos);
-                    }
-                    if *button == MouseButton::Left && modifiers.ctrl {
-                        let ep = line.end_point1();
-                        line.set_endpoints(pos, ep);
-                    }
-                    if *button == MouseButton::Right && modifiers.ctrl {
-                        let ep = line.end_point0();
-                        line.set_endpoints(ep, pos);
-                    }
+            if let Event::MousePress {
+                button,
+                position,
+                modifiers,
+                ..
+            } = event
+            {
+                let pos = vec2(
+                    (frame_input.device_pixel_ratio * position.0) as f32,
+                    (frame_input.device_pixel_ratio * position.1) as f32,
+                );
+                if *button == MouseButton::Left && !modifiers.ctrl {
+                    rectangle.set_center(pos);
                 }
-                _ => {}
+                if *button == MouseButton::Right && !modifiers.ctrl {
+                    circle.set_center(pos);
+                }
+                if *button == MouseButton::Left && modifiers.ctrl {
+                    let ep = line.end_point1();
+                    line.set_endpoints(pos, ep);
+                }
+                if *button == MouseButton::Right && modifiers.ctrl {
+                    let ep = line.end_point0();
+                    line.set_endpoints(ep, pos);
+                }
             }
         }
         frame_input

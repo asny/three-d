@@ -68,15 +68,12 @@ pub async fn run() {
         change |= control.handle_events(&mut camera, &mut frame_input.events);
 
         for event in frame_input.events.iter() {
-            match event {
-                Event::KeyPress { kind, .. } => {
-                    if *kind == Key::F {
-                        fog_enabled = !fog_enabled;
-                        change = true;
-                        println!("Fog: {:?}", fog_enabled);
-                    }
+            if let Event::KeyPress { kind, .. } = event {
+                if *kind == Key::F {
+                    fog_enabled = !fog_enabled;
+                    change = true;
+                    println!("Fog: {:?}", fog_enabled);
                 }
-                _ => {}
             }
         }
 
