@@ -40,6 +40,22 @@ pub struct SurfaceSettings {
     /// Specify whether or not hardware acceleration is preferred, required, or
     /// off. The default is [HardwareAcceleration::Preferred].
     pub hardware_acceleration: HardwareAcceleration,
+    /// The fixed size which will be applied to the [canvas][WindowSettings::canvas], in logical pixels.
+    /// If `None` is specified, the canvas will be resized to the same size as
+    /// the owner `Window`'s inner width and height.
+    #[cfg(target_arch = "wasm32")]
+    pub size: Option<(u32, u32)>,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl SurfaceSettings {
+    /// If `true`, the underlying [canvas element][web_sys::HtmlCanvasElement]
+    /// should be resized to cover the whole window. If `false`, the canvas
+    /// should not be resized.
+    #[inline]
+    pub(crate) fn cover_window(&self) -> bool {
+        self.size.is_none()
+    }
 }
 
 impl Default for SurfaceSettings {
@@ -50,6 +66,8 @@ impl Default for SurfaceSettings {
             stencil_buffer: 0,
             multisamples: 4,
             hardware_acceleration: HardwareAcceleration::Preferred,
+            #[cfg(target_arch = "wasm32")]
+            size: None,
         }
     }
 }
@@ -63,11 +81,12 @@ pub struct WindowSettings {
     ///
     /// On web this has no effect.
     pub title: String,
-    /// The minimum size of the window (width, height).
+    /// The minimum size of the window `(width, height)`, in logical pixels.
     ///
     /// On web this has no effect.
     pub min_size: (u32, u32),
-    /// The maximum size of the window (width, height). If None is specified, the window is maximized.
+    /// The maximum size of the window `(width, height)`, in logical pixels.
+    /// If `None` is specified, the window is maximized.
     ///
     /// On web this has no effect.
     pub max_size: Option<(u32, u32)>,
@@ -75,8 +94,8 @@ pub struct WindowSettings {
     ///
     /// On web this has no effect.
     pub borderless: bool,
-    /// An optional Canvas for using as winit window
-    /// if this is None, the DOM (`index.html`) must contain a canvas element
+    /// An optional [canvas element][web_sys::HtmlCanvasElement] for using as winit window.
+    /// If this is `None`, the DOM (`index.html`) must contain a canvas element
     #[cfg(target_arch = "wasm32")]
     pub canvas: Option<web_sys::HtmlCanvasElement>,
 
