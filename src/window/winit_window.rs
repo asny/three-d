@@ -70,6 +70,8 @@ pub struct Window<T: 'static + Clone> {
     #[cfg(target_arch = "wasm32")]
     closure: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
     gl: WindowedContext,
+    #[cfg(target_arch = "wasm32")]
+    cover_window: bool,
 }
 
 impl Window<()> {
@@ -150,11 +152,20 @@ impl<T: 'static + Clone> Window<T> {
                 .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
         };
 
-        let winit_window = WindowBuilder::new()
+        let window_builder = WindowBuilder::new()
             .with_title(window_settings.title)
             .with_canvas(Some(canvas))
-            .with_prevent_default(true)
-            .build(&event_loop)?;
+            .with_prevent_default(true);
+
+        let window_builder = match window_settings.surface_settings.size {
+            Some((width, height)) => {
+                let size = dpi::LogicalSize::new(width as f64, height as f64);
+                window_builder.with_inner_size(size)
+            }
+            None => window_builder,
+        };
+
+        let winit_window = window_builder.build(&event_loop)?;
 
         Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
     }
@@ -196,6 +207,8 @@ impl<T: 'static + Clone> Window<T> {
             gl: gl?,
             #[cfg(target_arch = "wasm32")]
             closure,
+            #[cfg(target_arch = "wasm32")]
+            cover_window: surface_settings.cover_window(),
         })
     }
 
@@ -252,23 +265,20 @@ impl<T: 'static + Clone> Window<T> {
                     accumulated_time += elapsed_time;
 
                     #[cfg(target_arch = "wasm32")]
-                    {
-                        self.window.set_inner_size(winit::dpi::Size::Logical(
-                            winit::dpi::LogicalSize {
-                                width: web_sys::window()
-                                    .unwrap()
-                                    .inner_width()
-                                    .unwrap()
-                                    .as_f64()
-                                    .unwrap(),
-                                height: web_sys::window()
-                                    .unwrap()
-                                    .inner_height()
-                                    .unwrap()
-                                    .as_f64()
-                                    .unwrap(),
-                            },
-                        ));
+                    if self.cover_window {
+                        use winit::platform::web::WindowExtWebSys;
+
+                        let html_canvas = self.window.canvas();
+                        let browser_window = html_canvas
+                            .owner_document()
+                            .and_then(|doc| doc.default_view())
+                            .or_else(web_sys::window)
+                            .unwrap();
+
+                        self.window.set_inner_size(dpi::LogicalSize {
+                            width: browser_window.inner_width().unwrap().as_f64().unwrap(),
+                            height: browser_window.inner_height().unwrap().as_f64().unwrap(),
+                        });
                     }
 
                     let (physical_width, physical_height): (u32, u32) =
