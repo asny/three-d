@@ -70,8 +70,8 @@ pub struct Window<T: 'static + Clone> {
     #[cfg(target_arch = "wasm32")]
     closure: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
     gl: WindowedContext,
-    #[cfg(target_arch = "wasm32")]
-    cover_window: bool,
+    #[allow(dead_code)]
+    maximized: bool,
 }
 
 impl Window<()> {
@@ -118,7 +118,12 @@ impl<T: 'static + Clone> Window<T> {
                 .with_maximized(true)
         }
         .build(&event_loop)?;
-        Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
+        Self::from_winit_window(
+            winit_window,
+            event_loop,
+            window_settings.surface_settings,
+            window_settings.max_size.is_none(),
+        )
     }
 
     /// Exactly the same as [`Window::new()`] except with the ability to supply
@@ -132,7 +137,7 @@ impl<T: 'static + Clone> Window<T> {
         event_loop: EventLoop<T>,
     ) -> Result<Self, WindowError> {
         use wasm_bindgen::JsCast;
-        use winit::platform::web::WindowBuilderExtWebSys;
+        use winit::{dpi::LogicalSize, platform::web::WindowBuilderExtWebSys};
 
         let websys_window = web_sys::window().ok_or(WindowError::WindowCreation)?;
         let document = websys_window
@@ -152,22 +157,35 @@ impl<T: 'static + Clone> Window<T> {
                 .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
         };
 
+        let inner_size = window_settings
+            .max_size
+            .map(|(width, height)| LogicalSize::new(width as f64, height as f64))
+            .unwrap_or_else(|| {
+                let browser_window = canvas
+                    .owner_document()
+                    .and_then(|doc| doc.default_view())
+                    .or_else(web_sys::window)
+                    .unwrap();
+                LogicalSize::new(
+                    browser_window.inner_width().unwrap().as_f64().unwrap(),
+                    browser_window.inner_height().unwrap().as_f64().unwrap(),
+                )
+            });
+
         let window_builder = WindowBuilder::new()
             .with_title(window_settings.title)
             .with_canvas(Some(canvas))
+            .with_inner_size(inner_size)
             .with_prevent_default(true);
-
-        let window_builder = match window_settings.surface_settings.size {
-            Some((width, height)) => {
-                let size = dpi::LogicalSize::new(width as f64, height as f64);
-                window_builder.with_inner_size(size)
-            }
-            None => window_builder,
-        };
 
         let winit_window = window_builder.build(&event_loop)?;
 
-        Self::from_winit_window(winit_window, event_loop, window_settings.surface_settings)
+        Self::from_winit_window(
+            winit_window,
+            event_loop,
+            window_settings.surface_settings,
+            window_settings.max_size.is_none(),
+        )
     }
 
     ///
@@ -179,6 +197,7 @@ impl<T: 'static + Clone> Window<T> {
         winit_window: window::Window,
         event_loop: EventLoop<T>,
         mut surface_settings: SurfaceSettings,
+        maximized: bool,
     ) -> Result<Self, WindowError> {
         let mut gl = WindowedContext::from_winit_window(&winit_window, surface_settings);
         if gl.is_err() {
@@ -207,8 +226,7 @@ impl<T: 'static + Clone> Window<T> {
             gl: gl?,
             #[cfg(target_arch = "wasm32")]
             closure,
-            #[cfg(target_arch = "wasm32")]
-            cover_window: surface_settings.cover_window(),
+            maximized,
         })
     }
 
@@ -265,7 +283,7 @@ impl<T: 'static + Clone> Window<T> {
                     accumulated_time += elapsed_time;
 
                     #[cfg(target_arch = "wasm32")]
-                    if self.cover_window {
+                    if self.maximized {
                         use winit::platform::web::WindowExtWebSys;
 
                         let html_canvas = self.window.canvas();

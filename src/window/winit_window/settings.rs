@@ -40,22 +40,6 @@ pub struct SurfaceSettings {
     /// Specify whether or not hardware acceleration is preferred, required, or
     /// off. The default is [HardwareAcceleration::Preferred].
     pub hardware_acceleration: HardwareAcceleration,
-    /// The fixed size which will be applied to the [canvas][WindowSettings::canvas], in logical pixels.
-    /// If `None` is specified, the canvas will be resized to the same size as
-    /// the owner `Window`'s inner width and height.
-    #[cfg(target_arch = "wasm32")]
-    pub size: Option<(u32, u32)>,
-}
-
-#[cfg(target_arch = "wasm32")]
-impl SurfaceSettings {
-    /// If `true`, the underlying [canvas element][web_sys::HtmlCanvasElement]
-    /// should be resized to cover the whole window. If `false`, the canvas
-    /// should not be resized.
-    #[inline]
-    pub(crate) fn cover_window(&self) -> bool {
-        self.size.is_none()
-    }
 }
 
 impl Default for SurfaceSettings {
@@ -66,8 +50,6 @@ impl Default for SurfaceSettings {
             stencil_buffer: 0,
             multisamples: 4,
             hardware_acceleration: HardwareAcceleration::Preferred,
-            #[cfg(target_arch = "wasm32")]
-            size: None,
         }
     }
 }
@@ -85,10 +67,12 @@ pub struct WindowSettings {
     ///
     /// On web this has no effect.
     pub min_size: (u32, u32),
-    /// The maximum size of the window `(width, height)`, in logical pixels.
+    /// The maximum and initial size of the window `(width, height)`, in logical pixels.
     /// If `None` is specified, the window is maximized.
     ///
-    /// On web this has no effect.
+    /// On web, the size will be applied to the [canvas][WindowSettings::canvas], in logical pixels.
+    /// If `None` is specified, the canvas will be resized to the same size as
+    /// the owner `Window`'s inner width and height.
     pub max_size: Option<(u32, u32)>,
     /// Borderless mode.
     ///
