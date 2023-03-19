@@ -35,20 +35,6 @@ mod inner {
         ) -> Result<Self, WindowError> {
             let canvas = window.canvas();
 
-            if settings.cover_window() {
-                let html_canvas = window.canvas();
-                let browser_window = html_canvas
-                    .owner_document()
-                    .and_then(|doc| doc.default_view())
-                    .or_else(web_sys::window)
-                    .unwrap();
-
-                window.set_inner_size(winit::dpi::LogicalSize {
-                    width: browser_window.inner_width().unwrap().as_f64().unwrap(),
-                    height: browser_window.inner_height().unwrap().as_f64().unwrap(),
-                });
-            }
-
             // get webgl context and verify extensions
             let webgl_context = canvas
                 .get_context_with_context_options(
