@@ -334,14 +334,28 @@ impl Program {
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
-                self.context.vertex_attrib_pointer_f32(
-                    loc,
-                    buffer.data_size() as i32,
-                    buffer.data_type(),
-                    false,
-                    0,
-                    0,
-                );
+                if buffer.data_type() == crate::context::UNSIGNED_SHORT
+                    || buffer.data_type() == crate::context::SHORT
+                    || buffer.data_type() == crate::context::UNSIGNED_INT
+                    || buffer.data_type() == crate::context::INT
+                {
+                    self.context.vertex_attrib_pointer_i32(
+                        loc,
+                        buffer.data_size() as i32,
+                        buffer.data_type(),
+                        0,
+                        0,
+                    );
+                } else {
+                    self.context.vertex_attrib_pointer_f32(
+                        loc,
+                        buffer.data_size() as i32,
+                        buffer.data_type(),
+                        false,
+                        0,
+                        0,
+                    );
+                }
                 self.context.vertex_attrib_divisor(loc, 0);
                 self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
@@ -365,14 +379,28 @@ impl Program {
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
-                self.context.vertex_attrib_pointer_f32(
-                    loc,
-                    buffer.data_size() as i32,
-                    buffer.data_type(),
-                    false,
-                    0,
-                    0,
-                );
+                if buffer.data_type() == crate::context::UNSIGNED_SHORT
+                    || buffer.data_type() == crate::context::SHORT
+                    || buffer.data_type() == crate::context::UNSIGNED_INT
+                    || buffer.data_type() == crate::context::INT
+                {
+                    self.context.vertex_attrib_pointer_i32(
+                        loc,
+                        buffer.data_size() as i32,
+                        buffer.data_type(),
+                        0,
+                        0,
+                    );
+                } else {
+                    self.context.vertex_attrib_pointer_f32(
+                        loc,
+                        buffer.data_size() as i32,
+                        buffer.data_type(),
+                        false,
+                        0,
+                        0,
+                    );
+                }
                 self.context.vertex_attrib_divisor(loc, 1);
                 self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
