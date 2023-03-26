@@ -2,7 +2,7 @@
 use crate::control::*;
 use crate::core::{Context, CoreError, Viewport};
 use winit::event::{Event, TouchPhase, WindowEvent};
-use winit::event_loop::{ControlFlow, EventLoop};
+use winit::event_loop::{ControlFlow, EventLoopWindowTarget, EventLoop};
 use winit::window::WindowBuilder;
 use winit::*;
 
@@ -64,9 +64,8 @@ pub enum WindowError {
 /// Window and event handling.
 /// Use [Window::new] to create a new window or [Window::from_winit_window] which provides full control over the creation of the window.
 ///
-pub struct Window<T: 'static + Clone> {
+pub struct Window {
     window: winit::window::Window,
-    event_loop: EventLoop<T>,
     #[cfg(target_arch = "wasm32")]
     closure: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
     gl: WindowedContext,
@@ -74,27 +73,16 @@ pub struct Window<T: 'static + Clone> {
     maximized: bool,
 }
 
-impl Window<()> {
-    ///
-    /// Constructs a new Window with the given [settings].
-    ///
-    ///
-    /// [settings]: WindowSettings
-    pub fn new(window_settings: WindowSettings) -> Result<Window<()>, WindowError> {
-        Self::from_event_loop(window_settings, EventLoop::new())
-    }
-}
-
-impl<T: 'static + Clone> Window<T> {
+impl Window {
     /// Exactly the same as [`Window::new()`] except with the ability to supply
     /// an existing [`EventLoop`]. Use the event loop's [proxy] to push custom
     /// events into the render loop (from any thread). Not available for web.
     ///
     /// [proxy]: winit::event_loop::EventLoopProxy
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_event_loop(
+    pub fn from_event_loop<T>(
         window_settings: WindowSettings,
-        event_loop: EventLoop<T>,
+        event_loop: &event_loop::EventLoopWindowTarget<T>,
     ) -> Result<Self, WindowError> {
         let borderless = window_settings.borderless;
         let winit_window = if let Some((width, height)) = window_settings.max_size {
@@ -120,7 +108,6 @@ impl<T: 'static + Clone> Window<T> {
         .build(&event_loop)?;
         Self::from_winit_window(
             winit_window,
-            event_loop,
             window_settings.surface_settings,
             window_settings.max_size.is_none(),
         )
@@ -132,9 +119,9 @@ impl<T: 'static + Clone> Window<T> {
     ///
     /// [proxy]: winit::event_loop::EventLoopProxy
     #[cfg(target_arch = "wasm32")]
-    pub fn from_event_loop(
+    pub fn from_event_loop<T>(
         window_settings: WindowSettings,
-        event_loop: EventLoop<T>,
+        event_loop: &event_loop::EventLoopWindowTarget<T>,
     ) -> Result<Self, WindowError> {
         use wasm_bindgen::JsCast;
         use winit::{dpi::LogicalSize, platform::web::WindowBuilderExtWebSys};
@@ -182,7 +169,6 @@ impl<T: 'static + Clone> Window<T> {
 
         Self::from_winit_window(
             winit_window,
-            event_loop,
             window_settings.surface_settings,
             window_settings.max_size.is_none(),
         )
@@ -195,7 +181,6 @@ impl<T: 'static + Clone> Window<T> {
     ///
     pub fn from_winit_window(
         winit_window: window::Window,
-        event_loop: EventLoop<T>,
         mut surface_settings: SurfaceSettings,
         maximized: bool,
     ) -> Result<Self, WindowError> {
@@ -222,7 +207,6 @@ impl<T: 'static + Clone> Window<T> {
 
         Ok(Self {
             window: winit_window,
-            event_loop,
             gl: gl?,
             #[cfg(target_arch = "wasm32")]
             closure,
@@ -233,7 +217,20 @@ impl<T: 'static + Clone> Window<T> {
     ///
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
-    pub fn render_loop<F: 'static + FnMut(FrameInput<T>) -> FrameOutput>(self, mut callback: F) {
+    pub fn render_loop<T: Clone, F: 'static + FnMut(FrameInput<T>) -> FrameOutput>(self, event_loop: EventLoop<T>, callback: F) {
+        let mut callback = self.get_render_loop(callback);
+        event_loop.run(move |event, target, control_flow| {
+            callback(&event, target, control_flow);
+        })
+    }
+
+    ///
+    /// Returns the callback for rendering each frame.
+    ///
+    pub fn get_render_loop<T: 'static + Clone, F: 'static + FnMut(FrameInput<T>) -> FrameOutput>(
+        self,
+        mut callback: F,
+    ) -> impl FnMut(&Event<'_, T>, &EventLoopWindowTarget<T>, &mut ControlFlow) {
         #[cfg(not(target_arch = "wasm32"))]
         let mut last_time = std::time::Instant::now();
         #[cfg(target_arch = "wasm32")]
@@ -248,10 +245,11 @@ impl<T: 'static + Clone> Window<T> {
         let mut modifiers = Modifiers::default();
         let mut first_frame = true;
         let mut mouse_pressed = None;
-        self.event_loop.run(move |event, _, control_flow| {
+
+        move |event, _, control_flow: &mut ControlFlow| {
             match event {
                 Event::UserEvent(t) => {
-                    events.push(crate::Event::UserEvent(t));
+                    events.push(crate::Event::UserEvent(t.clone()));
                 }
                 Event::LoopDestroyed => {
                     #[cfg(target_arch = "wasm32")]
@@ -270,7 +268,7 @@ impl<T: 'static + Clone> Window<T> {
                 Event::MainEventsCleared => {
                     self.window.request_redraw();
                 }
-                Event::RedrawRequested(_) => {
+                Event::RedrawRequested(window_id) if *window_id == self.window.id() => {
                     #[cfg(not(target_arch = "wasm32"))]
                     let now = std::time::Instant::now();
                     #[cfg(target_arch = "wasm32")]
@@ -335,231 +333,241 @@ impl<T: 'static + Clone> Window<T> {
                         }
                     }
                 }
-                Event::WindowEvent { ref event, .. } => match event {
-                    WindowEvent::Resized(physical_size) => {
-                        self.gl.resize(*physical_size);
-                    }
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::KeyboardInput { input, .. } => {
-                        if let Some(keycode) = input.virtual_keycode {
-                            use event::VirtualKeyCode;
-                            let state = input.state == event::ElementState::Pressed;
-                            if let Some(kind) = translate_virtual_key_code(keycode) {
-                                events.push(if state {
-                                    crate::Event::KeyPress {
-                                        kind,
-                                        modifiers,
-                                        handled: false,
-                                    }
-                                } else {
-                                    crate::Event::KeyRelease {
-                                        kind,
-                                        modifiers,
-                                        handled: false,
-                                    }
-                                });
-                            } else if keycode == VirtualKeyCode::LControl
-                                || keycode == VirtualKeyCode::RControl
-                            {
-                                modifiers.ctrl = state;
-                                if !cfg!(target_os = "macos") {
-                                    modifiers.command = state;
-                                }
-                                events.push(crate::Event::ModifiersChange { modifiers });
-                            } else if keycode == VirtualKeyCode::LAlt
-                                || keycode == VirtualKeyCode::RAlt
-                            {
-                                modifiers.alt = state;
-                                events.push(crate::Event::ModifiersChange { modifiers });
-                            } else if keycode == VirtualKeyCode::LShift
-                                || keycode == VirtualKeyCode::RShift
-                            {
-                                modifiers.shift = state;
-                                events.push(crate::Event::ModifiersChange { modifiers });
-                            } else if (keycode == VirtualKeyCode::LWin
-                                || keycode == VirtualKeyCode::RWin)
-                                && cfg!(target_os = "macos")
-                            {
-                                modifiers.command = state;
-                                events.push(crate::Event::ModifiersChange { modifiers });
-                            }
+                Event::WindowEvent {
+                    window_id,
+                    ref event,
+                    ..
+                } if *window_id == self.window.id() => {
+                    match event {
+                        WindowEvent::Resized(physical_size) => {
+                            self.gl.resize(*physical_size);
                         }
-                    }
-                    WindowEvent::MouseWheel { delta, .. } => {
-                        if let Some(position) = cursor_pos {
-                            match delta {
-                                winit::event::MouseScrollDelta::LineDelta(x, y) => {
-                                    let line_height = 24.0; // TODO
-                                    events.push(crate::Event::MouseWheel {
-                                        delta: (
-                                            (*x * line_height) as f64,
-                                            (*y * line_height) as f64,
-                                        ),
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    });
-                                }
-                                winit::event::MouseScrollDelta::PixelDelta(delta) => {
-                                    let d = delta.to_logical(self.window.scale_factor());
-                                    events.push(crate::Event::MouseWheel {
-                                        delta: (d.x, d.y),
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    WindowEvent::MouseInput { state, button, .. } => {
-                        if let Some(position) = cursor_pos {
-                            let button = match button {
-                                event::MouseButton::Left => Some(crate::MouseButton::Left),
-                                event::MouseButton::Middle => Some(crate::MouseButton::Middle),
-                                event::MouseButton::Right => Some(crate::MouseButton::Right),
-                                _ => None,
-                            };
-                            if let Some(b) = button {
-                                events.push(if *state == event::ElementState::Pressed {
-                                    mouse_pressed = Some(b);
-                                    crate::Event::MousePress {
-                                        button: b,
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    }
-                                } else {
-                                    mouse_pressed = None;
-                                    crate::Event::MouseRelease {
-                                        button: b,
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    }
-                                });
-                            }
-                        }
-                    }
-                    WindowEvent::CursorMoved { position, .. } => {
-                        let p = position.to_logical(self.window.scale_factor());
-                        let delta = if let Some(last_pos) = cursor_pos {
-                            (p.x - last_pos.0, p.y - last_pos.1)
-                        } else {
-                            (0.0, 0.0)
-                        };
-                        events.push(crate::Event::MouseMotion {
-                            button: mouse_pressed,
-                            delta,
-                            position: (p.x, p.y),
-                            modifiers,
-                            handled: false,
-                        });
-                        cursor_pos = Some((p.x, p.y));
-                    }
-                    WindowEvent::ReceivedCharacter(ch) => {
-                        if is_printable_char(*ch) && !modifiers.ctrl && !modifiers.command {
-                            events.push(crate::Event::Text(ch.to_string()));
-                        }
-                    }
-                    WindowEvent::CursorEntered { .. } => {
-                        events.push(crate::Event::MouseEnter);
-                    }
-                    WindowEvent::CursorLeft { .. } => {
-                        mouse_pressed = None;
-                        events.push(crate::Event::MouseLeave);
-                    }
-                    WindowEvent::Touch(touch) => {
-                        let position = touch
-                            .location
-                            .to_logical::<f64>(self.window.scale_factor())
-                            .into();
-                        match touch.phase {
-                            TouchPhase::Started => {
-                                if finger_id.is_none() {
-                                    events.push(crate::Event::MousePress {
-                                        button: MouseButton::Left,
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    });
-                                    cursor_pos = Some(position);
-                                    finger_id = Some(touch.id);
-                                } else if secondary_finger_id.is_none() {
-                                    secondary_cursor_pos = Some(position);
-                                    secondary_finger_id = Some(touch.id);
-                                }
-                            }
-                            TouchPhase::Ended | TouchPhase::Cancelled => {
-                                if finger_id.map(|id| id == touch.id).unwrap_or(false) {
-                                    events.push(crate::Event::MouseRelease {
-                                        button: MouseButton::Left,
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    });
-                                    cursor_pos = None;
-                                    finger_id = None;
-                                } else if secondary_finger_id
-                                    .map(|id| id == touch.id)
-                                    .unwrap_or(false)
-                                {
-                                    secondary_cursor_pos = None;
-                                    secondary_finger_id = None;
-                                }
-                            }
-                            TouchPhase::Moved => {
-                                if finger_id.map(|id| id == touch.id).unwrap_or(false) {
-                                    let last_pos = cursor_pos.unwrap();
-                                    if let Some(p) = secondary_cursor_pos {
-                                        events.push(crate::Event::MouseWheel {
-                                            position,
+                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                        WindowEvent::KeyboardInput { input, .. } => {
+                            if let Some(keycode) = input.virtual_keycode {
+                                use event::VirtualKeyCode;
+                                let state = input.state == event::ElementState::Pressed;
+                                if let Some(kind) = translate_virtual_key_code(keycode) {
+                                    events.push(if state {
+                                        crate::Event::KeyPress {
+                                            kind,
                                             modifiers,
                                             handled: false,
-                                            delta: (
-                                                (position.0 - p.0).abs() - (last_pos.0 - p.0).abs(),
-                                                (position.1 - p.1).abs() - (last_pos.1 - p.1).abs(),
-                                            ),
-                                        });
+                                        }
                                     } else {
-                                        events.push(crate::Event::MouseMotion {
-                                            button: Some(MouseButton::Left),
-                                            position,
+                                        crate::Event::KeyRelease {
+                                            kind,
                                             modifiers,
                                             handled: false,
-                                            delta: (
-                                                position.0 - last_pos.0,
-                                                position.1 - last_pos.1,
-                                            ),
-                                        });
-                                    }
-                                    cursor_pos = Some(position);
-                                } else if secondary_finger_id
-                                    .map(|id| id == touch.id)
-                                    .unwrap_or(false)
+                                        }
+                                    });
+                                } else if keycode == VirtualKeyCode::LControl
+                                    || keycode == VirtualKeyCode::RControl
                                 {
-                                    let last_pos = secondary_cursor_pos.unwrap();
-                                    if let Some(p) = cursor_pos {
-                                        events.push(crate::Event::MouseWheel {
-                                            position: p,
-                                            modifiers,
-                                            handled: false,
-                                            delta: (
-                                                (position.0 - p.0).abs() - (last_pos.0 - p.0).abs(),
-                                                (position.1 - p.1).abs() - (last_pos.1 - p.1).abs(),
-                                            ),
-                                        });
+                                    modifiers.ctrl = state;
+                                    if !cfg!(target_os = "macos") {
+                                        modifiers.command = state;
                                     }
-                                    secondary_cursor_pos = Some(position);
+                                    events.push(crate::Event::ModifiersChange { modifiers });
+                                } else if keycode == VirtualKeyCode::LAlt
+                                    || keycode == VirtualKeyCode::RAlt
+                                {
+                                    modifiers.alt = state;
+                                    events.push(crate::Event::ModifiersChange { modifiers });
+                                } else if keycode == VirtualKeyCode::LShift
+                                    || keycode == VirtualKeyCode::RShift
+                                {
+                                    modifiers.shift = state;
+                                    events.push(crate::Event::ModifiersChange { modifiers });
+                                } else if (keycode == VirtualKeyCode::LWin
+                                    || keycode == VirtualKeyCode::RWin)
+                                    && cfg!(target_os = "macos")
+                                {
+                                    modifiers.command = state;
+                                    events.push(crate::Event::ModifiersChange { modifiers });
                                 }
                             }
                         }
+                        WindowEvent::MouseWheel { delta, .. } => {
+                            if let Some(position) = cursor_pos {
+                                match delta {
+                                    winit::event::MouseScrollDelta::LineDelta(x, y) => {
+                                        let line_height = 24.0; // TODO
+                                        events.push(crate::Event::MouseWheel {
+                                            delta: (
+                                                (*x * line_height) as f64,
+                                                (*y * line_height) as f64,
+                                            ),
+                                            position,
+                                            modifiers,
+                                            handled: false,
+                                        });
+                                    }
+                                    winit::event::MouseScrollDelta::PixelDelta(delta) => {
+                                        let d = delta.to_logical(self.window.scale_factor());
+                                        events.push(crate::Event::MouseWheel {
+                                            delta: (d.x, d.y),
+                                            position,
+                                            modifiers,
+                                            handled: false,
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        WindowEvent::MouseInput { state, button, .. } => {
+                            if let Some(position) = cursor_pos {
+                                let button = match button {
+                                    event::MouseButton::Left => Some(crate::MouseButton::Left),
+                                    event::MouseButton::Middle => Some(crate::MouseButton::Middle),
+                                    event::MouseButton::Right => Some(crate::MouseButton::Right),
+                                    _ => None,
+                                };
+                                if let Some(b) = button {
+                                    events.push(if *state == event::ElementState::Pressed {
+                                        mouse_pressed = Some(b);
+                                        crate::Event::MousePress {
+                                            button: b,
+                                            position,
+                                            modifiers,
+                                            handled: false,
+                                        }
+                                    } else {
+                                        mouse_pressed = None;
+                                        crate::Event::MouseRelease {
+                                            button: b,
+                                            position,
+                                            modifiers,
+                                            handled: false,
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        WindowEvent::CursorMoved { position, .. } => {
+                            let p = position.to_logical(self.window.scale_factor());
+                            let delta = if let Some(last_pos) = cursor_pos {
+                                (p.x - last_pos.0, p.y - last_pos.1)
+                            } else {
+                                (0.0, 0.0)
+                            };
+                            events.push(crate::Event::MouseMotion {
+                                button: mouse_pressed,
+                                delta,
+                                position: (p.x, p.y),
+                                modifiers,
+                                handled: false,
+                            });
+                            cursor_pos = Some((p.x, p.y));
+                        }
+                        WindowEvent::ReceivedCharacter(ch) => {
+                            if is_printable_char(*ch) && !modifiers.ctrl && !modifiers.command {
+                                events.push(crate::Event::Text(ch.to_string()));
+                            }
+                        }
+                        WindowEvent::CursorEntered { .. } => {
+                            events.push(crate::Event::MouseEnter);
+                        }
+                        WindowEvent::CursorLeft { .. } => {
+                            mouse_pressed = None;
+                            events.push(crate::Event::MouseLeave);
+                        }
+                        WindowEvent::Touch(touch) => {
+                            let position = touch
+                                .location
+                                .to_logical::<f64>(self.window.scale_factor())
+                                .into();
+                            match touch.phase {
+                                TouchPhase::Started => {
+                                    if finger_id.is_none() {
+                                        events.push(crate::Event::MousePress {
+                                            button: MouseButton::Left,
+                                            position,
+                                            modifiers,
+                                            handled: false,
+                                        });
+                                        cursor_pos = Some(position);
+                                        finger_id = Some(touch.id);
+                                    } else if secondary_finger_id.is_none() {
+                                        secondary_cursor_pos = Some(position);
+                                        secondary_finger_id = Some(touch.id);
+                                    }
+                                }
+                                TouchPhase::Ended | TouchPhase::Cancelled => {
+                                    if finger_id.map(|id| id == touch.id).unwrap_or(false) {
+                                        events.push(crate::Event::MouseRelease {
+                                            button: MouseButton::Left,
+                                            position,
+                                            modifiers,
+                                            handled: false,
+                                        });
+                                        cursor_pos = None;
+                                        finger_id = None;
+                                    } else if secondary_finger_id
+                                        .map(|id| id == touch.id)
+                                        .unwrap_or(false)
+                                    {
+                                        secondary_cursor_pos = None;
+                                        secondary_finger_id = None;
+                                    }
+                                }
+                                TouchPhase::Moved => {
+                                    if finger_id.map(|id| id == touch.id).unwrap_or(false) {
+                                        let last_pos = cursor_pos.unwrap();
+                                        if let Some(p) = secondary_cursor_pos {
+                                            events.push(crate::Event::MouseWheel {
+                                                position,
+                                                modifiers,
+                                                handled: false,
+                                                delta: (
+                                                    (position.0 - p.0).abs()
+                                                        - (last_pos.0 - p.0).abs(),
+                                                    (position.1 - p.1).abs()
+                                                        - (last_pos.1 - p.1).abs(),
+                                                ),
+                                            });
+                                        } else {
+                                            events.push(crate::Event::MouseMotion {
+                                                button: Some(MouseButton::Left),
+                                                position,
+                                                modifiers,
+                                                handled: false,
+                                                delta: (
+                                                    position.0 - last_pos.0,
+                                                    position.1 - last_pos.1,
+                                                ),
+                                            });
+                                        }
+                                        cursor_pos = Some(position);
+                                    } else if secondary_finger_id
+                                        .map(|id| id == touch.id)
+                                        .unwrap_or(false)
+                                    {
+                                        let last_pos = secondary_cursor_pos.unwrap();
+                                        if let Some(p) = cursor_pos {
+                                            events.push(crate::Event::MouseWheel {
+                                                position: p,
+                                                modifiers,
+                                                handled: false,
+                                                delta: (
+                                                    (position.0 - p.0).abs()
+                                                        - (last_pos.0 - p.0).abs(),
+                                                    (position.1 - p.1).abs()
+                                                        - (last_pos.1 - p.1).abs(),
+                                                ),
+                                            });
+                                        }
+                                        secondary_cursor_pos = Some(position);
+                                    }
+                                }
+                            }
+                        }
+                        _ => (),
                     }
-                    _ => (),
-                },
+                }
                 _ => (),
             }
-        });
+        }
     }
 
     ///
@@ -585,17 +593,6 @@ impl<T: 'static + Clone> Window<T> {
     ///
     pub fn gl(&self) -> Context {
         (*self.gl).clone()
-    }
-
-    ///
-    /// Returns an event loop proxy that can be used to send a `T` into the
-    /// render loop using the proxy's [`send_event`] method. The event can be
-    /// handled in the render loop by matching [`Event::UserEvent`].
-    ///
-    /// [`Event::UserEvent`]: crate::control::Event::UserEvent
-    /// [`send_event`]: winit::event_loop::EventLoopProxy::send_event
-    pub fn event_loop_proxy(&self) -> winit::event_loop::EventLoopProxy<T> {
-        self.event_loop.create_proxy()
     }
 }
 
