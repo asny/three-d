@@ -1,11 +1,13 @@
 use three_d::*;
 
 pub fn main() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Screen!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -38,7 +40,7 @@ pub fn main() {
     let mut gui = three_d::GUI::new(&context);
     let mut viewport_zoom = 1.0;
     let mut scissor_zoom = 1.0;
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         model.set_transformation(Mat4::from_angle_y(radians(
             (frame_input.accumulated_time * 0.005) as f32,
         )));

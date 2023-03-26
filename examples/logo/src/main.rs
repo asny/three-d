@@ -8,11 +8,13 @@ async fn main() {
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Logo!".to_string(),
         max_size: Some((512, 512)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -58,7 +60,7 @@ pub async fn run() {
     // Construct a model, with a default color material, thereby transferring the mesh data to the GPU
     let model = Gm::new(Mesh::new(&context, &cpu_mesh), ColorMaterial::default());
 
-    window.render_loop(move |frame_input| {
+    window.render_loop(event_loop, move |frame_input| {
         camera.set_viewport(frame_input.viewport);
 
         frame_input

@@ -8,12 +8,14 @@ async fn main() {
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "PBR!".to_string(),
         min_size: (512, 512),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -65,7 +67,7 @@ pub async fn run() {
     let mut metallic_roughness_enabled = true;
     let mut albedo_map_enabled = true;
     let mut emissive_map_enabled = true;
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         let mut panel_width = 0.0;
         gui.update(
             &mut frame_input.events,

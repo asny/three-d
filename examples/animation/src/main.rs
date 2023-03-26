@@ -8,12 +8,14 @@ async fn main() {
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Animation!".to_string(),
         min_size: (512, 512),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -52,7 +54,7 @@ pub async fn run() {
     let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5));
 
     // main loop
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 

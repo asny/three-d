@@ -10,12 +10,14 @@ use rand::prelude::*;
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Terrain!".to_string(),
         min_size: (512, 512),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -120,7 +122,7 @@ pub async fn run() {
     let mut speed = 3.0;
     let mut height = 0.0;
     // main loop
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         let mut parameter_change = frame_input.first_frame;
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);

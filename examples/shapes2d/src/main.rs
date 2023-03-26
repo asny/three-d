@@ -1,11 +1,13 @@
 use three_d::*;
 
 pub fn main() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Shapes 2D!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -39,7 +41,7 @@ pub fn main() {
         },
     );
 
-    window.render_loop(move |frame_input| {
+    window.render_loop(event_loop, move |frame_input| {
         for event in frame_input.events.iter() {
             if let Event::MousePress {
                 button,

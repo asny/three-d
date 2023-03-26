@@ -1,11 +1,13 @@
 use three_d::*;
 
 pub fn main() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Instanced Shapes!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -49,7 +51,7 @@ pub fn main() {
     let mut is_instanced = false;
 
     let mut gui = three_d::GUI::new(&context);
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         // Gui panel to control the number of cubes and whether or not instancing is turned on.
         let mut panel_width = 0.0;
         gui.update(

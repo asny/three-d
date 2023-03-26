@@ -1,12 +1,14 @@
 use three_d::*;
 
 pub fn main() {
+    let event_loop = winit::event_loop::EventLoop::new();
+
     // Create a window (a canvas on web)
-    let window = Window::new(WindowSettings {
+    let window = Window::from_event_loop(WindowSettings {
         title: "Triangle!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
 
     // Get the graphics context from the window
@@ -47,7 +49,7 @@ pub fn main() {
     model.set_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
 
     // Start the main render loop
-    window.render_loop(
+    window.render_loop(event_loop,
         move |frame_input| // Begin a new frame with an updated frame input
     {
         // Ensure the viewport matches the current window viewport which changes if the window is resized

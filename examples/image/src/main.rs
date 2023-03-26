@@ -9,11 +9,13 @@ use three_d::core::*;
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Image!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -38,7 +40,7 @@ pub async fn run() {
     let mut texture_transform_scale = 1.0;
     let mut texture_transform_x = 0.0;
     let mut texture_transform_y = 0.0;
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         let mut panel_width = 0.0;
         gui.update(
             &mut frame_input.events,

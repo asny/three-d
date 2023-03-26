@@ -8,11 +8,13 @@ enum RenderMethod {
 }
 
 pub fn main() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Multisample!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -75,7 +77,7 @@ pub fn main() {
 
     let mut gui = three_d::GUI::new(&context);
 
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
 
         let mut panel_width = 0.0;

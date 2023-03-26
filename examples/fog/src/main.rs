@@ -8,11 +8,13 @@ async fn main() {
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Fog!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -62,7 +64,7 @@ pub async fn run() {
     );
     let mut depth_texture =
         DepthTexture2D::new::<f32>(&context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge);
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
         change |= control.handle_events(&mut camera, &mut frame_input.events);

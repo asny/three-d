@@ -50,11 +50,13 @@ fn main() {
 }
 
 pub fn run() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Fireworks!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -102,7 +104,7 @@ pub fn run() {
     // main loop
     let mut time = explosion_time + 100.0; // Ensure initialisation on the first loop.
     let mut color_index = 0;
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
 
         control.handle_events(&mut camera, &mut frame_input.events);

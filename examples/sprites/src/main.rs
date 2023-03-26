@@ -8,11 +8,13 @@ async fn main() {
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Sprites!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -72,7 +74,7 @@ pub async fn run() {
 
     let ambient = AmbientLight::new(&context, 1.0, Color::WHITE);
 
-    window.render_loop(move |mut frame_input| {
+    window.render_loop(event_loop, move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 

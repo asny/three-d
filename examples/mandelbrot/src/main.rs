@@ -27,11 +27,13 @@ impl Material for MandelbrotMaterial {
 }
 
 pub fn main() {
-    let window = Window::new(WindowSettings {
+    let event_loop = winit::event_loop::EventLoop::new();
+
+    let window = Window::from_event_loop(WindowSettings {
         title: "Mandelbrot!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
-    })
+    }, &event_loop)
     .unwrap();
     let context = window.gl();
 
@@ -66,7 +68,7 @@ pub fn main() {
     mesh.set_transformation(Mat4::from_scale(10.0));
 
     // main loop
-    window.render_loop(move |frame_input| {
+    window.render_loop(event_loop, move |frame_input| {
         let mut redraw = frame_input.first_frame;
         redraw |= camera.set_viewport(frame_input.viewport);
 
