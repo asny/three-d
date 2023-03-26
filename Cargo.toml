@@ -174,3 +174,7 @@ required-features = ["headless"]
 [[example]]
 name = "logo"
 path = "examples/logo/src/main.rs"
+
+[[example]]
+name = "multiwindow"
+path = "examples/multiwindow/src/main.rs"
