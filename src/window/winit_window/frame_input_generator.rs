@@ -5,6 +5,7 @@ use crate::core::*;
 use instant::Instant;
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::Instant;
+use winit::dpi::PhysicalSize;
 use winit::event::Event as WinitEvent;
 use winit::event::TouchPhase;
 use winit::event::WindowEvent;
@@ -31,15 +32,19 @@ pub struct FrameInputGenerator {
 }
 
 impl FrameInputGenerator {
-    /// Creates a new event handler.
-    pub fn new() -> Self {
+    ///
+    /// Creates a new frame input generator.
+    ///
+    pub fn new(size: PhysicalSize<u32>, device_pixel_ratio: f64) -> Self {
+        let (window_width, window_height): (u32, u32) =
+            size.to_logical::<f32>(device_pixel_ratio).into();
         Self {
             events: Vec::new(),
             accumulated_time: 0.0,
-            viewport: Viewport::new_at_origo(1, 1),
-            window_width: 1,
-            window_height: 1,
-            device_pixel_ratio: 1.0,
+            viewport: Viewport::new_at_origo(size.width, size.height),
+            window_width,
+            window_height,
+            device_pixel_ratio,
             first_frame: true,
             last_time: Instant::now(),
             cursor_pos: None,
@@ -49,6 +54,13 @@ impl FrameInputGenerator {
             modifiers: Modifiers::default(),
             mouse_pressed: None,
         }
+    }
+
+    ///
+    /// Creates a new frame input generator from a [winit](https://crates.io/crates/winit) window.
+    ///
+    pub fn from_winit_window(window: &winit::window::Window) -> Self {
+        Self::new(window.inner_size(), window.scale_factor())
     }
 
     ///
@@ -323,12 +335,6 @@ impl FrameInputGenerator {
                 _ => (),
             }
         }
-    }
-}
-
-impl Default for FrameInputGenerator {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

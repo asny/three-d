@@ -239,7 +239,7 @@ impl<T: 'static + Clone> Window<T> {
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
-        let mut frame_input_generator = FrameInputGenerator::new();
+        let mut frame_input_generator = FrameInputGenerator::from_winit_window(&self.window);
         self.event_loop.run(move |event, _, control_flow| {
             frame_input_generator.handle_winit_event(&event);
             match event {

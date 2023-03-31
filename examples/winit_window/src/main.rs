@@ -28,7 +28,7 @@ pub fn main() {
     model.set_animation(|time| Mat4::from_angle_y(radians(time * 0.0005)));
 
     // Event loop
-    let mut frame_input_generator = FrameInputGenerator::new();
+    let mut frame_input_generator = FrameInputGenerator::from_winit_window(&window);
     event_loop.run(move |event, _, control_flow| {
         frame_input_generator.handle_winit_event(&event);
 
