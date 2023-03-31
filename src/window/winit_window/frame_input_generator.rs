@@ -13,7 +13,7 @@ use winit::event::WindowEvent;
 /// Use this to generate [FrameInput] for a new frame with a custom [winit](https://crates.io/crates/winit) window.
 /// [FrameInput] is automatically generated if using the default [Window](crate::window::Window).
 ///
-pub struct EventHandler {
+pub struct FrameInputGenerator {
     last_time: Instant,
     first_frame: bool,
     events: Vec<Event>,
@@ -30,7 +30,7 @@ pub struct EventHandler {
     mouse_pressed: Option<MouseButton>,
 }
 
-impl EventHandler {
+impl FrameInputGenerator {
     /// Creates a new event handler.
     pub fn new() -> Self {
         Self {
@@ -54,7 +54,7 @@ impl EventHandler {
     ///
     /// Generates [FrameInput] for a new frame. This should be called each frame and the generated data should only be used for one frame.
     ///
-    pub fn generate_frame_input(&mut self, context: &Context) -> FrameInput {
+    pub fn generate(&mut self, context: &Context) -> FrameInput {
         let now = Instant::now();
         let duration = now.duration_since(self.last_time);
         let elapsed_time =
@@ -326,7 +326,7 @@ impl EventHandler {
     }
 }
 
-impl Default for EventHandler {
+impl Default for FrameInputGenerator {
     fn default() -> Self {
         Self::new()
     }

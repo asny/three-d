@@ -1,4 +1,4 @@
-use three_d::{renderer::*, EventHandler, SurfaceSettings, WindowedContext};
+use three_d::{renderer::*, FrameInputGenerator, SurfaceSettings, WindowedContext};
 
 pub fn main() {
     let event_loop = winit::event_loop::EventLoop::new();
@@ -28,16 +28,16 @@ pub fn main() {
     model.set_animation(|time| Mat4::from_angle_y(radians(time * 0.0005)));
 
     // Event loop
-    let mut event_handler = EventHandler::new();
+    let mut frame_input_generator = FrameInputGenerator::new();
     event_loop.run(move |event, _, control_flow| {
-        event_handler.handle_winit_event(&event);
+        frame_input_generator.handle_winit_event(&event);
 
         match event {
             winit::event::Event::MainEventsCleared => {
                 window.request_redraw();
             }
             winit::event::Event::RedrawRequested(_) => {
-                let mut frame_input = event_handler.generate_frame_input(&context);
+                let mut frame_input = frame_input_generator.generate(&context);
 
                 control.handle_events(&mut camera, &mut frame_input.events);
                 camera.set_viewport(frame_input.viewport);

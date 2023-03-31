@@ -8,7 +8,7 @@ use crate::core::{Context, RenderTarget, Viewport};
 ///
 /// Note:
 /// [FrameInput] is automatically generated if using the default [Window](crate::window::Window).
-/// Use [EventHandler](crate::window::EventHandler) to generate it with a custom [winit](https://crates.io/crates/winit) window.
+/// Use [FrameInputGenerator](crate::window::FrameInputGenerator) to generate it with a custom [winit](https://crates.io/crates/winit) window.
 ///
 #[derive(Clone, Debug)]
 pub struct FrameInput {

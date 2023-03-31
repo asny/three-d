@@ -11,8 +11,8 @@ pub use settings::*;
 mod frame_io;
 pub use frame_io::*;
 
-mod event_handler;
-pub use event_handler::*;
+mod frame_input_generator;
+pub use frame_input_generator::*;
 
 mod windowed_context;
 pub use windowed_context::*;
@@ -67,7 +67,7 @@ pub enum WindowError {
 ///
 /// To get full control over the creation of the [winit](https://crates.io/crates/winit) window, use [Window::from_winit_window].
 /// To take control over everything, including the context creation and [winit](https://crates.io/crates/winit) event loop,
-/// use [WindowedContext::from_winit_window] and [EventHandler].
+/// use [WindowedContext::from_winit_window] and [FrameInputGenerator].
 ///
 pub struct Window<T: 'static + Clone> {
     window: winit::window::Window,
@@ -239,9 +239,9 @@ impl<T: 'static + Clone> Window<T> {
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
-        let mut event_handler = EventHandler::new();
+        let mut frame_input_generator = FrameInputGenerator::new();
         self.event_loop.run(move |event, _, control_flow| {
-            event_handler.handle_winit_event(&event);
+            frame_input_generator.handle_winit_event(&event);
             match event {
                 Event::LoopDestroyed => {
                     #[cfg(target_arch = "wasm32")]
@@ -261,7 +261,7 @@ impl<T: 'static + Clone> Window<T> {
                     self.window.request_redraw();
                 }
                 Event::RedrawRequested(_) => {
-                    let frame_input = event_handler.generate_frame_input(&self.gl);
+                    let frame_input = frame_input_generator.generate(&self.gl);
                     let frame_output = callback(frame_input);
                     if frame_output.exit {
                         *control_flow = ControlFlow::Exit;
