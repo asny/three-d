@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
-use crate::control::*;
 use crate::core::{Context, CoreError, Viewport};
-use winit::event::{Event, TouchPhase, WindowEvent};
+use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit::*;
@@ -11,6 +10,9 @@ pub use settings::*;
 
 mod frame_io;
 pub use frame_io::*;
+
+mod event_handler;
+pub use event_handler::*;
 
 mod windowed_context;
 pub use windowed_context::*;
@@ -337,78 +339,4 @@ impl<T: 'static + Clone> Window<T> {
     pub fn event_loop_proxy(&self) -> winit::event_loop::EventLoopProxy<T> {
         self.event_loop.create_proxy()
     }
-}
-
-fn is_printable_char(chr: char) -> bool {
-    let is_in_private_use_area = ('\u{e000}'..='\u{f8ff}').contains(&chr)
-        || ('\u{f0000}'..='\u{ffffd}').contains(&chr)
-        || ('\u{100000}'..='\u{10fffd}').contains(&chr);
-
-    !is_in_private_use_area && !chr.is_ascii_control()
-}
-
-fn translate_virtual_key_code(key: event::VirtualKeyCode) -> Option<crate::Key> {
-    use event::VirtualKeyCode::*;
-
-    Some(match key {
-        Down => Key::ArrowDown,
-        Left => Key::ArrowLeft,
-        Right => Key::ArrowRight,
-        Up => Key::ArrowUp,
-
-        Escape => Key::Escape,
-        Tab => Key::Tab,
-        Back => Key::Backspace,
-        Return => Key::Enter,
-        Space => Key::Space,
-
-        Insert => Key::Insert,
-        Delete => Key::Delete,
-        Home => Key::Home,
-        End => Key::End,
-        PageUp => Key::PageUp,
-        PageDown => Key::PageDown,
-
-        Key0 | Numpad0 => Key::Num0,
-        Key1 | Numpad1 => Key::Num1,
-        Key2 | Numpad2 => Key::Num2,
-        Key3 | Numpad3 => Key::Num3,
-        Key4 | Numpad4 => Key::Num4,
-        Key5 | Numpad5 => Key::Num5,
-        Key6 | Numpad6 => Key::Num6,
-        Key7 | Numpad7 => Key::Num7,
-        Key8 | Numpad8 => Key::Num8,
-        Key9 | Numpad9 => Key::Num9,
-
-        A => Key::A,
-        B => Key::B,
-        C => Key::C,
-        D => Key::D,
-        E => Key::E,
-        F => Key::F,
-        G => Key::G,
-        H => Key::H,
-        I => Key::I,
-        J => Key::J,
-        K => Key::K,
-        L => Key::L,
-        M => Key::M,
-        N => Key::N,
-        O => Key::O,
-        P => Key::P,
-        Q => Key::Q,
-        R => Key::R,
-        S => Key::S,
-        T => Key::T,
-        U => Key::U,
-        V => Key::V,
-        W => Key::W,
-        X => Key::X,
-        Y => Key::Y,
-        Z => Key::Z,
-
-        _ => {
-            return None;
-        }
-    })
 }
