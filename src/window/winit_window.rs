@@ -63,8 +63,11 @@ pub enum WindowError {
 }
 
 ///
-/// Window and event handling.
-/// Use [Window::new] to create a new window or [Window::from_winit_window] which provides full control over the creation of the window.
+/// Default window, context and event handling which uses [winit](https://crates.io/crates/winit).
+///
+/// To get full control over the creation of the [winit](https://crates.io/crates/winit) window, use [Window::from_winit_window].
+/// To take control over everything, including the context creation and [winit](https://crates.io/crates/winit) event loop,
+/// use [WindowedContext::from_winit_window] and [EventHandler].
 ///
 pub struct Window<T: 'static + Clone> {
     window: winit::window::Window,

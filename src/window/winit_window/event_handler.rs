@@ -10,7 +10,7 @@ use winit::event::TouchPhase;
 use winit::event::WindowEvent;
 
 ///
-/// Use this to generate [FrameInput] for a new frame with a custom window.
+/// Use this to generate [FrameInput] for a new frame with a custom [winit](https://crates.io/crates/winit) window.
 /// [FrameInput] is automatically generated if using the default [Window](crate::window::Window).
 ///
 pub struct EventHandler {

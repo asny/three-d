@@ -55,7 +55,7 @@ impl Default for SurfaceSettings {
 }
 
 ///
-/// Window settings.
+/// Settings for the default [Window](super::Window).
 ///
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WindowSettings {

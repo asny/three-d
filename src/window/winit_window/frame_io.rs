@@ -1,10 +1,14 @@
-use crate::control::*;
-use crate::core::*;
+use crate::control::Event;
+use crate::core::{Context, RenderTarget, Viewport};
 
 ///
 /// Input for rendering (and whatever else needs it) each frame.
-/// It includes events that can be used as input to [control](crate::renderer::control)s.
+/// It includes events that can be used as input to [controls](crate::renderer::control).
 /// The data should only be used for one frame.
+///
+/// Note:
+/// [FrameInput] is automatically generated if using the default [Window](crate::window::Window).
+/// Use [EventHandler](crate::window::EventHandler) to generate it with a custom [winit](https://crates.io/crates/winit) window.
 ///
 #[derive(Clone, Debug)]
 pub struct FrameInput {
@@ -51,7 +55,7 @@ impl FrameInput {
 }
 
 ///
-/// Output from the rendering to the window each frame.
+/// Output from the rendering to the default [Window](crate::window::Window) each frame.
 ///
 #[derive(Clone, Debug)]
 pub struct FrameOutput {
