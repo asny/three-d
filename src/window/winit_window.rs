@@ -238,7 +238,7 @@ impl<T: 'static + Clone> Window<T> {
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
         let mut event_handler = EventHandler::new();
         self.event_loop.run(move |event, _, control_flow| {
-            event_handler.handle_event(&event);
+            event_handler.handle_winit_event(&event);
             match event {
                 Event::LoopDestroyed => {
                     #[cfg(target_arch = "wasm32")]
@@ -258,7 +258,7 @@ impl<T: 'static + Clone> Window<T> {
                     self.window.request_redraw();
                 }
                 Event::RedrawRequested(_) => {
-                    let frame_input = event_handler.resolve(&self.gl);
+                    let frame_input = event_handler.generate_frame_input(&self.gl);
                     let frame_output = callback(frame_input);
                     if frame_output.exit {
                         *control_flow = ControlFlow::Exit;
@@ -330,16 +330,5 @@ impl<T: 'static + Clone> Window<T> {
     ///
     pub fn gl(&self) -> Context {
         (*self.gl).clone()
-    }
-
-    ///
-    /// Returns an event loop proxy that can be used to send a `T` into the
-    /// render loop using the proxy's [`send_event`] method. The event can be
-    /// handled in the render loop by matching [`Event::UserEvent`].
-    ///
-    /// [`Event::UserEvent`]: crate::control::Event::UserEvent
-    /// [`send_event`]: winit::event_loop::EventLoopProxy::send_event
-    pub fn event_loop_proxy(&self) -> winit::event_loop::EventLoopProxy<T> {
-        self.event_loop.create_proxy()
     }
 }

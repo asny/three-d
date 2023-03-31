@@ -67,7 +67,7 @@ impl Particles {
 /// new_position = start_position + start_velocity * time + 0.5 * acceleration * time * time
 /// ```
 ///
-/// The particles will only move if the [ParticleSystem::time] variable is updated every frame.
+/// The particles will only move if the [ParticleSystem::animate] is called every frame.
 ///
 pub struct ParticleSystem {
     context: Context,

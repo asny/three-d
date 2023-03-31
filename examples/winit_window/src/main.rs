@@ -30,14 +30,14 @@ pub fn main() {
     // Event loop
     let mut event_handler = EventHandler::new();
     event_loop.run(move |event, _, control_flow| {
-        event_handler.handle_event(&event);
+        event_handler.handle_winit_event(&event);
 
         match event {
             winit::event::Event::MainEventsCleared => {
                 window.request_redraw();
             }
             winit::event::Event::RedrawRequested(_) => {
-                let mut frame_input = event_handler.resolve(&context);
+                let mut frame_input = event_handler.generate_frame_input(&context);
 
                 control.handle_events(&mut camera, &mut frame_input.events);
                 camera.set_viewport(frame_input.viewport);

@@ -2,7 +2,9 @@ use crate::control::*;
 use crate::core::*;
 
 ///
-/// Input from the window to the rendering (and whatever else needs it) each frame.
+/// Input for rendering (and whatever else needs it) each frame.
+/// It includes events that can be used as input to [control](crate::renderer::control)s.
+/// The data should only be used for one frame.
 ///
 #[derive(Clone, Debug)]
 pub struct FrameInput {
