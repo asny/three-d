@@ -9,10 +9,10 @@ use winit::event::Event as WinitEvent;
 use winit::event::TouchPhase;
 use winit::event::WindowEvent;
 
-pub struct EventHandler<T: 'static + Clone> {
+pub struct EventHandler {
     last_time: Instant,
     first_frame: bool,
-    events: Vec<Event<T>>,
+    events: Vec<Event>,
     accumulated_time: f64,
     viewport: Viewport,
     window_width: u32,
@@ -26,7 +26,7 @@ pub struct EventHandler<T: 'static + Clone> {
     mouse_pressed: Option<MouseButton>,
 }
 
-impl<T: 'static + Clone> EventHandler<T> {
+impl EventHandler {
     pub fn new() -> Self {
         Self {
             events: Vec::new(),
@@ -46,7 +46,7 @@ impl<T: 'static + Clone> EventHandler<T> {
         }
     }
 
-    pub fn resolve(&mut self, context: &Context) -> FrameInput<T> {
+    pub fn resolve(&mut self, context: &Context) -> FrameInput {
         let now = Instant::now();
         let duration = now.duration_since(self.last_time);
         let elapsed_time =
@@ -69,11 +69,8 @@ impl<T: 'static + Clone> EventHandler<T> {
         frame_input
     }
 
-    pub fn handle_event(&mut self, event: &WinitEvent<T>) {
+    pub fn handle_event<T>(&mut self, event: &WinitEvent<T>) {
         match event {
-            WinitEvent::UserEvent(t) => {
-                self.events.push(crate::Event::UserEvent(t.clone()));
-            }
             WinitEvent::WindowEvent { ref event, .. } => match event {
                 WindowEvent::Resized(physical_size) => {
                     self.viewport =

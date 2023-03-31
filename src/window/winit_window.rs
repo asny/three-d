@@ -235,7 +235,7 @@ impl<T: 'static + Clone> Window<T> {
     ///
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
-    pub fn render_loop<F: 'static + FnMut(FrameInput<T>) -> FrameOutput>(self, mut callback: F) {
+    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
         let mut event_handler = EventHandler::new();
         self.event_loop.run(move |event, _, control_flow| {
             event_handler.handle_event(&event);
