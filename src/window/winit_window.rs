@@ -236,7 +236,7 @@ impl<T: 'static + Clone> Window<T> {
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
     pub fn render_loop<F: 'static + FnMut(FrameInput<T>) -> FrameOutput>(self, mut callback: F) {
-        let mut event_handler = EventHandler::new(&self.gl);
+        let mut event_handler = EventHandler::new();
         self.event_loop.run(move |event, _, control_flow| {
             event_handler.handle_event(&event);
             match event {
@@ -258,7 +258,7 @@ impl<T: 'static + Clone> Window<T> {
                     self.window.request_redraw();
                 }
                 Event::RedrawRequested(_) => {
-                    let frame_input = event_handler.resolve();
+                    let frame_input = event_handler.resolve(&self.gl);
                     let frame_output = callback(frame_input);
                     if frame_output.exit {
                         *control_flow = ControlFlow::Exit;
@@ -295,6 +295,9 @@ impl<T: 'static + Clone> Window<T> {
                 Event::WindowEvent { ref event, .. } => match event {
                     WindowEvent::Resized(physical_size) => {
                         self.gl.resize(*physical_size);
+                    }
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        self.gl.resize(**new_inner_size);
                     }
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     _ => (),

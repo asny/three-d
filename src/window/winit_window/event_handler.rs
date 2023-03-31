@@ -18,7 +18,6 @@ pub struct EventHandler<T: 'static + Clone> {
     window_width: u32,
     window_height: u32,
     device_pixel_ratio: f64,
-    context: Context,
     cursor_pos: Option<(f64, f64)>,
     finger_id: Option<u64>,
     secondary_cursor_pos: Option<(f64, f64)>,
@@ -28,7 +27,7 @@ pub struct EventHandler<T: 'static + Clone> {
 }
 
 impl<T: 'static + Clone> EventHandler<T> {
-    pub fn new(context: &Context) -> Self {
+    pub fn new() -> Self {
         Self {
             events: Vec::new(),
             accumulated_time: 0.0,
@@ -37,7 +36,6 @@ impl<T: 'static + Clone> EventHandler<T> {
             window_height: 1,
             device_pixel_ratio: 1.0,
             first_frame: true,
-            context: context.clone(),
             last_time: Instant::now(),
             cursor_pos: None,
             finger_id: None,
@@ -48,7 +46,7 @@ impl<T: 'static + Clone> EventHandler<T> {
         }
     }
 
-    pub fn resolve(&mut self) -> FrameInput<T> {
+    pub fn resolve(&mut self, context: &Context) -> FrameInput<T> {
         let now = Instant::now();
         let duration = now.duration_since(self.last_time);
         let elapsed_time =
@@ -65,7 +63,7 @@ impl<T: 'static + Clone> EventHandler<T> {
             window_height: self.window_height,
             device_pixel_ratio: self.device_pixel_ratio,
             first_frame: self.first_frame,
-            context: self.context.clone(),
+            context: context.clone(),
         };
         self.first_frame = false;
         frame_input
