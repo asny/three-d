@@ -50,6 +50,7 @@ rand = "0.7"
 three-d-asset = {version="0.5", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 noise = {version = "0.6", default-features = false}
+winit = "0.28"
 
 [[example]]
 name = "triangle"
