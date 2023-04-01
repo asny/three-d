@@ -172,6 +172,10 @@ name = "winit_window"
 path = "examples/winit_window/src/main.rs"
 
 [[example]]
+name = "multiwindow"
+path = "examples/multiwindow/src/main.rs"
+
+[[example]]
 name = "headless"
 path = "examples/headless/src/main.rs"
 required-features = ["headless"]
