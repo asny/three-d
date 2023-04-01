@@ -29,29 +29,28 @@ pub fn main() {
 
     // Event loop
     let mut frame_input_generator = FrameInputGenerator::from_winit_window(&window);
-    event_loop.run(move |event, _, control_flow| {
-        frame_input_generator.handle_winit_event(&event);
+    event_loop.run(move |event, _, control_flow| match event {
+        winit::event::Event::MainEventsCleared => {
+            window.request_redraw();
+        }
+        winit::event::Event::RedrawRequested(_) => {
+            let mut frame_input = frame_input_generator.generate(&context);
 
-        match event {
-            winit::event::Event::MainEventsCleared => {
-                window.request_redraw();
-            }
-            winit::event::Event::RedrawRequested(_) => {
-                let mut frame_input = frame_input_generator.generate(&context);
+            control.handle_events(&mut camera, &mut frame_input.events);
+            camera.set_viewport(frame_input.viewport);
+            model.animate(frame_input.accumulated_time as f32);
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                .render(&camera, &model, &[]);
 
-                control.handle_events(&mut camera, &mut frame_input.events);
-                camera.set_viewport(frame_input.viewport);
-                model.animate(frame_input.accumulated_time as f32);
-                frame_input
-                    .screen()
-                    .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-                    .render(&camera, &model, &[]);
-
-                context.swap_buffers().unwrap();
-                control_flow.set_poll();
-                window.request_redraw();
-            }
-            winit::event::Event::WindowEvent { ref event, .. } => match event {
+            context.swap_buffers().unwrap();
+            control_flow.set_poll();
+            window.request_redraw();
+        }
+        winit::event::Event::WindowEvent { ref event, .. } => {
+            frame_input_generator.handle_winit_window_event(event);
+            match event {
                 winit::event::WindowEvent::Resized(physical_size) => {
                     context.resize(*physical_size);
                 }
@@ -62,8 +61,8 @@ pub fn main() {
                     control_flow.set_exit();
                 }
                 _ => (),
-            },
-            _ => {}
+            }
         }
+        _ => {}
     });
 }

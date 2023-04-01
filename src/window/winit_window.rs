@@ -240,9 +240,8 @@ impl<T: 'static + Clone> Window<T> {
     ///
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
         let mut frame_input_generator = FrameInputGenerator::from_winit_window(&self.window);
-        self.event_loop.run(move |event, _, control_flow| {
-            frame_input_generator.handle_winit_event(&event);
-            match event {
+        self.event_loop
+            .run(move |event, _, control_flow| match event {
                 Event::LoopDestroyed => {
                     #[cfg(target_arch = "wasm32")]
                     {
@@ -295,19 +294,21 @@ impl<T: 'static + Clone> Window<T> {
                         });
                     }
                 }
-                Event::WindowEvent { ref event, .. } => match event {
-                    WindowEvent::Resized(physical_size) => {
-                        self.gl.resize(*physical_size);
+                Event::WindowEvent { ref event, .. } => {
+                    frame_input_generator.handle_winit_window_event(event);
+                    match event {
+                        WindowEvent::Resized(physical_size) => {
+                            self.gl.resize(*physical_size);
+                        }
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            self.gl.resize(**new_inner_size);
+                        }
+                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                        _ => (),
                     }
-                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        self.gl.resize(**new_inner_size);
-                    }
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    _ => (),
-                },
+                }
                 _ => (),
-            }
-        });
+            });
     }
 
     ///
