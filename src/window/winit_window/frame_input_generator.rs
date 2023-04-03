@@ -85,6 +85,29 @@ impl FrameInputGenerator {
             context: context.clone(),
         };
         self.first_frame = false;
+        #[cfg(all(feature = "test", not(target_arch = "wasm32")))]
+        {
+            let exit_time = std::env::var("THREE_D_EXIT")
+                .map(|v| v.parse::<f64>().unwrap())
+                .unwrap_or(300.0);
+            if exit_time < self.accumulated_time {
+                if let Ok(v) = &std::env::var("THREE_D_SCREENSHOT") {
+                    let pixels = frame_input.screen().read_color::<[u8; 4]>();
+                    use three_d_asset::io::Serialize;
+                    CpuTexture {
+                        data: TextureData::RgbaU8(pixels),
+                        width: self.viewport.width,
+                        height: self.viewport.height,
+                        ..Default::default()
+                    }
+                    .serialize(v)
+                    .unwrap()
+                    .save()
+                    .unwrap();
+                }
+                std::process::exit(0);
+            }
+        }
         frame_input
     }
 
