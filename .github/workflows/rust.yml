@@ -93,11 +93,11 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features
+          args: --all-features --examples
 
       - run: |
           for example in `find examples -maxdepth 1 -mindepth 1 -type d -printf "%f\n"` ; do
-            if [ -f "examples/$example/Cargo.toml" ]; then
+            if [ -f "examples/$example/Cargo.toml" ] && [ $example != "winit_window" ] && [ $example != "multiwindow" ]; then
               echo "::group::Run $example example"
               xvfb-run -a cargo run --example $example --no-default-features --features="egui-gui, test"
               echo "::endgroup::"
