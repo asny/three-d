@@ -76,6 +76,11 @@ mod inner {
         /// Resizes the context
         pub fn resize(&self, _physical_size: winit::dpi::PhysicalSize<u32>) {}
 
+        /// Make this context current. Needed when using multiple windows (contexts) on native.
+        pub fn make_current(&self) -> Result<(), WindowError> {
+            Ok(())
+        }
+
         /// Swap buffers - should always be called after rendering.
         pub fn swap_buffers(&self) -> Result<(), WindowError> {
             Ok(())
@@ -208,7 +213,7 @@ mod inner {
             self.surface.resize(&self.glutin_context, width, height);
         }
 
-        /// Make this context current. Needed when using multiple windows (contexts)
+        /// Make this context current. Needed when using multiple windows (contexts) on native.
         pub fn make_current(&self) -> Result<(), WindowError> {
             Ok(self.glutin_context.make_current(&self.surface)?)
         }
