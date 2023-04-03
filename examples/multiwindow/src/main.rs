@@ -101,6 +101,10 @@ pub fn main() {
                         context.resize(**new_inner_size);
                     }
                     WindowEvent::CloseRequested => {
+                        if let Some((_, context, _, _)) = windows.get_mut(window_id) {
+                            context.make_current().unwrap();
+                        }
+
                         windows.remove(window_id);
 
                         if windows.is_empty() {
