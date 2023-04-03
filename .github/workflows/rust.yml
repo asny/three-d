@@ -93,13 +93,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features --examples
+          args: -r --all-features --examples
 
       - run: |
           for example in `find examples -maxdepth 1 -mindepth 1 -type d -printf "%f\n"` ; do
             if [ -f "examples/$example/Cargo.toml" ]; then
               echo "::group::Run $example example"
-              THREE_D_EXIT=300 xvfb-run -a cargo run --all-features --example $example
+              THREE_D_EXIT=300 xvfb-run -a cargo run -r --all-features --example $example
               echo "::endgroup::"
             fi
           done
