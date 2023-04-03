@@ -260,23 +260,6 @@ impl<T: 'static + Clone> Window<T> {
                     self.window.request_redraw();
                 }
                 Event::RedrawRequested(_) => {
-                    let frame_input = frame_input_generator.generate(&self.gl);
-                    let frame_output = callback(frame_input);
-                    if frame_output.exit {
-                        *control_flow = ControlFlow::Exit;
-                    } else {
-                        if frame_output.swap_buffers {
-                            #[cfg(not(target_arch = "wasm32"))]
-                            self.gl.swap_buffers().unwrap();
-                        }
-                        if frame_output.wait_next_event {
-                            *control_flow = ControlFlow::Wait;
-                        } else {
-                            *control_flow = ControlFlow::Poll;
-                            self.window.request_redraw();
-                        }
-                    }
-
                     #[cfg(target_arch = "wasm32")]
                     if self.maximized {
                         use winit::platform::web::WindowExtWebSys;
@@ -292,6 +275,23 @@ impl<T: 'static + Clone> Window<T> {
                             width: browser_window.inner_width().unwrap().as_f64().unwrap(),
                             height: browser_window.inner_height().unwrap().as_f64().unwrap(),
                         });
+                    }
+
+                    let frame_input = frame_input_generator.generate(&self.gl);
+                    let frame_output = callback(frame_input);
+                    if frame_output.exit {
+                        *control_flow = ControlFlow::Exit;
+                    } else {
+                        if frame_output.swap_buffers {
+                            #[cfg(not(target_arch = "wasm32"))]
+                            self.gl.swap_buffers().unwrap();
+                        }
+                        if frame_output.wait_next_event {
+                            *control_flow = ControlFlow::Wait;
+                        } else {
+                            *control_flow = ControlFlow::Poll;
+                            self.window.request_redraw();
+                        }
                     }
                 }
                 Event::WindowEvent { ref event, .. } => {
