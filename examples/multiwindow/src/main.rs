@@ -29,15 +29,20 @@ pub fn main() {
     };
 
     let mut windows = HashMap::new();
-    for _ in 0..2 {
+    for i in 0..2 {
         let window = Window::new(&event_loop).unwrap();
-        let context =
-            WindowedContext::from_winit_window(&window, three_d::SurfaceSettings::default())
-                .unwrap();
+        let context = WindowedContext::from_winit_window(
+            &window,
+            three_d::SurfaceSettings {
+                vsync: false, // Wayland hangs in swap_buffers when one window is minimized or occluded
+                ..three_d::SurfaceSettings::default()
+            },
+        )
+        .unwrap();
 
         let camera = Camera::new_perspective(
             Viewport::new_at_origo(1, 1),
-            vec3(0.0, 0.0, 2.0),
+            vec3(0.0, 0.0, 2.0 + i as f32 * 4.0),
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
@@ -66,8 +71,11 @@ pub fn main() {
                 window.request_redraw();
             }
         }
-        winit::event::Event::RedrawRequested(_) => {
-            for (window, context, frame_input_generator, scene) in windows.values_mut() {
+        winit::event::Event::RedrawRequested(window_id) => {
+            if let Some((window, context, frame_input_generator, scene)) =
+                windows.get_mut(window_id)
+            {
+                context.make_current().unwrap();
                 let frame_input = frame_input_generator.generate(context);
 
                 scene.camera.set_viewport(frame_input.viewport);
