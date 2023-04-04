@@ -85,13 +85,11 @@ impl FrameInputGenerator {
             context: context.clone(),
         };
         self.first_frame = false;
-        #[cfg(all(feature = "test", not(target_arch = "wasm32")))]
-        if let Ok(exit_time) = std::env::var("THREE_D_EXIT").map(|v| v.parse::<f64>().unwrap()) {
-            println!("Running test ({} / {})", self.accumulated_time, exit_time);
+
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Some(exit_time) = option_env!("THREE_D_EXIT").map(|v| v.parse::<f64>().unwrap()) {
             if exit_time < self.accumulated_time {
-                println!("End test (accumulated time: {})", self.accumulated_time);
-                if let Ok(v) = &std::env::var("THREE_D_SCREENSHOT") {
-                    println!("Take screenshot: {}", v);
+                if let Some(v) = option_env!("THREE_D_SCREENSHOT") {
                     let pixels = frame_input.screen().read_color::<[u8; 4]>();
                     use three_d_asset::io::Serialize;
                     CpuTexture {
