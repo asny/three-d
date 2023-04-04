@@ -342,7 +342,7 @@ pub fn cmp_render_order(
 pub fn pick(
     context: &Context,
     camera: &Camera,
-    pixel: (f32, f32),
+    pixel: impl Into<PhysicalPoint> + Copy,
     geometries: impl IntoIterator<Item = impl Geometry>,
 ) -> Option<Vec3> {
     let pos = camera.position_at_pixel(pixel);
