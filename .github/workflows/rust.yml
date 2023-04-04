@@ -35,7 +35,8 @@ jobs:
       - name: Check
         uses: actions-rs/cargo@v1
         with:
-          command: check --examples
+          command: check
+          args: --examples
 
       - name: Rustfmt
         uses: actions-rs/cargo@v1
