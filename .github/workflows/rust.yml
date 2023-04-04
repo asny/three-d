@@ -35,7 +35,7 @@ jobs:
       - name: Check
         uses: actions-rs/cargo@v1
         with:
-          command: check
+          command: check --examples
 
       - name: Rustfmt
         uses: actions-rs/cargo@v1
@@ -74,23 +74,3 @@ jobs:
               echo "::endgroup::"
             fi
           done
-
-  examples:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/cargo@v1
-      - run: sudo apt-get update && sudo apt-get install -y xvfb
-
-      - name: Install Rust Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all-features --examples
