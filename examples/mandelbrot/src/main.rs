@@ -86,15 +86,9 @@ pub fn main() {
                     delta, position, ..
                 } => {
                     let distance = camera.position().z.abs();
-                    let pixel = (
-                        (frame_input.device_pixel_ratio * position.0) as f32,
-                        (frame_input.viewport.height as f64
-                            - frame_input.device_pixel_ratio * position.1)
-                            as f32,
-                    );
-                    let mut target = camera.position_at_pixel(pixel);
+                    let mut target = camera.position_at_pixel(position);
                     target.z = 0.0;
-                    camera.zoom_towards(&target, distance * 0.05 * delta.1 as f32, 0.00001, 10.0);
+                    camera.zoom_towards(&target, distance * 0.05 * delta.1, 0.00001, 10.0);
                     redraw = true;
                 }
                 _ => {}
