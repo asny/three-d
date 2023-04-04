@@ -18,7 +18,7 @@ mod fly_control;
 #[doc(inline)]
 pub use fly_control::*;
 
-pub use three_d_asset::PhysicalPoint;
+pub use three_d_asset::PixelPoint as PhysicalPoint;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct LogicalPoint {
