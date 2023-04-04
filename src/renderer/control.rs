@@ -24,15 +24,13 @@ pub use three_d_asset::PhysicalPoint;
 pub struct LogicalPoint {
     pub x: f32,
     pub y: f32,
-    pub scale_factor: f32,
+    pub(crate) scale_factor: f32,
+    pub(crate) height: f32,
 }
 
 impl From<LogicalPoint> for PhysicalPoint {
     fn from(value: LogicalPoint) -> Self {
-        Self {
-            x: value.x * value.scale_factor,
-            y: value.y * value.scale_factor,
-        }
+        Self::from(&value)
     }
 }
 
@@ -40,7 +38,7 @@ impl From<&LogicalPoint> for PhysicalPoint {
     fn from(value: &LogicalPoint) -> Self {
         Self {
             x: value.x * value.scale_factor,
-            y: value.y * value.scale_factor,
+            y: value.height - value.y * value.scale_factor,
         }
     }
 }

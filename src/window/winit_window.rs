@@ -444,6 +444,7 @@ impl<T: 'static + Clone> Window<T> {
                             x: p.x,
                             y: p.y,
                             scale_factor: self.window.scale_factor() as f32,
+                            height: self.window.inner_size().height as f32,
                         };
                         let delta = if let Some(last_pos) = cursor_pos {
                             (p.x - last_pos.x, p.y - last_pos.y)
@@ -480,6 +481,7 @@ impl<T: 'static + Clone> Window<T> {
                             x: position.0,
                             y: position.1,
                             scale_factor: self.window.scale_factor() as f32,
+                            height: self.window.inner_size().height as f32,
                         };
                         match touch.phase {
                             TouchPhase::Started => {
