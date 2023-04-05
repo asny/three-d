@@ -77,7 +77,7 @@ pub fn main() {
                         let speed = 0.003 * camera.position().z.abs();
                         let right = camera.right_direction();
                         let up = right.cross(camera.view_direction());
-                        let delta = -right * speed * delta.0 as f32 + up * speed * delta.1 as f32;
+                        let delta = -right * speed * delta.0 + up * speed * delta.1;
                         camera.translate(&delta);
                         redraw = true;
                     }
