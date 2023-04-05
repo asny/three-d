@@ -22,9 +22,9 @@ pub struct FrameInputGenerator {
     window_width: u32,
     window_height: u32,
     device_pixel_ratio: f64,
-    cursor_pos: Option<(f64, f64)>,
+    cursor_pos: Option<LogicalPoint>,
     finger_id: Option<u64>,
-    secondary_cursor_pos: Option<(f64, f64)>,
+    secondary_cursor_pos: Option<LogicalPoint>,
     secondary_finger_id: Option<u64>,
     modifiers: Modifiers,
     mouse_pressed: Option<MouseButton>,
@@ -80,7 +80,7 @@ impl FrameInputGenerator {
             viewport: self.viewport,
             window_width: self.window_width,
             window_height: self.window_height,
-            device_pixel_ratio: self.device_pixel_ratio,
+            device_pixel_ratio: self.device_pixel_ratio as f32,
             first_frame: self.first_frame,
             context: context.clone(),
         };
@@ -185,7 +185,7 @@ impl FrameInputGenerator {
                         winit::event::MouseScrollDelta::LineDelta(x, y) => {
                             let line_height = 24.0; // TODO
                             self.events.push(crate::Event::MouseWheel {
-                                delta: ((*x * line_height) as f64, (*y * line_height) as f64),
+                                delta: (*x * line_height, *y * line_height),
                                 position,
                                 modifiers: self.modifiers,
                                 handled: false,
@@ -236,18 +236,24 @@ impl FrameInputGenerator {
             WindowEvent::CursorMoved { position, .. } => {
                 let p = position.to_logical(self.device_pixel_ratio);
                 let delta = if let Some(last_pos) = self.cursor_pos {
-                    (p.x - last_pos.0, p.y - last_pos.1)
+                    (p.x - last_pos.x, p.y - last_pos.y)
                 } else {
                     (0.0, 0.0)
+                };
+                let position = LogicalPoint {
+                    x: p.x,
+                    y: p.y,
+                    scale_factor: self.device_pixel_ratio as f32,
+                    height: self.viewport.height as f32,
                 };
                 self.events.push(crate::Event::MouseMotion {
                     button: self.mouse_pressed,
                     delta,
-                    position: (p.x, p.y),
+                    position,
                     modifiers: self.modifiers,
                     handled: false,
                 });
-                self.cursor_pos = Some((p.x, p.y));
+                self.cursor_pos = Some(position);
             }
             WindowEvent::ReceivedCharacter(ch) => {
                 if is_printable_char(*ch) && !self.modifiers.ctrl && !self.modifiers.command {
@@ -262,10 +268,13 @@ impl FrameInputGenerator {
                 self.events.push(crate::Event::MouseLeave);
             }
             WindowEvent::Touch(touch) => {
-                let position = touch
-                    .location
-                    .to_logical::<f64>(self.device_pixel_ratio)
-                    .into();
+                let position = touch.location.to_logical::<f32>(self.device_pixel_ratio);
+                let position = LogicalPoint {
+                    x: position.x,
+                    y: position.y,
+                    scale_factor: self.device_pixel_ratio as f32,
+                    height: self.viewport.height as f32,
+                };
                 match touch.phase {
                     TouchPhase::Started => {
                         if self.finger_id.is_none() {
@@ -310,8 +319,8 @@ impl FrameInputGenerator {
                                     modifiers: self.modifiers,
                                     handled: false,
                                     delta: (
-                                        (position.0 - p.0).abs() - (last_pos.0 - p.0).abs(),
-                                        (position.1 - p.1).abs() - (last_pos.1 - p.1).abs(),
+                                        (position.x - p.x).abs() - (last_pos.x - p.x).abs(),
+                                        (position.y - p.y).abs() - (last_pos.y - p.y).abs(),
                                     ),
                                 });
                             } else {
@@ -320,7 +329,7 @@ impl FrameInputGenerator {
                                     position,
                                     modifiers: self.modifiers,
                                     handled: false,
-                                    delta: (position.0 - last_pos.0, position.1 - last_pos.1),
+                                    delta: (position.x - last_pos.x, position.y - last_pos.y),
                                 });
                             }
                             self.cursor_pos = Some(position);
@@ -336,8 +345,8 @@ impl FrameInputGenerator {
                                     modifiers: self.modifiers,
                                     handled: false,
                                     delta: (
-                                        (position.0 - p.0).abs() - (last_pos.0 - p.0).abs(),
-                                        (position.1 - p.1).abs() - (last_pos.1 - p.1).abs(),
+                                        (position.x - p.x).abs() - (last_pos.x - p.x).abs(),
+                                        (position.y - p.y).abs() - (last_pos.y - p.y).abs(),
                                     ),
                                 });
                             }
