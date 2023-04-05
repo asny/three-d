@@ -34,6 +34,33 @@ pub struct LogicalPoint {
     pub(crate) height: f32,
 }
 
+impl From<LogicalPoint> for (f32, f32) {
+    fn from(value: LogicalPoint) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&LogicalPoint> for (f32, f32) {
+    fn from(value: &LogicalPoint) -> Self {
+        (value.x, value.y)
+    }
+}
+
+impl From<LogicalPoint> for crate::Vec2 {
+    fn from(value: LogicalPoint) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&LogicalPoint> for crate::Vec2 {
+    fn from(value: &LogicalPoint) -> Self {
+        Self {
+            x: value.x,
+            y: value.y,
+        }
+    }
+}
+
 impl From<LogicalPoint> for PhysicalPoint {
     fn from(value: LogicalPoint) -> Self {
         Self::from(&value)
