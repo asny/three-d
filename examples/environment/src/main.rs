@@ -77,7 +77,7 @@ pub async fn run() {
                     ui.add(Slider::new(&mut model.material.roughness, 0.0..=1.0).text("Roughness"));
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
-                panel_width = gui_context.used_rect().width() as f64;
+                panel_width = gui_context.used_rect().width();
             },
         );
         model.material.albedo = Color::from_rgba_slice(&color);

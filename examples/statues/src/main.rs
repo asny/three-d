@@ -141,7 +141,7 @@ pub async fn run() {
 
                     ui.checkbox(&mut bounding_box_enabled, "Bounding boxes");
                 });
-                panel_width = gui_context.used_rect().width() as f64;
+                panel_width = gui_context.used_rect().width();
             },
         );
 

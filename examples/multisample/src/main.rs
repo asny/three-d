@@ -115,7 +115,7 @@ pub fn main() {
                         "To texture (MSAA x8)",
                     );
                 });
-                panel_width = gui_context.used_rect().width() as f64;
+                panel_width = gui_context.used_rect().width();
             },
         );
 
