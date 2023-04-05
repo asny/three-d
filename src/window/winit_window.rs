@@ -314,7 +314,7 @@ impl<T: 'static + Clone> Window<T> {
                         viewport: Viewport::new_at_origo(physical_width, physical_height),
                         window_width: width,
                         window_height: height,
-                        device_pixel_ratio,
+                        device_pixel_ratio: device_pixel_ratio as f32,
                         first_frame,
                         context: self.gl.clone(),
                     };
@@ -391,10 +391,7 @@ impl<T: 'static + Clone> Window<T> {
                                 winit::event::MouseScrollDelta::LineDelta(x, y) => {
                                     let line_height = 24.0; // TODO
                                     events.push(crate::Event::MouseWheel {
-                                        delta: (
-                                            (*x * line_height) as f64,
-                                            (*y * line_height) as f64,
-                                        ),
+                                        delta: ((*x * line_height), (*y * line_height)),
                                         position,
                                         modifiers,
                                         handled: false,
@@ -443,19 +440,25 @@ impl<T: 'static + Clone> Window<T> {
                     }
                     WindowEvent::CursorMoved { position, .. } => {
                         let p = position.to_logical(self.window.scale_factor());
+                        let position = LogicalPoint {
+                            x: p.x,
+                            y: p.y,
+                            scale_factor: self.window.scale_factor() as f32,
+                            height: self.window.inner_size().height as f32,
+                        };
                         let delta = if let Some(last_pos) = cursor_pos {
-                            (p.x - last_pos.0, p.y - last_pos.1)
+                            (p.x - last_pos.x, p.y - last_pos.y)
                         } else {
                             (0.0, 0.0)
                         };
                         events.push(crate::Event::MouseMotion {
                             button: mouse_pressed,
                             delta,
-                            position: (p.x, p.y),
+                            position,
                             modifiers,
                             handled: false,
                         });
-                        cursor_pos = Some((p.x, p.y));
+                        cursor_pos = Some(position);
                     }
                     WindowEvent::ReceivedCharacter(ch) => {
                         if is_printable_char(*ch) && !modifiers.ctrl && !modifiers.command {
@@ -470,10 +473,16 @@ impl<T: 'static + Clone> Window<T> {
                         events.push(crate::Event::MouseLeave);
                     }
                     WindowEvent::Touch(touch) => {
-                        let position = touch
+                        let position: (f32, f32) = touch
                             .location
-                            .to_logical::<f64>(self.window.scale_factor())
+                            .to_logical::<f32>(self.window.scale_factor())
                             .into();
+                        let position = LogicalPoint {
+                            x: position.0,
+                            y: position.1,
+                            scale_factor: self.window.scale_factor() as f32,
+                            height: self.window.inner_size().height as f32,
+                        };
                         match touch.phase {
                             TouchPhase::Started => {
                                 if finger_id.is_none() {
@@ -517,8 +526,8 @@ impl<T: 'static + Clone> Window<T> {
                                             modifiers,
                                             handled: false,
                                             delta: (
-                                                (position.0 - p.0).abs() - (last_pos.0 - p.0).abs(),
-                                                (position.1 - p.1).abs() - (last_pos.1 - p.1).abs(),
+                                                (position.x - p.x).abs() - (last_pos.x - p.x).abs(),
+                                                (position.y - p.y).abs() - (last_pos.y - p.y).abs(),
                                             ),
                                         });
                                     } else {
@@ -528,8 +537,8 @@ impl<T: 'static + Clone> Window<T> {
                                             modifiers,
                                             handled: false,
                                             delta: (
-                                                position.0 - last_pos.0,
-                                                position.1 - last_pos.1,
+                                                position.x - last_pos.x,
+                                                position.y - last_pos.y,
                                             ),
                                         });
                                     }
@@ -545,8 +554,8 @@ impl<T: 'static + Clone> Window<T> {
                                             modifiers,
                                             handled: false,
                                             delta: (
-                                                (position.0 - p.0).abs() - (last_pos.0 - p.0).abs(),
-                                                (position.1 - p.1).abs() - (last_pos.1 - p.1).abs(),
+                                                (position.x - p.x).abs() - (last_pos.x - p.x).abs(),
+                                                (position.y - p.y).abs() - (last_pos.y - p.y).abs(),
                                             ),
                                         });
                                     }

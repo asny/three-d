@@ -216,7 +216,7 @@ pub async fn run() {
                     ui.radio_value(&mut material_type, MaterialType::Depth, "Depth");
                     ui.radio_value(&mut material_type, MaterialType::Orm, "ORM");
                 });
-                panel_width = gui_context.used_rect().width() as f64;
+                panel_width = gui_context.used_rect().width();
             },
         );
 

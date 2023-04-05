@@ -7,7 +7,7 @@ pub struct Rectangle {
     mesh: Mesh,
     width: f32,
     height: f32,
-    center: Vec2,
+    center: PhysicalPoint,
     rotation: Radians,
 }
 
@@ -17,7 +17,7 @@ impl Rectangle {
     ///
     pub fn new(
         context: &Context,
-        center: Vec2,
+        center: impl Into<PhysicalPoint>,
         rotation: impl Into<Radians>,
         width: f32,
         height: f32,
@@ -28,7 +28,7 @@ impl Rectangle {
             mesh: Mesh::new(context, &mesh),
             width,
             height,
-            center,
+            center: center.into(),
             rotation: rotation.into(),
         };
         rectangle.update();
@@ -48,14 +48,14 @@ impl Rectangle {
     }
 
     /// Set the center of the rectangle.
-    pub fn set_center(&mut self, center: Vec2) {
-        self.center = center;
+    pub fn set_center(&mut self, center: impl Into<PhysicalPoint>) {
+        self.center = center.into();
         self.update();
     }
 
     /// Get the center of the rectangle.
-    pub fn center(&self) -> &Vec2 {
-        &self.center
+    pub fn center(&self) -> PhysicalPoint {
+        self.center
     }
 
     /// Set the rotation of the rectangle.
@@ -71,7 +71,7 @@ impl Rectangle {
 
     fn update(&mut self) {
         self.mesh.set_transformation_2d(
-            Mat3::from_translation(self.center)
+            Mat3::from_translation(self.center.into())
                 * Mat3::from_angle_z(self.rotation)
                 * Mat3::from_nonuniform_scale(self.width, self.height),
         );
@@ -104,9 +104,10 @@ impl Geometry for Rectangle {
     /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
     ///
     fn aabb(&self) -> AxisAlignedBoundingBox {
+        let center: Vec2 = self.center.into();
         AxisAlignedBoundingBox::new_with_positions(&[
-            (self.center - 0.5 * vec2(self.width, self.height)).extend(0.0),
-            (self.center + 0.5 * vec2(self.width, self.height)).extend(0.0),
+            (center - 0.5 * vec2(self.width, self.height)).extend(0.0),
+            (center + 0.5 * vec2(self.width, self.height)).extend(0.0),
         ])
     }
 }

@@ -64,13 +64,7 @@ pub async fn run() {
             } = event
             {
                 if *button == MouseButton::Left {
-                    let pixel = (
-                        (frame_input.device_pixel_ratio * position.0) as f32,
-                        (frame_input.viewport.height as f64
-                            - frame_input.device_pixel_ratio * position.1)
-                            as f32,
-                    );
-                    if let Some(pick) = pick(&context, &camera, pixel, &monkey) {
+                    if let Some(pick) = pick(&context, &camera, position, &monkey) {
                         pick_mesh.set_transformation(Mat4::from_translation(pick));
                         change = true;
                     }

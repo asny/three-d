@@ -82,7 +82,7 @@ pub async fn run() {
                     ui.checkbox(&mut occlusion_map_enabled, "Occlusion map");
                     ui.checkbox(&mut emissive_map_enabled, "Emissive map");
                 });
-                panel_width = gui_context.used_rect().width() as f64;
+                panel_width = gui_context.used_rect().width();
             },
         );
 

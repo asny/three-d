@@ -18,6 +18,64 @@ mod fly_control;
 #[doc(inline)]
 pub use fly_control::*;
 
+pub use three_d_asset::PixelPoint as PhysicalPoint;
+
+///
+/// A pixel coordinate in logical pixels, where `x` is on the horizontal axis with zero being at the left edge
+/// and `y` is on the vertical axis with zero being at top edge.
+///
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct LogicalPoint {
+    /// The horizontal pixel distance from the left edge.
+    pub x: f32,
+    /// The vertical pixel distance from the top edge.
+    pub y: f32,
+    pub(crate) scale_factor: f32,
+    pub(crate) height: f32,
+}
+
+impl From<LogicalPoint> for (f32, f32) {
+    fn from(value: LogicalPoint) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&LogicalPoint> for (f32, f32) {
+    fn from(value: &LogicalPoint) -> Self {
+        (value.x, value.y)
+    }
+}
+
+impl From<LogicalPoint> for crate::Vec2 {
+    fn from(value: LogicalPoint) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&LogicalPoint> for crate::Vec2 {
+    fn from(value: &LogicalPoint) -> Self {
+        Self {
+            x: value.x,
+            y: value.y,
+        }
+    }
+}
+
+impl From<LogicalPoint> for PhysicalPoint {
+    fn from(value: LogicalPoint) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&LogicalPoint> for PhysicalPoint {
+    fn from(value: &LogicalPoint) -> Self {
+        Self {
+            x: value.x * value.scale_factor,
+            y: value.height - value.y * value.scale_factor,
+        }
+    }
+}
+
 /// Type of mouse button.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
@@ -36,10 +94,8 @@ pub enum Event<T: 'static + Clone> {
     MousePress {
         /// Type of button
         button: MouseButton,
-        /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
-        /// The first value defines the position on the horizontal axis with zero being at the left border of the window
-        /// and the second on the vertical axis with zero being at the top edge of the window.
-        position: (f64, f64),
+        /// The screen position in logical pixels.
+        position: LogicalPoint,
         /// The state of modifiers.
         modifiers: Modifiers,
         /// Whether or not this event already have been handled.
@@ -49,10 +105,8 @@ pub enum Event<T: 'static + Clone> {
     MouseRelease {
         /// Type of button
         button: MouseButton,
-        /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
-        /// The first value defines the position on the horizontal axis with zero being at the left border of the window
-        /// and the second on the vertical axis with zero being at the top edge of the window.
-        position: (f64, f64),
+        /// The screen position in logical pixels.
+        position: LogicalPoint,
         /// The state of modifiers.
         modifiers: Modifiers,
         /// Whether or not this event already have been handled.
@@ -63,11 +117,9 @@ pub enum Event<T: 'static + Clone> {
         /// Type of button if a button is pressed.
         button: Option<MouseButton>,
         /// The relative movement of the mouse/finger since last [Event::MouseMotion] event.
-        delta: (f64, f64),
-        /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
-        /// The first value defines the position on the horizontal axis with zero being at the left border of the window
-        /// and the second on the vertical axis with zero being at the top edge of the window.
-        position: (f64, f64),
+        delta: (f32, f32),
+        /// The screen position in logical pixels.
+        position: LogicalPoint,
         /// The state of modifiers.
         modifiers: Modifiers,
         /// Whether or not this event already have been handled.
@@ -76,11 +128,9 @@ pub enum Event<T: 'static + Clone> {
     /// Fired continuously when the mouse wheel or equivalent is applied.
     MouseWheel {
         /// The relative scrolling since the last [Event::MouseWheel] event.
-        delta: (f64, f64),
-        /// The screen position in logical pixels, to get it in physical pixels, multiply it with the device pixel ratio.
-        /// The first value defines the position on the horizontal axis with zero being at the left border of the window
-        /// and the second on the vertical axis with zero being at the top edge of the window.
-        position: (f64, f64),
+        delta: (f32, f32),
+        /// The screen position in logical pixels.
+        position: LogicalPoint,
         /// The state of modifiers.
         modifiers: Modifiers,
         /// Whether or not this event already have been handled.

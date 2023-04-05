@@ -63,7 +63,7 @@ pub async fn run() {
                             .text("Texture transform y"),
                     );
                 });
-                panel_width = gui_context.used_rect().width() as f64;
+                panel_width = gui_context.used_rect().width();
             },
         );
 

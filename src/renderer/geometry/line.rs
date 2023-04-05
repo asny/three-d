@@ -5,8 +5,8 @@ use crate::renderer::*;
 ///
 pub struct Line {
     mesh: Mesh,
-    pixel0: Vec2,
-    pixel1: Vec2,
+    pixel0: PhysicalPoint,
+    pixel1: PhysicalPoint,
     thickness: f32,
 }
 
@@ -14,14 +14,19 @@ impl Line {
     ///
     /// Constructs a new line geometry.
     ///
-    pub fn new(context: &Context, pixel0: Vec2, pixel1: Vec2, thickness: f32) -> Self {
+    pub fn new(
+        context: &Context,
+        pixel0: impl Into<PhysicalPoint>,
+        pixel1: impl Into<PhysicalPoint>,
+        thickness: f32,
+    ) -> Self {
         let mut mesh = CpuMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))
             .unwrap();
         let mut line = Self {
             mesh: Mesh::new(context, &mesh),
-            pixel0,
-            pixel1,
+            pixel0: pixel0.into(),
+            pixel1: pixel1.into(),
             thickness,
         };
         line.update();
@@ -29,12 +34,12 @@ impl Line {
     }
 
     /// Get one of the end points of the line.
-    pub fn end_point0(&self) -> Vec2 {
+    pub fn end_point0(&self) -> PhysicalPoint {
         self.pixel0
     }
 
     /// Get one of the end points of the line.
-    pub fn end_point1(&self) -> Vec2 {
+    pub fn end_point1(&self) -> PhysicalPoint {
         self.pixel1
     }
 
@@ -43,9 +48,13 @@ impl Line {
     /// The pixel coordinates must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
     /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     ///
-    pub fn set_endpoints(&mut self, pixel0: Vec2, pixel1: Vec2) {
-        self.pixel0 = pixel0;
-        self.pixel1 = pixel1;
+    pub fn set_endpoints(
+        &mut self,
+        pixel0: impl Into<PhysicalPoint>,
+        pixel1: impl Into<PhysicalPoint>,
+    ) {
+        self.pixel0 = pixel0.into();
+        self.pixel1 = pixel1.into();
         self.update();
     }
 
@@ -63,7 +72,7 @@ impl Line {
         let s = dy / length;
         let rot = Mat3::new(c, s, 0.0, -s, c, 0.0, 0.0, 0.0, 1.0);
         self.mesh.set_transformation_2d(
-            Mat3::from_translation(self.pixel0)
+            Mat3::from_translation(self.pixel0.into())
                 * rot
                 * Mat3::from_nonuniform_scale(length, self.thickness),
         );
@@ -96,10 +105,9 @@ impl Geometry for Line {
     /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
     ///
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_with_positions(&[
-            self.pixel0.extend(0.0),
-            self.pixel1.extend(0.0),
-        ])
+        let pixel0: Vec2 = self.pixel0.into();
+        let pixel1: Vec2 = self.pixel1.into();
+        AxisAlignedBoundingBox::new_with_positions(&[pixel0.extend(0.0), pixel1.extend(0.0)])
     }
 }
 

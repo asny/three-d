@@ -57,7 +57,7 @@ pub fn main() {
                     ui.add(Slider::new(&mut viewport_zoom, 0.01..=1.0).text("Viewport"));
                     ui.add(Slider::new(&mut scissor_zoom, 0.01..=1.0).text("Scissor"));
                 });
-                panel_width = gui_context.used_rect().width() as f64;
+                panel_width = gui_context.used_rect().width();
             },
         );
 

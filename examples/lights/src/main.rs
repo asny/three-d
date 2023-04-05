@@ -84,7 +84,7 @@ pub async fn run() {
                     );
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
-                panel_width = gui_context.used_rect().width() as f64;
+                panel_width = gui_context.used_rect().width();
             },
         );
         while lights.len() < light_count {

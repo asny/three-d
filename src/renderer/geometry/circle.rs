@@ -6,18 +6,18 @@ use crate::renderer::*;
 pub struct Circle {
     mesh: Mesh,
     radius: f32,
-    center: Vec2,
+    center: PhysicalPoint,
 }
 
 impl Circle {
     ///
     /// Constructs a new circle geometry.
     ///
-    pub fn new(context: &Context, center: Vec2, radius: f32) -> Self {
+    pub fn new(context: &Context, center: impl Into<PhysicalPoint>, radius: f32) -> Self {
         let mesh = CpuMesh::circle(64);
         let mut circle = Self {
             mesh: Mesh::new(context, &mesh),
-            center,
+            center: center.into(),
             radius,
         };
         circle.update();
@@ -36,19 +36,19 @@ impl Circle {
     }
 
     /// Set the center of the circle.
-    pub fn set_center(&mut self, center: Vec2) {
-        self.center = center;
+    pub fn set_center(&mut self, center: impl Into<PhysicalPoint>) {
+        self.center = center.into();
         self.update();
     }
 
     /// Get the center of the circle.
-    pub fn center(&self) -> &Vec2 {
-        &self.center
+    pub fn center(&self) -> PhysicalPoint {
+        self.center
     }
 
     fn update(&mut self) {
         self.mesh.set_transformation_2d(
-            Mat3::from_translation(self.center) * Mat3::from_scale(self.radius),
+            Mat3::from_translation(self.center.into()) * Mat3::from_scale(self.radius),
         );
     }
 }
@@ -79,9 +79,10 @@ impl Geometry for Circle {
     /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
     ///
     fn aabb(&self) -> AxisAlignedBoundingBox {
+        let center: Vec2 = self.center.into();
         AxisAlignedBoundingBox::new_with_positions(&[
-            (self.center - vec2(self.radius, self.radius)).extend(0.0),
-            (self.center + vec2(self.radius, self.radius)).extend(0.0),
+            (center - vec2(self.radius, self.radius)).extend(0.0),
+            (center + vec2(self.radius, self.radius)).extend(0.0),
         ])
     }
 }
