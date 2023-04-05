@@ -243,7 +243,7 @@ impl FrameInputGenerator {
                 let position = LogicalPoint {
                     x: p.x,
                     y: p.y,
-                    scale_factor: self.device_pixel_ratio as f32,
+                    device_pixel_ratio: self.device_pixel_ratio as f32,
                     height: self.viewport.height as f32,
                 };
                 self.events.push(crate::Event::MouseMotion {
@@ -272,7 +272,7 @@ impl FrameInputGenerator {
                 let position = LogicalPoint {
                     x: position.x,
                     y: position.y,
-                    scale_factor: self.device_pixel_ratio as f32,
+                    device_pixel_ratio: self.device_pixel_ratio as f32,
                     height: self.viewport.height as f32,
                 };
                 match touch.phase {

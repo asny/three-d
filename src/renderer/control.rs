@@ -30,7 +30,7 @@ pub struct LogicalPoint {
     pub x: f32,
     /// The vertical pixel distance from the top edge.
     pub y: f32,
-    pub(crate) scale_factor: f32,
+    pub(crate) device_pixel_ratio: f32,
     pub(crate) height: f32,
 }
 
@@ -70,8 +70,8 @@ impl From<LogicalPoint> for PhysicalPoint {
 impl From<&LogicalPoint> for PhysicalPoint {
     fn from(value: &LogicalPoint) -> Self {
         Self {
-            x: value.x * value.scale_factor,
-            y: value.height - value.y * value.scale_factor,
+            x: value.x * value.device_pixel_ratio,
+            y: value.height - value.y * value.device_pixel_ratio,
         }
     }
 }
