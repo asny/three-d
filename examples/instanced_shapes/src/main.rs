@@ -72,7 +72,7 @@ pub fn main() {
                                        should become smooth again.",
                     ));
                 });
-                panel_width = gui_context.used_rect().width() as f64;
+                panel_width = gui_context.used_rect().width();
             },
         );
         let viewport = Viewport {

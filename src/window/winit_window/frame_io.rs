@@ -31,7 +31,7 @@ pub struct FrameInput {
     pub window_height: u32,
 
     /// Number of physical pixels for each logical pixel.
-    pub device_pixel_ratio: f64,
+    pub device_pixel_ratio: f32,
 
     /// Whether or not this is the first frame.
     pub first_frame: bool,

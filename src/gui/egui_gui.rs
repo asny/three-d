@@ -49,7 +49,7 @@ impl GUI {
         events: &mut [Event],
         accumulated_time_in_ms: f64,
         viewport: Viewport,
-        device_pixel_ratio: f64,
+        device_pixel_ratio: f32,
         callback: impl FnOnce(&egui::Context),
     ) -> bool {
         self.viewport = viewport;
@@ -113,8 +113,8 @@ impl GUI {
                         if !handled {
                             Some(egui::Event::PointerButton {
                                 pos: egui::Pos2 {
-                                    x: position.0 as f32,
-                                    y: position.1 as f32,
+                                    x: position.x,
+                                    y: position.y,
                                 },
                                 button: button.into(),
                                 pressed: true,
@@ -133,8 +133,8 @@ impl GUI {
                         if !handled {
                             Some(egui::Event::PointerButton {
                                 pos: egui::Pos2 {
-                                    x: position.0 as f32,
-                                    y: position.1 as f32,
+                                    x: position.x,
+                                    y: position.y,
                                 },
                                 button: button.into(),
                                 pressed: false,
@@ -149,8 +149,8 @@ impl GUI {
                     } => {
                         if !handled {
                             Some(egui::Event::PointerMoved(egui::Pos2 {
-                                x: position.0 as f32,
-                                y: position.1 as f32,
+                                x: position.x,
+                                y: position.y,
                             }))
                         } else {
                             None
