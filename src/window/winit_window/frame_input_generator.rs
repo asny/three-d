@@ -34,7 +34,7 @@ impl FrameInputGenerator {
     ///
     /// Creates a new frame input generator.
     ///
-    pub fn new(size: PhysicalSize<u32>, device_pixel_ratio: f64) -> Self {
+    fn new(size: PhysicalSize<u32>, device_pixel_ratio: f64) -> Self {
         let (window_width, window_height): (u32, u32) =
             size.to_logical::<f32>(device_pixel_ratio).into();
         Self {
