@@ -314,7 +314,7 @@ impl<T: 'static + Clone> Window<T> {
                         viewport: Viewport::new_at_origo(physical_width, physical_height),
                         window_width: width,
                         window_height: height,
-                        device_pixel_ratio,
+                        device_pixel_ratio: device_pixel_ratio as f32,
                         first_frame,
                         context: self.gl.clone(),
                     };
