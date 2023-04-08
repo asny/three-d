@@ -37,7 +37,7 @@ If your application is native only, you can avoid the async runtime (`tokio` or 
 
 ## Triangle [[code](https://github.com/asny/three-d/tree/master/examples/triangle/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/triangle.html)]
 
-This is the recomended starting point for a gentle introduction to `three-d`.
+This is the recommended starting point for a gentle introduction to `three-d`.
 
 ![Triangle example](https://asny.github.io/three-d/0.16/triangle.png)
 

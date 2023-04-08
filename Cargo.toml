@@ -56,6 +56,10 @@ name = "triangle"
 path = "examples/triangle/src/main.rs"
 
 [[example]]
+name = "triangle_core"
+path = "examples/triangle_core/src/main.rs"
+
+[[example]]
 name = "screen"
 path = "examples/screen/src/main.rs"
 required-features = ["egui-gui"]
