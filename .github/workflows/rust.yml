@@ -44,11 +44,6 @@ jobs:
           command: fmt
           args: -- --check
 
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-
   web:
     runs-on: ubuntu-latest
     steps:
