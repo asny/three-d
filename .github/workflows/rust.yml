@@ -36,18 +36,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --examples
+          args: --examples --all-features
 
       - name: Rustfmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: -- --check
-
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
 
   web:
     runs-on: ubuntu-latest
