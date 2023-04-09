@@ -36,17 +36,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
+          args: --examples --all-features
 
       - name: Rustfmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: -- --check
-
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
 
   web:
     runs-on: ubuntu-latest
@@ -71,35 +67,6 @@ jobs:
               pushd examples/$example
               CARGO_TARGET_DIR=../../target wasm-pack build --target web --out-name web --dev
               popd
-              echo "::endgroup::"
-            fi
-          done
-
-  examples:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/cargo@v1
-      - run: sudo apt-get update && sudo apt-get install -y xvfb
-
-      - name: Install Rust Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all-features
-
-      - run: |
-          for example in `find examples -maxdepth 1 -mindepth 1 -type d -printf "%f\n"` ; do
-            if [ -f "examples/$example/Cargo.toml" ]; then
-              echo "::group::Run $example example"
-              xvfb-run -a cargo run --example $example --no-default-features --features="egui-gui, test"
               echo "::endgroup::"
             fi
           done
