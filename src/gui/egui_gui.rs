@@ -44,9 +44,9 @@ impl GUI {
     /// Construct the GUI (Add panels, widgets etc.) using the [egui::Context] in the callback function.
     /// This function returns whether or not the GUI has changed, ie. if it consumes any events, and therefore needs to be rendered again.
     ///
-    pub fn update<T: 'static + Clone>(
+    pub fn update(
         &mut self,
-        events: &mut [Event<T>],
+        events: &mut [Event],
         accumulated_time_in_ms: f64,
         viewport: Viewport,
         device_pixel_ratio: f32,

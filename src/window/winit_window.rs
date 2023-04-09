@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
-use crate::control::*;
 use crate::core::{Context, CoreError, Viewport};
-use winit::event::{Event, TouchPhase, WindowEvent};
+use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit::*;
@@ -11,6 +10,9 @@ pub use settings::*;
 
 mod frame_io;
 pub use frame_io::*;
+
+mod frame_input_generator;
+pub use frame_input_generator::*;
 
 mod windowed_context;
 pub use windowed_context::*;
@@ -61,8 +63,11 @@ pub enum WindowError {
 }
 
 ///
-/// Window and event handling.
-/// Use [Window::new] to create a new window or [Window::from_winit_window] which provides full control over the creation of the window.
+/// Default window, context and event handling which uses [winit](https://crates.io/crates/winit).
+///
+/// To get full control over the creation of the [winit](https://crates.io/crates/winit) window, use [Window::from_winit_window].
+/// To take control over everything, including the context creation and [winit](https://crates.io/crates/winit) event loop,
+/// use [WindowedContext::from_winit_window] and [FrameInputGenerator].
 ///
 pub struct Window<T: 'static + Clone> {
     window: winit::window::Window,
@@ -233,26 +238,10 @@ impl<T: 'static + Clone> Window<T> {
     ///
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
-    pub fn render_loop<F: 'static + FnMut(FrameInput<T>) -> FrameOutput>(self, mut callback: F) {
-        #[cfg(not(target_arch = "wasm32"))]
-        let mut last_time = std::time::Instant::now();
-        #[cfg(target_arch = "wasm32")]
-        let mut last_time = instant::Instant::now();
-
-        let mut accumulated_time = 0.0;
-        let mut events = Vec::new();
-        let mut cursor_pos = None;
-        let mut finger_id = None;
-        let mut secondary_cursor_pos = None;
-        let mut secondary_finger_id = None;
-        let mut modifiers = Modifiers::default();
-        let mut first_frame = true;
-        let mut mouse_pressed = None;
-        self.event_loop.run(move |event, _, control_flow| {
-            match event {
-                Event::UserEvent(t) => {
-                    events.push(crate::Event::UserEvent(t));
-                }
+    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(self, mut callback: F) {
+        let mut frame_input_generator = FrameInputGenerator::from_winit_window(&self.window);
+        self.event_loop
+            .run(move |event, _, control_flow| match event {
                 Event::LoopDestroyed => {
                     #[cfg(target_arch = "wasm32")]
                     {
@@ -271,17 +260,6 @@ impl<T: 'static + Clone> Window<T> {
                     self.window.request_redraw();
                 }
                 Event::RedrawRequested(_) => {
-                    #[cfg(not(target_arch = "wasm32"))]
-                    let now = std::time::Instant::now();
-                    #[cfg(target_arch = "wasm32")]
-                    let now = instant::Instant::now();
-
-                    let duration = now.duration_since(last_time);
-                    last_time = now;
-                    let elapsed_time =
-                        duration.as_secs() as f64 * 1000.0 + duration.subsec_nanos() as f64 * 1e-6;
-                    accumulated_time += elapsed_time;
-
                     #[cfg(target_arch = "wasm32")]
                     if self.maximized {
                         use winit::platform::web::WindowExtWebSys;
@@ -299,26 +277,7 @@ impl<T: 'static + Clone> Window<T> {
                         });
                     }
 
-                    let (physical_width, physical_height): (u32, u32) =
-                        self.window.inner_size().into();
-                    let device_pixel_ratio = self.window.scale_factor();
-                    let (width, height): (u32, u32) = self
-                        .window
-                        .inner_size()
-                        .to_logical::<f64>(device_pixel_ratio)
-                        .into();
-                    let frame_input = FrameInput {
-                        events: events.drain(..).collect(),
-                        elapsed_time,
-                        accumulated_time,
-                        viewport: Viewport::new_at_origo(physical_width, physical_height),
-                        window_width: width,
-                        window_height: height,
-                        device_pixel_ratio: device_pixel_ratio as f32,
-                        first_frame,
-                        context: self.gl.clone(),
-                    };
-                    first_frame = false;
+                    let frame_input = frame_input_generator.generate(&self.gl);
                     let frame_output = callback(frame_input);
                     if frame_output.exit {
                         *control_flow = ControlFlow::Exit;
@@ -335,240 +294,21 @@ impl<T: 'static + Clone> Window<T> {
                         }
                     }
                 }
-                Event::WindowEvent { ref event, .. } => match event {
-                    WindowEvent::Resized(physical_size) => {
-                        self.gl.resize(*physical_size);
-                    }
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::KeyboardInput { input, .. } => {
-                        if let Some(keycode) = input.virtual_keycode {
-                            use event::VirtualKeyCode;
-                            let state = input.state == event::ElementState::Pressed;
-                            if let Some(kind) = translate_virtual_key_code(keycode) {
-                                events.push(if state {
-                                    crate::Event::KeyPress {
-                                        kind,
-                                        modifiers,
-                                        handled: false,
-                                    }
-                                } else {
-                                    crate::Event::KeyRelease {
-                                        kind,
-                                        modifiers,
-                                        handled: false,
-                                    }
-                                });
-                            } else if keycode == VirtualKeyCode::LControl
-                                || keycode == VirtualKeyCode::RControl
-                            {
-                                modifiers.ctrl = state;
-                                if !cfg!(target_os = "macos") {
-                                    modifiers.command = state;
-                                }
-                                events.push(crate::Event::ModifiersChange { modifiers });
-                            } else if keycode == VirtualKeyCode::LAlt
-                                || keycode == VirtualKeyCode::RAlt
-                            {
-                                modifiers.alt = state;
-                                events.push(crate::Event::ModifiersChange { modifiers });
-                            } else if keycode == VirtualKeyCode::LShift
-                                || keycode == VirtualKeyCode::RShift
-                            {
-                                modifiers.shift = state;
-                                events.push(crate::Event::ModifiersChange { modifiers });
-                            } else if (keycode == VirtualKeyCode::LWin
-                                || keycode == VirtualKeyCode::RWin)
-                                && cfg!(target_os = "macos")
-                            {
-                                modifiers.command = state;
-                                events.push(crate::Event::ModifiersChange { modifiers });
-                            }
+                Event::WindowEvent { ref event, .. } => {
+                    frame_input_generator.handle_winit_window_event(event);
+                    match event {
+                        WindowEvent::Resized(physical_size) => {
+                            self.gl.resize(*physical_size);
                         }
-                    }
-                    WindowEvent::MouseWheel { delta, .. } => {
-                        if let Some(position) = cursor_pos {
-                            match delta {
-                                winit::event::MouseScrollDelta::LineDelta(x, y) => {
-                                    let line_height = 24.0; // TODO
-                                    events.push(crate::Event::MouseWheel {
-                                        delta: ((*x * line_height), (*y * line_height)),
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    });
-                                }
-                                winit::event::MouseScrollDelta::PixelDelta(delta) => {
-                                    let d = delta.to_logical(self.window.scale_factor());
-                                    events.push(crate::Event::MouseWheel {
-                                        delta: (d.x, d.y),
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    });
-                                }
-                            }
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            self.gl.resize(**new_inner_size);
                         }
+                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                        _ => (),
                     }
-                    WindowEvent::MouseInput { state, button, .. } => {
-                        if let Some(position) = cursor_pos {
-                            let button = match button {
-                                event::MouseButton::Left => Some(crate::MouseButton::Left),
-                                event::MouseButton::Middle => Some(crate::MouseButton::Middle),
-                                event::MouseButton::Right => Some(crate::MouseButton::Right),
-                                _ => None,
-                            };
-                            if let Some(b) = button {
-                                events.push(if *state == event::ElementState::Pressed {
-                                    mouse_pressed = Some(b);
-                                    crate::Event::MousePress {
-                                        button: b,
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    }
-                                } else {
-                                    mouse_pressed = None;
-                                    crate::Event::MouseRelease {
-                                        button: b,
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    }
-                                });
-                            }
-                        }
-                    }
-                    WindowEvent::CursorMoved { position, .. } => {
-                        let p = position.to_logical(self.window.scale_factor());
-                        let position = LogicalPoint {
-                            x: p.x,
-                            y: p.y,
-                            scale_factor: self.window.scale_factor() as f32,
-                            height: self.window.inner_size().height as f32,
-                        };
-                        let delta = if let Some(last_pos) = cursor_pos {
-                            (p.x - last_pos.x, p.y - last_pos.y)
-                        } else {
-                            (0.0, 0.0)
-                        };
-                        events.push(crate::Event::MouseMotion {
-                            button: mouse_pressed,
-                            delta,
-                            position,
-                            modifiers,
-                            handled: false,
-                        });
-                        cursor_pos = Some(position);
-                    }
-                    WindowEvent::ReceivedCharacter(ch) => {
-                        if is_printable_char(*ch) && !modifiers.ctrl && !modifiers.command {
-                            events.push(crate::Event::Text(ch.to_string()));
-                        }
-                    }
-                    WindowEvent::CursorEntered { .. } => {
-                        events.push(crate::Event::MouseEnter);
-                    }
-                    WindowEvent::CursorLeft { .. } => {
-                        mouse_pressed = None;
-                        events.push(crate::Event::MouseLeave);
-                    }
-                    WindowEvent::Touch(touch) => {
-                        let position: (f32, f32) = touch
-                            .location
-                            .to_logical::<f32>(self.window.scale_factor())
-                            .into();
-                        let position = LogicalPoint {
-                            x: position.0,
-                            y: position.1,
-                            scale_factor: self.window.scale_factor() as f32,
-                            height: self.window.inner_size().height as f32,
-                        };
-                        match touch.phase {
-                            TouchPhase::Started => {
-                                if finger_id.is_none() {
-                                    events.push(crate::Event::MousePress {
-                                        button: MouseButton::Left,
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    });
-                                    cursor_pos = Some(position);
-                                    finger_id = Some(touch.id);
-                                } else if secondary_finger_id.is_none() {
-                                    secondary_cursor_pos = Some(position);
-                                    secondary_finger_id = Some(touch.id);
-                                }
-                            }
-                            TouchPhase::Ended | TouchPhase::Cancelled => {
-                                if finger_id.map(|id| id == touch.id).unwrap_or(false) {
-                                    events.push(crate::Event::MouseRelease {
-                                        button: MouseButton::Left,
-                                        position,
-                                        modifiers,
-                                        handled: false,
-                                    });
-                                    cursor_pos = None;
-                                    finger_id = None;
-                                } else if secondary_finger_id
-                                    .map(|id| id == touch.id)
-                                    .unwrap_or(false)
-                                {
-                                    secondary_cursor_pos = None;
-                                    secondary_finger_id = None;
-                                }
-                            }
-                            TouchPhase::Moved => {
-                                if finger_id.map(|id| id == touch.id).unwrap_or(false) {
-                                    let last_pos = cursor_pos.unwrap();
-                                    if let Some(p) = secondary_cursor_pos {
-                                        events.push(crate::Event::MouseWheel {
-                                            position,
-                                            modifiers,
-                                            handled: false,
-                                            delta: (
-                                                (position.x - p.x).abs() - (last_pos.x - p.x).abs(),
-                                                (position.y - p.y).abs() - (last_pos.y - p.y).abs(),
-                                            ),
-                                        });
-                                    } else {
-                                        events.push(crate::Event::MouseMotion {
-                                            button: Some(MouseButton::Left),
-                                            position,
-                                            modifiers,
-                                            handled: false,
-                                            delta: (
-                                                position.x - last_pos.x,
-                                                position.y - last_pos.y,
-                                            ),
-                                        });
-                                    }
-                                    cursor_pos = Some(position);
-                                } else if secondary_finger_id
-                                    .map(|id| id == touch.id)
-                                    .unwrap_or(false)
-                                {
-                                    let last_pos = secondary_cursor_pos.unwrap();
-                                    if let Some(p) = cursor_pos {
-                                        events.push(crate::Event::MouseWheel {
-                                            position: p,
-                                            modifiers,
-                                            handled: false,
-                                            delta: (
-                                                (position.x - p.x).abs() - (last_pos.x - p.x).abs(),
-                                                (position.y - p.y).abs() - (last_pos.y - p.y).abs(),
-                                            ),
-                                        });
-                                    }
-                                    secondary_cursor_pos = Some(position);
-                                }
-                            }
-                        }
-                    }
-                    _ => (),
-                },
+                }
                 _ => (),
-            }
-        });
+            });
     }
 
     ///
@@ -595,89 +335,4 @@ impl<T: 'static + Clone> Window<T> {
     pub fn gl(&self) -> Context {
         (*self.gl).clone()
     }
-
-    ///
-    /// Returns an event loop proxy that can be used to send a `T` into the
-    /// render loop using the proxy's [`send_event`] method. The event can be
-    /// handled in the render loop by matching [`Event::UserEvent`].
-    ///
-    /// [`Event::UserEvent`]: crate::control::Event::UserEvent
-    /// [`send_event`]: winit::event_loop::EventLoopProxy::send_event
-    pub fn event_loop_proxy(&self) -> winit::event_loop::EventLoopProxy<T> {
-        self.event_loop.create_proxy()
-    }
-}
-
-fn is_printable_char(chr: char) -> bool {
-    let is_in_private_use_area = ('\u{e000}'..='\u{f8ff}').contains(&chr)
-        || ('\u{f0000}'..='\u{ffffd}').contains(&chr)
-        || ('\u{100000}'..='\u{10fffd}').contains(&chr);
-
-    !is_in_private_use_area && !chr.is_ascii_control()
-}
-
-fn translate_virtual_key_code(key: event::VirtualKeyCode) -> Option<crate::Key> {
-    use event::VirtualKeyCode::*;
-
-    Some(match key {
-        Down => Key::ArrowDown,
-        Left => Key::ArrowLeft,
-        Right => Key::ArrowRight,
-        Up => Key::ArrowUp,
-
-        Escape => Key::Escape,
-        Tab => Key::Tab,
-        Back => Key::Backspace,
-        Return => Key::Enter,
-        Space => Key::Space,
-
-        Insert => Key::Insert,
-        Delete => Key::Delete,
-        Home => Key::Home,
-        End => Key::End,
-        PageUp => Key::PageUp,
-        PageDown => Key::PageDown,
-
-        Key0 | Numpad0 => Key::Num0,
-        Key1 | Numpad1 => Key::Num1,
-        Key2 | Numpad2 => Key::Num2,
-        Key3 | Numpad3 => Key::Num3,
-        Key4 | Numpad4 => Key::Num4,
-        Key5 | Numpad5 => Key::Num5,
-        Key6 | Numpad6 => Key::Num6,
-        Key7 | Numpad7 => Key::Num7,
-        Key8 | Numpad8 => Key::Num8,
-        Key9 | Numpad9 => Key::Num9,
-
-        A => Key::A,
-        B => Key::B,
-        C => Key::C,
-        D => Key::D,
-        E => Key::E,
-        F => Key::F,
-        G => Key::G,
-        H => Key::H,
-        I => Key::I,
-        J => Key::J,
-        K => Key::K,
-        L => Key::L,
-        M => Key::M,
-        N => Key::N,
-        O => Key::O,
-        P => Key::P,
-        Q => Key::Q,
-        R => Key::R,
-        S => Key::S,
-        T => Key::T,
-        U => Key::U,
-        V => Key::V,
-        W => Key::W,
-        X => Key::X,
-        Y => Key::Y,
-        Z => Key::Z,
-
-        _ => {
-            return None;
-        }
-    })
 }

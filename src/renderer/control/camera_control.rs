@@ -102,10 +102,7 @@ impl CameraControl {
     }
 
     /// Handles the events. Must be called each frame.
-    pub fn handle_events<T>(&mut self, camera: &mut Camera, events: &mut [Event<T>]) -> bool
-    where
-        T: 'static + Clone,
-    {
+    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> bool {
         let mut change = false;
         for event in events.iter_mut() {
             match event {

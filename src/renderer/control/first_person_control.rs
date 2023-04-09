@@ -26,10 +26,7 @@ impl FirstPersonControl {
     }
 
     /// Handles the events. Must be called each frame.
-    pub fn handle_events<T>(&mut self, camera: &mut Camera, events: &mut [Event<T>]) -> bool
-    where
-        T: 'static + Clone,
-    {
+    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> bool {
         self.control.handle_events(camera, events)
     }
 }

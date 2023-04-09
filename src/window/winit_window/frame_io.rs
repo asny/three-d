@@ -1,13 +1,19 @@
-use crate::control::*;
-use crate::core::*;
+use crate::control::Event;
+use crate::core::{Context, RenderTarget, Viewport};
 
 ///
-/// Input from the window to the rendering (and whatever else needs it) each frame.
+/// Input for rendering (and whatever else needs it) each frame.
+/// It includes events that can be used as input to [controls](crate::renderer::control).
+/// The data should only be used for one frame.
+///
+/// Note:
+/// [FrameInput] is automatically generated if using the default [Window](crate::window::Window).
+/// Use [FrameInputGenerator](crate::window::FrameInputGenerator) to generate it with a custom [winit](https://crates.io/crates/winit) window.
 ///
 #[derive(Clone, Debug)]
-pub struct FrameInput<T: 'static + Clone> {
+pub struct FrameInput {
     /// A list of [events](crate::Event) which has occurred since last frame.
-    pub events: Vec<Event<T>>,
+    pub events: Vec<Event>,
 
     /// Milliseconds since last frame.
     pub elapsed_time: f64,
@@ -34,7 +40,7 @@ pub struct FrameInput<T: 'static + Clone> {
     pub context: Context,
 }
 
-impl<T: 'static + Clone> FrameInput<T> {
+impl FrameInput {
     ///
     /// Returns the screen render target, which is used for drawing to the screen, for this window.
     /// Same as
@@ -49,7 +55,7 @@ impl<T: 'static + Clone> FrameInput<T> {
 }
 
 ///
-/// Output from the rendering to the window each frame.
+/// Output from the rendering to the default [Window](crate::window::Window) each frame.
 ///
 #[derive(Clone, Debug)]
 pub struct FrameOutput {
