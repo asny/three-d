@@ -21,7 +21,6 @@ default = ["window"]
 window = ["glutin", "winit", "raw-window-handle", "wasm-bindgen", "serde", "serde-wasm-bindgen", "web-sys"] # Window module
 headless = ["glutin_029"] # Headless rendering
 egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features 
-test = ["headless"] # Only for testing purposes (CI)
 
 [dependencies]
 glow = "0.12"
