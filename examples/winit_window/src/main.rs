@@ -2,7 +2,33 @@ use three_d::{renderer::*, FrameInputGenerator, SurfaceSettings, WindowedContext
 
 pub fn main() {
     let event_loop = winit::event_loop::EventLoop::new();
-    let window = winit::window::Window::new(&event_loop).unwrap();
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let window_builder = winit::window::WindowBuilder::new()
+        .with_title("winit window")
+        .with_min_inner_size(winit::dpi::LogicalSize::new(1280, 720))
+        .with_maximized(true);
+    #[cfg(target_arch = "wasm32")]
+    let window_builder = {
+        use wasm_bindgen::JsCast;
+        use winit::platform::web::WindowBuilderExtWebSys;
+        winit::window::WindowBuilder::new()
+            .with_title("winit window")
+            .with_canvas(Some(
+                web_sys::window()
+                    .unwrap()
+                    .document()
+                    .unwrap()
+                    .get_elements_by_tag_name("canvas")
+                    .item(0)
+                    .unwrap()
+                    .dyn_into::<web_sys::HtmlCanvasElement>()
+                    .unwrap(),
+            ))
+            .with_inner_size(winit::dpi::LogicalSize::new(1280, 720))
+            .with_prevent_default(true)
+    };
+    let window = window_builder.build(&event_loop).unwrap();
     let context = WindowedContext::from_winit_window(&window, SurfaceSettings::default()).unwrap();
 
     // Create camera
