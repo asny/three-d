@@ -60,7 +60,7 @@ pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             .write(|| {
                 let time = frame_input.accumulated_time as f32;
                 program.use_uniform("model", Mat4::from_angle_y(radians(time * 0.005)));
-                program.use_uniform("projection", camera.projection());
+                program.use_uniform("viewProjection", camera.projection() * camera.view());
                 program.use_vertex_attribute("position", &positions);
                 program.use_vertex_attribute("color", &colors);
                 program.draw_arrays(
