@@ -157,7 +157,7 @@ Shows how to easily combine a custom [winit](https://crates.io/crates/winit) win
 
 Shows how to create multiple [winit](https://crates.io/crates/winit) windows and render with `three-d`.
 
-![Winit window example](https://asny.github.io/three-d/0.16/multiwindow.png)
+![Multiwindow example](https://asny.github.io/three-d/0.16/multiwindow.png)
 
 ## Headless [[code](https://github.com/asny/three-d/tree/master/examples/headless/src/main.rs)]
 
