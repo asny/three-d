@@ -10,6 +10,8 @@ crate-type = ["cdylib"]
 [dependencies]
 three-d = { path = "../../" }
 winit = "0.28"
+web-sys = "0.3"
+wasm-bindgen = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"

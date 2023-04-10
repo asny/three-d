@@ -13,7 +13,6 @@ pub fn main() {
         use wasm_bindgen::JsCast;
         use winit::platform::web::WindowBuilderExtWebSys;
         winit::window::WindowBuilder::new()
-            .with_title("winit window")
             .with_canvas(Some(
                 web_sys::window()
                     .unwrap()

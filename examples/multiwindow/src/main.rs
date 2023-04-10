@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use three_d::{renderer::*, WindowedContext};
-use winit::{event::WindowEvent, event_loop::EventLoop, window::Window};
 
 struct Scene {
     camera: Camera,
@@ -9,7 +8,7 @@ struct Scene {
 }
 
 pub fn main() {
-    let event_loop = EventLoop::new();
+    let event_loop = winit::event_loop::EventLoop::new();
 
     // Create a CPU-side mesh consisting of a single colored triangle
     let positions = vec![
@@ -30,7 +29,32 @@ pub fn main() {
 
     let mut windows = HashMap::new();
     for i in 0..2 {
-        let window = Window::new(&event_loop).unwrap();
+        #[cfg(not(target_arch = "wasm32"))]
+        let window_builder = winit::window::WindowBuilder::new()
+            .with_title("winit window")
+            .with_min_inner_size(winit::dpi::LogicalSize::new(720, 720))
+            .with_inner_size(winit::dpi::LogicalSize::new(720, 720))
+            .with_position(winit::dpi::LogicalPosition::new(300 * i, 100));
+        #[cfg(target_arch = "wasm32")]
+        let window_builder = {
+            use wasm_bindgen::JsCast;
+            use winit::platform::web::WindowBuilderExtWebSys;
+            winit::window::WindowBuilder::new()
+                .with_canvas(Some(
+                    web_sys::window()
+                        .unwrap()
+                        .document()
+                        .unwrap()
+                        .get_elements_by_tag_name("canvas")
+                        .item(i)
+                        .unwrap()
+                        .dyn_into::<web_sys::HtmlCanvasElement>()
+                        .unwrap(),
+                ))
+                .with_inner_size(winit::dpi::LogicalSize::new(720, 720))
+                .with_prevent_default(true)
+        };
+        let window = window_builder.build(&event_loop).unwrap();
         let context = WindowedContext::from_winit_window(
             &window,
             three_d::SurfaceSettings {
@@ -94,13 +118,13 @@ pub fn main() {
             if let Some((_, context, frame_input_generator, _)) = windows.get_mut(window_id) {
                 frame_input_generator.handle_winit_window_event(event);
                 match event {
-                    WindowEvent::Resized(physical_size) => {
+                    winit::event::WindowEvent::Resized(physical_size) => {
                         context.resize(*physical_size);
                     }
-                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                    winit::event::WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                         context.resize(**new_inner_size);
                     }
-                    WindowEvent::CloseRequested => {
+                    winit::event::WindowEvent::CloseRequested => {
                         if let Some((_, context, _, _)) = windows.get_mut(window_id) {
                             context.make_current().unwrap();
                         }
