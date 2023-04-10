@@ -69,9 +69,9 @@ pub enum WindowError {
 /// To take control over everything, including the context creation and [winit](https://crates.io/crates/winit) event loop,
 /// use [WindowedContext::from_winit_window] and [FrameInputGenerator].
 ///
-pub struct Window<T: 'static + Clone> {
+pub struct Window {
     window: winit::window::Window,
-    event_loop: EventLoop<T>,
+    event_loop: EventLoop<()>,
     #[cfg(target_arch = "wasm32")]
     closure: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
     gl: WindowedContext,
@@ -79,80 +79,52 @@ pub struct Window<T: 'static + Clone> {
     maximized: bool,
 }
 
-impl Window<()> {
+impl Window {
     ///
     /// Constructs a new Window with the given [settings].
     ///
     ///
     /// [settings]: WindowSettings
-    pub fn new(window_settings: WindowSettings) -> Result<Window<()>, WindowError> {
+    pub fn new(window_settings: WindowSettings) -> Result<Self, WindowError> {
         Self::from_event_loop(window_settings, EventLoop::new())
     }
-}
 
-impl<T: 'static + Clone> Window<T> {
     /// Exactly the same as [`Window::new()`] except with the ability to supply
-    /// an existing [`EventLoop`]. Use the event loop's [proxy] to push custom
-    /// events into the render loop (from any thread). Not available for web.
-    ///
-    /// [proxy]: winit::event_loop::EventLoopProxy
-    #[cfg(not(target_arch = "wasm32"))]
+    /// an existing [`EventLoop`].
     pub fn from_event_loop(
         window_settings: WindowSettings,
-        event_loop: EventLoop<T>,
+        event_loop: EventLoop<()>,
     ) -> Result<Self, WindowError> {
-        let borderless = window_settings.borderless;
-        let winit_window = if let Some((width, height)) = window_settings.max_size {
-            WindowBuilder::new()
+        #[cfg(not(target_arch = "wasm32"))]
+        let window_builder = {
+            let window_builder = WindowBuilder::new()
                 .with_title(&window_settings.title)
                 .with_min_inner_size(dpi::LogicalSize::new(
                     window_settings.min_size.0,
                     window_settings.min_size.1,
                 ))
-                .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
-                .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
-                .with_decorations(!borderless)
-        } else {
-            WindowBuilder::new()
-                .with_min_inner_size(dpi::LogicalSize::new(
-                    window_settings.min_size.0,
-                    window_settings.min_size.1,
-                ))
-                .with_title(&window_settings.title)
-                .with_decorations(!borderless)
-                .with_maximized(true)
-        }
-        .build(&event_loop)?;
-        Self::from_winit_window(
-            winit_window,
-            event_loop,
-            window_settings.surface_settings,
-            window_settings.max_size.is_none(),
-        )
-    }
+                .with_decorations(!window_settings.borderless);
 
-    /// Exactly the same as [`Window::new()`] except with the ability to supply
-    /// an existing [`EventLoop`]. Use the event loop's [proxy] to push custom
-    /// events into the render loop (from any thread). Not available for web.
-    ///
-    /// [proxy]: winit::event_loop::EventLoopProxy
-    #[cfg(target_arch = "wasm32")]
-    pub fn from_event_loop(
-        window_settings: WindowSettings,
-        event_loop: EventLoop<T>,
-    ) -> Result<Self, WindowError> {
-        use wasm_bindgen::JsCast;
-        use winit::{dpi::LogicalSize, platform::web::WindowBuilderExtWebSys};
+            if let Some((width, height)) = window_settings.max_size {
+                window_builder
+                    .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
+                    .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
+            } else {
+                window_builder.with_maximized(true)
+            }
+        };
+        #[cfg(target_arch = "wasm32")]
+        let window_builder = {
+            use wasm_bindgen::JsCast;
+            use winit::{dpi::LogicalSize, platform::web::WindowBuilderExtWebSys};
 
-        let websys_window = web_sys::window().ok_or(WindowError::WindowCreation)?;
-        let document = websys_window
-            .document()
-            .ok_or(WindowError::DocumentMissing)?;
-
-        let canvas = if let Some(canvas) = window_settings.canvas {
-            canvas
-        } else {
-            document
+            let canvas = if let Some(canvas) = window_settings.canvas {
+                canvas
+            } else {
+                web_sys::window()
+                .ok_or(WindowError::WindowCreation)?
+                .document()
+                .ok_or(WindowError::DocumentMissing)?
                 .get_elements_by_tag_name("canvas")
                 .item(0)
                 .expect(
@@ -160,31 +132,31 @@ impl<T: 'static + Clone> Window<T> {
                 )
                 .dyn_into::<web_sys::HtmlCanvasElement>()
                 .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
+            };
+
+            let inner_size = window_settings
+                .max_size
+                .map(|(width, height)| LogicalSize::new(width as f64, height as f64))
+                .unwrap_or_else(|| {
+                    let browser_window = canvas
+                        .owner_document()
+                        .and_then(|doc| doc.default_view())
+                        .or_else(web_sys::window)
+                        .unwrap();
+                    LogicalSize::new(
+                        browser_window.inner_width().unwrap().as_f64().unwrap(),
+                        browser_window.inner_height().unwrap().as_f64().unwrap(),
+                    )
+                });
+
+            WindowBuilder::new()
+                .with_title(window_settings.title)
+                .with_canvas(Some(canvas))
+                .with_inner_size(inner_size)
+                .with_prevent_default(true)
         };
 
-        let inner_size = window_settings
-            .max_size
-            .map(|(width, height)| LogicalSize::new(width as f64, height as f64))
-            .unwrap_or_else(|| {
-                let browser_window = canvas
-                    .owner_document()
-                    .and_then(|doc| doc.default_view())
-                    .or_else(web_sys::window)
-                    .unwrap();
-                LogicalSize::new(
-                    browser_window.inner_width().unwrap().as_f64().unwrap(),
-                    browser_window.inner_height().unwrap().as_f64().unwrap(),
-                )
-            });
-
-        let window_builder = WindowBuilder::new()
-            .with_title(window_settings.title)
-            .with_canvas(Some(canvas))
-            .with_inner_size(inner_size)
-            .with_prevent_default(true);
-
         let winit_window = window_builder.build(&event_loop)?;
-
         Self::from_winit_window(
             winit_window,
             event_loop,
@@ -200,7 +172,7 @@ impl<T: 'static + Clone> Window<T> {
     ///
     pub fn from_winit_window(
         winit_window: window::Window,
-        event_loop: EventLoop<T>,
+        event_loop: EventLoop<()>,
         mut surface_settings: SurfaceSettings,
         maximized: bool,
     ) -> Result<Self, WindowError> {
