@@ -89,19 +89,20 @@ impl FrameInputGenerator {
         #[cfg(not(target_arch = "wasm32"))]
         if let Some(exit_time) = option_env!("THREE_D_EXIT").map(|v| v.parse::<f64>().unwrap()) {
             if exit_time < self.accumulated_time {
-                if let Some(v) = option_env!("THREE_D_SCREENSHOT") {
+                #[cfg(feature = "image")]
+                if let Some(path) = option_env!("THREE_D_SCREENSHOT") {
                     let pixels = frame_input.screen().read_color::<[u8; 4]>();
-                    use three_d_asset::io::Serialize;
-                    CpuTexture {
-                        data: TextureData::RgbaU8(pixels),
-                        width: self.viewport.width,
-                        height: self.viewport.height,
-                        ..Default::default()
-                    }
-                    .serialize(v)
-                    .unwrap()
-                    .save()
-                    .unwrap();
+                    let img = image::DynamicImage::ImageRgba8(
+                        image::ImageBuffer::from_raw(
+                            self.viewport.width,
+                            self.viewport.height,
+                            pixels.into_iter().flatten().collect::<Vec<_>>(),
+                        )
+                        .unwrap(),
+                    );
+                    img.resize(1280, 720, image::imageops::FilterType::Triangle)
+                        .save(path)
+                        .unwrap();
                 }
                 std::process::exit(0);
             }
