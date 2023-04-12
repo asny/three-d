@@ -27,12 +27,7 @@ impl Material for MandelbrotMaterial {
 }
 
 pub fn main() {
-    let window = Window::new(WindowSettings {
-        title: "Mandelbrot!".to_string(),
-        max_size: Some((1280, 720)),
-        ..Default::default()
-    })
-    .unwrap();
+    let window = Window::new(WindowSettings::default()).unwrap();
     let context = window.gl();
 
     // Renderer
