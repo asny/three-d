@@ -27,10 +27,7 @@ impl OrbitControl {
     }
 
     /// Handles the events. Must be called each frame.
-    pub fn handle_events<T>(&mut self, camera: &mut Camera, events: &mut [Event<T>]) -> bool
-    where
-        T: 'static + Clone,
-    {
+    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> bool {
         if let CameraAction::Zoom { speed, target, .. } = &mut self.control.scroll_vertical {
             let x = target.distance(*camera.position());
             *speed = 0.01 * x + 0.001;

@@ -49,6 +49,7 @@ struct Buffer {
     attribute_count: u32,
     data_type: u32,
     data_size: u32,
+    normalized: bool,
 }
 
 impl Buffer {
@@ -59,6 +60,7 @@ impl Buffer {
             attribute_count: 0,
             data_type: 0,
             data_size: 0,
+            normalized: false,
         }
     }
 
@@ -87,6 +89,7 @@ impl Buffer {
         self.attribute_count = data.len() as u32;
         self.data_type = T::data_type();
         self.data_size = T::size();
+        self.normalized = T::normalized();
     }
 
     pub fn attribute_count(&self) -> u32 {

@@ -112,9 +112,9 @@ void main()
     // *** COLOR ***
     col = vec4(1.0);
 #ifdef USE_VERTEX_COLORS 
-    col *= color / 255.0;
+    col *= color;
 #endif
 #ifdef USE_INSTANCE_COLORS
-    col *= instance_color / 255.0;
+    col *= instance_color;
 #endif
 }

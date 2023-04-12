@@ -147,6 +147,18 @@ This example shows how depth ordering is currently working for `InstancedMesh` o
 
 ![Logo example](https://asny.github.io/three-d/0.16/logo.png)
 
+## Winit window [[code](https://github.com/asny/three-d/tree/master/examples/winit_window/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/winit_window.html)]
+
+Shows how to easily combine a custom [winit](https://crates.io/crates/winit) window with `three-d` rendering.
+
+![Winit window example](https://asny.github.io/three-d/0.16/winit_window.png)
+
+## Multiwindow [[code](https://github.com/asny/three-d/tree/master/examples/multiwindow/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/multiwindow.html)]
+
+Shows how to create multiple [winit](https://crates.io/crates/winit) windows and render with `three-d`.
+
+![Multiwindow example](https://asny.github.io/three-d/0.16/multiwindow.png)
+
 ## Headless [[code](https://github.com/asny/three-d/tree/master/examples/headless/src/main.rs)]
 
 This example does not create a window but render directly to a render target and saves the result to disk. Therefore, this example does not work on web.

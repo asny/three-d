@@ -334,10 +334,13 @@ impl Program {
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
-                if buffer.data_type() == crate::context::UNSIGNED_SHORT
-                    || buffer.data_type() == crate::context::SHORT
-                    || buffer.data_type() == crate::context::UNSIGNED_INT
-                    || buffer.data_type() == crate::context::INT
+                if !buffer.normalized()
+                    && (buffer.data_type() == crate::context::UNSIGNED_BYTE
+                        || buffer.data_type() == crate::context::BYTE
+                        || buffer.data_type() == crate::context::UNSIGNED_SHORT
+                        || buffer.data_type() == crate::context::SHORT
+                        || buffer.data_type() == crate::context::UNSIGNED_INT
+                        || buffer.data_type() == crate::context::INT)
                 {
                     self.context.vertex_attrib_pointer_i32(
                         loc,
@@ -351,7 +354,7 @@ impl Program {
                         loc,
                         buffer.data_size() as i32,
                         buffer.data_type(),
-                        false,
+                        buffer.normalized(),
                         0,
                         0,
                     );
@@ -379,10 +382,13 @@ impl Program {
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
-                if buffer.data_type() == crate::context::UNSIGNED_SHORT
-                    || buffer.data_type() == crate::context::SHORT
-                    || buffer.data_type() == crate::context::UNSIGNED_INT
-                    || buffer.data_type() == crate::context::INT
+                if !buffer.normalized()
+                    && (buffer.data_type() == crate::context::UNSIGNED_BYTE
+                        || buffer.data_type() == crate::context::BYTE
+                        || buffer.data_type() == crate::context::UNSIGNED_SHORT
+                        || buffer.data_type() == crate::context::SHORT
+                        || buffer.data_type() == crate::context::UNSIGNED_INT
+                        || buffer.data_type() == crate::context::INT)
                 {
                     self.context.vertex_attrib_pointer_i32(
                         loc,
@@ -396,7 +402,7 @@ impl Program {
                         loc,
                         buffer.data_size() as i32,
                         buffer.data_type(),
-                        false,
+                        buffer.normalized(),
                         0,
                         0,
                     );

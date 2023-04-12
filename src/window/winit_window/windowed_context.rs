@@ -76,6 +76,11 @@ mod inner {
         /// Resizes the context
         pub fn resize(&self, _physical_size: winit::dpi::PhysicalSize<u32>) {}
 
+        /// Make this context current. Needed when using multiple windows (contexts) on native.
+        pub fn make_current(&self) -> Result<(), WindowError> {
+            Ok(())
+        }
+
         /// Swap buffers - should always be called after rendering.
         pub fn swap_buffers(&self) -> Result<(), WindowError> {
             Ok(())
@@ -85,7 +90,7 @@ mod inner {
 
 #[cfg(not(target_arch = "wasm32"))]
 mod inner {
-    use glutin::surface::*;
+    use glutin::{prelude::PossiblyCurrentContextGlSurfaceAccessor, surface::*};
 
     use super::*;
     ///
@@ -206,6 +211,11 @@ mod inner {
             let width = std::num::NonZeroU32::new(physical_size.width.max(1)).unwrap();
             let height = std::num::NonZeroU32::new(physical_size.height.max(1)).unwrap();
             self.surface.resize(&self.glutin_context, width, height);
+        }
+
+        /// Make this context current. Needed when using multiple windows (contexts) on native.
+        pub fn make_current(&self) -> Result<(), WindowError> {
+            Ok(self.glutin_context.make_current(&self.surface)?)
         }
 
         /// Swap buffers - should always be called after rendering.
