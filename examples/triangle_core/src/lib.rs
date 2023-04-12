@@ -15,6 +15,6 @@ pub fn start() -> Result<(), JsValue> {
     use log::info;
     info!("Logging works!");
 
-    main::main().unwrap();
+    main::main();
     Ok(())
 }
