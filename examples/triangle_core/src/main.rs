@@ -28,9 +28,9 @@ pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let colors = VertexBuffer::new_with_data(
         &context,
         &[
-            Color::RED.to_vec4(),   // bottom right
-            Color::GREEN.to_vec4(), // bottom left
-            Color::BLUE.to_vec4(),  // top
+            Color::RED,   // bottom right
+            Color::GREEN, // bottom left
+            Color::BLUE,  // top
         ],
     );
 
