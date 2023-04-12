@@ -1,17 +1,18 @@
-use std::error::Error;
-
-use three_d::core::{ClearState, Context, Program, RenderStates, VertexBuffer};
+use three_d::core::{
+    degrees, radians, vec3, Camera, ClearState, Color, Context, Mat4, Program, RenderStates,
+    VertexBuffer,
+};
 use three_d::window::{FrameOutput, Window, WindowSettings};
-use three_d::{degrees, radians, vec3, Camera, Color, Mat4};
 
-pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+pub fn main() {
     // Create a window (a canvas on web)
     let window = Window::new(WindowSettings {
         title: "Core Triangle!".to_string(),
         #[cfg(not(target_arch = "wasm32"))]
         max_size: Some((1280, 720)),
         ..Default::default()
-    })?;
+    })
+    .unwrap();
 
     // Get the graphics context from the window
     let context: Context = window.gl();
@@ -38,7 +39,8 @@ pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         &context,
         include_str!("triangle.vert"),
         include_str!("triangle.frag"),
-    )?;
+    )
+    .unwrap();
 
     let mut camera = Camera::new_perspective(
         window.viewport(),
@@ -72,6 +74,4 @@ pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
         FrameOutput::default()
     });
-
-    Ok(())
 }
