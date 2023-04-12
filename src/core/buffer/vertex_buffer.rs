@@ -51,15 +51,19 @@ impl VertexBuffer {
         self.buffer.attribute_count()
     }
 
-    pub(crate) fn bind(&self) {
+    pub(in crate::core) fn bind(&self) {
         self.buffer.bind();
     }
 
-    pub(crate) fn data_type(&self) -> u32 {
+    pub(in crate::core) fn data_type(&self) -> u32 {
         self.buffer.data_type
     }
 
-    pub(crate) fn data_size(&self) -> u32 {
+    pub(in crate::core) fn data_size(&self) -> u32 {
         self.buffer.data_size
+    }
+
+    pub(in crate::core) fn normalized(&self) -> bool {
+        self.buffer.normalized
     }
 }

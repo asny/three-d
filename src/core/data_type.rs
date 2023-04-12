@@ -223,6 +223,9 @@ pub trait DataType: std::fmt::Debug + Clone {
     fn internal_format() -> u32;
     fn data_type() -> u32;
     fn size() -> u32;
+    fn normalized() -> bool {
+        false
+    }
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]);
 }
 
@@ -235,6 +238,9 @@ impl<T: DataType + ?Sized> DataType for &T {
     }
     fn size() -> u32 {
         T::size()
+    }
+    fn normalized() -> bool {
+        T::normalized()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
@@ -539,6 +545,10 @@ impl DataType for Color {
 
     fn size() -> u32 {
         4
+    }
+
+    fn normalized() -> bool {
+        true
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
