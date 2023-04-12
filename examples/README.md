@@ -37,9 +37,15 @@ If your application is native only, you can avoid the async runtime (`tokio` or 
 
 ## Triangle [[code](https://github.com/asny/three-d/tree/master/examples/triangle/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/triangle.html)]
 
-This is the recomended starting point for a gentle introduction to `three-d`.
+This is the recommended starting point for a gentle introduction to `three-d`.
 
 ![Triangle example](https://asny.github.io/three-d/0.16/triangle.png)
+
+## Triangle core [[code](https://github.com/asny/three-d/tree/master/examples/triangle_core/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/triangle_core.html)]
+
+This is the same as the `Triangle` example, except it only uses the core module and not the renderer module.
+
+![Triangle core example](https://asny.github.io/three-d/0.16/triangle_core.png)
 
 ## Mandelbrot [[code](https://github.com/asny/three-d/tree/master/examples/mandelbrot/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/mandelbrot.html)]
 
