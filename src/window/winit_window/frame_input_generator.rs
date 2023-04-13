@@ -100,15 +100,9 @@ impl FrameInputGenerator {
                         )
                         .unwrap(),
                     );
-                    let width = option_env!("THREE_D_SCREENSHOT_WIDTH")
-                        .map(|v| v.parse::<u32>().unwrap())
-                        .unwrap_or(1280);
-                    let height = option_env!("THREE_D_SCREENSHOT_HEIGHT")
-                        .map(|v| v.parse::<u32>().unwrap())
-                        .unwrap_or(720);
-                    let resized_img =
-                        img.resize(width, height, image::imageops::FilterType::Nearest);
-                    resized_img.save(path).unwrap();
+                    img.resize(1280, 720, image::imageops::FilterType::Triangle)
+                        .save(path)
+                        .unwrap();
                 }
                 std::process::exit(0);
             }
