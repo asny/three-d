@@ -233,7 +233,7 @@ impl Window {
                 }
                 Event::RedrawRequested(_) => {
                     #[cfg(target_arch = "wasm32")]
-                    if self.maximized {
+                    if self.maximized || option_env!("THREE_D_SCREENSHOT").is_some() {
                         use winit::platform::web::WindowExtWebSys;
 
                         let html_canvas = self.window.canvas();
