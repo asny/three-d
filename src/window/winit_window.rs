@@ -255,7 +255,6 @@ impl Window {
                         *control_flow = ControlFlow::Exit;
                     } else {
                         if frame_output.swap_buffers {
-                            #[cfg(not(target_arch = "wasm32"))]
                             self.gl.swap_buffers().unwrap();
                         }
                         if frame_output.wait_next_event {
