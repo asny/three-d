@@ -254,7 +254,8 @@ impl Window {
                     if frame_output.exit {
                         *control_flow = ControlFlow::Exit;
                     } else {
-                        if frame_output.swap_buffers {
+                        if frame_output.swap_buffers && option_env!("THREE_D_SCREENSHOT").is_none()
+                        {
                             self.gl.swap_buffers().unwrap();
                         }
                         if frame_output.wait_next_event {
