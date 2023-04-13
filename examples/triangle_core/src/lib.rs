@@ -1,5 +1,4 @@
 #![allow(special_module_name)]
-
 mod main;
 
 // Entry point for wasm
