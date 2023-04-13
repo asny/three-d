@@ -14,7 +14,12 @@ enum CameraType {
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings::default()).unwrap();
+    let window = Window::new(WindowSettings {
+        title: "Statues!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
     let context = window.gl();
 
     let mut primary_camera = Camera::new_perspective(

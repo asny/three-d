@@ -8,7 +8,12 @@ async fn main() {
 }
 
 pub async fn run() {
-    let window = Window::new(WindowSettings::default()).unwrap();
+    let window = Window::new(WindowSettings {
+        title: "Wireframe!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
     let context = window.gl();
 
     let target = vec3(0.0, 2.0, 0.0);

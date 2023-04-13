@@ -8,7 +8,12 @@ async fn main() {
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings::default()).unwrap();
+    let window = Window::new(WindowSettings {
+        title: "Point Cloud!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
     let context = window.gl();
 
     let mut camera = Camera::new_perspective(

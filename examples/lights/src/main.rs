@@ -9,7 +9,13 @@ use rand::prelude::*;
 use three_d::*;
 
 pub async fn run() {
-    let window = Window::new(WindowSettings::default()).unwrap();
+    let window = Window::new(WindowSettings {
+        title: "Lights!".to_string(),
+        min_size: (512, 512),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
     let context = window.gl();
 
     let mut camera = Camera::new_perspective(

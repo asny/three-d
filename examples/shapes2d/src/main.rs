@@ -1,7 +1,12 @@
 use three_d::*;
 
 pub fn main() {
-    let window = Window::new(WindowSettings::default()).unwrap();
+    let window = Window::new(WindowSettings {
+        title: "Shapes 2D!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
     let context = window.gl();
 
     let mut rectangle = Gm::new(
