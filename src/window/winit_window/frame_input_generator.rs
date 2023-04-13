@@ -88,21 +88,25 @@ impl FrameInputGenerator {
 
         #[cfg(not(target_arch = "wasm32"))]
         if let Some(exit_time) = option_env!("THREE_D_EXIT").map(|v| v.parse::<f64>().unwrap()) {
-            if exit_time < self.accumulated_time {
+            if exit_time < frame_input.accumulated_time {
                 #[cfg(feature = "image")]
                 if let Some(path) = option_env!("THREE_D_SCREENSHOT") {
                     let pixels = frame_input.screen().read_color::<[u8; 4]>();
                     let img = image::DynamicImage::ImageRgba8(
                         image::ImageBuffer::from_raw(
-                            self.viewport.width,
-                            self.viewport.height,
+                            frame_input.viewport.width,
+                            frame_input.viewport.height,
                             pixels.into_iter().flatten().collect::<Vec<_>>(),
                         )
                         .unwrap(),
                     );
-                    img.resize(1280, 720, image::imageops::FilterType::Triangle)
-                        .save(path)
-                        .unwrap();
+                    img.resize(
+                        frame_input.window_width,
+                        frame_input.window_height,
+                        image::imageops::FilterType::Triangle,
+                    )
+                    .save(path)
+                    .unwrap();
                 }
                 std::process::exit(0);
             }
