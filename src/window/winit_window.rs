@@ -302,6 +302,13 @@ impl Window {
     }
 
     ///
+    /// Returns the device pixel ratio for this window.
+    ///
+    pub fn device_pixel_ratio(&self) -> f32 {
+        self.window.scale_factor() as f32
+    }
+
+    ///
     /// Returns the graphics context for this window.
     ///
     pub fn gl(&self) -> Context {
