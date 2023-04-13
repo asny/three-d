@@ -12,7 +12,6 @@ use three_d::*;
 pub async fn run() {
     let window = Window::new(WindowSettings {
         title: "Terrain!".to_string(),
-        min_size: (512, 512),
         max_size: Some((1280, 720)),
         ..Default::default()
     })
