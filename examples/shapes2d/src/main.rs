@@ -8,16 +8,28 @@ pub fn main() {
     })
     .unwrap();
     let context = window.gl();
+    let scale_factor = window.device_pixel_ratio();
+    let (width, height) = window.size();
 
     let mut rectangle = Gm::new(
-        Rectangle::new(&context, vec2(200.0, 200.0), degrees(45.0), 100.0, 200.0),
+        Rectangle::new(
+            &context,
+            vec2(200.0, 200.0) * scale_factor,
+            degrees(45.0),
+            100.0 * scale_factor,
+            200.0 * scale_factor,
+        ),
         ColorMaterial {
             color: Color::RED,
             ..Default::default()
         },
     );
     let mut circle = Gm::new(
-        Circle::new(&context, vec2(500.0, 500.0), 200.0),
+        Circle::new(
+            &context,
+            vec2(500.0, 500.0) * scale_factor,
+            200.0 * scale_factor,
+        ),
         ColorMaterial {
             color: Color::BLUE,
             ..Default::default()
@@ -26,12 +38,9 @@ pub fn main() {
     let mut line = Gm::new(
         Line::new(
             &context,
-            vec2(0.0, 0.0),
-            vec2(
-                window.viewport().width as f32,
-                window.viewport().height as f32,
-            ),
-            5.0,
+            vec2(0.0, 0.0) * scale_factor,
+            vec2(width as f32, height as f32) * scale_factor,
+            5.0 * scale_factor,
         ),
         ColorMaterial {
             color: Color::GREEN,
