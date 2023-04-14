@@ -16,6 +16,7 @@ pub struct Context {
     context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
     programs: Arc<RwLock<HashMap<(String, String), Program>>>,
+    programs2: Arc<RwLock<HashMap<Vec<u32>, Program>>>,
 }
 
 impl Context {
@@ -43,6 +44,7 @@ impl Context {
                 context,
                 vao,
                 programs: Arc::new(RwLock::new(HashMap::new())),
+                programs2: Arc::new(RwLock::new(HashMap::new())),
             }
         };
         Ok(c)
@@ -68,6 +70,17 @@ impl Context {
             programs.insert(key, program);
         }
         Ok(())
+    }
+
+    pub fn program2(
+        &self,
+        key: Vec<u32>,
+        create: impl FnOnce() -> Program,
+        callback: impl FnOnce(&Program),
+    ) {
+        let mut programs = self.programs2.write().unwrap();
+        let program = programs.entry(key).or_insert_with(|| create());
+        callback(program);
     }
 
     ///

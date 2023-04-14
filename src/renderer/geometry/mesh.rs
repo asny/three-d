@@ -128,6 +128,23 @@ impl Mesh {
             include_str!("shaders/mesh.vert"),
         )
     }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        let mut id = 0b10000u32;
+        if required_attributes.normal {
+            id |= 0b1u32;
+        }
+        if required_attributes.tangents {
+            id |= 0b10u32;
+        }
+        if required_attributes.uv {
+            id |= 0b100u32;
+        }
+        if self.base_mesh.colors.is_some() {
+            id |= 0b1000u32;
+        }
+        id
+    }
 }
 
 impl<'a> IntoIterator for &'a Mesh {
@@ -159,9 +176,20 @@ impl Geometry for Mesh {
         lights: &[&dyn Light],
     ) {
         let fragment_shader = material.fragment_shader(lights);
-        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
+        let mut id = vec![self.id(fragment_shader.attributes), material.id()];
+        id.extend(lights_id(lights));
+
+        self.context.program2(
+            id,
+            || {
+                Program::from_source(
+                    &self.context,
+                    &self.vertex_shader_source(fragment_shader.attributes),
+                    &fragment_shader.source,
+                )
+                .expect("Failed compiling shader")
+            },
+            |program| {
                 material.use_uniforms(program, camera, lights);
                 self.draw(
                     program,
@@ -169,8 +197,8 @@ impl Geometry for Mesh {
                     camera,
                     fragment_shader.attributes,
                 );
-            })
-            .expect("Failed compiling shader");
+            },
+        )
     }
 
     fn render_with_post_material(
