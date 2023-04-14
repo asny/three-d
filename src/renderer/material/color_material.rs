@@ -82,6 +82,14 @@ impl FromCpuMaterial for ColorMaterial {
 }
 
 impl Material for ColorMaterial {
+    fn id(&self) -> u32 {
+        if self.texture.is_some() {
+            0b0u32
+        } else {
+            0b1u32
+        }
+    }
+
     fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         let mut attributes = FragmentAttributes {
             color: true,

@@ -78,6 +78,17 @@ impl FromCpuMaterial for ORMMaterial {
 }
 
 impl Material for ORMMaterial {
+    fn id(&self) -> u32 {
+        let mut id = 0b1000u32;
+        if self.metallic_roughness_texture.is_some() {
+            id |= 0b1u32;
+        }
+        if self.occlusion_texture.is_some() {
+            id |= 0b10u32;
+        }
+        id
+    }
+
     fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         let mut attributes = FragmentAttributes::NONE;
         let mut source = String::new();

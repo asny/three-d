@@ -171,6 +171,8 @@ pub trait Material {
     /// Returns the type of material.
     ///
     fn material_type(&self) -> MaterialType;
+
+    fn id(&self) -> u32;
 }
 
 ///
@@ -206,6 +208,9 @@ impl<T: Material + ?Sized> Material for &T {
     fn material_type(&self) -> MaterialType {
         (*self).material_type()
     }
+    fn id(&self) -> u32 {
+        (*self).id()
+    }
 }
 
 impl<T: Material + ?Sized> Material for &mut T {
@@ -220,6 +225,9 @@ impl<T: Material + ?Sized> Material for &mut T {
     }
     fn material_type(&self) -> MaterialType {
         (**self).material_type()
+    }
+    fn id(&self) -> u32 {
+        (**self).id()
     }
 }
 
@@ -236,6 +244,9 @@ impl<T: Material> Material for Box<T> {
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
     }
+    fn id(&self) -> u32 {
+        self.as_ref().id()
+    }
 }
 
 impl<T: Material> Material for std::rc::Rc<T> {
@@ -250,6 +261,9 @@ impl<T: Material> Material for std::rc::Rc<T> {
     }
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
+    }
+    fn id(&self) -> u32 {
+        self.as_ref().id()
     }
 }
 
@@ -266,6 +280,9 @@ impl<T: Material> Material for std::sync::Arc<T> {
     fn material_type(&self) -> MaterialType {
         self.as_ref().material_type()
     }
+    fn id(&self) -> u32 {
+        self.as_ref().id()
+    }
 }
 
 impl<T: Material> Material for std::cell::RefCell<T> {
@@ -281,6 +298,9 @@ impl<T: Material> Material for std::cell::RefCell<T> {
     fn material_type(&self) -> MaterialType {
         self.borrow().material_type()
     }
+    fn id(&self) -> u32 {
+        self.borrow().id()
+    }
 }
 
 impl<T: Material> Material for std::sync::RwLock<T> {
@@ -295,6 +315,9 @@ impl<T: Material> Material for std::sync::RwLock<T> {
     }
     fn material_type(&self) -> MaterialType {
         self.read().unwrap().material_type()
+    }
+    fn id(&self) -> u32 {
+        self.read().unwrap().id()
     }
 }
 

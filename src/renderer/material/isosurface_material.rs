@@ -25,6 +25,10 @@ pub struct IsosurfaceMaterial {
 }
 
 impl Material for IsosurfaceMaterial {
+    fn id(&self) -> u32 {
+        0b1100u32
+    }
+
     fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         let mut source = lights_shader_source(lights, self.lighting_model);
         source.push_str(include_str!("shaders/isosurface_material.frag"));

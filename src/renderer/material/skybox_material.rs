@@ -7,6 +7,10 @@ pub struct SkyboxMaterial {
 }
 
 impl Material for SkyboxMaterial {
+    fn id(&self) -> u32 {
+        0b100u32
+    }
+
     fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         FragmentShader {
             source: format!(

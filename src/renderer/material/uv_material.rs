@@ -18,6 +18,10 @@ impl FromCpuMaterial for UVMaterial {
 }
 
 impl Material for UVMaterial {
+    fn id(&self) -> u32 {
+        0b101u32
+    }
+
     fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         FragmentShader {
             source: include_str!("shaders/uv_material.frag").to_string(),

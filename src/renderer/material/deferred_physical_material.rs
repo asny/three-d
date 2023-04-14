@@ -182,6 +182,29 @@ impl FromCpuMaterial for DeferredPhysicalMaterial {
 }
 
 impl Material for DeferredPhysicalMaterial {
+    fn id(&self) -> u32 {
+        let mut id = 0b1000000u32;
+        if self.albedo_texture.is_some() {
+            id |= 0b1u32;
+        }
+        if self.metallic_roughness_texture.is_some() {
+            id |= 0b10u32;
+        }
+        if self.occlusion_texture.is_some() {
+            id |= 0b100u32;
+        }
+        if self.normal_texture.is_some() {
+            id |= 0b1000u32;
+        }
+        if self.emissive_texture.is_some() {
+            id |= 0b10000u32;
+        }
+        if self.alpha_cutout.is_some() {
+            id |= 0b100000u32;
+        }
+        id
+    }
+
     fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         let mut attributes = FragmentAttributes {
             position: true,

@@ -18,6 +18,10 @@ impl FromCpuMaterial for PositionMaterial {
 }
 
 impl Material for PositionMaterial {
+    fn id(&self) -> u32 {
+        0b11u32
+    }
+
     fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         FragmentShader {
             source: include_str!("shaders/position_material.frag").to_string(),

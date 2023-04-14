@@ -223,6 +223,10 @@ impl ImpostersMaterial {
 }
 
 impl Material for ImpostersMaterial {
+    fn id(&self) -> u32 {
+        0b10000u32
+    }
+
     fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         FragmentShader {
             source: format!(
