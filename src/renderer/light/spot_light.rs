@@ -213,4 +213,12 @@ impl Light for SpotLight {
         program.use_uniform(&format!("direction{}", i), self.direction.normalize());
         program.use_uniform(&format!("cutoff{}", i), self.cutoff.0);
     }
+
+    fn id(&self) -> u32 {
+        if self.shadow_texture.is_some() {
+            6
+        } else {
+            7
+        }
+    }
 }

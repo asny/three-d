@@ -160,4 +160,12 @@ impl Light for DirectionalLight {
         );
         program.use_uniform(&format!("direction{}", i), self.direction.normalize());
     }
+
+    fn id(&self) -> u32 {
+        if self.shadow_texture.is_some() {
+            3
+        } else {
+            4
+        }
+    }
 }

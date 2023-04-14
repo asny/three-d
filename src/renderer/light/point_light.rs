@@ -68,4 +68,8 @@ impl Light for PointLight {
         );
         program.use_uniform(&format!("position{}", i), self.position);
     }
+
+    fn id(&self) -> u32 {
+        5
+    }
 }

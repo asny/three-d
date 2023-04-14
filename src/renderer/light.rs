@@ -60,6 +60,8 @@ pub trait Light {
     fn shader_source(&self, i: u32) -> String;
     /// Should bind the uniforms that is needed for calculating this lights contribution to the color in [Light::shader_source].
     fn use_uniforms(&self, program: &Program, i: u32);
+
+    fn id(&self) -> u32;
 }
 
 impl<T: Light + ?Sized> Light for &T {
@@ -68,6 +70,9 @@ impl<T: Light + ?Sized> Light for &T {
     }
     fn use_uniforms(&self, program: &Program, i: u32) {
         (*self).use_uniforms(program, i)
+    }
+    fn id(&self) -> u32 {
+        (*self).id()
     }
 }
 
@@ -78,6 +83,9 @@ impl<T: Light + ?Sized> Light for &mut T {
     fn use_uniforms(&self, program: &Program, i: u32) {
         (**self).use_uniforms(program, i)
     }
+    fn id(&self) -> u32 {
+        (**self).id()
+    }
 }
 
 impl<T: Light> Light for Box<T> {
@@ -86,6 +94,9 @@ impl<T: Light> Light for Box<T> {
     }
     fn use_uniforms(&self, program: &Program, i: u32) {
         self.as_ref().use_uniforms(program, i)
+    }
+    fn id(&self) -> u32 {
+        self.as_ref().id()
     }
 }
 
@@ -96,6 +107,9 @@ impl<T: Light> Light for std::sync::Arc<T> {
     fn use_uniforms(&self, program: &Program, i: u32) {
         self.as_ref().use_uniforms(program, i)
     }
+    fn id(&self) -> u32 {
+        self.as_ref().id()
+    }
 }
 
 impl<T: Light> Light for std::sync::Arc<std::sync::RwLock<T>> {
@@ -105,6 +119,13 @@ impl<T: Light> Light for std::sync::Arc<std::sync::RwLock<T>> {
     fn use_uniforms(&self, program: &Program, i: u32) {
         self.read().unwrap().use_uniforms(program, i)
     }
+    fn id(&self) -> u32 {
+        self.read().unwrap().id()
+    }
+}
+
+pub fn lights_id(lights: &[&dyn Light]) -> Vec<u32> {
+    lights.iter().map(|l| l.id()).collect()
 }
 
 ///
