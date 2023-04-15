@@ -97,7 +97,7 @@ impl Light for AmbientLight {
         program.use_uniform("ambientColor", self.color.to_vec3() * self.intensity);
     }
 
-    fn id(&self) -> u32 {
+    fn id(&self) -> u8 {
         if self.environment.is_some() {
             1
         } else {

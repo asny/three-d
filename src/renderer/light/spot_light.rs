@@ -214,7 +214,7 @@ impl Light for SpotLight {
         program.use_uniform(&format!("cutoff{}", i), self.cutoff.0);
     }
 
-    fn id(&self) -> u32 {
+    fn id(&self) -> u8 {
         if self.shadow_texture.is_some() {
             6
         } else {

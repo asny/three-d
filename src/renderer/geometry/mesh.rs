@@ -176,8 +176,9 @@ impl Geometry for Mesh {
         lights: &[&dyn Light],
     ) {
         let fragment_attributes = material.fragment_attributes();
-        let mut id = vec![self.id(fragment_attributes), material.id()];
-        id.extend(lights_id(lights));
+        let mut id = self.id(fragment_attributes) as u64;
+        id ^= (material.id() as u64) << 32;
+        id ^= lights_id(lights);
 
         self.context.program2(
             id,

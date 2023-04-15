@@ -16,7 +16,7 @@ pub struct Context {
     context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
     programs: Arc<RwLock<HashMap<(String, String), Program>>>,
-    programs2: Arc<RwLock<HashMap<Vec<u32>, Program>>>,
+    programs2: Arc<RwLock<HashMap<u64, Program>>>,
 }
 
 impl Context {
@@ -74,7 +74,7 @@ impl Context {
 
     pub fn program2(
         &self,
-        key: Vec<u32>,
+        key: u64,
         create: impl FnOnce() -> Program,
         callback: impl FnOnce(&Program),
     ) {
