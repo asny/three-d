@@ -129,20 +129,22 @@ impl Mesh {
         )
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        let mut id = 0b10000u32;
+    fn id(&self, required_attributes: FragmentAttributes, material_id: u32, lights_id: u64) -> u64 {
+        let mut id = 0b10000u64;
         if required_attributes.normal {
-            id |= 0b1u32;
+            id |= 0b1u64;
         }
         if required_attributes.tangents {
-            id |= 0b10u32;
+            id |= 0b10u64;
         }
         if required_attributes.uv {
-            id |= 0b100u32;
+            id |= 0b100u64;
         }
         if self.base_mesh.colors.is_some() {
-            id |= 0b1000u32;
+            id |= 0b1000u64;
         }
+        id ^= (material_id as u64) << 32;
+        id ^= lights_id;
         id
     }
 }
@@ -176,12 +178,8 @@ impl Geometry for Mesh {
         lights: &[&dyn Light],
     ) {
         let fragment_attributes = material.fragment_attributes();
-        let mut id = self.id(fragment_attributes) as u64;
-        id ^= (material.id() as u64) << 32;
-        id ^= lights_id(lights);
-
         self.context.program2(
-            id,
+            self.id(fragment_attributes, material.id(), lights_id(lights)),
             || {
                 Program::from_source(
                     &self.context,
