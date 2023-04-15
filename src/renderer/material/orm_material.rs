@@ -106,6 +106,28 @@ impl Material for ORMMaterial {
         FragmentShader { source, attributes }
     }
 
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        let mut source = String::new();
+        if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {
+            source.push_str("in vec2 uvs;\n");
+            if self.metallic_roughness_texture.is_some() {
+                source.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
+            }
+            if self.occlusion_texture.is_some() {
+                source.push_str("#define USE_OCCLUSION_TEXTURE;\n");
+            }
+        }
+        source.push_str(include_str!("shaders/orm_material.frag"));
+        source
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some(),
+            ..FragmentAttributes::NONE
+        }
+    }
+
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);

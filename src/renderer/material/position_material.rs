@@ -32,6 +32,17 @@ impl Material for PositionMaterial {
         }
     }
 
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        include_str!("shaders/position_material.frag").to_string()
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            position: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
     fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
 
     fn render_states(&self) -> RenderStates {

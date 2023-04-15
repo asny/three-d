@@ -193,6 +193,49 @@ impl Material for PhysicalMaterial {
         }
     }
 
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        let mut output = lights_shader_source(lights, self.lighting_model);
+        if self.albedo_texture.is_some()
+            || self.metallic_roughness_texture.is_some()
+            || self.normal_texture.is_some()
+            || self.occlusion_texture.is_some()
+            || self.emissive_texture.is_some()
+        {
+            output.push_str("in vec2 uvs;\n");
+            if self.albedo_texture.is_some() {
+                output.push_str("#define USE_ALBEDO_TEXTURE;\n");
+            }
+            if self.metallic_roughness_texture.is_some() {
+                output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
+            }
+            if self.occlusion_texture.is_some() {
+                output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
+            }
+            if self.normal_texture.is_some() {
+                output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
+            }
+            if self.emissive_texture.is_some() {
+                output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
+            }
+        }
+        output.push_str(include_str!("shaders/physical_material.frag"));
+        output
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            position: true,
+            normal: true,
+            color: true,
+            uv: self.albedo_texture.is_some()
+                || self.metallic_roughness_texture.is_some()
+                || self.normal_texture.is_some()
+                || self.occlusion_texture.is_some()
+                || self.emissive_texture.is_some(),
+            tangents: self.normal_texture.is_some(),
+        }
+    }
+
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         if !lights.is_empty() {
             program.use_uniform_if_required("cameraPosition", camera.position());

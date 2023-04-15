@@ -241,6 +241,21 @@ impl Material for ImpostersMaterial {
         }
     }
 
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}",
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/imposter.frag")
+        )
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("no_views", NO_VIEW_ANGLES as i32);
         program.use_uniform("view", camera.view());

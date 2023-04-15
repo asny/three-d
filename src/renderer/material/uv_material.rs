@@ -32,6 +32,17 @@ impl Material for UVMaterial {
         }
     }
 
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        include_str!("shaders/uv_material.frag").to_string()
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
     fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
 
     fn render_states(&self) -> RenderStates {

@@ -175,8 +175,8 @@ impl Geometry for Mesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader(lights);
-        let mut id = vec![self.id(fragment_shader.attributes), material.id()];
+        let fragment_attributes = material.fragment_attributes();
+        let mut id = vec![self.id(fragment_attributes), material.id()];
         id.extend(lights_id(lights));
 
         self.context.program2(
@@ -184,8 +184,8 @@ impl Geometry for Mesh {
             || {
                 Program::from_source(
                     &self.context,
-                    &self.vertex_shader_source(fragment_shader.attributes),
-                    &fragment_shader.source,
+                    &self.vertex_shader_source(fragment_attributes),
+                    &material.fragment_shader_source(lights),
                 )
                 .expect("Failed compiling shader")
             },
@@ -195,7 +195,7 @@ impl Geometry for Mesh {
                     program,
                     material.render_states(),
                     camera,
-                    fragment_shader.attributes,
+                    fragment_attributes,
                 );
             },
         )

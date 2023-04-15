@@ -108,6 +108,24 @@ impl Material for ColorMaterial {
         }
     }
 
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        let mut shader = String::new();
+        if self.texture.is_some() {
+            shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
+        }
+        shader.push_str(include_str!("../../core/shared.frag"));
+        shader.push_str(include_str!("shaders/color_material.frag"));
+        shader
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            color: true,
+            uv: self.texture.is_some(),
+            ..FragmentAttributes::NONE
+        }
+    }
+
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("surfaceColor", self.color);
         if let Some(ref tex) = self.texture {

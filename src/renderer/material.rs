@@ -136,7 +136,6 @@ impl FragmentAttributes {
     };
 }
 
-/// Description of a fragment shader
 #[derive(Debug, Clone)]
 pub struct FragmentShader {
     /// The fragment shader source code
@@ -151,11 +150,17 @@ pub struct FragmentShader {
 /// thereby creating an [Object] which can be used in a render call, for example [RenderTarget::render].
 ///
 pub trait Material {
-    ///
-    /// Returns a [FragmentShader], ie. the fragment shader source for this material
-    /// and a [FragmentAttributes] struct that describes which fragment attributes are required for rendering with this material.
-    ///
     fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader;
+    ///
+    /// Returns the fragment shader source for this material.
+    ///
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String;
+
+    ///
+    /// Returns a [FragmentAttributes] struct that describes which fragment attributes,
+    /// ie. the input from the vertex shader, are required for rendering with this material.
+    ///
+    fn fragment_attributes(&self) -> FragmentAttributes;
 
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -199,6 +204,12 @@ impl<T: Material + ?Sized> Material for &T {
     fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         (*self).fragment_shader(lights)
     }
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        (*self).fragment_shader_source(lights)
+    }
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        (*self).fragment_attributes()
+    }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         (*self).use_uniforms(program, camera, lights)
     }
@@ -216,6 +227,12 @@ impl<T: Material + ?Sized> Material for &T {
 impl<T: Material + ?Sized> Material for &mut T {
     fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         (**self).fragment_shader(lights)
+    }
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        (**self).fragment_shader_source(lights)
+    }
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        (**self).fragment_attributes()
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         (**self).use_uniforms(program, camera, lights)
@@ -235,6 +252,12 @@ impl<T: Material> Material for Box<T> {
     fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         self.as_ref().fragment_shader(lights)
     }
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        self.as_ref().fragment_shader_source(lights)
+    }
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        self.as_ref().fragment_attributes()
+    }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
     }
@@ -252,6 +275,12 @@ impl<T: Material> Material for Box<T> {
 impl<T: Material> Material for std::rc::Rc<T> {
     fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         self.as_ref().fragment_shader(lights)
+    }
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        self.as_ref().fragment_shader_source(lights)
+    }
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        self.as_ref().fragment_attributes()
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
@@ -271,6 +300,12 @@ impl<T: Material> Material for std::sync::Arc<T> {
     fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         self.as_ref().fragment_shader(lights)
     }
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        self.as_ref().fragment_shader_source(lights)
+    }
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        self.as_ref().fragment_attributes()
+    }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.as_ref().use_uniforms(program, camera, lights)
     }
@@ -289,6 +324,12 @@ impl<T: Material> Material for std::cell::RefCell<T> {
     fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         self.borrow().fragment_shader(lights)
     }
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        self.borrow().fragment_shader_source(lights)
+    }
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        self.borrow().fragment_attributes()
+    }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.borrow().use_uniforms(program, camera, lights)
     }
@@ -306,6 +347,12 @@ impl<T: Material> Material for std::cell::RefCell<T> {
 impl<T: Material> Material for std::sync::RwLock<T> {
     fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
         self.read().unwrap().fragment_shader(lights)
+    }
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+        self.read().unwrap().fragment_shader_source(lights)
+    }
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        self.read().unwrap().fragment_attributes()
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.read().unwrap().use_uniforms(program, camera, lights)

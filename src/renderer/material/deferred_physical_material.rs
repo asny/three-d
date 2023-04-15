@@ -205,6 +205,60 @@ impl Material for DeferredPhysicalMaterial {
         id
     }
 
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        let mut output = include_str!("../../core/shared.frag").to_string();
+        if self.albedo_texture.is_some()
+            || self.metallic_roughness_texture.is_some()
+            || self.normal_texture.is_some()
+            || self.occlusion_texture.is_some()
+            || self.emissive_texture.is_some()
+            || self.alpha_cutout.is_some()
+        {
+            output.push_str("in vec2 uvs;\n");
+            if self.albedo_texture.is_some() {
+                output.push_str("#define USE_ALBEDO_TEXTURE;\n");
+            }
+            if self.metallic_roughness_texture.is_some() {
+                output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
+            }
+            if self.occlusion_texture.is_some() {
+                output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
+            }
+            if self.normal_texture.is_some() {
+                output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
+            }
+            if self.emissive_texture.is_some() {
+                output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
+            }
+            if self.alpha_cutout.is_some() {
+                output.push_str(
+                    format!(
+                        "#define ALPHACUT;\nfloat acut = {};",
+                        self.alpha_cutout.unwrap()
+                    )
+                    .as_str(),
+                );
+            }
+        }
+        output.push_str(include_str!("shaders/deferred_physical_material.frag"));
+        output
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            position: true,
+            normal: true,
+            color: true,
+            uv: self.albedo_texture.is_some()
+                || self.metallic_roughness_texture.is_some()
+                || self.normal_texture.is_some()
+                || self.occlusion_texture.is_some()
+                || self.emissive_texture.is_some()
+                || self.alpha_cutout.is_some(),
+            tangents: self.normal_texture.is_some(),
+        }
+    }
+
     fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
         let mut attributes = FragmentAttributes {
             position: true,
