@@ -216,6 +216,31 @@ impl ParticleSystem {
         );
     }
 
+    fn id(&self, required_attributes: FragmentAttributes, material_id: u32, lights_id: u64) -> u64 {
+        let mut id = 0b1000000u64;
+        if required_attributes.normal {
+            id |= 0b1u64;
+        }
+        if required_attributes.tangents {
+            id |= 0b10u64;
+        }
+        if required_attributes.uv {
+            id |= 0b100u64;
+        }
+        if self.base_mesh.colors.is_some() {
+            id |= 0b1000u64;
+        }
+        if self.instance_buffers.contains_key("instance_color") {
+            id |= 0b10000u64;
+        }
+        if self.instance_buffers.contains_key("tex_transform_row1") {
+            id |= 0b100000u64;
+        }
+        id ^= (material_id as u64) << 32;
+        id ^= lights_id;
+        id
+    }
+
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
         format!(
             "#define PARTICLES\n{}{}{}{}{}{}{}",
@@ -276,19 +301,27 @@ impl Geometry for ParticleSystem {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader(lights);
-        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
+        let fragment_attributes = material.fragment_attributes();
+        self.context.program2(
+            self.id(fragment_attributes, material.id(), lights_id(lights)),
+            || {
+                Program::from_source(
+                    &self.context,
+                    &self.vertex_shader_source(fragment_attributes),
+                    &material.fragment_shader_source(lights),
+                )
+                .expect("Failed compiling shader")
+            },
+            |program| {
                 material.use_uniforms(program, camera, lights);
                 self.draw(
                     program,
                     material.render_states(),
                     camera,
-                    fragment_shader.attributes,
+                    fragment_attributes,
                 );
-            })
-            .expect("Failed compiling shader");
+            },
+        )
     }
 
     fn render_with_post_material(
