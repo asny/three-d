@@ -308,7 +308,7 @@ impl Geometry for ParticleSystem {
         lights: &[&dyn Light],
     ) {
         let fragment_attributes = material.fragment_attributes();
-        self.context.program2(
+        self.context.program_cache(
             self.id(fragment_attributes, material.id(), lights),
             || {
                 Program::from_source(
