@@ -128,6 +128,27 @@ impl<'a> IntoIterator for &'a Skybox {
 }
 
 impl Geometry for Skybox {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        program.use_uniform("view", camera.view());
+        program.use_uniform("projection", camera.projection());
+        program.use_vertex_attribute("position", &self.vertex_buffer);
+        program.draw_arrays(render_states, camera.viewport(), 36);
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        include_str!("shaders/skybox.vert").to_owned()
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        todo!()
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::INFINITE
     }
@@ -138,20 +159,7 @@ impl Geometry for Skybox {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader(lights);
-        self.context
-            .program(
-                include_str!("shaders/skybox.vert").to_owned(),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights);
-                    program.use_uniform("view", camera.view());
-                    program.use_uniform("projection", camera.projection());
-                    program.use_vertex_attribute("position", &self.vertex_buffer);
-                    program.draw_arrays(material.render_states(), camera.viewport(), 36);
-                },
-            )
-            .expect("Failed compiling shader");
+        render_with_material(&self.context, camera, &self, material, lights)
     }
 
     fn render_with_post_material(

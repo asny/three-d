@@ -31,6 +31,25 @@ impl<'a, G: Geometry, M: Material> IntoIterator for &'a Gm<G, M> {
 }
 
 impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        self.geometry
+            .draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.geometry.vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        self.geometry.id(required_attributes)
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.geometry.aabb()
     }

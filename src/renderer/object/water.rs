@@ -209,8 +209,19 @@ impl WaterPatch {
             index_buffer,
         }
     }
+}
 
-    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+impl Geometry for WaterPatch {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        if attributes.tangents {
+            todo!() // Water should be able to provide tangents
+        }
         program.use_uniform(
             "offset",
             self.center + vec3(self.offset.x, 0.0, self.offset.y),
@@ -237,29 +248,22 @@ impl WaterPatch {
         program.use_vertex_attribute("position", &self.position_buffer);
         program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
     }
-}
 
-impl Geometry for WaterPatch {
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        include_str!("shaders/water.vert").to_owned()
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        todo!()
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader(lights);
-        if fragment_shader.attributes.tangents {
-            todo!() // Water should be able to provide tangents
-        }
-        self.context
-            .program(
-                include_str!("shaders/water.vert").to_owned(),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights);
-                    self.draw(program, material.render_states(), camera);
-                },
-            )
-            .unwrap();
+        render_with_material(&self.context, camera, &self, material, lights)
     }
 
     fn render_with_post_material(
@@ -280,7 +284,12 @@ impl Geometry for WaterPatch {
                 fragment_shader.source,
                 |program| {
                     material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, material.render_states(), camera);
+                    self.draw(
+                        camera,
+                        program,
+                        material.render_states(),
+                        fragment_shader.attributes,
+                    );
                 },
             )
             .unwrap();

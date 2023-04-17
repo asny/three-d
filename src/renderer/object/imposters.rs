@@ -90,6 +90,25 @@ impl<'a> IntoIterator for &'a Imposters {
 }
 
 impl Geometry for Imposters {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        self.sprites
+            .draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.sprites.vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        self.sprites.id(required_attributes)
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,

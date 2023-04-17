@@ -49,6 +49,24 @@ impl<M: Material> std::ops::DerefMut for ModelPart<M> {
 }
 
 impl<M: Material> Geometry for ModelPart<M> {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        self.gm.draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.gm.vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        self.gm.id(required_attributes)
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,

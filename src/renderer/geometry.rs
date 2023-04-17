@@ -64,17 +64,11 @@ pub trait Geometry {
         program: &Program,
         render_states: RenderStates,
         attributes: FragmentAttributes,
-    ) {
-        todo!()
-    }
+    );
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        todo!()
-    }
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String;
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        todo!()
-    }
+    fn id(&self, required_attributes: FragmentAttributes) -> u32;
 
     ///
     /// Render the geometry with the given [Material].

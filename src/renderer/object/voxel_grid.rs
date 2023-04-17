@@ -51,6 +51,24 @@ impl<M: Material> std::ops::DerefMut for VoxelGrid<M> {
 }
 
 impl<M: Material> Geometry for VoxelGrid<M> {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        self.0.draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.0.vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        self.0.id(required_attributes)
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.0.aabb()
     }

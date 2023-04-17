@@ -334,8 +334,10 @@ impl TerrainPatch {
         }
         data
     }
+}
 
-    fn vertex_shader_source(&self, required_attributes: &FragmentAttributes) -> String {
+impl Geometry for TerrainPatch {
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
         if required_attributes.normal || required_attributes.tangents {
             format!(
                 "#define USE_NORMALS\n{}",
@@ -348,40 +350,30 @@ impl TerrainPatch {
 
     fn draw(
         &self,
-        program: &Program,
-        required_attributes: &FragmentAttributes,
-        render_states: RenderStates,
         camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
     ) {
         program.use_uniform("viewProjectionMatrix", camera.projection() * camera.view());
         program.use_vertex_attribute("position", &self.positions_buffer);
-        if required_attributes.normal || required_attributes.tangents {
+        if attributes.normal || attributes.tangents {
             program.use_vertex_attribute("normal", &self.normals_buffer);
         }
         program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
     }
-}
 
-impl Geometry for TerrainPatch {
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        todo!()
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader(lights);
-        let vertex_shader_source = self.vertex_shader_source(&fragment_shader.attributes);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
-                material.use_uniforms(program, camera, lights);
-                self.draw(
-                    program,
-                    &fragment_shader.attributes,
-                    material.render_states(),
-                    camera,
-                );
-            })
-            .expect("Failed compiling shader");
+        render_with_material(&self.context, camera, &self, material, lights);
     }
 
     fn render_with_post_material(
@@ -393,15 +385,15 @@ impl Geometry for TerrainPatch {
         depth_texture: Option<DepthTexture>,
     ) {
         let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        let vertex_shader_source = self.vertex_shader_source(&fragment_shader.attributes);
+        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
         self.context
             .program(vertex_shader_source, fragment_shader.source, |program| {
                 material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                 self.draw(
-                    program,
-                    &fragment_shader.attributes,
-                    material.render_states(),
                     camera,
+                    program,
+                    material.render_states(),
+                    fragment_shader.attributes,
                 );
             })
             .expect("Failed compiling shader");
