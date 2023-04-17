@@ -109,296 +109,81 @@ pub trait Geometry {
     fn animate(&mut self, _time: f32) {}
 }
 
-impl<T: Geometry + ?Sized> Geometry for &T {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        (*self).draw(camera, program, render_states, attributes)
-    }
+macro_rules! impl_geometry_body {
+    ($inner:ident) => {
+        fn draw(
+            &self,
+            camera: &Camera,
+            program: &Program,
+            render_states: RenderStates,
+            attributes: FragmentAttributes,
+        ) {
+            self.$inner()
+                .draw(camera, program, render_states, attributes)
+        }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        (*self).vertex_shader_source(required_attributes)
-    }
+        fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+            self.$inner().vertex_shader_source(required_attributes)
+        }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        (*self).id(required_attributes)
-    }
+        fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+            self.$inner().id(required_attributes)
+        }
 
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        (*self).render_with_material(material, camera, lights)
-    }
+        fn render_with_material(
+            &self,
+            material: &dyn Material,
+            camera: &Camera,
+            lights: &[&dyn Light],
+        ) {
+            self.$inner().render_with_material(material, camera, lights)
+        }
 
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        (*self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
-    }
+        fn render_with_post_material(
+            &self,
+            material: &dyn PostMaterial,
+            camera: &Camera,
+            lights: &[&dyn Light],
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) {
+            self.$inner().render_with_post_material(
+                material,
+                camera,
+                lights,
+                color_texture,
+                depth_texture,
+            )
+        }
 
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        (*self).aabb()
-    }
+        fn aabb(&self) -> AxisAlignedBoundingBox {
+            self.$inner().aabb()
+        }
+    };
 }
 
+use std::ops::Deref;
+impl<T: Geometry + ?Sized> Geometry for &T {
+    impl_geometry_body!(deref);
+}
 impl<T: Geometry + ?Sized> Geometry for &mut T {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        (**self).draw(camera, program, render_states, attributes)
-    }
-
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        (**self).vertex_shader_source(required_attributes)
-    }
-
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        (**self).id(required_attributes)
-    }
-
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        (**self).render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        (**self).render_with_post_material(material, camera, lights, color_texture, depth_texture)
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        (**self).aabb()
-    }
+    impl_geometry_body!(deref);
 }
 
 impl<T: Geometry> Geometry for Box<T> {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        self.as_ref()
-            .draw(camera, program, render_states, attributes)
-    }
-
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        self.as_ref().vertex_shader_source(required_attributes)
-    }
-
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        self.as_ref().id(required_attributes)
-    }
-
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.as_ref().render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.as_ref().render_with_post_material(
-            material,
-            camera,
-            lights,
-            color_texture,
-            depth_texture,
-        )
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.as_ref().aabb()
-    }
+    impl_geometry_body!(as_ref);
 }
 
 impl<T: Geometry> Geometry for std::rc::Rc<T> {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        self.as_ref()
-            .draw(camera, program, render_states, attributes)
-    }
-
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        self.as_ref().vertex_shader_source(required_attributes)
-    }
-
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        self.as_ref().id(required_attributes)
-    }
-
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.as_ref().render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.as_ref().render_with_post_material(
-            material,
-            camera,
-            lights,
-            color_texture,
-            depth_texture,
-        )
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.as_ref().aabb()
-    }
+    impl_geometry_body!(as_ref);
 }
 
 impl<T: Geometry> Geometry for std::sync::Arc<T> {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        self.as_ref()
-            .draw(camera, program, render_states, attributes)
-    }
-
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        self.as_ref().vertex_shader_source(required_attributes)
-    }
-
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        self.as_ref().id(required_attributes)
-    }
-
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.as_ref().render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.as_ref().render_with_post_material(
-            material,
-            camera,
-            lights,
-            color_texture,
-            depth_texture,
-        )
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.as_ref().aabb()
-    }
+    impl_geometry_body!(as_ref);
 }
 
 impl<T: Geometry> Geometry for std::cell::RefCell<T> {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        self.borrow()
-            .draw(camera, program, render_states, attributes)
-    }
-
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        self.borrow().vertex_shader_source(required_attributes)
-    }
-
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        self.borrow().id(required_attributes)
-    }
-
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.borrow().render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.borrow().render_with_post_material(
-            material,
-            camera,
-            lights,
-            color_texture,
-            depth_texture,
-        )
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.borrow().aabb()
-    }
+    impl_geometry_body!(borrow);
 }
 
 impl<T: Geometry> Geometry for std::sync::RwLock<T> {
