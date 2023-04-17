@@ -53,40 +53,6 @@ impl Circle {
     }
 }
 
-impl Geometry for Circle {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.mesh.render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.mesh
-            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
-    }
-
-    ///
-    /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
-    ///
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        let center: Vec2 = self.center.into();
-        AxisAlignedBoundingBox::new_with_positions(&[
-            (center - vec2(self.radius, self.radius)).extend(0.0),
-            (center + vec2(self.radius, self.radius)).extend(0.0),
-        ])
-    }
-}
-
 impl<'a> IntoIterator for &'a Circle {
     type Item = &'a dyn Geometry;
     type IntoIter = std::iter::Once<&'a dyn Geometry>;
@@ -94,4 +60,22 @@ impl<'a> IntoIterator for &'a Circle {
     fn into_iter(self) -> Self::IntoIter {
         std::iter::once(self)
     }
+}
+
+use std::ops::Deref;
+impl Deref for Circle {
+    type Target = Mesh;
+    fn deref(&self) -> &Self::Target {
+        &self.mesh
+    }
+}
+
+impl std::ops::DerefMut for Circle {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.mesh
+    }
+}
+
+impl Geometry for Circle {
+    impl_geometry_body!(deref);
 }

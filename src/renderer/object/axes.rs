@@ -37,7 +37,17 @@ impl Axes {
     }
 }
 
-impl std::ops::Deref for Axes {
+impl<'a> IntoIterator for &'a Axes {
+    type Item = &'a dyn Object;
+    type IntoIter = std::iter::Once<&'a dyn Object>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
+    }
+}
+
+use std::ops::Deref;
+impl Deref for Axes {
     type Target = Gm<InstancedMesh, ColorMaterial>;
     fn deref(&self) -> &Self::Target {
         &self.model
@@ -50,11 +60,16 @@ impl std::ops::DerefMut for Axes {
     }
 }
 
-impl<'a> IntoIterator for &'a Axes {
-    type Item = &'a dyn Object;
-    type IntoIter = std::iter::Once<&'a dyn Object>;
+impl Geometry for Axes {
+    impl_geometry_body!(deref);
+}
 
-    fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(&self.model)
+impl Object for Axes {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
+        todo!()
+    }
+
+    fn material_type(&self) -> MaterialType {
+        todo!()
     }
 }

@@ -4,6 +4,59 @@
 //! A geometry together with a [material] can be rendered directly, or combined into an [object] (see [Gm]) that can be used in a render call, for example [RenderTarget::render].
 //!
 
+macro_rules! impl_geometry_body {
+    ($inner:ident) => {
+        fn draw(
+            &self,
+            camera: &Camera,
+            program: &Program,
+            render_states: RenderStates,
+            attributes: FragmentAttributes,
+        ) {
+            self.$inner()
+                .draw(camera, program, render_states, attributes)
+        }
+
+        fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+            self.$inner().vertex_shader_source(required_attributes)
+        }
+
+        fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+            self.$inner().id(required_attributes)
+        }
+
+        fn render_with_material(
+            &self,
+            material: &dyn Material,
+            camera: &Camera,
+            lights: &[&dyn Light],
+        ) {
+            self.$inner().render_with_material(material, camera, lights)
+        }
+
+        fn render_with_post_material(
+            &self,
+            material: &dyn PostMaterial,
+            camera: &Camera,
+            lights: &[&dyn Light],
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) {
+            self.$inner().render_with_post_material(
+                material,
+                camera,
+                lights,
+                color_texture,
+                depth_texture,
+            )
+        }
+
+        fn aabb(&self) -> AxisAlignedBoundingBox {
+            self.$inner().aabb()
+        }
+    };
+}
+
 mod mesh;
 #[doc(inline)]
 pub use mesh::*;
@@ -109,63 +162,11 @@ pub trait Geometry {
     fn animate(&mut self, _time: f32) {}
 }
 
-macro_rules! impl_geometry_body {
-    ($inner:ident) => {
-        fn draw(
-            &self,
-            camera: &Camera,
-            program: &Program,
-            render_states: RenderStates,
-            attributes: FragmentAttributes,
-        ) {
-            self.$inner()
-                .draw(camera, program, render_states, attributes)
-        }
-
-        fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-            self.$inner().vertex_shader_source(required_attributes)
-        }
-
-        fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-            self.$inner().id(required_attributes)
-        }
-
-        fn render_with_material(
-            &self,
-            material: &dyn Material,
-            camera: &Camera,
-            lights: &[&dyn Light],
-        ) {
-            self.$inner().render_with_material(material, camera, lights)
-        }
-
-        fn render_with_post_material(
-            &self,
-            material: &dyn PostMaterial,
-            camera: &Camera,
-            lights: &[&dyn Light],
-            color_texture: Option<ColorTexture>,
-            depth_texture: Option<DepthTexture>,
-        ) {
-            self.$inner().render_with_post_material(
-                material,
-                camera,
-                lights,
-                color_texture,
-                depth_texture,
-            )
-        }
-
-        fn aabb(&self) -> AxisAlignedBoundingBox {
-            self.$inner().aabb()
-        }
-    };
-}
-
 use std::ops::Deref;
 impl<T: Geometry + ?Sized> Geometry for &T {
     impl_geometry_body!(deref);
 }
+
 impl<T: Geometry + ?Sized> Geometry for &mut T {
     impl_geometry_body!(deref);
 }

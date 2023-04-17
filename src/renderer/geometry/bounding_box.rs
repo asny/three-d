@@ -5,7 +5,6 @@ use crate::renderer::*;
 ///
 pub struct BoundingBox {
     mesh: InstancedMesh,
-    aabb: AxisAlignedBoundingBox,
 }
 
 impl BoundingBox {
@@ -70,7 +69,7 @@ impl BoundingBox {
             },
             &CpuMesh::cylinder(16),
         );
-        Self { mesh, aabb }
+        Self { mesh }
     }
 }
 
@@ -83,29 +82,20 @@ impl<'a> IntoIterator for &'a BoundingBox {
     }
 }
 
+use std::ops::Deref;
+impl Deref for BoundingBox {
+    type Target = InstancedMesh;
+    fn deref(&self) -> &Self::Target {
+        &self.mesh
+    }
+}
+
+impl std::ops::DerefMut for BoundingBox {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.mesh
+    }
+}
+
 impl Geometry for BoundingBox {
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.aabb
-    }
-
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.mesh.render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.mesh
-            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
-    }
+    impl_geometry_body!(deref);
 }
