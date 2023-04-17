@@ -65,11 +65,5 @@ impl Geometry for Axes {
 }
 
 impl Object for Axes {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        todo!()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        todo!()
-    }
+    impl_object_body!(deref);
 }

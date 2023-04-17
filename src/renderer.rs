@@ -40,7 +40,6 @@ pub use effect::*;
 pub mod light;
 pub use light::*;
 
-#[macro_use]
 pub mod geometry;
 pub use geometry::*;
 

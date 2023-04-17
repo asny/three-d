@@ -89,55 +89,22 @@ impl<'a> IntoIterator for &'a Imposters {
     }
 }
 
+use std::ops::Deref;
+impl Deref for Imposters {
+    type Target = Sprites;
+    fn deref(&self) -> &Self::Target {
+        &self.sprites
+    }
+}
+
+impl std::ops::DerefMut for Imposters {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.sprites
+    }
+}
+
 impl Geometry for Imposters {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        self.sprites
-            .draw(camera, program, render_states, attributes)
-    }
-
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        self.sprites.vertex_shader_source(required_attributes)
-    }
-
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        self.sprites.id(required_attributes)
-    }
-
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.sprites.render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.sprites.render_with_post_material(
-            material,
-            camera,
-            lights,
-            color_texture,
-            depth_texture,
-        )
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.sprites.aabb()
-    }
+    impl_geometry_body!(deref);
 }
 
 impl Object for Imposters {
@@ -260,7 +227,7 @@ impl Material for ImpostersMaterial {
         }
     }
 
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         format!(
             "{}{}",
             include_str!("../../core/shared.frag"),

@@ -1,3 +1,4 @@
+#![macro_use]
 //!
 //! A collection of geometries implementing the [Geometry] trait.
 //!
