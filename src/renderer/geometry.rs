@@ -154,6 +154,24 @@ impl<T: Geometry + ?Sized> Geometry for &T {
 }
 
 impl<T: Geometry + ?Sized> Geometry for &mut T {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        (**self).draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        (**self).vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        (**self).id(required_attributes)
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -180,6 +198,25 @@ impl<T: Geometry + ?Sized> Geometry for &mut T {
 }
 
 impl<T: Geometry> Geometry for Box<T> {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        self.as_ref()
+            .draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.as_ref().vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        self.as_ref().id(required_attributes)
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -212,6 +249,25 @@ impl<T: Geometry> Geometry for Box<T> {
 }
 
 impl<T: Geometry> Geometry for std::rc::Rc<T> {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        self.as_ref()
+            .draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.as_ref().vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        self.as_ref().id(required_attributes)
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -244,6 +300,25 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
 }
 
 impl<T: Geometry> Geometry for std::sync::Arc<T> {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        self.as_ref()
+            .draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.as_ref().vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        self.as_ref().id(required_attributes)
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -276,6 +351,25 @@ impl<T: Geometry> Geometry for std::sync::Arc<T> {
 }
 
 impl<T: Geometry> Geometry for std::cell::RefCell<T> {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        self.borrow()
+            .draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.borrow().vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        self.borrow().id(required_attributes)
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -308,6 +402,28 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
 }
 
 impl<T: Geometry> Geometry for std::sync::RwLock<T> {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        self.read()
+            .unwrap()
+            .draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.read()
+            .unwrap()
+            .vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        self.read().unwrap().id(required_attributes)
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
