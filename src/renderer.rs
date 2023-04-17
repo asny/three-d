@@ -279,19 +279,6 @@ impl_render_target_extensions!(RenderTargetMultisample<C: TextureDataType, D: De
 impl_render_target_extensions!(ColorTargetMultisample<C: TextureDataType>);
 impl_render_target_extensions!(DepthTargetMultisample<D: DepthTextureDataType>);
 
-impl Context {
-    pub fn program_cache(
-        &self,
-        key: Vec<u8>,
-        create: impl FnOnce() -> Program,
-        callback: impl FnOnce(&Program),
-    ) {
-        let mut programs = self.programs2.write().unwrap();
-        let program = programs.entry(key).or_insert_with(|| create());
-        callback(program);
-    }
-}
-
 pub fn render_with_material(
     context: &Context,
     camera: &Camera,
