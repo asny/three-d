@@ -178,11 +178,11 @@ macro_rules! impl_render_target_extensions_body {
             lights: &[&dyn Light],
         ) -> &Self {
             self.write_partially(scissor_box, || {
-                for object in geometries
+                for geometry in geometries
                     .into_iter()
                     .filter(|o| camera.in_frustum(&o.aabb()))
                 {
-                    object.render_with_material(material, camera, lights);
+                    geometry.render_with_material(material, camera, lights);
                 }
             });
             self
