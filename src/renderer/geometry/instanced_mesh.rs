@@ -368,6 +368,24 @@ impl<'a> IntoIterator for &'a InstancedMesh {
 }
 
 impl Geometry for InstancedMesh {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        todo!()
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        todo!()
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        todo!()
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         let mut aabb = self.aabb;
         aabb.transform(&self.current_transformation);

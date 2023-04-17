@@ -110,6 +110,24 @@ impl<'a> IntoIterator for &'a Sprites {
 }
 
 impl Geometry for Sprites {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        todo!()
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        todo!()
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        todo!()
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
