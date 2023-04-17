@@ -169,59 +169,19 @@ impl ParticleSystem {
             );
         }
     }
+}
 
-    fn draw(
-        &self,
-        program: &Program,
-        render_states: RenderStates,
-        camera: &Camera,
-        attributes: FragmentAttributes,
-    ) {
-        if attributes.normal {
-            if let Some(inverse) = self.transformation.invert() {
-                program.use_uniform("normalMatrix", inverse.transpose());
-            } else {
-                // determinant is float zero
-                return;
-            }
-        }
-        program.use_uniform("viewProjection", camera.projection() * camera.view());
-        program.use_uniform("modelMatrix", self.transformation);
-        program.use_uniform("acceleration", self.acceleration);
-        program.use_uniform("time", self.time);
+impl<'a> IntoIterator for &'a ParticleSystem {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
 
-        self.base_mesh.use_attributes(program, attributes);
-
-        for attribute_name in [
-            "start_position",
-            "start_velocity",
-            "tex_transform_row1",
-            "tex_transform_row2",
-            "instance_color",
-        ] {
-            if program.requires_attribute(attribute_name) {
-                program.use_instance_attribute(
-                    attribute_name,
-                    self.instance_buffers
-                    .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
-                );
-            }
-        }
-        self.base_mesh.draw_instanced(
-            program,
-            render_states,
-            camera,
-            attributes,
-            self.instance_count,
-        );
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
     }
+}
 
-    fn id(
-        &self,
-        required_attributes: FragmentAttributes,
-        material_id: u32,
-        lights: &[&dyn Light],
-    ) -> Vec<u8> {
+impl Geometry for ParticleSystem {
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
         let mut id = 0b1000000u32;
         if required_attributes.normal {
             id |= 0b1u32;
@@ -241,9 +201,6 @@ impl ParticleSystem {
         if self.instance_buffers.contains_key("tex_transform_row1") {
             id |= 0b100000u32;
         }
-        let mut id = id.to_le_bytes().to_vec();
-        id.extend(material_id.to_le_bytes());
-        id.extend(lights.iter().map(|l| l.id()));
         id
     }
 
@@ -285,18 +242,53 @@ impl ParticleSystem {
             include_str!("shaders/mesh.vert"),
         )
     }
-}
 
-impl<'a> IntoIterator for &'a ParticleSystem {
-    type Item = &'a dyn Geometry;
-    type IntoIter = std::iter::Once<&'a dyn Geometry>;
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        if attributes.normal {
+            if let Some(inverse) = self.transformation.invert() {
+                program.use_uniform("normalMatrix", inverse.transpose());
+            } else {
+                // determinant is float zero
+                return;
+            }
+        }
+        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("modelMatrix", self.transformation);
+        program.use_uniform("acceleration", self.acceleration);
+        program.use_uniform("time", self.time);
 
-    fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(self)
+        self.base_mesh.use_attributes(program, attributes);
+
+        for attribute_name in [
+            "start_position",
+            "start_velocity",
+            "tex_transform_row1",
+            "tex_transform_row2",
+            "instance_color",
+        ] {
+            if program.requires_attribute(attribute_name) {
+                program.use_instance_attribute(
+                    attribute_name,
+                    self.instance_buffers
+                    .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
+                );
+            }
+        }
+        self.base_mesh.draw_instanced(
+            program,
+            render_states,
+            camera,
+            attributes,
+            self.instance_count,
+        );
     }
-}
 
-impl Geometry for ParticleSystem {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::INFINITE
     }
@@ -307,27 +299,7 @@ impl Geometry for ParticleSystem {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_attributes = material.fragment_attributes();
-        self.context.program_cache(
-            self.id(fragment_attributes, material.id(), lights),
-            || {
-                Program::from_source(
-                    &self.context,
-                    &self.vertex_shader_source(fragment_attributes),
-                    &material.fragment_shader_source(lights),
-                )
-                .expect("Failed compiling shader")
-            },
-            |program| {
-                material.use_uniforms(program, camera, lights);
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera,
-                    fragment_attributes,
-                );
-            },
-        )
+        render_with_material(&self.context, camera, &self, material, lights)
     }
 
     fn render_with_post_material(
@@ -344,9 +316,9 @@ impl Geometry for ParticleSystem {
             .program(vertex_shader_source, fragment_shader.source, |program| {
                 material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                 self.draw(
+                    camera,
                     program,
                     material.render_states(),
-                    camera,
                     fragment_shader.attributes,
                 );
             })
