@@ -292,6 +292,36 @@ impl Context {
     }
 }
 
+pub fn render_with_material(
+    context: &Context,
+    camera: &Camera,
+    geometry: impl Geometry,
+    material: impl Material,
+    lights: &[&dyn Light],
+) {
+    let fragment_attributes = material.fragment_attributes();
+    let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
+    id.extend(material.id().to_le_bytes());
+    id.extend(lights.iter().map(|l| l.id()));
+
+    let mut programs = context.programs2.write().unwrap();
+    let program = programs.entry(id).or_insert_with(|| {
+        Program::from_source(
+            context,
+            &geometry.vertex_shader_source(fragment_attributes),
+            &material.fragment_shader_source(lights),
+        )
+        .expect("Failed compiling shader")
+    });
+    material.use_uniforms(program, camera, lights);
+    geometry.draw(
+        camera,
+        program,
+        material.render_states(),
+        fragment_attributes,
+    );
+}
+
 ///
 /// Returns an orthographic camera for viewing 2D content.
 /// The camera is placed at the center of the given viewport.

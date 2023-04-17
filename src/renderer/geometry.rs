@@ -58,6 +58,24 @@ pub use three_d_asset::{
 /// - color: `out vec4 col;`
 ///
 pub trait Geometry {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        todo!()
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        todo!()
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        todo!()
+    }
+
     ///
     /// Render the geometry with the given [Material].
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
@@ -92,6 +110,24 @@ pub trait Geometry {
 }
 
 impl<T: Geometry + ?Sized> Geometry for &T {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        attributes: FragmentAttributes,
+    ) {
+        (*self).draw(camera, program, render_states, attributes)
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        (*self).vertex_shader_source(required_attributes)
+    }
+
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        (*self).id(required_attributes)
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,

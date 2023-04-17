@@ -77,12 +77,35 @@ impl Mesh {
     pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + Send + Sync + 'static) {
         self.animation = Some(Box::new(animation));
     }
+}
+
+impl<'a> IntoIterator for &'a Mesh {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
+    }
+}
+
+impl Geometry for Mesh {
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        let mut aabb = self.aabb;
+        aabb.transform(&self.current_transformation);
+        aabb
+    }
+
+    fn animate(&mut self, time: f32) {
+        if let Some(animation) = &self.animation {
+            self.current_transformation = self.transformation * animation(time);
+        }
+    }
 
     fn draw(
         &self,
+        camera: &Camera,
         program: &Program,
         render_states: RenderStates,
-        camera: &Camera,
         attributes: FragmentAttributes,
     ) {
         if attributes.normal {
@@ -129,12 +152,7 @@ impl Mesh {
         )
     }
 
-    fn id(
-        &self,
-        required_attributes: FragmentAttributes,
-        material_id: u32,
-        lights: &[&dyn Light],
-    ) -> Vec<u8> {
+    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
         let mut id = 0b10000u32;
         if required_attributes.normal {
             id |= 0b1u32;
@@ -148,33 +166,7 @@ impl Mesh {
         if self.base_mesh.colors.is_some() {
             id |= 0b1000u32;
         }
-        let mut id = id.to_le_bytes().to_vec();
-        id.extend(material_id.to_le_bytes());
-        id.extend(lights.iter().map(|l| l.id()));
         id
-    }
-}
-
-impl<'a> IntoIterator for &'a Mesh {
-    type Item = &'a dyn Geometry;
-    type IntoIter = std::iter::Once<&'a dyn Geometry>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(self)
-    }
-}
-
-impl Geometry for Mesh {
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        let mut aabb = self.aabb;
-        aabb.transform(&self.current_transformation);
-        aabb
-    }
-
-    fn animate(&mut self, time: f32) {
-        if let Some(animation) = &self.animation {
-            self.current_transformation = self.transformation * animation(time);
-        }
     }
 
     fn render_with_material(
@@ -183,27 +175,7 @@ impl Geometry for Mesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_attributes = material.fragment_attributes();
-        self.context.program_cache(
-            self.id(fragment_attributes, material.id(), lights),
-            || {
-                Program::from_source(
-                    &self.context,
-                    &self.vertex_shader_source(fragment_attributes),
-                    &material.fragment_shader_source(lights),
-                )
-                .expect("Failed compiling shader")
-            },
-            |program| {
-                material.use_uniforms(program, camera, lights);
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera,
-                    fragment_attributes,
-                );
-            },
-        )
+        render_with_material(&self.context, camera, &self, material, lights);
     }
 
     fn render_with_post_material(
@@ -220,9 +192,9 @@ impl Geometry for Mesh {
             .program(vertex_shader_source, fragment_shader.source, |program| {
                 material.use_uniforms(program, camera, lights, color_texture, depth_texture);
                 self.draw(
+                    camera,
                     program,
                     material.render_states(),
-                    camera,
                     fragment_shader.attributes,
                 );
             })
