@@ -21,7 +21,12 @@ use crate::core::*;
 use data_type::*;
 
 /// The basic data type used for each element in a [VertexBuffer] or [InstanceBuffer].
-pub trait BufferDataType: DataType {}
+pub trait BufferDataType: DataType {
+    /// How many `vertex_attrib_pointer` calls are needed to configure buffers
+    /// of this type.
+    const ATTRIBUTE_SLOTS: u32 = 1;
+}
+
 impl BufferDataType for u8 {}
 impl BufferDataType for u16 {}
 impl BufferDataType for u32 {}
@@ -38,6 +43,16 @@ impl<T: BufferDataType + PrimitiveDataType> BufferDataType for [T; 2] {}
 impl<T: BufferDataType + PrimitiveDataType> BufferDataType for [T; 3] {}
 impl<T: BufferDataType + PrimitiveDataType> BufferDataType for [T; 4] {}
 
+impl<T: BufferDataType + PrimitiveDataType> BufferDataType for Matrix2<T> {
+    const ATTRIBUTE_SLOTS: u32 = 2;
+}
+impl<T: BufferDataType + PrimitiveDataType> BufferDataType for Matrix3<T> {
+    const ATTRIBUTE_SLOTS: u32 = 3;
+}
+impl<T: BufferDataType + PrimitiveDataType> BufferDataType for Matrix4<T> {
+    const ATTRIBUTE_SLOTS: u32 = 4;
+}
+
 impl BufferDataType for Color {}
 impl BufferDataType for Quat {}
 
@@ -47,8 +62,10 @@ struct Buffer {
     context: Context,
     id: crate::context::Buffer,
     attribute_count: u32,
+    attribute_slot_count: u32,
     data_type: u32,
     data_size: u32,
+    stride: i32,
     normalized: bool,
 }
 
@@ -58,8 +75,10 @@ impl Buffer {
             context: context.clone(),
             id: unsafe { context.create_buffer().expect("Failed creating buffer") },
             attribute_count: 0,
+            attribute_slot_count: 0,
             data_type: 0,
             data_size: 0,
+            stride: 0,
             normalized: false,
         }
     }
@@ -87,13 +106,20 @@ impl Buffer {
             self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
         }
         self.attribute_count = data.len() as u32;
+        self.attribute_slot_count = T::ATTRIBUTE_SLOTS;
         self.data_type = T::data_type();
         self.data_size = T::size();
+        self.stride = T::bytes() as i32;
         self.normalized = T::normalized();
     }
 
     pub fn attribute_count(&self) -> u32 {
         self.attribute_count
+    }
+
+    pub fn attribute_slots(&self) -> impl Iterator<Item = (u32, i32)> + '_ {
+        let local_stride = self.stride / self.attribute_slot_count as i32;
+        (0..self.attribute_slot_count).map(move |i| (i, i as i32 * local_stride))
     }
 
     pub fn bind(&self) {

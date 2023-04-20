@@ -330,36 +330,43 @@ impl Program {
     pub fn use_vertex_attribute(&self, name: &str, buffer: &VertexBuffer) {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(name);
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                if !buffer.normalized()
-                    && (buffer.data_type() == crate::context::UNSIGNED_BYTE
-                        || buffer.data_type() == crate::context::BYTE
-                        || buffer.data_type() == crate::context::UNSIGNED_SHORT
-                        || buffer.data_type() == crate::context::SHORT
-                        || buffer.data_type() == crate::context::UNSIGNED_INT
-                        || buffer.data_type() == crate::context::INT)
-                {
-                    self.context.vertex_attrib_pointer_i32(
-                        loc,
-                        buffer.data_size() as i32,
-                        buffer.data_type(),
-                        0,
-                        0,
-                    );
-                } else {
-                    self.context.vertex_attrib_pointer_f32(
-                        loc,
-                        buffer.data_size() as i32,
-                        buffer.data_type(),
-                        buffer.normalized(),
-                        0,
-                        0,
-                    );
+            let base_loc = self.location(name);
+            let stride = buffer.stride();
+
+            for (i, offset) in buffer.attribute_slots() {
+                let loc = base_loc + i;
+                unsafe {
+                    self.context.bind_vertex_array(Some(self.context.vao));
+                    self.context.enable_vertex_attrib_array(loc);
+                    if !buffer.normalized()
+                        && (buffer.data_type() == crate::context::UNSIGNED_BYTE
+                            || buffer.data_type() == crate::context::BYTE
+                            || buffer.data_type() == crate::context::UNSIGNED_SHORT
+                            || buffer.data_type() == crate::context::SHORT
+                            || buffer.data_type() == crate::context::UNSIGNED_INT
+                            || buffer.data_type() == crate::context::INT)
+                    {
+                        self.context.vertex_attrib_pointer_i32(
+                            loc,
+                            buffer.data_size() as i32,
+                            buffer.data_type(),
+                            stride,
+                            offset,
+                        );
+                    } else {
+                        self.context.vertex_attrib_pointer_f32(
+                            loc,
+                            buffer.data_size() as i32,
+                            buffer.data_type(),
+                            buffer.normalized(),
+                            stride,
+                            offset,
+                        );
+                    }
+                    self.context.vertex_attrib_divisor(loc, 0);
                 }
-                self.context.vertex_attrib_divisor(loc, 0);
+            }
+            unsafe {
                 self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();
@@ -378,36 +385,43 @@ impl Program {
     pub fn use_instance_attribute(&self, name: &str, buffer: &InstanceBuffer) {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(name);
-            unsafe {
-                self.context.bind_vertex_array(Some(self.context.vao));
-                self.context.enable_vertex_attrib_array(loc);
-                if !buffer.normalized()
-                    && (buffer.data_type() == crate::context::UNSIGNED_BYTE
-                        || buffer.data_type() == crate::context::BYTE
-                        || buffer.data_type() == crate::context::UNSIGNED_SHORT
-                        || buffer.data_type() == crate::context::SHORT
-                        || buffer.data_type() == crate::context::UNSIGNED_INT
-                        || buffer.data_type() == crate::context::INT)
-                {
-                    self.context.vertex_attrib_pointer_i32(
-                        loc,
-                        buffer.data_size() as i32,
-                        buffer.data_type(),
-                        0,
-                        0,
-                    );
-                } else {
-                    self.context.vertex_attrib_pointer_f32(
-                        loc,
-                        buffer.data_size() as i32,
-                        buffer.data_type(),
-                        buffer.normalized(),
-                        0,
-                        0,
-                    );
+            let base_loc = self.location(name);
+            let stride = buffer.stride();
+
+            for (i, offset) in buffer.attribute_slots() {
+                let loc = base_loc + i;
+                unsafe {
+                    self.context.bind_vertex_array(Some(self.context.vao));
+                    self.context.enable_vertex_attrib_array(loc);
+                    if !buffer.normalized()
+                        && (buffer.data_type() == crate::context::UNSIGNED_BYTE
+                            || buffer.data_type() == crate::context::BYTE
+                            || buffer.data_type() == crate::context::UNSIGNED_SHORT
+                            || buffer.data_type() == crate::context::SHORT
+                            || buffer.data_type() == crate::context::UNSIGNED_INT
+                            || buffer.data_type() == crate::context::INT)
+                    {
+                        self.context.vertex_attrib_pointer_i32(
+                            loc,
+                            buffer.data_size() as i32,
+                            buffer.data_type(),
+                            stride,
+                            offset,
+                        );
+                    } else {
+                        self.context.vertex_attrib_pointer_f32(
+                            loc,
+                            buffer.data_size() as i32,
+                            buffer.data_type(),
+                            buffer.normalized(),
+                            stride,
+                            offset,
+                        );
+                    }
+                    self.context.vertex_attrib_divisor(loc, 1);
                 }
-                self.context.vertex_attrib_divisor(loc, 1);
+            }
+            unsafe {
                 self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
             }
             self.unuse_program();

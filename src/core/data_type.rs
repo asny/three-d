@@ -12,16 +12,21 @@ pub enum UniformType {
 }
 
 pub trait PrimitiveDataType: DataType + Copy + Default {
+    const SIZE: u32;
+
     fn send_uniform_with_type(
         context: &Context,
         location: &UniformLocation,
         data: &[Self],
         type_: UniformType,
     );
+
     fn internal_format_with_size(size: u32) -> u32;
 }
 
 impl PrimitiveDataType for u8 {
+    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R8,
@@ -43,6 +48,8 @@ impl PrimitiveDataType for u8 {
     }
 }
 impl PrimitiveDataType for u16 {
+    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R16UI,
@@ -64,6 +71,8 @@ impl PrimitiveDataType for u16 {
     }
 }
 impl PrimitiveDataType for u32 {
+    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R32UI,
@@ -92,6 +101,8 @@ impl PrimitiveDataType for u32 {
     }
 }
 impl PrimitiveDataType for i8 {
+    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R8I,
@@ -113,6 +124,8 @@ impl PrimitiveDataType for i8 {
     }
 }
 impl PrimitiveDataType for i16 {
+    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R16I,
@@ -134,6 +147,8 @@ impl PrimitiveDataType for i16 {
     }
 }
 impl PrimitiveDataType for i32 {
+    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R32I,
@@ -162,6 +177,8 @@ impl PrimitiveDataType for i32 {
     }
 }
 impl PrimitiveDataType for f16 {
+    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R16F,
@@ -183,6 +200,8 @@ impl PrimitiveDataType for f16 {
     }
 }
 impl PrimitiveDataType for f32 {
+    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R32F,
@@ -222,7 +241,13 @@ impl PrimitiveDataType for f32 {
 pub trait DataType: std::fmt::Debug + Clone {
     fn internal_format() -> u32;
     fn data_type() -> u32;
+    /// The number of primitive values which this datatype occupies.
+    ///
+    /// For scalar types, this is `1`. For (e.g.) [`Vector3`], this is `3`; and
+    /// for [`Matrix4`] this is `16`.
     fn size() -> u32;
+    /// The size of this type, in bytes.
+    fn bytes() -> u32;
     fn normalized() -> bool {
         false
     }
@@ -238,6 +263,9 @@ impl<T: DataType + ?Sized> DataType for &T {
     }
     fn size() -> u32 {
         T::size()
+    }
+    fn bytes() -> u32 {
+        T::bytes()
     }
     fn normalized() -> bool {
         T::normalized()
@@ -265,6 +293,10 @@ impl DataType for u8 {
         1
     }
 
+    fn bytes() -> u32 {
+        <Self as PrimitiveDataType>::SIZE * Self::size()
+    }
+
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
         Self::send_uniform_with_type(context, location, data, UniformType::Value)
     }
@@ -280,6 +312,10 @@ impl DataType for u16 {
 
     fn size() -> u32 {
         1
+    }
+
+    fn bytes() -> u32 {
+        <Self as PrimitiveDataType>::SIZE * Self::size()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
@@ -300,6 +336,10 @@ impl DataType for u32 {
         1
     }
 
+    fn bytes() -> u32 {
+        <Self as PrimitiveDataType>::SIZE * Self::size()
+    }
+
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
         Self::send_uniform_with_type(context, location, data, UniformType::Value)
     }
@@ -316,6 +356,10 @@ impl DataType for i8 {
 
     fn size() -> u32 {
         1
+    }
+
+    fn bytes() -> u32 {
+        <Self as PrimitiveDataType>::SIZE * Self::size()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
@@ -336,6 +380,10 @@ impl DataType for i16 {
         1
     }
 
+    fn bytes() -> u32 {
+        <Self as PrimitiveDataType>::SIZE * Self::size()
+    }
+
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
         Self::send_uniform_with_type(context, location, data, UniformType::Value)
     }
@@ -354,6 +402,10 @@ impl DataType for i32 {
         1
     }
 
+    fn bytes() -> u32 {
+        <Self as PrimitiveDataType>::SIZE * Self::size()
+    }
+
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
         Self::send_uniform_with_type(context, location, data, UniformType::Value)
     }
@@ -369,6 +421,10 @@ impl DataType for f16 {
 
     fn size() -> u32 {
         1
+    }
+
+    fn bytes() -> u32 {
+        <Self as PrimitiveDataType>::SIZE * Self::size()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
@@ -389,6 +445,10 @@ impl DataType for f32 {
         1
     }
 
+    fn bytes() -> u32 {
+        <Self as PrimitiveDataType>::SIZE * Self::size()
+    }
+
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
         Self::send_uniform_with_type(context, location, data, UniformType::Value)
     }
@@ -405,6 +465,10 @@ impl<T: PrimitiveDataType> DataType for Vector2<T> {
 
     fn size() -> u32 {
         2
+    }
+
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
@@ -426,6 +490,10 @@ impl<T: PrimitiveDataType> DataType for [T; 2] {
         2
     }
 
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
+    }
+
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
         let data = data.iter().flatten().copied().collect::<Vec<_>>();
         T::send_uniform_with_type(context, location, &data, UniformType::Vec2)
@@ -442,6 +510,10 @@ impl<T: PrimitiveDataType> DataType for Vector3<T> {
 
     fn size() -> u32 {
         3
+    }
+
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
@@ -465,6 +537,10 @@ impl<T: PrimitiveDataType> DataType for [T; 3] {
         3
     }
 
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
+    }
+
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
         let data = data.iter().flatten().copied().collect::<Vec<_>>();
         T::send_uniform_with_type(context, location, &data, UniformType::Vec3)
@@ -482,6 +558,10 @@ impl<T: PrimitiveDataType> DataType for Vector4<T> {
 
     fn size() -> u32 {
         4
+    }
+
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
@@ -506,6 +586,10 @@ impl<T: PrimitiveDataType> DataType for [T; 4] {
         4
     }
 
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
+    }
+
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
         let data = data.iter().flatten().copied().collect::<Vec<_>>();
         T::send_uniform_with_type(context, location, &data, UniformType::Vec4)
@@ -523,6 +607,10 @@ impl<T: PrimitiveDataType> DataType for Quaternion<T> {
 
     fn size() -> u32 {
         4
+    }
+
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
@@ -545,6 +633,10 @@ impl DataType for Color {
 
     fn size() -> u32 {
         4
+    }
+
+    fn bytes() -> u32 {
+        <u8 as PrimitiveDataType>::SIZE * Self::size()
     }
 
     fn normalized() -> bool {
@@ -580,6 +672,10 @@ impl<T: PrimitiveDataType> DataType for Matrix2<T> {
         4
     }
 
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
+    }
+
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
         let data = data
             .iter()
@@ -600,6 +696,10 @@ impl<T: PrimitiveDataType> DataType for Matrix3<T> {
 
     fn size() -> u32 {
         9
+    }
+
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
@@ -626,6 +726,10 @@ impl<T: PrimitiveDataType> DataType for Matrix4<T> {
 
     fn size() -> u32 {
         16
+    }
+
+    fn bytes() -> u32 {
+        T::SIZE * Self::size()
     }
 
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {

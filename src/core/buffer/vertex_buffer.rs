@@ -51,6 +51,14 @@ impl VertexBuffer {
         self.buffer.attribute_count()
     }
 
+    pub(in crate::core) fn attribute_slots(&self) -> impl Iterator<Item = (u32, i32)> + '_ {
+        self.buffer.attribute_slots()
+    }
+
+    pub(in crate::core) fn stride(&self) -> i32 {
+        self.buffer.stride
+    }
+
     pub(in crate::core) fn bind(&self) {
         self.buffer.bind();
     }
@@ -60,7 +68,7 @@ impl VertexBuffer {
     }
 
     pub(in crate::core) fn data_size(&self) -> u32 {
-        self.buffer.data_size
+        self.buffer.data_size / self.buffer.attribute_slot_count
     }
 
     pub(in crate::core) fn normalized(&self) -> bool {
