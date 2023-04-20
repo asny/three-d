@@ -43,7 +43,7 @@ This is the recommended starting point for a gentle introduction to `three-d`.
 
 ## Triangle core [[code](https://github.com/asny/three-d/tree/master/examples/triangle_core/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/triangle_core.html)]
 
-This is the same as the `Triangle` example, except it only uses the core module and not the renderer module.
+This is the same as the `Triangle` example, except it only uses the [`core`][core-module] module and not the higher-level `renderer` module.
 
 ![Triangle core example](https://asny.github.io/three-d/0.16/triangle_core.png)
 
@@ -68,6 +68,12 @@ This example shows how depth ordering is currently working for `InstancedMesh` o
 ## Instanced Shapes [[code](https://github.com/asny/three-d/tree/master/examples/instanced_shapes/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/instanced_shapes.html)]
 
 ![Instanced Shapes example](https://asny.github.io/three-d/0.16/instanced_shapes.png)
+
+## Instanced core [[code](https://github.com/asny/three-d/tree/master/examples/instanced_core/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/instanced_core.html)]
+
+An example of how to do instanced drawing using the [`core`][core-module] module.
+
+![Instanced core example](https://asny.github.io/three-d/0.16/instanced_core.png)
 
 ## Screen [[code](https://github.com/asny/three-d/tree/master/examples/screen/src/main.rs)] [[demo](https://asny.github.io/three-d/0.16/screen.html)]
 
@@ -166,3 +172,5 @@ Shows how to create multiple [winit](https://crates.io/crates/winit) windows and
 ## Headless [[code](https://github.com/asny/three-d/tree/master/examples/headless/src/main.rs)]
 
 This example does not create a window but render directly to a render target and saves the result to disk. Therefore, this example does not work on web.
+
+[core-module]: https://docs.rs/three-d/latest/three_d/core/index.html

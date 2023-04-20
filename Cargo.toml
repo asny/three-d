@@ -85,6 +85,10 @@ name = "shapes"
 path = "examples/shapes/src/main.rs"
 
 [[example]]
+name = "instanced_core"
+path = "examples/instanced_core/src/main.rs"
+
+[[example]]
 name = "instanced_draw_order"
 path = "examples/instanced_draw_order/src/main.rs"
 
