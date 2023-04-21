@@ -330,11 +330,9 @@ impl Program {
     pub fn use_vertex_attribute(&self, name: &str, buffer: &VertexBuffer) {
         if buffer.count() > 0 {
             buffer.bind();
-            let base_loc = self.location(name);
             let stride = buffer.stride();
 
-            for (i, offset) in buffer.attribute_slots() {
-                let loc = base_loc + i;
+            for (loc, offset) in buffer.attribute_slots(self.location(name)) {
                 unsafe {
                     self.context.bind_vertex_array(Some(self.context.vao));
                     self.context.enable_vertex_attrib_array(loc);
@@ -385,11 +383,9 @@ impl Program {
     pub fn use_instance_attribute(&self, name: &str, buffer: &InstanceBuffer) {
         if buffer.count() > 0 {
             buffer.bind();
-            let base_loc = self.location(name);
             let stride = buffer.stride();
 
-            for (i, offset) in buffer.attribute_slots() {
-                let loc = base_loc + i;
+            for (loc, offset) in buffer.attribute_slots(self.location(name)) {
                 unsafe {
                     self.context.bind_vertex_array(Some(self.context.vao));
                     self.context.enable_vertex_attrib_array(loc);

@@ -51,8 +51,13 @@ impl InstanceBuffer {
         self.buffer.attribute_count()
     }
 
-    pub(in crate::core) fn attribute_slots(&self) -> impl Iterator<Item = (u32, i32)> + '_ {
-        self.buffer.attribute_slots()
+    /// Iterate the `index` and `offset` values for each `vertex_attrib_pointer`
+    /// call which needs to be made for this buffer's data type.
+    pub(in crate::core) fn attribute_slots(
+        &self,
+        loc: u32,
+    ) -> impl Iterator<Item = (u32, i32)> + '_ {
+        self.buffer.attribute_slots(loc)
     }
 
     pub(in crate::core) fn stride(&self) -> i32 {

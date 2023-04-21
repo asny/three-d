@@ -12,7 +12,7 @@ pub enum UniformType {
 }
 
 pub trait PrimitiveDataType: DataType + Copy + Default {
-    const SIZE: u32;
+    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
 
     fn send_uniform_with_type(
         context: &Context,
@@ -25,8 +25,6 @@ pub trait PrimitiveDataType: DataType + Copy + Default {
 }
 
 impl PrimitiveDataType for u8 {
-    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
-
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R8,
@@ -48,8 +46,6 @@ impl PrimitiveDataType for u8 {
     }
 }
 impl PrimitiveDataType for u16 {
-    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
-
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R16UI,
@@ -71,8 +67,6 @@ impl PrimitiveDataType for u16 {
     }
 }
 impl PrimitiveDataType for u32 {
-    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
-
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R32UI,
@@ -101,8 +95,6 @@ impl PrimitiveDataType for u32 {
     }
 }
 impl PrimitiveDataType for i8 {
-    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
-
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R8I,
@@ -124,8 +116,6 @@ impl PrimitiveDataType for i8 {
     }
 }
 impl PrimitiveDataType for i16 {
-    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
-
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R16I,
@@ -147,8 +137,6 @@ impl PrimitiveDataType for i16 {
     }
 }
 impl PrimitiveDataType for i32 {
-    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
-
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R32I,
@@ -177,8 +165,6 @@ impl PrimitiveDataType for i32 {
     }
 }
 impl PrimitiveDataType for f16 {
-    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
-
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R16F,
@@ -200,8 +186,6 @@ impl PrimitiveDataType for f16 {
     }
 }
 impl PrimitiveDataType for f32 {
-    const SIZE: u32 = std::mem::size_of::<Self>() as u32;
-
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R32F,

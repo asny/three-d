@@ -117,9 +117,11 @@ impl Buffer {
         self.attribute_count
     }
 
-    pub fn attribute_slots(&self) -> impl Iterator<Item = (u32, i32)> + '_ {
+    /// Iterate the `index` and `offset` values for each `vertex_attrib_pointer`
+    /// call which needs to be made for this buffer's data type.
+    pub fn attribute_slots(&self, loc: u32) -> impl Iterator<Item = (u32, i32)> + '_ {
         let local_stride = self.stride / self.attribute_slot_count as i32;
-        (0..self.attribute_slot_count).map(move |i| (i, i as i32 * local_stride))
+        (0..self.attribute_slot_count).map(move |i| (loc + i, i as i32 * local_stride))
     }
 
     pub fn bind(&self) {

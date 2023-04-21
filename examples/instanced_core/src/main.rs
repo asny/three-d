@@ -1,9 +1,8 @@
 use three_d::core::{
-    degrees, radians, vec3, Camera, ClearState, Color, Context, ElementBuffer, Mat4, Program,
-    RenderStates, VertexBuffer,
+    degrees, radians, vec3, Camera, ClearState, Color, Context, ElementBuffer, InstanceBuffer,
+    Mat4, Program, RenderStates, VertexBuffer,
 };
 use three_d::window::{FrameOutput, Window, WindowSettings};
-use three_d::InstanceBuffer;
 
 pub fn main() {
     // Create a window (a canvas on web)
@@ -34,6 +33,7 @@ pub fn main() {
     );
     let indices = ElementBuffer::new_with_data(&context, &[0u16, 1, 2, 0, 2, 3, 4, 5, 6, 6, 5, 7]);
 
+    // Define 5 + instances
     let translations = vec![
         Mat4::from_translation(vec3(-0.5, 0.0, 0.0)),
         Mat4::from_translation(vec3(-0.25, 0.0, 0.1)),
@@ -41,6 +41,7 @@ pub fn main() {
         Mat4::from_translation(vec3(0.25, 0.0, 0.3)),
         Mat4::from_translation(vec3(0.5, 0.0, 0.4)),
     ];
+    // Create a mutable buffer which will hold frame-by-frame instance matrices
     let mut instances = translations.clone();
     let mut instance_buffer = InstanceBuffer::new_with_data(&context, &instances[..]);
     let instance_count = instances.len();
