@@ -117,15 +117,21 @@ impl Geometry for Sprites {
         render_states: RenderStates,
         attributes: FragmentAttributes,
     ) {
-        todo!()
+        if !attributes.uv {
+            todo!()
+        }
+        if attributes.normal || attributes.tangents {
+            todo!()
+        }
+        self.draw(program, render_states, camera);
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        todo!()
+    fn vertex_shader_source(&self, _required_attributes: FragmentAttributes) -> String {
+        include_str!("shaders/sprites.vert").to_owned()
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        todo!()
+    fn id(&self, _required_attributes: FragmentAttributes) -> u32 {
+        0b1u32 << 16 | 0b100u32
     }
 
     fn render_with_material(
@@ -134,23 +140,7 @@ impl Geometry for Sprites {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader(lights);
-        if !fragment_shader.attributes.uv {
-            todo!()
-        }
-        if fragment_shader.attributes.normal || fragment_shader.attributes.tangents {
-            todo!()
-        }
-        self.context
-            .program(
-                include_str!("shaders/sprites.vert").to_owned(),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights);
-                    self.draw(program, material.render_states(), camera);
-                },
-            )
-            .expect("Failed compiling shader")
+        render_with_material(&self.context, camera, &self, material, lights);
     }
 
     fn render_with_post_material(

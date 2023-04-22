@@ -153,18 +153,18 @@ impl Geometry for Mesh {
     }
 
     fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        let mut id = 0b10000u32;
+        let mut id = 0b1u32 << 16 | 0b1u32 << 4;
         if required_attributes.normal {
             id |= 0b1u32;
         }
         if required_attributes.tangents {
-            id |= 0b10u32;
+            id |= 0b1u32 << 1;
         }
         if required_attributes.uv {
-            id |= 0b100u32;
+            id |= 0b1u32 << 2;
         }
         if self.base_mesh.colors.is_some() {
-            id |= 0b1000u32;
+            id |= 0b1u32 << 3;
         }
         id
     }

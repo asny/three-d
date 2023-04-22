@@ -254,7 +254,7 @@ impl Geometry for WaterPatch {
     }
 
     fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        todo!()
+        0b1u32 << 16 | 0b100u32
     }
 
     fn render_with_material(
