@@ -11,17 +11,6 @@ impl Material for SkyboxMaterial {
         0b100u32
     }
 
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: format!(
-                "{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/skybox_material.frag")
-            ),
-            attributes: FragmentAttributes::NONE,
-        }
-    }
-
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         format!(
             "{}{}",

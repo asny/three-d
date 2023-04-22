@@ -7,9 +7,6 @@
 
 macro_rules! impl_material_body {
     ($inner:ident) => {
-        fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-            self.$inner().fragment_shader(lights)
-        }
         fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
             self.$inner().fragment_shader_source(lights)
         }
@@ -33,16 +30,6 @@ macro_rules! impl_material_body {
 
 macro_rules! impl_post_material_body {
     ($inner:ident) => {
-        fn fragment_shader(
-            &self,
-            lights: &[&dyn Light],
-            color_texture: Option<ColorTexture>,
-            depth_texture: Option<DepthTexture>,
-        ) -> FragmentShader {
-            self.$inner()
-                .fragment_shader(lights, color_texture, depth_texture)
-        }
-
         fn fragment_shader_source(
             &self,
             lights: &[&dyn Light],
@@ -214,21 +201,12 @@ impl FragmentAttributes {
     };
 }
 
-#[derive(Debug, Clone)]
-pub struct FragmentShader {
-    /// The fragment shader source code
-    pub source: String,
-    /// The attributes used by this fragment shader, ie. the input from the vertex shader.
-    pub attributes: FragmentAttributes,
-}
-
 ///
 /// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].
 /// Alternatively, a geometry and a material can be combined in a [Gm],
 /// thereby creating an [Object] which can be used in a render call, for example [RenderTarget::render].
 ///
 pub trait Material {
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader;
     ///
     /// Returns the fragment shader source for this material.
     ///
@@ -303,9 +281,6 @@ impl<T: Material> Material for std::cell::RefCell<T> {
 }
 
 impl<T: Material> Material for std::sync::RwLock<T> {
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-        self.read().unwrap().fragment_shader(lights)
-    }
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         self.read().unwrap().fragment_shader_source(lights)
     }
@@ -458,13 +433,6 @@ impl DepthTexture<'_> {
 /// Therefore this type of material is always applied one at a time and after the scene has been rendered with the regular [Material].
 ///
 pub trait PostMaterial {
-    fn fragment_shader(
-        &self,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) -> FragmentShader;
-
     ///
     /// Returns the fragment shader source for this material.
     ///
@@ -531,17 +499,6 @@ impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
 }
 
 impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
-    fn fragment_shader(
-        &self,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) -> FragmentShader {
-        self.read()
-            .unwrap()
-            .fragment_shader(lights, color_texture, depth_texture)
-    }
-
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],

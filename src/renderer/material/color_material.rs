@@ -90,24 +90,6 @@ impl Material for ColorMaterial {
         }
     }
 
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        let mut attributes = FragmentAttributes {
-            color: true,
-            ..FragmentAttributes::NONE
-        };
-        let mut shader = String::new();
-        if self.texture.is_some() {
-            attributes.uv = true;
-            shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
-        }
-        shader.push_str(include_str!("../../core/shared.frag"));
-        shader.push_str(include_str!("shaders/color_material.frag"));
-        FragmentShader {
-            source: shader,
-            attributes,
-        }
-    }
-
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         let mut shader = String::new();
         if self.texture.is_some() {

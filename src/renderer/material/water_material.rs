@@ -35,37 +35,6 @@ pub struct WaterMaterial {
 }
 
 impl PostMaterial for WaterMaterial {
-    fn fragment_shader(
-        &self,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) -> FragmentShader {
-        FragmentShader {
-            source: format!(
-                "{}\n{}\n{}\n{}\n{}",
-                match &self.background {
-                    Background::Color(_) => "",
-                    Background::Texture(_) => "#define USE_BACKGROUND_TEXTURE",
-                },
-                color_texture
-                    .expect("Must supply a color texture to apply a water effect")
-                    .fragment_shader_source(),
-                depth_texture
-                    .expect("Must supply a depth texture to apply a water effect")
-                    .fragment_shader_source(),
-                lights_shader_source(lights, self.lighting_model),
-                include_str!("shaders/water_material.frag")
-            ),
-            attributes: FragmentAttributes {
-                position: true,
-                normal: true,
-                uv: true,
-                ..FragmentAttributes::NONE
-            },
-        }
-    }
-
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],

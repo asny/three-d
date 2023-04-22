@@ -29,18 +29,6 @@ impl Material for IsosurfaceMaterial {
         0b1100u32
     }
 
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-        let mut source = lights_shader_source(lights, self.lighting_model);
-        source.push_str(include_str!("shaders/isosurface_material.frag"));
-        FragmentShader {
-            source,
-            attributes: FragmentAttributes {
-                position: true,
-                ..FragmentAttributes::NONE
-            },
-        }
-    }
-
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         let mut source = lights_shader_source(lights, self.lighting_model);
         source.push_str(include_str!("shaders/isosurface_material.frag"));

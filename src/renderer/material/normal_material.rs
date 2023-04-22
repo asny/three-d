@@ -60,21 +60,6 @@ impl Material for NormalMaterial {
         id
     }
 
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        let mut attributes = FragmentAttributes {
-            normal: true,
-            ..FragmentAttributes::NONE
-        };
-        let mut source = String::new();
-        if self.normal_texture.is_some() {
-            attributes.uv = true;
-            attributes.tangents = true;
-            source.push_str("#define USE_TEXTURE\nin vec2 uvs;\nin vec3 tang;\nin vec3 bitang;\n");
-        }
-        source.push_str(include_str!("shaders/normal_material.frag"));
-        FragmentShader { source, attributes }
-    }
-
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         let mut attributes = FragmentAttributes {
             normal: true,

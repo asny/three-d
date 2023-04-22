@@ -213,20 +213,6 @@ impl Material for ImpostersMaterial {
         0b10000u32
     }
 
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: format!(
-                "{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/imposter.frag")
-            ),
-            attributes: FragmentAttributes {
-                uv: true,
-                ..FragmentAttributes::NONE
-            },
-        }
-    }
-
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         format!(
             "{}{}",

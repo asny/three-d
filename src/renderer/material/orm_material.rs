@@ -89,23 +89,6 @@ impl Material for ORMMaterial {
         id
     }
 
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        let mut attributes = FragmentAttributes::NONE;
-        let mut source = String::new();
-        if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {
-            attributes.uv = true;
-            source.push_str("in vec2 uvs;\n");
-            if self.metallic_roughness_texture.is_some() {
-                source.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
-            }
-            if self.occlusion_texture.is_some() {
-                source.push_str("#define USE_OCCLUSION_TEXTURE;\n");
-            }
-        }
-        source.push_str(include_str!("shaders/orm_material.frag"));
-        FragmentShader { source, attributes }
-    }
-
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         let mut source = String::new();
         if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {

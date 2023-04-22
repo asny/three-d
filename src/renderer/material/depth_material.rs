@@ -26,16 +26,6 @@ impl Material for DepthMaterial {
         0b10u32
     }
 
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: include_str!("shaders/depth_material.frag").to_string(),
-            attributes: FragmentAttributes {
-                position: true,
-                ..FragmentAttributes::NONE
-            },
-        }
-    }
-
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         include_str!("shaders/depth_material.frag").to_string()
     }

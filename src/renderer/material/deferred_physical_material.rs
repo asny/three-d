@@ -259,56 +259,6 @@ impl Material for DeferredPhysicalMaterial {
         }
     }
 
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        let mut attributes = FragmentAttributes {
-            position: true,
-            normal: true,
-            color: true,
-            ..FragmentAttributes::NONE
-        };
-        let mut output = include_str!("../../core/shared.frag").to_string();
-        if self.albedo_texture.is_some()
-            || self.metallic_roughness_texture.is_some()
-            || self.normal_texture.is_some()
-            || self.occlusion_texture.is_some()
-            || self.emissive_texture.is_some()
-            || self.alpha_cutout.is_some()
-        {
-            attributes.uv = true;
-            output.push_str("in vec2 uvs;\n");
-            if self.albedo_texture.is_some() {
-                output.push_str("#define USE_ALBEDO_TEXTURE;\n");
-            }
-            if self.metallic_roughness_texture.is_some() {
-                output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
-            }
-            if self.occlusion_texture.is_some() {
-                output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
-            }
-            if self.normal_texture.is_some() {
-                attributes.tangents = true;
-                output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
-            }
-            if self.emissive_texture.is_some() {
-                output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
-            }
-            if self.alpha_cutout.is_some() {
-                output.push_str(
-                    format!(
-                        "#define ALPHACUT;\nfloat acut = {};",
-                        self.alpha_cutout.unwrap()
-                    )
-                    .as_str(),
-                );
-            }
-        }
-        output.push_str(include_str!("shaders/deferred_physical_material.frag"));
-        FragmentShader {
-            source: output,
-            attributes,
-        }
-    }
-
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);

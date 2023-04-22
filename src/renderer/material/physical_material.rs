@@ -153,46 +153,6 @@ impl Material for PhysicalMaterial {
         id
     }
 
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-        let mut attributes = FragmentAttributes {
-            position: true,
-            normal: true,
-            color: true,
-            ..FragmentAttributes::NONE
-        };
-        let mut output = lights_shader_source(lights, self.lighting_model);
-        if self.albedo_texture.is_some()
-            || self.metallic_roughness_texture.is_some()
-            || self.normal_texture.is_some()
-            || self.occlusion_texture.is_some()
-            || self.emissive_texture.is_some()
-        {
-            attributes.uv = true;
-            output.push_str("in vec2 uvs;\n");
-            if self.albedo_texture.is_some() {
-                output.push_str("#define USE_ALBEDO_TEXTURE;\n");
-            }
-            if self.metallic_roughness_texture.is_some() {
-                output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
-            }
-            if self.occlusion_texture.is_some() {
-                output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
-            }
-            if self.normal_texture.is_some() {
-                attributes.tangents = true;
-                output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
-            }
-            if self.emissive_texture.is_some() {
-                output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
-            }
-        }
-        output.push_str(include_str!("shaders/physical_material.frag"));
-        FragmentShader {
-            source: output,
-            attributes,
-        }
-    }
-
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         let mut output = lights_shader_source(lights, self.lighting_model);
         if self.albedo_texture.is_some()

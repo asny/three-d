@@ -22,16 +22,6 @@ impl Material for PositionMaterial {
         0b11u32
     }
 
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: include_str!("shaders/position_material.frag").to_string(),
-            attributes: FragmentAttributes {
-                position: true,
-                ..FragmentAttributes::NONE
-            },
-        }
-    }
-
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         include_str!("shaders/position_material.frag").to_string()
     }
