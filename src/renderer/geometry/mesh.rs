@@ -153,7 +153,7 @@ impl Geometry for Mesh {
     }
 
     fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        let mut id = 0b1u32 << 16 | 0b1u32 << 4;
+        let mut id = 0b1u32 << 15 | 0b1u32 << 4;
         if required_attributes.normal {
             id |= 0b1u32;
         }

@@ -126,7 +126,7 @@ pub trait Geometry {
     /// Returns a unique ID for each variation of the shader source returned from `Geometry::vertex_shader_source`.
     ///
     /// **Note:** The first 16 bits are reserved to internally implemented geometries, so if implementing the `Geometry` trait
-    /// outside of this crate, always return an id that is larger than `0b1u32 << 16`.
+    /// outside of this crate, always return an id that is larger than or equal to `0b1u32 << 16`.
     ///
     fn id(&self, required_attributes: FragmentAttributes) -> u32;
 

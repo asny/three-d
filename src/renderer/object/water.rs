@@ -249,12 +249,12 @@ impl Geometry for WaterPatch {
         program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+    fn vertex_shader_source(&self, _required_attributes: FragmentAttributes) -> String {
         include_str!("shaders/water.vert").to_owned()
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        0b1u32 << 16 | 0b100u32
+    fn id(&self, _required_attributes: FragmentAttributes) -> u32 {
+        0b1u32 << 15 | 0b100u32
     }
 
     fn render_with_material(

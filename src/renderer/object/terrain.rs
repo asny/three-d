@@ -365,9 +365,9 @@ impl Geometry for TerrainPatch {
 
     fn id(&self, required_attributes: FragmentAttributes) -> u32 {
         if required_attributes.normal || required_attributes.tangents {
-            0b1u32 << 16 | 0b10u32
+            0b1u32 << 15 | 0b10u32
         } else {
-            0b1u32 << 16 | 0b11u32
+            0b1u32 << 15 | 0b11u32
         }
     }
 
