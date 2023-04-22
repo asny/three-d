@@ -308,6 +308,37 @@ pub fn render_with_material(
         fragment_attributes,
     );
 }
+pub fn render_with_post_material(
+    context: &Context,
+    camera: &Camera,
+    geometry: impl Geometry,
+    material: impl PostMaterial,
+    lights: &[&dyn Light],
+    color_texture: Option<ColorTexture>,
+    depth_texture: Option<DepthTexture>,
+) {
+    let fragment_attributes = material.fragment_attributes();
+    let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
+    id.extend(material.id().to_le_bytes());
+    id.extend(lights.iter().map(|l| l.id()));
+
+    let mut programs = context.programs2.write().unwrap();
+    let program = programs.entry(id).or_insert_with(|| {
+        Program::from_source(
+            context,
+            &geometry.vertex_shader_source(fragment_attributes),
+            &material.fragment_shader_source(lights, color_texture, depth_texture),
+        )
+        .expect("Failed compiling shader")
+    });
+    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+    geometry.draw(
+        camera,
+        program,
+        material.render_states(),
+        fragment_attributes,
+    );
+}
 
 ///
 /// Returns an orthographic camera for viewing 2D content.

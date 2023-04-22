@@ -186,18 +186,14 @@ impl Geometry for Mesh {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
-                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                self.draw(
-                    camera,
-                    program,
-                    material.render_states(),
-                    fragment_shader.attributes,
-                );
-            })
-            .expect("Failed compiling shader");
+        render_with_post_material(
+            &self.context,
+            camera,
+            self,
+            material,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 }

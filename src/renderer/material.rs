@@ -42,6 +42,25 @@ macro_rules! impl_post_material_body {
             self.$inner()
                 .fragment_shader(lights, color_texture, depth_texture)
         }
+
+        fn fragment_shader_source(
+            &self,
+            lights: &[&dyn Light],
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) -> String {
+            self.$inner()
+                .fragment_shader_source(lights, color_texture, depth_texture)
+        }
+
+        fn id(&self) -> u32 {
+            self.$inner().id()
+        }
+
+        fn fragment_attributes(&self) -> FragmentAttributes {
+            self.$inner().fragment_attributes()
+        }
+
         fn use_uniforms(
             &self,
             program: &Program,
@@ -53,6 +72,7 @@ macro_rules! impl_post_material_body {
             self.$inner()
                 .use_uniforms(program, camera, lights, color_texture, depth_texture)
         }
+
         fn render_states(&self) -> RenderStates {
             self.$inner().render_states()
         }
@@ -214,6 +234,8 @@ pub trait Material {
     ///
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String;
 
+    fn id(&self) -> u32;
+
     ///
     /// Returns a [FragmentAttributes] struct that describes which fragment attributes,
     /// ie. the input from the vertex shader, are required for rendering with this material.
@@ -234,8 +256,6 @@ pub trait Material {
     /// Returns the type of material.
     ///
     fn material_type(&self) -> MaterialType;
-
-    fn id(&self) -> u32;
 }
 
 ///
@@ -438,16 +458,30 @@ impl DepthTexture<'_> {
 /// Therefore this type of material is always applied one at a time and after the scene has been rendered with the regular [Material].
 ///
 pub trait PostMaterial {
-    ///
-    /// Returns a [FragmentShader], ie. the fragment shader source for this material
-    /// and a [FragmentAttributes] struct that describes which fragment attributes are required for rendering with this material.
-    ///
     fn fragment_shader(
         &self,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) -> FragmentShader;
+
+    ///
+    /// Returns the fragment shader source for this material.
+    ///
+    fn fragment_shader_source(
+        &self,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) -> String;
+
+    fn id(&self) -> u32;
+
+    ///
+    /// Returns a [FragmentAttributes] struct that describes which fragment attributes,
+    /// ie. the input from the vertex shader, are required for rendering with this material.
+    ///
+    fn fragment_attributes(&self) -> FragmentAttributes;
 
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -507,6 +541,26 @@ impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
             .unwrap()
             .fragment_shader(lights, color_texture, depth_texture)
     }
+
+    fn fragment_shader_source(
+        &self,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) -> String {
+        self.read()
+            .unwrap()
+            .fragment_shader_source(lights, color_texture, depth_texture)
+    }
+
+    fn id(&self) -> u32 {
+        self.read().unwrap().id()
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        self.read().unwrap().fragment_attributes()
+    }
+
     fn use_uniforms(
         &self,
         program: &Program,
