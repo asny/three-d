@@ -364,7 +364,11 @@ impl Geometry for TerrainPatch {
     }
 
     fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        todo!()
+        if required_attributes.normal || required_attributes.tangents {
+            0b10000000u32
+        } else {
+            0b10000001u32
+        }
     }
 
     fn render_with_material(

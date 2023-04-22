@@ -133,7 +133,7 @@ impl Geometry for Skybox {
         camera: &Camera,
         program: &Program,
         render_states: RenderStates,
-        attributes: FragmentAttributes,
+        _attributes: FragmentAttributes,
     ) {
         program.use_uniform("view", camera.view());
         program.use_uniform("projection", camera.projection());
@@ -141,12 +141,12 @@ impl Geometry for Skybox {
         program.draw_arrays(render_states, camera.viewport(), 36);
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+    fn vertex_shader_source(&self, _required_attributes: FragmentAttributes) -> String {
         include_str!("shaders/skybox.vert").to_owned()
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        todo!()
+    fn id(&self, _required_attributes: FragmentAttributes) -> u32 {
+        0b10000010u32
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
