@@ -5,6 +5,32 @@
 //! A [Material] can also be combined into an [object] (see [Gm]) and be used in a render call, for example [RenderTarget::render].
 //!
 
+macro_rules! impl_material_body {
+    ($inner:ident) => {
+        fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+            self.$inner().fragment_shader(lights)
+        }
+        fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+            self.$inner().fragment_shader_source(lights)
+        }
+        fn fragment_attributes(&self) -> FragmentAttributes {
+            self.$inner().fragment_attributes()
+        }
+        fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
+            self.$inner().use_uniforms(program, camera, lights)
+        }
+        fn render_states(&self) -> RenderStates {
+            self.$inner().render_states()
+        }
+        fn material_type(&self) -> MaterialType {
+            self.$inner().material_type()
+        }
+        fn id(&self) -> u32 {
+            self.$inner().id()
+        }
+    };
+}
+
 use crate::renderer::*;
 
 pub use three_d_asset::material::{
@@ -55,7 +81,7 @@ mod isosurface_material;
 #[doc(inline)]
 pub use isosurface_material::*;
 
-use std::sync::Arc;
+use std::{ops::Deref, sync::Arc};
 
 ///
 /// A reference to a 2D texture and a texture transformation.
@@ -201,147 +227,27 @@ pub trait FromCpuVoxelGrid: std::marker::Sized {
 }
 
 impl<T: Material + ?Sized> Material for &T {
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-        (*self).fragment_shader(lights)
-    }
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        (*self).fragment_shader_source(lights)
-    }
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        (*self).fragment_attributes()
-    }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-        (*self).use_uniforms(program, camera, lights)
-    }
-    fn render_states(&self) -> RenderStates {
-        (*self).render_states()
-    }
-    fn material_type(&self) -> MaterialType {
-        (*self).material_type()
-    }
-    fn id(&self) -> u32 {
-        (*self).id()
-    }
+    impl_material_body!(deref);
 }
 
 impl<T: Material + ?Sized> Material for &mut T {
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-        (**self).fragment_shader(lights)
-    }
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        (**self).fragment_shader_source(lights)
-    }
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        (**self).fragment_attributes()
-    }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-        (**self).use_uniforms(program, camera, lights)
-    }
-    fn render_states(&self) -> RenderStates {
-        (**self).render_states()
-    }
-    fn material_type(&self) -> MaterialType {
-        (**self).material_type()
-    }
-    fn id(&self) -> u32 {
-        (**self).id()
-    }
+    impl_material_body!(deref);
 }
 
 impl<T: Material> Material for Box<T> {
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-        self.as_ref().fragment_shader(lights)
-    }
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        self.as_ref().fragment_shader_source(lights)
-    }
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        self.as_ref().fragment_attributes()
-    }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-        self.as_ref().use_uniforms(program, camera, lights)
-    }
-    fn render_states(&self) -> RenderStates {
-        self.as_ref().render_states()
-    }
-    fn material_type(&self) -> MaterialType {
-        self.as_ref().material_type()
-    }
-    fn id(&self) -> u32 {
-        self.as_ref().id()
-    }
+    impl_material_body!(as_ref);
 }
 
 impl<T: Material> Material for std::rc::Rc<T> {
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-        self.as_ref().fragment_shader(lights)
-    }
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        self.as_ref().fragment_shader_source(lights)
-    }
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        self.as_ref().fragment_attributes()
-    }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-        self.as_ref().use_uniforms(program, camera, lights)
-    }
-    fn render_states(&self) -> RenderStates {
-        self.as_ref().render_states()
-    }
-    fn material_type(&self) -> MaterialType {
-        self.as_ref().material_type()
-    }
-    fn id(&self) -> u32 {
-        self.as_ref().id()
-    }
+    impl_material_body!(as_ref);
 }
 
 impl<T: Material> Material for std::sync::Arc<T> {
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-        self.as_ref().fragment_shader(lights)
-    }
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        self.as_ref().fragment_shader_source(lights)
-    }
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        self.as_ref().fragment_attributes()
-    }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-        self.as_ref().use_uniforms(program, camera, lights)
-    }
-    fn render_states(&self) -> RenderStates {
-        self.as_ref().render_states()
-    }
-    fn material_type(&self) -> MaterialType {
-        self.as_ref().material_type()
-    }
-    fn id(&self) -> u32 {
-        self.as_ref().id()
-    }
+    impl_material_body!(as_ref);
 }
 
 impl<T: Material> Material for std::cell::RefCell<T> {
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
-        self.borrow().fragment_shader(lights)
-    }
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        self.borrow().fragment_shader_source(lights)
-    }
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        self.borrow().fragment_attributes()
-    }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-        self.borrow().use_uniforms(program, camera, lights)
-    }
-    fn render_states(&self) -> RenderStates {
-        self.borrow().render_states()
-    }
-    fn material_type(&self) -> MaterialType {
-        self.borrow().material_type()
-    }
-    fn id(&self) -> u32 {
-        self.borrow().id()
-    }
+    impl_material_body!(borrow);
 }
 
 impl<T: Material> Material for std::sync::RwLock<T> {
