@@ -170,20 +170,15 @@ impl Geometry for Skybox {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        self.context
-            .program(
-                include_str!("shaders/skybox.vert").to_owned(),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    program.use_uniform("view", camera.view());
-                    program.use_uniform("projection", camera.projection());
-                    program.use_vertex_attribute("position", &self.vertex_buffer);
-                    program.draw_arrays(material.render_states(), camera.viewport(), 36);
-                },
-            )
-            .expect("Failed compiling shader");
+        render_with_post_material(
+            &self.context,
+            camera,
+            self,
+            material,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 }
 

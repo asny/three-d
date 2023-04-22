@@ -274,25 +274,15 @@ impl Geometry for WaterPatch {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        if fragment_shader.attributes.tangents {
-            todo!() // Water should be able to provide tangents
-        }
-        self.context
-            .program(
-                include_str!("shaders/water.vert").to_owned(),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(
-                        camera,
-                        program,
-                        material.render_states(),
-                        fragment_shader.attributes,
-                    );
-                },
-            )
-            .unwrap();
+        render_with_post_material(
+            &self.context,
+            camera,
+            self,
+            material,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

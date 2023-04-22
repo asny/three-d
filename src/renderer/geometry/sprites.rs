@@ -151,23 +151,15 @@ impl Geometry for Sprites {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        if !fragment_shader.attributes.uv {
-            todo!()
-        }
-        if fragment_shader.attributes.normal || fragment_shader.attributes.tangents {
-            todo!()
-        }
-        self.context
-            .program(
-                include_str!("shaders/sprites.vert").to_owned(),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    self.draw(program, material.render_states(), camera);
-                },
-            )
-            .expect("Failed compiling shader")
+        render_with_post_material(
+            &self.context,
+            camera,
+            self,
+            material,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
