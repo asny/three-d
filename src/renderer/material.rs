@@ -31,6 +31,38 @@ macro_rules! impl_material_body {
     };
 }
 
+macro_rules! impl_post_material_body {
+    ($inner:ident) => {
+        fn fragment_shader(
+            &self,
+            lights: &[&dyn Light],
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) -> FragmentShader {
+            self.$inner()
+                .fragment_shader(lights, color_texture, depth_texture)
+        }
+        fn use_uniforms(
+            &self,
+            program: &Program,
+            camera: &Camera,
+            lights: &[&dyn Light],
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) {
+            self.$inner()
+                .use_uniforms(program, camera, lights, color_texture, depth_texture)
+        }
+        fn render_states(&self) -> RenderStates {
+            self.$inner().render_states()
+        }
+
+        fn material_type(&self) -> MaterialType {
+            self.$inner().material_type()
+        }
+    };
+}
+
 use crate::renderer::*;
 
 pub use three_d_asset::material::{
@@ -441,179 +473,27 @@ pub trait PostMaterial {
 }
 
 impl<T: PostMaterial + ?Sized> PostMaterial for &T {
-    fn fragment_shader(
-        &self,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) -> FragmentShader {
-        (*self).fragment_shader(lights, color_texture, depth_texture)
-    }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        (*self).use_uniforms(program, camera, lights, color_texture, depth_texture)
-    }
-    fn render_states(&self) -> RenderStates {
-        (*self).render_states()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        (*self).material_type()
-    }
+    impl_post_material_body!(deref);
 }
 
 impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
-    fn fragment_shader(
-        &self,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) -> FragmentShader {
-        (**self).fragment_shader(lights, color_texture, depth_texture)
-    }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        (**self).use_uniforms(program, camera, lights, color_texture, depth_texture)
-    }
-    fn render_states(&self) -> RenderStates {
-        (**self).render_states()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        (**self).material_type()
-    }
+    impl_post_material_body!(deref);
 }
 
 impl<T: PostMaterial> PostMaterial for Box<T> {
-    fn fragment_shader(
-        &self,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) -> FragmentShader {
-        self.as_ref()
-            .fragment_shader(lights, color_texture, depth_texture)
-    }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.as_ref()
-            .use_uniforms(program, camera, lights, color_texture, depth_texture)
-    }
-    fn render_states(&self) -> RenderStates {
-        self.as_ref().render_states()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.as_ref().material_type()
-    }
+    impl_post_material_body!(as_ref);
 }
 
 impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
-    fn fragment_shader(
-        &self,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) -> FragmentShader {
-        self.as_ref()
-            .fragment_shader(lights, color_texture, depth_texture)
-    }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.as_ref()
-            .use_uniforms(program, camera, lights, color_texture, depth_texture)
-    }
-    fn render_states(&self) -> RenderStates {
-        self.as_ref().render_states()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.as_ref().material_type()
-    }
+    impl_post_material_body!(as_ref);
 }
 
 impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
-    fn fragment_shader(
-        &self,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) -> FragmentShader {
-        self.as_ref()
-            .fragment_shader(lights, color_texture, depth_texture)
-    }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.as_ref()
-            .use_uniforms(program, camera, lights, color_texture, depth_texture)
-    }
-    fn render_states(&self) -> RenderStates {
-        self.as_ref().render_states()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.as_ref().material_type()
-    }
+    impl_post_material_body!(as_ref);
 }
 
 impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
-    fn fragment_shader(
-        &self,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) -> FragmentShader {
-        self.borrow()
-            .fragment_shader(lights, color_texture, depth_texture)
-    }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.borrow()
-            .use_uniforms(program, camera, lights, color_texture, depth_texture)
-    }
-    fn render_states(&self) -> RenderStates {
-        self.borrow().render_states()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.borrow().material_type()
-    }
+    impl_post_material_body!(borrow);
 }
 
 impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
