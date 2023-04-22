@@ -20,7 +20,7 @@ impl Material for FireworksMaterial {
             },
         }
     }
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         include_str!("particles.frag").to_string()
     }
     fn fragment_attributes(&self) -> FragmentAttributes {
