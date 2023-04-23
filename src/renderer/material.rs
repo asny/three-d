@@ -449,6 +449,12 @@ pub trait PostMaterial {
         depth_texture: Option<DepthTexture>,
     ) -> String;
 
+    ///
+    /// Returns a unique ID for each variation of the shader source returned from `PostMaterial::fragment_shader_source`.
+    ///
+    /// **Note:** The first 16 bits are reserved to internally implemented materials, so if implementing the `PostMaterial` trait
+    /// outside of this crate, always return an id that is larger than or equal to `0b1u32 << 16`.
+    ///
     fn id(&self) -> u32;
 
     ///

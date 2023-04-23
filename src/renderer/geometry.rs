@@ -112,6 +112,9 @@ pub use three_d_asset::{
 /// - color: `out vec4 col;`
 ///
 pub trait Geometry {
+    ///
+    /// Draw this geometry.
+    ///
     fn draw(
         &self,
         camera: &Camera,
@@ -120,6 +123,9 @@ pub trait Geometry {
         attributes: FragmentAttributes,
     );
 
+    ///
+    /// Returns the vertex shader source for this geometry given that the fragment shader needs the given vertex attributes.
+    ///
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String;
 
     ///

@@ -279,6 +279,11 @@ impl_render_target_extensions!(RenderTargetMultisample<C: TextureDataType, D: De
 impl_render_target_extensions!(ColorTargetMultisample<C: TextureDataType>);
 impl_render_target_extensions!(DepthTargetMultisample<D: DepthTextureDataType>);
 
+///
+/// Render the given [Geometry] with the given [Material].
+/// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+/// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+///
 pub fn render_with_material(
     context: &Context,
     camera: &Camera,
@@ -308,6 +313,12 @@ pub fn render_with_material(
         fragment_attributes,
     );
 }
+
+///
+/// Render the given [Geometry] with the given [PostMaterial].
+/// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+/// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+///
 pub fn render_with_post_material(
     context: &Context,
     camera: &Camera,
