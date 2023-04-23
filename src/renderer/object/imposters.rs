@@ -210,7 +210,7 @@ impl ImpostersMaterial {
 
 impl Material for ImpostersMaterial {
     fn id(&self) -> u32 {
-        0b10000u32
+        0b1u32 << 15 | 0b1101u32
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

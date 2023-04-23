@@ -53,14 +53,14 @@ impl FromCpuMaterial for NormalMaterial {
 
 impl Material for NormalMaterial {
     fn id(&self) -> u32 {
-        let mut id = 0b110u32;
         if self.normal_texture.is_some() {
-            id |= 0b1u32;
+            0b1u32 << 15 | 0b110u32
+        } else {
+            0b1u32 << 15 | 0b111u32
         }
-        id
     }
 
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         let mut attributes = FragmentAttributes {
             normal: true,
             ..FragmentAttributes::NONE

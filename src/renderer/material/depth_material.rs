@@ -23,7 +23,7 @@ impl FromCpuMaterial for DepthMaterial {
 
 impl Material for DepthMaterial {
     fn id(&self) -> u32 {
-        0b10u32
+        0b1u32 << 15 | 0b10u32
     }
 
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {

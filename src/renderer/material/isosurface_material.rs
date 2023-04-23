@@ -26,7 +26,7 @@ pub struct IsosurfaceMaterial {
 
 impl Material for IsosurfaceMaterial {
     fn id(&self) -> u32 {
-        0b1100u32
+        0b1u32 << 15 | 0b1100u32
     }
 
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {

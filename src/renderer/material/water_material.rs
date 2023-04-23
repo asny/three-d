@@ -59,7 +59,7 @@ impl PostMaterial for WaterMaterial {
     }
 
     fn id(&self) -> u32 {
-        todo!()
+        0b1u32 << 15 | 0b1110u32
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {
