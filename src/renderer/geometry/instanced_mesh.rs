@@ -336,6 +336,7 @@ impl Geometry for InstancedMesh {
     }
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        self.instance_buffers.write().unwrap().0 = self.create_instance_buffers(None);
         let instance_buffers = &self
             .instance_buffers
             .read()
