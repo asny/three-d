@@ -124,16 +124,6 @@ impl<T: Light> Light for std::sync::Arc<std::sync::RwLock<T>> {
     }
 }
 
-pub fn lights_id(lights: &[&dyn Light]) -> u64 {
-    let mut id = 0u64;
-    for (i, x) in lights.iter().map(|l| l.id()).enumerate() {
-        let y = x as u64;
-        let shift = i % 8 * 8;
-        id ^= y << shift;
-    }
-    id
-}
-
 ///
 /// Returns shader source code with the function `calculate_lighting` which calculate the lighting contribution for the given lights and the given [LightingModel].
 /// Use this if you want to implement a custom [Material](crate::renderer::Material) but use the default lighting calculations.
