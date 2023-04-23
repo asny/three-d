@@ -265,15 +265,39 @@ impl InstancedMesh {
         }
         instance_buffers
     }
+}
 
+impl<'a> IntoIterator for &'a InstancedMesh {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
+    }
+}
+
+impl Geometry for InstancedMesh {
     fn draw(
         &self,
+        camera: &Camera,
         program: &Program,
         render_states: RenderStates,
-        camera: &Camera,
         attributes: FragmentAttributes,
-        instance_buffers: &HashMap<String, InstanceBuffer>,
     ) {
+        // Update the instance buffers if required.
+        let update_pose = if render_states.blend != Blend::Disabled {
+            Some(*camera.position())
+        } else {
+            None
+        };
+
+        self.update_instance_buffers(update_pose);
+
+        let instance_buffers = &self
+            .instance_buffers
+            .read()
+            .expect("failed to acquire read access")
+            .0;
         if attributes.normal && instance_buffers.contains_key("instance_translation") {
             if let Some(inverse) = self.current_transformation.invert() {
                 program.use_uniform("normalMatrix", inverse.transpose());
@@ -311,18 +335,14 @@ impl InstancedMesh {
         );
     }
 
-    fn vertex_shader_source(
-        &self,
-        required_attributes: FragmentAttributes,
-        instance_buffers: &HashMap<String, InstanceBuffer>,
-    ) -> String {
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        let instance_buffers = &self
+            .instance_buffers
+            .read()
+            .expect("failed to acquire read access")
+            .0;
         format!(
-            "{}{}{}{}{}{}{}{}",
-            if instance_buffers.contains_key("instance_translation") {
-                "#define USE_INSTANCE_TRANSLATIONS\n"
-            } else {
-                "#define USE_INSTANCE_TRANSFORMS\n"
-            },
+            "{}{}{}{}{}{}{}{}{}",
             if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {
@@ -338,14 +358,20 @@ impl InstancedMesh {
             } else {
                 ""
             },
-            if instance_buffers.contains_key("instance_color") && self.base_mesh.colors.is_some() {
-                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-            } else if instance_buffers.contains_key("instance_color") {
-                "#define USE_INSTANCE_COLORS\n"
-            } else if self.base_mesh.colors.is_some() {
+            if self.base_mesh.colors.is_some() {
                 "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
+            },
+            if instance_buffers.contains_key("instance_color") {
+                "#define USE_INSTANCE_COLORS\n"
+            } else {
+                ""
+            },
+            if instance_buffers.contains_key("instance_translation") {
+                "#define USE_INSTANCE_TRANSLATIONS\n"
+            } else {
+                "#define USE_INSTANCE_TRANSFORMS\n"
             },
             if instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
@@ -356,34 +382,36 @@ impl InstancedMesh {
             include_str!("shaders/mesh.vert"),
         )
     }
-}
-
-impl<'a> IntoIterator for &'a InstancedMesh {
-    type Item = &'a dyn Geometry;
-    type IntoIter = std::iter::Once<&'a dyn Geometry>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(self)
-    }
-}
-
-impl Geometry for InstancedMesh {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        todo!()
-    }
-
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        todo!()
-    }
 
     fn id(&self, required_attributes: FragmentAttributes) -> u32 {
-        todo!()
+        let instance_buffers = &self
+            .instance_buffers
+            .read()
+            .expect("failed to acquire read access")
+            .0;
+        let mut id = 0b1u32 << 15 | 0b1u32 << 7;
+        if required_attributes.normal {
+            id |= 0b1u32;
+        }
+        if required_attributes.tangents {
+            id |= 0b1u32 << 1;
+        }
+        if required_attributes.uv {
+            id |= 0b1u32 << 2;
+        }
+        if self.base_mesh.colors.is_some() {
+            id |= 0b1u32 << 3;
+        }
+        if instance_buffers.contains_key("instance_color") {
+            id |= 0b1u32 << 4;
+        }
+        if instance_buffers.contains_key("instance_translation") {
+            id |= 0b1u32 << 5;
+        }
+        if instance_buffers.contains_key("tex_transform_row1") {
+            id |= 0b1u32 << 6;
+        }
+        id
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -404,35 +432,7 @@ impl Geometry for InstancedMesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        // Update the instance buffers if required.
-        let update_pose = if material.material_type() == MaterialType::Transparent {
-            Some(*camera.position())
-        } else {
-            None
-        };
-
-        self.update_instance_buffers(update_pose);
-        let instance_buffers = &self
-            .instance_buffers
-            .read()
-            .expect("failed to acquire read access")
-            .0;
-
-        let fragment_shader = material.fragment_shader(lights);
-        let vertex_shader_source =
-            self.vertex_shader_source(fragment_shader.attributes, instance_buffers);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
-                material.use_uniforms(program, camera, lights);
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera,
-                    fragment_shader.attributes,
-                    instance_buffers,
-                );
-            })
-            .expect("Failed compiling shader");
+        render_with_material(&self.context, camera, self, material, lights)
     }
 
     fn render_with_post_material(
@@ -443,35 +443,15 @@ impl Geometry for InstancedMesh {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        // Update the instance buffers if required.
-        let update_pose = if material.material_type() == MaterialType::Transparent {
-            Some(*camera.position())
-        } else {
-            None
-        };
-
-        self.update_instance_buffers(update_pose);
-        let instance_buffers = &self
-            .instance_buffers
-            .read()
-            .expect("failed to acquire read access")
-            .0;
-
-        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        let vertex_shader_source =
-            self.vertex_shader_source(fragment_shader.attributes, instance_buffers);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
-                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera,
-                    fragment_shader.attributes,
-                    instance_buffers,
-                );
-            })
-            .expect("Failed compiling shader");
+        render_with_post_material(
+            &self.context,
+            camera,
+            self,
+            material,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 }
 

@@ -199,7 +199,7 @@ impl Geometry for ParticleSystem {
             id |= 0b1u32 << 4;
         }
         if self.instance_buffers.contains_key("tex_transform_row1") {
-            id |= 0b100000u32;
+            id |= 0b1u32 << 5;
         }
         id
     }
