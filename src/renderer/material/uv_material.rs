@@ -22,7 +22,7 @@ impl Material for UVMaterial {
         0b1u32 << 15 | 0b101u32
     }
 
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         include_str!("shaders/uv_material.frag").to_string()
     }
 

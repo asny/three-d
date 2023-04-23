@@ -89,7 +89,7 @@ impl Material for ORMMaterial {
         id
     }
 
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         let mut source = String::new();
         if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {
             source.push_str("in vec2 uvs;\n");

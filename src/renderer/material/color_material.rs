@@ -84,7 +84,7 @@ impl FromCpuMaterial for ColorMaterial {
 impl Material for ColorMaterial {
     fn id(&self) -> u32 {
         if self.texture.is_some() {
-            0b1u32 << 15 | 0b0u32
+            0b1u32 << 15
         } else {
             0b1u32 << 15 | 0b1u32
         }
