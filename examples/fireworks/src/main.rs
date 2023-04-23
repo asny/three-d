@@ -10,16 +10,6 @@ struct FireworksMaterial {
 }
 
 impl Material for FireworksMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: include_str!("particles.frag").to_string(),
-            attributes: FragmentAttributes {
-                uv: true,
-                color: true,
-                ..FragmentAttributes::NONE
-            },
-        }
-    }
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         include_str!("particles.frag").to_string()
     }

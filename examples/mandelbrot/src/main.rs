@@ -3,16 +3,6 @@ use three_d::*;
 struct MandelbrotMaterial {}
 
 impl Material for MandelbrotMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: include_str!("mandelbrot.frag").to_string(),
-            attributes: FragmentAttributes {
-                position: true,
-                ..FragmentAttributes::NONE
-            },
-        }
-    }
-
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         include_str!("mandelbrot.frag").to_string()
     }
