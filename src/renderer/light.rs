@@ -74,9 +74,16 @@ pub trait Light {
     /// Where `{}` is replaced with the number i given as input.
     /// This function should return the color contribution for this light on the surface with the given surface parameters.
     fn shader_source(&self, i: u32) -> String;
+
     /// Should bind the uniforms that is needed for calculating this lights contribution to the color in [Light::shader_source].
     fn use_uniforms(&self, program: &Program, i: u32);
 
+    ///
+    /// Returns a unique ID for each variation of the shader source returned from `Light::shader_source`.
+    ///
+    /// **Note:** The last bit is reserved to internally implemented materials, so if implementing the `Light` trait
+    /// outside of this crate, always return an id that is smaller than `0b1u8 << 7`.
+    ///
     fn id(&self) -> u8;
 }
 
