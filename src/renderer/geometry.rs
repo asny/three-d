@@ -22,7 +22,7 @@ macro_rules! impl_geometry_body {
             self.$inner().vertex_shader_source(required_attributes)
         }
 
-        fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+        fn id(&self, required_attributes: FragmentAttributes) -> u16 {
             self.$inner().id(required_attributes)
         }
 
@@ -131,10 +131,10 @@ pub trait Geometry {
     ///
     /// Returns a unique ID for each variation of the shader source returned from `Geometry::vertex_shader_source`.
     ///
-    /// **Note:** The first 16 bits are reserved to internally implemented geometries, so if implementing the `Geometry` trait
-    /// outside of this crate, always return an id that is larger than or equal to `0b1u32 << 16`.
+    /// **Note:** The last bit is reserved to internally implemented geometries, so if implementing the `Geometry` trait
+    /// outside of this crate, always return an id that is smaller than `0b1u16 << 15`.
     ///
-    fn id(&self, required_attributes: FragmentAttributes) -> u32;
+    fn id(&self, required_attributes: FragmentAttributes) -> u16;
 
     ///
     /// Render the geometry with the given [Material].
@@ -213,7 +213,7 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
             .vertex_shader_source(required_attributes)
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+    fn id(&self, required_attributes: FragmentAttributes) -> u16 {
         self.read().unwrap().id(required_attributes)
     }
 

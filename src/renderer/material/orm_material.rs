@@ -78,13 +78,13 @@ impl FromCpuMaterial for ORMMaterial {
 }
 
 impl Material for ORMMaterial {
-    fn id(&self) -> u32 {
-        let mut id = 0b1u32 << 15 | 0b1u32 << 4;
+    fn id(&self) -> u16 {
+        let mut id = 0b1u16 << 15 | 0b1u16 << 4;
         if self.metallic_roughness_texture.is_some() {
-            id |= 0b1u32;
+            id |= 0b1u16;
         }
         if self.occlusion_texture.is_some() {
-            id |= 0b1u32 << 1;
+            id |= 0b1u16 << 1;
         }
         id
     }

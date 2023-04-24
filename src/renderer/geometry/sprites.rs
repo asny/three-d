@@ -130,8 +130,8 @@ impl Geometry for Sprites {
         include_str!("shaders/sprites.vert").to_owned()
     }
 
-    fn id(&self, _required_attributes: FragmentAttributes) -> u32 {
-        0b1u32 << 15 | 0b100u32
+    fn id(&self, _required_attributes: FragmentAttributes) -> u16 {
+        0b1u16 << 15 | 0b100u16
     }
 
     fn render_with_material(

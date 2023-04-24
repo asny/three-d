@@ -384,33 +384,33 @@ impl Geometry for InstancedMesh {
         )
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u32 {
+    fn id(&self, required_attributes: FragmentAttributes) -> u16 {
         let instance_buffers = &self
             .instance_buffers
             .read()
             .expect("failed to acquire read access")
             .0;
-        let mut id = 0b1u32 << 15 | 0b1u32 << 7;
+        let mut id = 0b1u16 << 15 | 0b1u16 << 7;
         if required_attributes.normal {
-            id |= 0b1u32;
+            id |= 0b1u16;
         }
         if required_attributes.tangents {
-            id |= 0b1u32 << 1;
+            id |= 0b1u16 << 1;
         }
         if required_attributes.uv {
-            id |= 0b1u32 << 2;
+            id |= 0b1u16 << 2;
         }
         if self.base_mesh.colors.is_some() {
-            id |= 0b1u32 << 3;
+            id |= 0b1u16 << 3;
         }
         if instance_buffers.contains_key("instance_color") {
-            id |= 0b1u32 << 4;
+            id |= 0b1u16 << 4;
         }
         if instance_buffers.contains_key("instance_translation") {
-            id |= 0b1u32 << 5;
+            id |= 0b1u16 << 5;
         }
         if instance_buffers.contains_key("tex_transform_row1") {
-            id |= 0b1u32 << 6;
+            id |= 0b1u16 << 6;
         }
         id
     }

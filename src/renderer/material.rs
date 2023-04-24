@@ -22,7 +22,7 @@ macro_rules! impl_material_body {
         fn material_type(&self) -> MaterialType {
             self.$inner().material_type()
         }
-        fn id(&self) -> u32 {
+        fn id(&self) -> u16 {
             self.$inner().id()
         }
     };
@@ -40,7 +40,7 @@ macro_rules! impl_post_material_body {
                 .fragment_shader_source(lights, color_texture, depth_texture)
         }
 
-        fn id(&self) -> u32 {
+        fn id(&self) -> u16 {
             self.$inner().id()
         }
 
@@ -215,10 +215,10 @@ pub trait Material {
     ///
     /// Returns a unique ID for each variation of the shader source returned from `Material::fragment_shader_source`.
     ///
-    /// **Note:** The first 16 bits are reserved to internally implemented materials, so if implementing the `Material` trait
-    /// outside of this crate, always return an id that is larger than or equal to `0b1u32 << 16`.
+    /// **Note:** The last bit is reserved to internally implemented materials, so if implementing the `Material` trait
+    /// outside of this crate, always return an id that is smaller than `0b1u16 << 15`.
     ///
-    fn id(&self) -> u32;
+    fn id(&self) -> u16;
 
     ///
     /// Returns a [FragmentAttributes] struct that describes which fragment attributes,
@@ -302,7 +302,7 @@ impl<T: Material> Material for std::sync::RwLock<T> {
     fn material_type(&self) -> MaterialType {
         self.read().unwrap().material_type()
     }
-    fn id(&self) -> u32 {
+    fn id(&self) -> u16 {
         self.read().unwrap().id()
     }
 }
@@ -453,9 +453,9 @@ pub trait PostMaterial {
     /// Returns a unique ID for each variation of the shader source returned from `PostMaterial::fragment_shader_source`.
     ///
     /// **Note:** The first 16 bits are reserved to internally implemented materials, so if implementing the `PostMaterial` trait
-    /// outside of this crate, always return an id that is larger than or equal to `0b1u32 << 16`.
+    /// outside of this crate, always return an id that is larger than or equal to `0b1u16 << 16`.
     ///
-    fn id(&self) -> u32;
+    fn id(&self) -> u16;
 
     ///
     /// Returns a [FragmentAttributes] struct that describes which fragment attributes,
@@ -522,7 +522,7 @@ impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
             .fragment_shader_source(lights, color_texture, depth_texture)
     }
 
-    fn id(&self) -> u32 {
+    fn id(&self) -> u16 {
         self.read().unwrap().id()
     }
 

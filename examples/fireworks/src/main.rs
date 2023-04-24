@@ -43,8 +43,8 @@ impl Material for FireworksMaterial {
         MaterialType::Transparent
     }
 
-    fn id(&self) -> u32 {
-        0b1u32 << 16
+    fn id(&self) -> u16 {
+        0b1u16
     }
 }
 // Entry point for non-wasm

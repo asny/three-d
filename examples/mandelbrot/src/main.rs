@@ -27,8 +27,8 @@ impl Material for MandelbrotMaterial {
         MaterialType::Opaque
     }
 
-    fn id(&self) -> u32 {
-        0b11u32 << 16
+    fn id(&self) -> u16 {
+        0b11u16
     }
 }
 

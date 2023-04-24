@@ -52,11 +52,11 @@ impl FromCpuMaterial for NormalMaterial {
 }
 
 impl Material for NormalMaterial {
-    fn id(&self) -> u32 {
+    fn id(&self) -> u16 {
         if self.normal_texture.is_some() {
-            0b1u32 << 15 | 0b110u32
+            0b1u16 << 15 | 0b110u16
         } else {
-            0b1u32 << 15 | 0b111u32
+            0b1u16 << 15 | 0b111u16
         }
     }
 
