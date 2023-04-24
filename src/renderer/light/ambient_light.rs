@@ -99,9 +99,9 @@ impl Light for AmbientLight {
 
     fn id(&self) -> u8 {
         if self.environment.is_some() {
-            1
+            0b1u8 << 7
         } else {
-            2
+            0b1u8 << 7 | 0b1u8
         }
     }
 }
