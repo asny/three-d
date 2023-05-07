@@ -62,6 +62,10 @@ impl std::ops::DerefMut for Axes {
 
 impl Geometry for Axes {
     impl_geometry_body!(deref);
+
+    fn animate(&mut self, time: f32) {
+        self.model.animate(time)
+    }
 }
 
 impl Object for Axes {

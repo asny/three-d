@@ -55,6 +55,10 @@ impl<G: Geometry, M: Material> std::ops::DerefMut for Gm<G, M> {
 
 impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
     impl_geometry_body!(deref);
+
+    fn animate(&mut self, time: f32) {
+        self.geometry.animate(time)
+    }
 }
 
 impl<G: Geometry, M: Material> Object for Gm<G, M> {

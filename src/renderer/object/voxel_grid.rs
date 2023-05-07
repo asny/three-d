@@ -53,6 +53,10 @@ impl<M: Material> std::ops::DerefMut for VoxelGrid<M> {
 
 impl<M: Material> Geometry for VoxelGrid<M> {
     impl_geometry_body!(deref);
+
+    fn animate(&mut self, time: f32) {
+        self.0.animate(time)
+    }
 }
 
 impl<M: Material> Object for VoxelGrid<M> {

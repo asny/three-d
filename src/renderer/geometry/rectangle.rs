@@ -103,4 +103,8 @@ impl std::ops::DerefMut for Rectangle {
 
 impl Geometry for Rectangle {
     impl_geometry_body!(deref);
+
+    fn animate(&mut self, time: f32) {
+        self.mesh.animate(time)
+    }
 }

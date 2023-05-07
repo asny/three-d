@@ -104,4 +104,8 @@ impl std::ops::DerefMut for Line {
 
 impl Geometry for Line {
     impl_geometry_body!(deref);
+
+    fn animate(&mut self, time: f32) {
+        self.mesh.animate(time)
+    }
 }

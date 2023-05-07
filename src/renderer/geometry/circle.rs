@@ -78,4 +78,8 @@ impl std::ops::DerefMut for Circle {
 
 impl Geometry for Circle {
     impl_geometry_body!(deref);
+
+    fn animate(&mut self, time: f32) {
+        self.mesh.animate(time)
+    }
 }

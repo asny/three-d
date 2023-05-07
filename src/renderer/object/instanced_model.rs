@@ -59,6 +59,10 @@ impl<M: Material> std::ops::DerefMut for InstancedModelPart<M> {
 
 impl<M: Material> Geometry for InstancedModelPart<M> {
     impl_geometry_body!(deref);
+
+    fn animate(&mut self, time: f32) {
+        self.gm.animate(time)
+    }
 }
 
 impl<M: Material> Object for InstancedModelPart<M> {
