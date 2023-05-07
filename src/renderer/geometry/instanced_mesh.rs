@@ -82,7 +82,7 @@ impl InstancedMesh {
         self.instances = instances.clone();
         self.update_aabb();
 
-        self.instance_buffers.write().unwrap().0.clear();
+        self.instance_buffers.write().unwrap().0 = self.create_instance_buffers(None);
     }
 
     fn update_aabb(&mut self) {
@@ -301,7 +301,6 @@ impl Geometry for InstancedMesh {
     }
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        self.instance_buffers.write().unwrap().0 = self.create_instance_buffers(None);
         let instance_buffers = &self
             .instance_buffers
             .read()
