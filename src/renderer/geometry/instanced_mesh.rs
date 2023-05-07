@@ -82,7 +82,7 @@ impl InstancedMesh {
         self.instances = instances.clone();
         self.update_aabb();
 
-        self.instance_buffers.write().unwrap().0 = self.create_instance_buffers(None);
+        self.update_instance_buffers(None);
     }
 
     fn update_aabb(&mut self) {
@@ -98,11 +98,10 @@ impl InstancedMesh {
     ///
     /// This function creates the instance buffers, ordering them by distance to the camera
     ///
-    fn create_instance_buffers(
-        &self,
-        depth_ordering: Option<Vec3>,
-    ) -> HashMap<String, InstanceBuffer> {
-        let indices = if let Some(position) = depth_ordering {
+    fn update_instance_buffers(&self, camera: Option<&Camera>) {
+        let mut s = self.instance_buffers.write().unwrap();
+        let indices = if let Some(position) = camera.map(|c| *c.position()) {
+            s.1 = position;
             // Need to order by using the position.
             let distances = self
                 .instances
@@ -123,7 +122,7 @@ impl InstancedMesh {
         };
 
         // Next, we can compute the instance buffers with that ordering.
-        let mut instance_buffers: HashMap<String, InstanceBuffer> = Default::default();
+        let instance_buffers = &mut s.0;
 
         if indices
             .iter()
@@ -200,7 +199,6 @@ impl InstancedMesh {
                 InstanceBuffer::new_with_data(&self.context, &ordered_instance_colors),
             );
         }
-        instance_buffers
     }
 }
 
@@ -221,48 +219,14 @@ impl Geometry for InstancedMesh {
         render_states: RenderStates,
         attributes: FragmentAttributes,
     ) {
-        // Update the instance buffers if required.
-        let update_pose = if render_states.blend != Blend::Disabled {
-            Some(*camera.position())
-        } else {
-            None
-        };
-
-        let needs_update = {
-            let s = self.instance_buffers.read().unwrap();
-
-            // Check if we need a reorder, this only applies to transparent materials.
-            let reorder_needed = if let Some(ref ordering_pose) = update_pose {
-                let camera_changed = *ordering_pose != s.1;
-                let instance_count_changed = if let Some(v) = s.0.values().next() {
-                    v.instance_count() != self.instance_count()
-                } else {
-                    false
-                };
-
-                camera_changed || instance_count_changed
-            } else {
-                false
-            };
-
-            // Update is always needed if the instance buffers is empty; Opaque materials only.
-            // Or, for transparent materials, if the camera moved or if the instance count changed.
-            s.0.is_empty() || reorder_needed
-        };
-
-        if needs_update {
-            let mut s = self.instance_buffers.write().unwrap();
-            s.0 = self.create_instance_buffers(update_pose);
-            if let Some(ordering_pose) = update_pose {
-                s.1 = ordering_pose;
-            }
+        // Check if we need a reorder, this only applies to transparent materials.
+        if render_states.blend != Blend::Disabled
+            && *camera.position() != self.instance_buffers.read().unwrap().1
+        {
+            self.update_instance_buffers(Some(camera));
         }
 
-        let instance_buffers = &self
-            .instance_buffers
-            .read()
-            .expect("failed to acquire read access")
-            .0;
+        let instance_buffers = &self.instance_buffers.read().unwrap().0;
         if attributes.normal && instance_buffers.contains_key("instance_translation") {
             if let Some(inverse) = self.current_transformation.invert() {
                 program.use_uniform("normalMatrix", inverse.transpose());
@@ -301,11 +265,7 @@ impl Geometry for InstancedMesh {
     }
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        let instance_buffers = &self
-            .instance_buffers
-            .read()
-            .expect("failed to acquire read access")
-            .0;
+        let instance_buffers = &self.instance_buffers.read().unwrap().0;
         format!(
             "{}{}{}{}{}{}{}{}{}",
             if required_attributes.normal {
