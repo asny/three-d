@@ -176,6 +176,10 @@ impl<T: Geometry + ?Sized> Geometry for &T {
 
 impl<T: Geometry + ?Sized> Geometry for &mut T {
     impl_geometry_body!(deref);
+
+    fn animate(&mut self, time: f32) {
+        self.deref().animate(time)
+    }
 }
 
 impl<T: Geometry> Geometry for Box<T> {
@@ -192,6 +196,10 @@ impl<T: Geometry> Geometry for std::sync::Arc<T> {
 
 impl<T: Geometry> Geometry for std::cell::RefCell<T> {
     impl_geometry_body!(borrow);
+
+    fn animate(&mut self, time: f32) {
+        self.borrow_mut().animate(time)
+    }
 }
 
 impl<T: Geometry> Geometry for std::sync::RwLock<T> {
@@ -247,6 +255,10 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.read().unwrap().aabb()
+    }
+
+    fn animate(&mut self, time: f32) {
+        self.write().unwrap().animate(time)
     }
 }
 
