@@ -116,7 +116,13 @@ impl SpotLight {
                     .into_iter()
                     .filter(|g| shadow_camera.in_frustum(&g.aabb()))
                 {
-                    geometry.render_with_material(&depth_material, &shadow_camera, &[]);
+                    render_with_material(
+                        &self.context,
+                        &shadow_camera,
+                        &geometry,
+                        &depth_material,
+                        &[],
+                    );
                 }
             });
         self.shadow_texture = Some(shadow_texture);

@@ -11,6 +11,7 @@ const NO_VIEW_ANGLES: u32 = 8;
 /// rendered continuously instead of the expensive objects.
 ///
 pub struct Imposters {
+    context: Context,
     sprites: Sprites,
     material: ImpostersMaterial,
 }
@@ -35,6 +36,7 @@ impl Imposters {
         let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)));
         sprites.set_transformation(get_sprite_transform(aabb));
         Imposters {
+            context: context.clone(),
             sprites,
             material: ImpostersMaterial::new(context, aabb, objects, lights, max_texture_size),
         }
@@ -109,7 +111,7 @@ impl Geometry for Imposters {
 
 impl Object for Imposters {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.render_with_material(&self.material, camera, lights)
+        render_with_material(&self.context, camera, &self, &self.material, lights)
     }
 
     fn material_type(&self) -> MaterialType {

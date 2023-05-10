@@ -184,7 +184,7 @@ impl Geometry for Skybox {
 
 impl Object for Skybox {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.render_with_material(&self.material, camera, lights)
+        render_with_material(&self.context, camera, self, &self.material, lights)
     }
 
     fn material_type(&self) -> MaterialType {

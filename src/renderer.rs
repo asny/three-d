@@ -182,7 +182,7 @@ macro_rules! impl_render_target_extensions_body {
                     .into_iter()
                     .filter(|o| camera.in_frustum(&o.aabb()))
                 {
-                    geometry.render_with_material(material, camera, lights);
+                    render_with_material(&self.context, camera, geometry, material, lights);
                 }
             });
             self
@@ -227,13 +227,15 @@ macro_rules! impl_render_target_extensions_body {
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
             self.write_partially(scissor_box, || {
-                for object in geometries
+                for geometry in geometries
                     .into_iter()
                     .filter(|o| camera.in_frustum(&o.aabb()))
                 {
-                    object.render_with_post_material(
-                        material,
+                    render_with_post_material(
+                        &self.context,
                         camera,
+                        geometry,
+                        material,
                         lights,
                         color_texture,
                         depth_texture,
@@ -492,7 +494,7 @@ pub fn ray_intersect(
     .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
     .write(|| {
         for geometry in geometries {
-            geometry.render_with_material(&depth_material, &camera, &[]);
+            render_with_material(context, &camera, &geometry, &depth_material, &[]);
         }
     })
     .read_color()[0];
