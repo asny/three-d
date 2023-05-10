@@ -136,6 +136,17 @@ pub fn apply_cube_effect(
         .expect("Failed compiling shader");
 }
 
+fn draw_full_screen(
+    context: &Context,
+    program: &Program,
+    render_states: RenderStates,
+    viewport: Viewport,
+) {
+    let position_buffer = full_screen_buffer(context);
+    program.use_vertex_attribute("position", &position_buffer);
+    program.draw_arrays(render_states, viewport, 3);
+}
+
 fn full_screen_buffer(context: &Context) -> VertexBuffer {
     VertexBuffer::new_with_data(
         context,
@@ -145,6 +156,18 @@ fn full_screen_buffer(context: &Context) -> VertexBuffer {
             vec3(0.0, 2.0, 0.0),
         ],
     )
+}
+
+fn full_screen_vertex_shader_source() -> &'static str {
+    "
+        in vec3 position;
+        out vec2 uvs;
+        void main()
+        {
+            uvs = 0.5 * position.xy + 0.5;
+            gl_Position = vec4(position, 1.0);
+        }
+    "
 }
 
 mod data_type;
