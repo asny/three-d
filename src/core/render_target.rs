@@ -264,7 +264,7 @@ impl<'a> RenderTarget<'a> {
             color_texture.use_uniforms(program);
             depth_texture.use_uniforms(program);
 
-            draw_full_screen(
+            full_screen_draw(
                 &self.context,
                 &program,
                 RenderStates {
@@ -324,7 +324,7 @@ impl<'a> RenderTarget<'a> {
             });
             color_texture.use_uniforms(program);
 
-            draw_full_screen(
+            full_screen_draw(
                 &self.context,
                 &program,
                 RenderStates {
@@ -378,7 +378,7 @@ impl<'a> RenderTarget<'a> {
             });
             depth_texture.use_uniforms(program);
 
-            draw_full_screen(
+            full_screen_draw(
                 &self.context,
                 &program,
                 RenderStates {

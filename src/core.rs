@@ -73,7 +73,14 @@ pub fn apply_effect(
     viewport: Viewport,
     use_uniforms: impl FnOnce(&Program),
 ) {
-    let position_buffer = full_screen_buffer(context);
+    let position_buffer = VertexBuffer::new_with_data(
+        context,
+        &[
+            vec3(-3.0, -1.0, 0.0),
+            vec3(3.0, -1.0, 0.0),
+            vec3(0.0, 2.0, 0.0),
+        ],
+    );
     context
         .program(
             "
@@ -108,7 +115,14 @@ pub fn apply_cube_effect(
     viewport: Viewport,
     use_uniforms: impl FnOnce(&Program),
 ) {
-    let position_buffer = full_screen_buffer(context);
+    let position_buffer = VertexBuffer::new_with_data(
+        context,
+        &[
+            vec3(-3.0, -1.0, 0.0),
+            vec3(3.0, -1.0, 0.0),
+            vec3(0.0, 2.0, 0.0),
+        ],
+    );
     context
         .program(
             "
@@ -140,35 +154,33 @@ pub(crate) fn full_screen_id() -> u16 {
     0b1u16
 }
 
-pub(crate) fn draw_full_screen(
+pub(crate) fn full_screen_draw(
     context: &Context,
     program: &Program,
     render_states: RenderStates,
     viewport: Viewport,
 ) {
-    let position_buffer = full_screen_buffer(context);
-    program.use_vertex_attribute("position", &position_buffer);
-    program.draw_arrays(render_states, viewport, 3);
-}
-
-fn full_screen_buffer(context: &Context) -> VertexBuffer {
-    VertexBuffer::new_with_data(
+    let position_buffer = VertexBuffer::new_with_data(
         context,
         &[
             vec3(-3.0, -1.0, 0.0),
             vec3(3.0, -1.0, 0.0),
             vec3(0.0, 2.0, 0.0),
         ],
-    )
+    );
+    program.use_vertex_attribute("position", &position_buffer);
+    program.draw_arrays(render_states, viewport, 3);
 }
 
 pub(crate) fn full_screen_vertex_shader_source() -> &'static str {
     "
         in vec3 position;
         out vec2 uvs;
+        out vec4 col;
         void main()
         {
             uvs = 0.5 * position.xy + 0.5;
+            col = vec4(1.0);
             gl_Position = vec4(position, 1.0);
         }
     "
