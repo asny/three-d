@@ -136,7 +136,11 @@ pub fn apply_cube_effect(
         .expect("Failed compiling shader");
 }
 
-fn draw_full_screen(
+pub(crate) fn full_screen_id() -> u16 {
+    0b1u16
+}
+
+pub(crate) fn draw_full_screen(
     context: &Context,
     program: &Program,
     render_states: RenderStates,
@@ -158,7 +162,7 @@ fn full_screen_buffer(context: &Context) -> VertexBuffer {
     )
 }
 
-fn full_screen_vertex_shader_source() -> &'static str {
+pub(crate) fn full_screen_vertex_shader_source() -> &'static str {
     "
         in vec3 position;
         out vec2 uvs;
