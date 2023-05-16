@@ -143,35 +143,14 @@ impl DeferredPhysicalMaterial {
         geometry_pass_depth_texture: DepthTexture,
         lights: &[&dyn Light],
     ) {
-        let mut fragment_shader = lights_shader_source(
-            lights,
-            LightingModel::Cook(
-                NormalDistributionFunction::TrowbridgeReitzGGX,
-                GeometryFunction::SmithSchlickGGX,
-            ),
-        );
-        fragment_shader.push_str(&geometry_pass_color_texture.fragment_shader_source());
-        fragment_shader.push_str(&geometry_pass_depth_texture.fragment_shader_source());
-        fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
-        apply_effect(
+        render_fullscreen_with_post_material(
             context,
-            &fragment_shader,
-            RenderStates::default(),
-            camera.viewport(),
-            |program| {
-                geometry_pass_color_texture.use_uniforms(program);
-                geometry_pass_depth_texture.use_uniforms(program);
-                program.use_uniform_if_required("cameraPosition", camera.position());
-                for (i, light) in lights.iter().enumerate() {
-                    light.use_uniforms(program, i as u32);
-                }
-                program.use_uniform_if_required(
-                    "viewProjectionInverse",
-                    (camera.projection() * camera.view()).invert().unwrap(),
-                );
-                program.use_uniform("debug_type", DebugType::None as i32);
-            },
-        )
+            camera,
+            LightingPassMaterial {},
+            lights,
+            Some(geometry_pass_color_texture),
+            Some(geometry_pass_depth_texture),
+        );
     }
 }
 
@@ -317,6 +296,69 @@ impl Default for DeferredPhysicalMaterial {
             emissive: Color::BLACK,
             emissive_texture: None,
         }
+    }
+}
+
+struct LightingPassMaterial {}
+
+impl PostMaterial for LightingPassMaterial {
+    fn fragment_shader_source(
+        &self,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) -> String {
+        let mut fragment_shader = lights_shader_source(
+            lights,
+            LightingModel::Cook(
+                NormalDistributionFunction::TrowbridgeReitzGGX,
+                GeometryFunction::SmithSchlickGGX,
+            ),
+        );
+        fragment_shader.push_str(&color_texture.unwrap().fragment_shader_source());
+        fragment_shader.push_str(&depth_texture.unwrap().fragment_shader_source());
+        fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
+        fragment_shader
+    }
+
+    fn id(&self) -> u16 {
+        0b11u16 << 14 | 0b11u16
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) {
+        color_texture.unwrap().use_uniforms(program);
+        depth_texture.unwrap().use_uniforms(program);
+        program.use_uniform_if_required("cameraPosition", camera.position());
+        for (i, light) in lights.iter().enumerate() {
+            light.use_uniforms(program, i as u32);
+        }
+        program.use_uniform_if_required(
+            "viewProjectionInverse",
+            (camera.projection() * camera.view()).invert().unwrap(),
+        );
+        program.use_uniform("debug_type", DebugType::None as i32);
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates::default()
+    }
+
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }
 
