@@ -29,7 +29,7 @@ pub async fn run() {
         .await
         .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
     };
-    let image = Texture2D::new(&context, &loaded.deserialize("").unwrap());
+    let image = std::sync::Arc::new(Texture2D::new(&context, &loaded.deserialize("").unwrap()));
 
     let mut gui = GUI::new(&context);
 
@@ -72,25 +72,17 @@ pub async fn run() {
             frame_input.viewport.height,
         );
 
+        let material = ColorMaterial {
+            texture: Some(Texture2DRef {
+                texture: image.clone(),
+                transformation: Mat3::from_scale(texture_transform_scale)
+                    * Mat3::from_translation(vec2(texture_transform_x, texture_transform_y)),
+            }),
+            ..Default::default()
+        };
+
         frame_input.screen().clear(ClearState::default()).write(|| {
-            apply_effect(
-                &context,
-                include_str!("shader.frag"),
-                RenderStates::default(),
-                viewport,
-                |program| {
-                    program.use_texture("image", &image);
-                    program.use_uniform("parameter", tone_mapping);
-                    program.use_uniform(
-                        "textureTransform",
-                        Mat3::from_scale(texture_transform_scale)
-                            * Mat3::from_translation(vec2(
-                                texture_transform_x,
-                                texture_transform_y,
-                            )),
-                    )
-                },
-            );
+            render_fullscreen_with_material(&context, &camera2d(viewport), material, &[]);
             gui.render();
         });
 
