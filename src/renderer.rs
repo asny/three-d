@@ -353,6 +353,72 @@ pub fn render_with_post_material(
     );
 }
 
+pub fn render_fullscreen_with_material(
+    context: &Context,
+    camera: &Camera,
+    material: impl Material,
+    lights: &[&dyn Light],
+) {
+    let fragment_attributes = material.fragment_attributes();
+    if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
+        panic!("Not possible to use the given material to render full screen, the full screen geometry only provides uv coordinates and color");
+    }
+    let mut id = full_screen_id().to_le_bytes().to_vec();
+    id.extend(material.id().to_le_bytes());
+    id.extend(lights.iter().map(|l| l.id()));
+
+    let mut programs = context.programs2.write().unwrap();
+    let program = programs.entry(id).or_insert_with(|| {
+        Program::from_source(
+            context,
+            full_screen_vertex_shader_source(),
+            &material.fragment_shader_source(lights),
+        )
+        .expect("Failed compiling shader")
+    });
+    material.use_uniforms(program, &camera2d(camera.viewport()), lights);
+    full_screen_draw(
+        context,
+        program,
+        material.render_states(),
+        camera.viewport(),
+    );
+}
+
+pub fn render_fullscreen_with_post_material(
+    context: &Context,
+    camera: &Camera,
+    material: impl PostMaterial,
+    lights: &[&dyn Light],
+    color_texture: Option<ColorTexture>,
+    depth_texture: Option<DepthTexture>,
+) {
+    let fragment_attributes = material.fragment_attributes();
+    if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
+        panic!("Not possible to use the given material to render full screen, the full screen geometry only provides uv coordinates and color");
+    }
+    let mut id = full_screen_id().to_le_bytes().to_vec();
+    id.extend(material.id().to_le_bytes());
+    id.extend(lights.iter().map(|l| l.id()));
+
+    let mut programs = context.programs2.write().unwrap();
+    let program = programs.entry(id).or_insert_with(|| {
+        Program::from_source(
+            context,
+            full_screen_vertex_shader_source(),
+            &material.fragment_shader_source(lights, color_texture, depth_texture),
+        )
+        .expect("Failed compiling shader")
+    });
+    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
+    full_screen_draw(
+        context,
+        program,
+        material.render_states(),
+        camera.viewport(),
+    );
+}
+
 ///
 /// Returns an orthographic camera for viewing 2D content.
 /// The camera is placed at the center of the given viewport.
