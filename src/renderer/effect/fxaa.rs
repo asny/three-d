@@ -13,25 +13,70 @@ impl FxaaEffect {
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
     pub fn apply(&self, context: &Context, color_texture: ColorTexture) {
-        apply_effect(
+        let (w, h) = color_texture.resolution();
+        render_fullscreen_with_post_material(
             context,
-            &format!(
-                "{}\n{}",
-                color_texture.fragment_shader_source(),
-                include_str!("shaders/fxaa_effect.frag")
-            ),
-            RenderStates {
-                write_mask: WriteMask::COLOR,
-                depth_test: DepthTest::Always,
-                cull: Cull::Back,
-                ..Default::default()
-            },
-            Viewport::new_at_origo(color_texture.width(), color_texture.height()),
-            |program| {
-                color_texture.use_uniforms(program);
-                let (w, h) = color_texture.resolution();
-                program.use_uniform("resolution", vec2(w as f32, h as f32));
-            },
+            &camera2d(Viewport::new_at_origo(w, h)),
+            self,
+            &[],
+            Some(color_texture),
+            None,
+        );
+    }
+}
+
+impl PostMaterial for FxaaEffect {
+    fn fragment_shader_source(
+        &self,
+        _lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        _depth_texture: Option<DepthTexture>,
+    ) -> String {
+        let color_texture =
+            color_texture.expect("Must supply a color texture to apply a fxaa effect");
+        format!(
+            "{}\n{}",
+            color_texture.fragment_shader_source(),
+            include_str!("shaders/fxaa_effect.frag")
         )
+    }
+
+    fn id(&self) -> u16 {
+        0b11u16 << 14 | 0b10u16
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        _camera: &Camera,
+        _lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        _depth_texture: Option<DepthTexture>,
+    ) {
+        let color_texture =
+            color_texture.expect("Must supply a color texture to apply a fxaa effect");
+        let (w, h) = color_texture.resolution();
+        color_texture.use_uniforms(program);
+        program.use_uniform("resolution", vec2(w as f32, h as f32));
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates {
+            write_mask: WriteMask::COLOR,
+            depth_test: DepthTest::Always,
+            cull: Cull::Back,
+            ..Default::default()
+        }
+    }
+
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }
