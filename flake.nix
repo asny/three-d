@@ -17,6 +17,10 @@
 
         deps = with pkgs; [
           rust-bin.stable.latest.default
+          openssl
+          pkgconfig
+          fontconfig
+          cmake
         ];
 
         utils = with pkgs; [
