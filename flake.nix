@@ -16,11 +16,7 @@
         };
 
         deps = with pkgs; [
-          openssl
-          pkg-config
           rust-bin.stable.latest.default
-          glibc
-          mesa
         ];
 
         utils = with pkgs; [
@@ -30,12 +26,11 @@
         ];
         
         libPath = with pkgs; lib.makeLibraryPath [
+          libGL
           xorg.libX11
           xorg.libXcursor
-          xorg.libXxf86vm
           xorg.libXi
           xorg.libXrandr
-          libGL
          ];    
       in
       with pkgs;
