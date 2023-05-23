@@ -1,5 +1,5 @@
 {
-  description = "A devShell example";
+  description = "A devShell that can run three-d examples";
 
   inputs = {
     nixpkgs.url      = "github:NixOS/nixpkgs/nixos-unstable";
@@ -14,33 +14,38 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
-        libPath = with pkgs; lib.makeLibraryPath [
+
+        deps = with pkgs; [
+          openssl
+          pkg-config
+          rust-bin.stable.latest.default
+          glibc
           mesa
+        ];
+
+        utils = with pkgs; [
+          # checks video driver info
+          pciutils 
+          glxinfo
+        ];
+        
+        libPath = with pkgs; lib.makeLibraryPath [
           xorg.libX11
           xorg.libXcursor
           xorg.libXxf86vm
           xorg.libXi
           xorg.libXrandr
+          libGL
          ];    
       in
       with pkgs;
       {
         devShells.default = mkShell {
-          buildInputs = [
-            openssl
-            pkg-config
-            rust-bin.stable.latest.default
-
-            # mesa
-            # xorg.libX11
-            # xorg.libXcursor
-            # xorg.libXxf86vm
-            # xorg.libXi
-            # xorg.libXrandr
-          ];
-
+          name = "rust graphics"; 
+          buildInputs = deps ++ utils;
+          LD_LIBRARY_PATH=libPath;
           shellHook = ''
-            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${libPath}
+          echo Hello, Dev!
           '';
         };
       }
