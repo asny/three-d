@@ -116,7 +116,7 @@ pub async fn run() {
                     WriteMask::default(),
                 )
                 .write(|| {
-                    render_fullscreen_with_post_material(
+                    apply_screen_space_effect(
                         &context,
                         &camera,
                         &fog_effect,

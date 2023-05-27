@@ -353,7 +353,7 @@ pub fn render_with_post_material(
     );
 }
 
-pub fn render_fullscreen_with_material(
+pub fn apply_screen_space_material(
     context: &Context,
     camera: &Camera,
     material: impl Material,
@@ -385,7 +385,7 @@ pub fn render_fullscreen_with_material(
     );
 }
 
-pub fn render_fullscreen_with_post_material(
+pub fn apply_screen_space_effect(
     context: &Context,
     camera: &Camera,
     material: impl PostMaterial,

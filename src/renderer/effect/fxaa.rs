@@ -14,7 +14,7 @@ impl FxaaEffect {
     ///
     pub fn apply(&self, context: &Context, color_texture: ColorTexture) {
         let (w, h) = color_texture.resolution();
-        render_fullscreen_with_post_material(
+        apply_screen_space_effect(
             context,
             &camera2d(Viewport::new_at_origo(w, h)),
             self,

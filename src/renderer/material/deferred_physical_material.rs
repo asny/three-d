@@ -143,7 +143,7 @@ impl DeferredPhysicalMaterial {
         geometry_pass_depth_texture: DepthTexture,
         lights: &[&dyn Light],
     ) {
-        render_fullscreen_with_post_material(
+        apply_screen_space_effect(
             context,
             camera,
             LightingPassMaterial {},

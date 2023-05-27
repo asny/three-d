@@ -40,7 +40,7 @@ impl FogEffect {
     ) {
         let mut effect = self.clone();
         effect.time = time as f32;
-        render_fullscreen_with_post_material(
+        apply_screen_space_effect(
             context,
             camera,
             effect,
