@@ -12,12 +12,13 @@ impl FxaaEffect {
     /// Applies the FXAA effect to the given color texture.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
+    #[deprecated = "use `apply_screen_effect` instead"]
     pub fn apply(&self, context: &Context, color_texture: ColorTexture) {
         let (w, h) = color_texture.resolution();
         apply_screen_effect(
             context,
-            &camera2d(Viewport::new_at_origo(w, h)),
             self,
+            &camera2d(Viewport::new_at_origo(w, h)),
             &[],
             Some(color_texture),
             None,

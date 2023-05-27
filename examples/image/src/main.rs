@@ -81,10 +81,13 @@ pub async fn run() {
             ..Default::default()
         };
 
-        frame_input.screen().clear(ClearState::default()).write(|| {
-            apply_screen_material(&context, &camera2d(viewport), material, &[]);
-            gui.render();
-        });
+        frame_input
+            .screen()
+            .clear(ClearState::default())
+            .apply_screen_material(&material, &camera2d(viewport), &[])
+            .write(|| {
+                gui.render();
+            });
 
         FrameOutput::default()
     });

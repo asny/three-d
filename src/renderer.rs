@@ -244,6 +244,68 @@ macro_rules! impl_render_target_extensions_body {
             });
             self
         }
+
+        pub fn apply_screen_material(
+            &self,
+            material: &dyn Material,
+            camera: &Camera,
+            lights: &[&dyn Light],
+        ) -> &Self {
+            self.apply_screen_material_partially(self.scissor_box(), material, camera, lights)
+        }
+
+        pub fn apply_screen_material_partially(
+            &self,
+            scissor_box: ScissorBox,
+            material: &dyn Material,
+            camera: &Camera,
+            lights: &[&dyn Light],
+        ) -> &Self {
+            self.write_partially(scissor_box, || {
+                apply_screen_material(&self.context, material, camera, lights)
+            });
+            self
+        }
+
+        pub fn apply_screen_effect(
+            &self,
+            effect: &dyn Effect,
+            camera: &Camera,
+            lights: &[&dyn Light],
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) -> &Self {
+            self.apply_screen_effect_partially(
+                self.scissor_box(),
+                effect,
+                camera,
+                lights,
+                color_texture,
+                depth_texture,
+            )
+        }
+
+        pub fn apply_screen_effect_partially(
+            &self,
+            scissor_box: ScissorBox,
+            effect: &dyn Effect,
+            camera: &Camera,
+            lights: &[&dyn Light],
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) -> &Self {
+            self.write_partially(scissor_box, || {
+                apply_screen_effect(
+                    &self.context,
+                    effect,
+                    camera,
+                    lights,
+                    color_texture,
+                    depth_texture,
+                )
+            });
+            self
+        }
     };
 }
 
@@ -355,8 +417,8 @@ pub fn render_with_effect(
 
 pub fn apply_screen_material(
     context: &Context,
-    camera: &Camera,
     material: impl Material,
+    camera: &Camera,
     lights: &[&dyn Light],
 ) {
     let fragment_attributes = material.fragment_attributes();
@@ -387,18 +449,18 @@ pub fn apply_screen_material(
 
 pub fn apply_screen_effect(
     context: &Context,
+    effect: impl Effect,
     camera: &Camera,
-    material: impl Effect,
     lights: &[&dyn Light],
     color_texture: Option<ColorTexture>,
     depth_texture: Option<DepthTexture>,
 ) {
-    let fragment_attributes = material.fragment_attributes();
+    let fragment_attributes = effect.fragment_attributes();
     if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
         panic!("Not possible to use the given material to render full screen, the full screen geometry only provides uv coordinates and color");
     }
     let mut id = full_screen_id().to_le_bytes().to_vec();
-    id.extend(material.id().to_le_bytes());
+    id.extend(effect.id().to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
     let mut programs = context.programs2.write().unwrap();
@@ -406,17 +468,12 @@ pub fn apply_screen_effect(
         Program::from_source(
             context,
             full_screen_vertex_shader_source(),
-            &material.fragment_shader_source(lights, color_texture, depth_texture),
+            &effect.fragment_shader_source(lights, color_texture, depth_texture),
         )
         .expect("Failed compiling shader")
     });
-    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-    full_screen_draw(
-        context,
-        program,
-        material.render_states(),
-        camera.viewport(),
-    );
+    effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
+    full_screen_draw(context, program, effect.render_states(), camera.viewport());
 }
 
 ///
