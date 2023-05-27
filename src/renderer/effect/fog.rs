@@ -40,14 +40,7 @@ impl FogEffect {
     ) {
         let mut effect = self.clone();
         effect.time = time as f32;
-        apply_screen_space_effect(
-            context,
-            camera,
-            effect,
-            &[],
-            None,
-            Some(depth_texture),
-        );
+        apply_screen_space_effect(context, camera, effect, &[], None, Some(depth_texture));
     }
 }
 

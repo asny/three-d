@@ -54,7 +54,7 @@ impl PostMaterial for WaterMaterial {
                 .expect("Must supply a depth texture to apply a water effect")
                 .fragment_shader_source(),
             lights_shader_source(lights, self.lighting_model),
-            include_str!("shaders/water_material.frag")
+            include_str!("shaders/water_effect.frag")
         )
     }
 
