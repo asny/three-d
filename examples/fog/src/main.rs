@@ -116,7 +116,7 @@ pub async fn run() {
                     WriteMask::default(),
                 )
                 .write(|| {
-                    apply_screen_space_effect(
+                    apply_screen_effect(
                         &context,
                         &camera,
                         &fog_effect,

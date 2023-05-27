@@ -82,7 +82,7 @@ pub async fn run() {
         };
 
         frame_input.screen().clear(ClearState::default()).write(|| {
-            apply_screen_space_material(&context, &camera2d(viewport), material, &[]);
+            apply_screen_material(&context, &camera2d(viewport), material, &[]);
             gui.render();
         });
 

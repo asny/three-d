@@ -353,7 +353,7 @@ pub fn render_with_effect(
     );
 }
 
-pub fn apply_screen_space_material(
+pub fn apply_screen_material(
     context: &Context,
     camera: &Camera,
     material: impl Material,
@@ -385,7 +385,7 @@ pub fn apply_screen_space_material(
     );
 }
 
-pub fn apply_screen_space_effect(
+pub fn apply_screen_effect(
     context: &Context,
     camera: &Camera,
     material: impl Effect,

@@ -143,7 +143,7 @@ impl DeferredPhysicalMaterial {
         geometry_pass_depth_texture: DepthTexture,
         lights: &[&dyn Light],
     ) {
-        apply_screen_space_effect(
+        apply_screen_effect(
             context,
             camera,
             LightingPassMaterial {},
