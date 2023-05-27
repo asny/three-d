@@ -34,7 +34,7 @@ pub struct WaterMaterial {
     pub lighting_model: LightingModel,
 }
 
-impl PostMaterial for WaterMaterial {
+impl Effect for WaterMaterial {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],

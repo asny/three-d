@@ -2,7 +2,7 @@
 //! A collection of image based effects, ie. effects applied to each pixel of a rendered image.
 //!
 
-macro_rules! impl_post_material_body {
+macro_rules! impl_effect_body {
     ($inner:ident) => {
         fn fragment_shader_source(
             &self,
@@ -176,7 +176,7 @@ impl DepthTexture<'_> {
 /// Similar to [Material], the difference is that this type of material needs the rendered color texture and/or depth texture of the scene to be applied.
 /// Therefore this type of material is always applied one at a time and after the scene has been rendered with the regular [Material].
 ///
-pub trait PostMaterial {
+pub trait Effect {
     ///
     /// Returns the fragment shader source for this material.
     ///
@@ -188,9 +188,9 @@ pub trait PostMaterial {
     ) -> String;
 
     ///
-    /// Returns a unique ID for each variation of the shader source returned from `PostMaterial::fragment_shader_source`.
+    /// Returns a unique ID for each variation of the shader source returned from `Effect::fragment_shader_source`.
     ///
-    /// **Note:** The first 16 bits are reserved to internally implemented materials, so if implementing the `PostMaterial` trait
+    /// **Note:** The first 16 bits are reserved to internally implemented materials, so if implementing the `Effect` trait
     /// outside of this crate, always return an id that is larger than or equal to `0b1u16 << 16`.
     ///
     fn id(&self) -> u16;
@@ -224,31 +224,31 @@ pub trait PostMaterial {
     fn material_type(&self) -> MaterialType;
 }
 
-impl<T: PostMaterial + ?Sized> PostMaterial for &T {
-    impl_post_material_body!(deref);
+impl<T: Effect + ?Sized> Effect for &T {
+    impl_effect_body!(deref);
 }
 
-impl<T: PostMaterial + ?Sized> PostMaterial for &mut T {
-    impl_post_material_body!(deref);
+impl<T: Effect + ?Sized> Effect for &mut T {
+    impl_effect_body!(deref);
 }
 
-impl<T: PostMaterial> PostMaterial for Box<T> {
-    impl_post_material_body!(as_ref);
+impl<T: Effect> Effect for Box<T> {
+    impl_effect_body!(as_ref);
 }
 
-impl<T: PostMaterial> PostMaterial for std::rc::Rc<T> {
-    impl_post_material_body!(as_ref);
+impl<T: Effect> Effect for std::rc::Rc<T> {
+    impl_effect_body!(as_ref);
 }
 
-impl<T: PostMaterial> PostMaterial for std::sync::Arc<T> {
-    impl_post_material_body!(as_ref);
+impl<T: Effect> Effect for std::sync::Arc<T> {
+    impl_effect_body!(as_ref);
 }
 
-impl<T: PostMaterial> PostMaterial for std::cell::RefCell<T> {
-    impl_post_material_body!(borrow);
+impl<T: Effect> Effect for std::cell::RefCell<T> {
+    impl_effect_body!(borrow);
 }
 
-impl<T: PostMaterial> PostMaterial for std::sync::RwLock<T> {
+impl<T: Effect> Effect for std::sync::RwLock<T> {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],

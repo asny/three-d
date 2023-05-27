@@ -5,7 +5,7 @@
 //! This module contains five main traits
 //! - [Geometry] - a geometric representation in 3D space
 //! - [Material] - a material that can be applied to a geometry
-//! - [PostMaterial] - a material that can be applied to a geometry and rendered after the rest of the scene has been rendered
+//! - [Effect] - a material that can be applied to a geometry and rendered after the rest of the scene has been rendered
 //! - [Object] - an object in 3D space which has both geometry and material information (use the [Gm] struct to combine any [Material] and [Geometry] into an object)
 //! - [Light] - a light that shines onto objects in the scene (some materials are affected by lights, others are not)
 //!
@@ -189,19 +189,19 @@ macro_rules! impl_render_target_extensions_body {
         }
 
         ///
-        /// Render the geometries with the given [PostMaterial] using the given camera and lights into this render target.
+        /// Render the geometries with the given [Effect] using the given camera and lights into this render target.
         /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
         ///
-        pub fn render_with_post_material(
+        pub fn render_with_effect(
             &self,
-            material: &dyn PostMaterial,
+            material: &dyn Effect,
             camera: &Camera,
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
-            self.render_partially_with_post_material(
+            self.render_partially_with_effect(
                 self.scissor_box(),
                 material,
                 camera,
@@ -213,13 +213,13 @@ macro_rules! impl_render_target_extensions_body {
         }
 
         ///
-        /// Render the geometries with the given [PostMaterial] using the given camera and lights into the part of this render target defined by the scissor box.
+        /// Render the geometries with the given [Effect] using the given camera and lights into the part of this render target defined by the scissor box.
         /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
         ///
-        pub fn render_partially_with_post_material(
+        pub fn render_partially_with_effect(
             &self,
             scissor_box: ScissorBox,
-            material: &dyn PostMaterial,
+            material: &dyn Effect,
             camera: &Camera,
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
@@ -231,7 +231,7 @@ macro_rules! impl_render_target_extensions_body {
                     .into_iter()
                     .filter(|o| camera.in_frustum(&o.aabb()))
                 {
-                    render_with_post_material(
+                    render_with_effect(
                         &self.context,
                         camera,
                         geometry,
@@ -317,15 +317,15 @@ pub fn render_with_material(
 }
 
 ///
-/// Render the given [Geometry] with the given [PostMaterial].
+/// Render the given [Geometry] with the given [Effect].
 /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
 /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
 ///
-pub fn render_with_post_material(
+pub fn render_with_effect(
     context: &Context,
     camera: &Camera,
     geometry: impl Geometry,
-    material: impl PostMaterial,
+    material: impl Effect,
     lights: &[&dyn Light],
     color_texture: Option<ColorTexture>,
     depth_texture: Option<DepthTexture>,
@@ -388,7 +388,7 @@ pub fn apply_screen_space_material(
 pub fn apply_screen_space_effect(
     context: &Context,
     camera: &Camera,
-    material: impl PostMaterial,
+    material: impl Effect,
     lights: &[&dyn Light],
     color_texture: Option<ColorTexture>,
     depth_texture: Option<DepthTexture>,

@@ -301,7 +301,7 @@ impl Default for DeferredPhysicalMaterial {
 
 struct LightingPassMaterial {}
 
-impl PostMaterial for LightingPassMaterial {
+impl Effect for LightingPassMaterial {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],

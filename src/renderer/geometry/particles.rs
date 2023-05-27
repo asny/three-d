@@ -302,15 +302,15 @@ impl Geometry for ParticleSystem {
         render_with_material(&self.context, camera, &self, material, lights)
     }
 
-    fn render_with_post_material(
+    fn render_with_effect(
         &self,
-        material: &dyn PostMaterial,
+        material: &dyn Effect,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        render_with_post_material(
+        render_with_effect(
             &self.context,
             camera,
             self,

@@ -25,7 +25,7 @@ impl FxaaEffect {
     }
 }
 
-impl PostMaterial for FxaaEffect {
+impl Effect for FxaaEffect {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],

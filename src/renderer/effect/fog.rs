@@ -44,7 +44,7 @@ impl FogEffect {
     }
 }
 
-impl PostMaterial for FogEffect {
+impl Effect for FogEffect {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],

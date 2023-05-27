@@ -35,15 +35,15 @@ macro_rules! impl_geometry_body {
             self.$inner().render_with_material(material, camera, lights)
         }
 
-        fn render_with_post_material(
+        fn render_with_effect(
             &self,
-            material: &dyn PostMaterial,
+            material: &dyn Effect,
             camera: &Camera,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) {
-            self.$inner().render_with_post_material(
+            self.$inner().render_with_effect(
                 material,
                 camera,
                 lights,
@@ -144,13 +144,13 @@ pub trait Geometry {
     fn render_with_material(&self, material: &dyn Material, camera: &Camera, lights: &[&dyn Light]);
 
     ///
-    /// Render the geometry with the given [PostMaterial].
+    /// Render the geometry with the given [Effect].
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     ///
-    fn render_with_post_material(
+    fn render_with_effect(
         &self,
-        material: &dyn PostMaterial,
+        material: &dyn Effect,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
@@ -236,15 +236,15 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
             .render_with_material(material, camera, lights)
     }
 
-    fn render_with_post_material(
+    fn render_with_effect(
         &self,
-        material: &dyn PostMaterial,
+        material: &dyn Effect,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        self.read().unwrap().render_with_post_material(
+        self.read().unwrap().render_with_effect(
             material,
             camera,
             lights,
