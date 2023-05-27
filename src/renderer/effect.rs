@@ -56,6 +56,8 @@ mod water;
 #[doc(inline)]
 pub use water::*;
 
+pub(crate) mod lighting_pass;
+
 use crate::renderer::*;
 use std::ops::Deref;
 
