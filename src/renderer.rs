@@ -121,18 +121,17 @@ macro_rules! impl_render_target_extensions_body {
                 });
 
                 // Lighting pass
-                self.write_partially(scissor_box, || {
-                    DeferredPhysicalMaterial::lighting_pass(
-                        &self.context,
-                        camera,
-                        ColorTexture::Array {
-                            texture: &geometry_pass_texture,
-                            layers: &gbuffer_layers,
-                        },
-                        DepthTexture::Single(&geometry_pass_depth_texture),
-                        lights,
-                    )
-                });
+                self.apply_screen_effect_partially(
+                    scissor_box,
+                    &lighting_pass::LightingPassEffect {},
+                    camera,
+                    lights,
+                    Some(ColorTexture::Array {
+                        texture: &geometry_pass_texture,
+                        layers: &gbuffer_layers,
+                    }),
+                    Some(DepthTexture::Single(&geometry_pass_depth_texture)),
+                );
             }
 
             // Forward
