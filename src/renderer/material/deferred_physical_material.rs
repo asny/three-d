@@ -145,7 +145,7 @@ impl DeferredPhysicalMaterial {
     ) {
         apply_screen_effect(
             context,
-            lighting_pass::LightingPassMaterial {},
+            lighting_pass::LightingPassEffect {},
             camera,
             lights,
             Some(geometry_pass_color_texture),

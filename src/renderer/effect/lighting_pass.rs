@@ -1,8 +1,8 @@
 use crate::renderer::*;
 
-pub struct LightingPassMaterial {}
+pub struct LightingPassEffect {}
 
-impl Effect for LightingPassMaterial {
+impl Effect for LightingPassEffect {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
