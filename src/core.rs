@@ -151,7 +151,7 @@ pub fn apply_cube_effect(
 }
 
 pub(crate) fn full_screen_id() -> u16 {
-    0b1u16
+    0b1u16 << 15
 }
 
 pub(crate) fn full_screen_draw(
