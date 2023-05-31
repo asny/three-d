@@ -239,7 +239,7 @@ impl<'a> RenderTarget<'a> {
     ) -> &Self {
         self.write_partially(scissor_box, || {
             let mut id = full_screen_id().to_le_bytes().to_vec();
-            id.extend(0b1u16.to_le_bytes());
+            id.extend(0b1u8.to_le_bytes());
             let mut programs = self.context.programs2.write().unwrap();
             let program = programs.entry(id).or_insert_with(|| {
                 let fragment_shader_source = format!(
@@ -303,7 +303,7 @@ impl<'a> RenderTarget<'a> {
     ) -> &Self {
         self.write_partially(scissor_box, || {
             let mut id = full_screen_id().to_le_bytes().to_vec();
-            id.extend(0b10u16.to_le_bytes());
+            id.extend(0b10u8.to_le_bytes());
             let mut programs = self.context.programs2.write().unwrap();
             let program = programs.entry(id).or_insert_with(|| {
                 let fragment_shader_source = format!(
@@ -357,7 +357,7 @@ impl<'a> RenderTarget<'a> {
     ) -> &Self {
         self.write_partially(scissor_box, || {
             let mut id = full_screen_id().to_le_bytes().to_vec();
-            id.extend(0b11u16.to_le_bytes());
+            id.extend(0b11u8.to_le_bytes());
             let mut programs = self.context.programs2.write().unwrap();
             let program = programs.entry(id).or_insert_with(|| {
                 let fragment_shader_source = format!(
