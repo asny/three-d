@@ -59,7 +59,7 @@ impl Effect for WaterMaterial {
     }
 
     fn id(&self) -> u16 {
-        0b1u16 << 15 | 0b1110u16
+        0b11u16 << 14 | 0b100u16
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

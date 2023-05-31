@@ -142,26 +142,49 @@ impl Environment {
         brdf_map
             .as_color_target(None)
             .clear(ClearState::default())
-            .write(|| {
-                apply_effect(
-                    context,
-                    &format!(
-                        "{}{}{}{}",
-                        super::lighting_model_shader(lighting_model),
-                        include_str!("../../core/shared.frag"),
-                        include_str!("shaders/light_shared.frag"),
-                        include_str!("shaders/brdf.frag")
-                    ),
-                    RenderStates::default(),
-                    viewport,
-                    |_| {},
-                )
-            });
+            .apply_screen_material(&BrdfMaterial { lighting_model }, &camera2d(viewport), &[]);
 
         Self {
             irradiance_map,
             prefilter_map,
             brdf_map,
         }
+    }
+}
+
+struct BrdfMaterial {
+    lighting_model: LightingModel,
+}
+
+impl Material for BrdfMaterial {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}{}{}",
+            super::lighting_model_shader(self.lighting_model),
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/light_shared.frag"),
+            include_str!("shaders/brdf.frag")
+        )
+    }
+
+    fn id(&self) -> u16 {
+        0b1u16 << 15 | 0b1110u16
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
+    fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates::default()
+    }
+
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
     }
 }
