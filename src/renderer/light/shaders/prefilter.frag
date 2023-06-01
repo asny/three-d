@@ -1,13 +1,16 @@
 out vec4 FragColor;
-in vec3 pos;
+in vec2 uvs;
 
 uniform samplerCube environmentMap;
 uniform float roughness;
 uniform float resolution; // resolution of source cubemap (per face)
+uniform vec3 direction;
+uniform vec3 up;
 
 void main()
-{		
-    vec3 N = normalize(pos);
+{
+    vec3 right = cross(direction, up);
+    vec3 N = normalize(up * (uvs.y - 0.5) * 2.0 + right * (uvs.x - 0.5) * 2.0 + direction);
     
     // make the simplyfying assumption that V equals R equals the normal 
     vec3 R = N;
