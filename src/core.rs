@@ -66,6 +66,7 @@ pub enum CoreError {
 /// The fragment shader get the uv coordinates of the viewport (specified by `in vec2 uvs;`),
 /// where uv coordinates of `(0, 0)` corresponds to the bottom left corner of the viewport and `(1, 1)` to the top right corner.
 ///
+#[deprecated = "Use apply_screen_material or apply_screen_effect in the renderer module"]
 pub fn apply_effect(
     context: &Context,
     fragment_shader_source: &str,
@@ -81,6 +82,7 @@ pub fn apply_effect(
             vec3(0.0, 2.0, 0.0),
         ],
     );
+    #[allow(deprecated)]
     context
         .program(
             "
@@ -107,6 +109,7 @@ pub fn apply_effect(
 /// Applies a 2D/screen space effect to the given viewport of the given side of a cube map.
 /// The fragment shader get the 3D position (specified by `in vec3 pos;`) of the fragment on the cube with minimum position `(-1, -1, -1)` and maximum position `(1, 1, 1)`.
 ///
+#[deprecated = "Use apply_screen_material or apply_screen_effect in the renderer module"]
 pub fn apply_cube_effect(
     context: &Context,
     side: CubeMapSide,
@@ -123,6 +126,7 @@ pub fn apply_cube_effect(
             vec3(0.0, 2.0, 0.0),
         ],
     );
+    #[allow(deprecated)]
     context
         .program(
             "
