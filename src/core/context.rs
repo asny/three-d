@@ -16,7 +16,7 @@ pub struct Context {
     context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
     programs_old: Arc<RwLock<HashMap<(String, String), Program>>>,
-    pub(crate) programs2: Arc<RwLock<HashMap<Vec<u8>, Program>>>,
+    pub(crate) programs: Arc<RwLock<HashMap<Vec<u8>, Program>>>,
 }
 
 impl Context {
@@ -44,7 +44,7 @@ impl Context {
                 context,
                 vao,
                 programs_old: Arc::new(RwLock::new(HashMap::new())),
-                programs2: Arc::new(RwLock::new(HashMap::new())),
+                programs: Arc::new(RwLock::new(HashMap::new())),
             }
         };
         Ok(c)

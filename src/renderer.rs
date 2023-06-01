@@ -359,7 +359,7 @@ pub fn render_with_material(
     id.extend(material.id().to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
-    let mut programs = context.programs2.write().unwrap();
+    let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
         Program::from_source(
             context,
@@ -396,7 +396,7 @@ pub fn render_with_effect(
     id.extend(material.id().to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
-    let mut programs = context.programs2.write().unwrap();
+    let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
         Program::from_source(
             context,
@@ -428,7 +428,7 @@ pub fn apply_screen_material(
     id.extend(material.id().to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
-    let mut programs = context.programs2.write().unwrap();
+    let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
         Program::from_source(
             context,
@@ -462,7 +462,7 @@ pub fn apply_screen_effect(
     id.extend(effect.id().to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
-    let mut programs = context.programs2.write().unwrap();
+    let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
         Program::from_source(
             context,
