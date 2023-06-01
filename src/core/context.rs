@@ -16,7 +16,8 @@ pub struct Context {
     context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
     programs_old: Arc<RwLock<HashMap<(String, String), Program>>>,
-    pub(crate) programs: Arc<RwLock<HashMap<Vec<u8>, Program>>>,
+    /// A cache of programs to avoid recompiling a [Program] every frame.
+    pub programs: Arc<RwLock<HashMap<Vec<u8>, Program>>>,
 }
 
 impl Context {
@@ -54,7 +55,7 @@ impl Context {
     /// Compiles a [Program] with the given vertex and fragment shader source and stores it for later use.
     /// If it has already been created, then it is just returned.
     ///
-    #[deprecated]
+    #[deprecated = "Use Context::programs"]
     pub fn program(
         &self,
         vertex_shader_source: String,
