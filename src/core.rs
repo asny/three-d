@@ -186,6 +186,42 @@ pub(crate) fn full_screen_vertex_shader_source() -> &'static str {
     "
 }
 
+pub(crate) fn cube_effect_draw(
+    context: &Context,
+    program: &Program,
+    render_states: RenderStates,
+    viewport: Viewport,
+    side: CubeMapSide,
+) {
+    let position_buffer = VertexBuffer::new_with_data(
+        context,
+        &[
+            vec3(-3.0, -1.0, 0.0),
+            vec3(3.0, -1.0, 0.0),
+            vec3(0.0, 2.0, 0.0),
+        ],
+    );
+    program.use_uniform("direction", side.direction());
+    program.use_uniform("up", side.up());
+    program.use_vertex_attribute("position", &position_buffer);
+    program.draw_arrays(render_states, viewport, 3);
+}
+
+pub(crate) fn cube_effect_vertex_shader_source() -> &'static str {
+    "
+        uniform vec3 direction;
+        uniform vec3 up;
+        in vec3 position;
+        out vec3 pos;
+        void main()
+        {
+            vec3 right = cross(direction, up);
+            pos = up * position.y + right * position.x + direction;
+            gl_Position = vec4(position, 1.0);
+        }
+    "
+}
+
 mod data_type;
 use data_type::DataType;
 fn to_byte_slice<T: DataType>(data: &[T]) -> &[u8] {

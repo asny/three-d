@@ -470,22 +470,21 @@ impl TextureCubeMap {
                 outColor = texture(equirectangularMap, uv);
             }";
 
+            let program = Program::from_source(
+                context,
+                cube_effect_vertex_shader_source(),
+                &fragment_shader_source,
+            )
+            .expect("Failed compiling shader");
+
             for side in CubeMapSide::iter() {
                 let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 texture
                     .as_color_target(&[side], None)
                     .clear(ClearState::default())
                     .write(|| {
-                        apply_cube_effect(
-                            context,
-                            side,
-                            fragment_shader_source,
-                            RenderStates::default(),
-                            viewport,
-                            |program| {
-                                program.use_texture("equirectangularMap", &map);
-                            },
-                        );
+                        program.use_texture("equirectangularMap", &map);
+                        cube_effect_draw(context, &program, RenderStates::default(), viewport, side)
                     });
             }
         }
