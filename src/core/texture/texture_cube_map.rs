@@ -460,19 +460,24 @@ impl TextureCubeMap {
             let map = Texture2D::new(context, cpu_texture);
             let fragment_shader_source = "
             uniform sampler2D equirectangularMap;
-            in vec3 pos;
+            uniform vec3 direction;
+            uniform vec3 up;
+
+            in vec2 uvs;
+            
             layout (location = 0) out vec4 outColor;
             
             void main()
             {
-                vec3 v = normalize(pos);
-                vec2 uv = vec2(0.1591 * atan(v.z, v.x) + 0.5, 0.3183 * asin(v.y) + 0.5);
+                vec3 right = cross(direction, up);
+                vec3 dir = normalize(up * (uvs.y - 0.5) * 2.0 + right * (uvs.x - 0.5) * 2.0 + direction);
+                vec2 uv = vec2(0.1591 * atan(dir.z, dir.x) + 0.5, 0.3183 * asin(dir.y) + 0.5);
                 outColor = texture(equirectangularMap, uv);
             }";
 
             let program = Program::from_source(
                 context,
-                cube_effect_vertex_shader_source(),
+                full_screen_vertex_shader_source(),
                 &fragment_shader_source,
             )
             .expect("Failed compiling shader");
@@ -484,7 +489,9 @@ impl TextureCubeMap {
                     .clear(ClearState::default())
                     .write(|| {
                         program.use_texture("equirectangularMap", &map);
-                        cube_effect_draw(context, &program, RenderStates::default(), viewport, side)
+                        program.use_uniform("direction", side.direction());
+                        program.use_uniform("up", side.up());
+                        full_screen_draw(context, &program, RenderStates::default(), viewport)
                     });
             }
         }
