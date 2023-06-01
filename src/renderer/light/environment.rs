@@ -53,28 +53,19 @@ impl Environment {
             Wrapping::ClampToEdge,
         );
         {
-            let fragment_shader_source = format!(
-                "{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/irradiance.frag")
-            );
             let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
             for side in CubeMapSide::iter() {
                 irradiance_map
                     .as_color_target(&[side], None)
                     .clear(ClearState::default())
-                    .write(|| {
-                        apply_cube_effect(
-                            context,
+                    .apply_screen_material(
+                        &IrradianceMaterial {
+                            environment_map,
                             side,
-                            &fragment_shader_source,
-                            RenderStates::default(),
-                            viewport,
-                            |program| {
-                                program.use_texture_cube("environmentMap", environment_map);
-                            },
-                        )
-                    });
+                        },
+                        &camera2d(viewport),
+                        &[],
+                    );
             }
         }
 
@@ -179,6 +170,46 @@ impl Material for BrdfMaterial {
     }
 
     fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates::default()
+    }
+
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Opaque
+    }
+}
+
+struct IrradianceMaterial<'a> {
+    environment_map: &'a TextureCubeMap,
+    side: CubeMapSide,
+}
+
+impl Material for IrradianceMaterial<'_> {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}",
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/irradiance.frag")
+        )
+    }
+
+    fn id(&self) -> u16 {
+        0b1u16 << 15 | 0b1111u16
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
+        program.use_texture_cube("environmentMap", self.environment_map);
+        program.use_uniform("direction", self.side.direction());
+        program.use_uniform("up", self.side.up());
+    }
 
     fn render_states(&self) -> RenderStates {
         RenderStates::default()
