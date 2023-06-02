@@ -37,10 +37,6 @@ macro_rules! impl_effect_body {
         fn render_states(&self) -> RenderStates {
             self.$inner().render_states()
         }
-
-        fn material_type(&self) -> MaterialType {
-            self.$inner().material_type()
-        }
     };
 }
 
@@ -219,11 +215,6 @@ pub trait Effect {
     /// Returns the render states needed to render with this effect.
     ///
     fn render_states(&self) -> RenderStates;
-
-    ///
-    /// Returns the type of effect.
-    ///
-    fn material_type(&self) -> MaterialType;
 }
 
 impl<T: Effect + ?Sized> Effect for &T {
@@ -282,11 +273,8 @@ impl<T: Effect> Effect for std::sync::RwLock<T> {
             .unwrap()
             .use_uniforms(program, camera, lights, color_texture, depth_texture)
     }
+
     fn render_states(&self) -> RenderStates {
         self.read().unwrap().render_states()
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.read().unwrap().material_type()
     }
 }

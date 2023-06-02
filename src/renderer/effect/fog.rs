@@ -103,8 +103,4 @@ impl Effect for FogEffect {
             ..Default::default()
         }
     }
-
-    fn material_type(&self) -> MaterialType {
-        MaterialType::Opaque
-    }
 }

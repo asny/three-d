@@ -76,8 +76,4 @@ impl Effect for FxaaEffect {
             ..Default::default()
         }
     }
-
-    fn material_type(&self) -> MaterialType {
-        MaterialType::Opaque
-    }
 }

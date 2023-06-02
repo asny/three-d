@@ -57,10 +57,6 @@ impl Effect for LightingPassEffect {
     fn render_states(&self) -> RenderStates {
         RenderStates::default()
     }
-
-    fn material_type(&self) -> MaterialType {
-        MaterialType::Opaque
-    }
 }
 
 ///

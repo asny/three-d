@@ -115,10 +115,6 @@ impl Effect for WaterMaterial {
             Background::Texture(tex) => program.use_texture_cube("environmentMap", tex),
         }
     }
-
-    fn material_type(&self) -> MaterialType {
-        MaterialType::Opaque
-    }
 }
 
 impl Default for WaterMaterial {
