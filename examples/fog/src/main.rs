@@ -45,7 +45,8 @@ pub async fn run() {
     let fog_effect = FogEffect {
         color: Color::new_opaque(200, 200, 200),
         density: 0.2,
-        animation: 0.1,
+        animation: 0.2,
+        ..Default::default()
     };
     let mut fog_enabled = true;
 
@@ -114,14 +115,13 @@ pub async fn run() {
                     frame_input.viewport,
                     WriteMask::default(),
                 )
-                .write(|| {
-                    fog_effect.apply(
-                        &context,
-                        frame_input.accumulated_time,
-                        &camera,
-                        DepthTexture::Single(&depth_texture),
-                    )
-                });
+                .apply_screen_effect(
+                    &fog_effect,
+                    &camera,
+                    &[],
+                    None,
+                    Some(DepthTexture::Single(&depth_texture)),
+                );
         } else if change {
             // If a change has happened and no fog is applied, copy the result to the screen
             frame_input.screen().copy_from_color(

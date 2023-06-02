@@ -22,13 +22,18 @@ impl FromCpuMaterial for DepthMaterial {
 }
 
 impl Material for DepthMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: include_str!("shaders/depth_material.frag").to_string(),
-            attributes: FragmentAttributes {
-                position: true,
-                ..FragmentAttributes::NONE
-            },
+    fn id(&self) -> u16 {
+        0b1u16 << 15 | 0b10u16
+    }
+
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        include_str!("shaders/depth_material.frag").to_string()
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            position: true,
+            ..FragmentAttributes::NONE
         }
     }
 

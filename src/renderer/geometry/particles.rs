@@ -169,12 +169,85 @@ impl ParticleSystem {
             );
         }
     }
+}
+
+impl<'a> IntoIterator for &'a ParticleSystem {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
+    }
+}
+
+impl Geometry for ParticleSystem {
+    fn id(&self, required_attributes: FragmentAttributes) -> u16 {
+        let mut id = 0b1u16 << 15 | 0b1u16 << 5;
+        if required_attributes.normal {
+            id |= 0b1u16;
+        }
+        if required_attributes.tangents {
+            id |= 0b1u16 << 1;
+        }
+        if required_attributes.uv {
+            id |= 0b1u16 << 2;
+        }
+        if self.base_mesh.colors.is_some() {
+            id |= 0b1u16 << 3;
+        }
+        if self.instance_buffers.contains_key("instance_color") {
+            id |= 0b1u16 << 4;
+        }
+        if self.instance_buffers.contains_key("tex_transform_row1") {
+            id |= 0b1u16 << 5;
+        }
+        id
+    }
+
+    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+        format!(
+            "#define PARTICLES\n{}{}{}{}{}{}{}",
+            if required_attributes.normal {
+                "#define USE_NORMALS\n"
+            } else {
+                ""
+            },
+            if required_attributes.tangents {
+                "#define USE_TANGENTS\n"
+            } else {
+                ""
+            },
+            if required_attributes.uv {
+                "#define USE_UVS\n"
+            } else {
+                ""
+            },
+            if self.instance_buffers.contains_key("instance_color")
+                && self.base_mesh.colors.is_some()
+            {
+                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
+            } else if self.instance_buffers.contains_key("instance_color") {
+                "#define USE_INSTANCE_COLORS\n"
+            } else if self.base_mesh.colors.is_some() {
+                "#define USE_VERTEX_COLORS\n"
+            } else {
+                ""
+            },
+            if self.instance_buffers.contains_key("tex_transform_row1") {
+                "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
+            } else {
+                ""
+            },
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/mesh.vert"),
+        )
+    }
 
     fn draw(
         &self,
+        camera: &Camera,
         program: &Program,
         render_states: RenderStates,
-        camera: &Camera,
         attributes: FragmentAttributes,
     ) {
         if attributes.normal {
@@ -216,56 +289,6 @@ impl ParticleSystem {
         );
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        format!(
-            "#define PARTICLES\n{}{}{}{}{}{}{}",
-            if required_attributes.normal {
-                "#define USE_NORMALS\n"
-            } else {
-                ""
-            },
-            if required_attributes.tangents {
-                "#define USE_TANGENTS\n"
-            } else {
-                ""
-            },
-            if required_attributes.uv {
-                "#define USE_UVS\n"
-            } else {
-                ""
-            },
-            if self.instance_buffers.contains_key("instance_color")
-                && self.base_mesh.colors.is_some()
-            {
-                "#define USE_VERTEX_COLORS\n#define USE_INSTANCE_COLORS\n"
-            } else if self.instance_buffers.contains_key("instance_color") {
-                "#define USE_INSTANCE_COLORS\n"
-            } else if self.base_mesh.colors.is_some() {
-                "#define USE_VERTEX_COLORS\n"
-            } else {
-                ""
-            },
-            if self.instance_buffers.contains_key("tex_transform_row1") {
-                "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
-            } else {
-                ""
-            },
-            include_str!("../../core/shared.frag"),
-            include_str!("shaders/mesh.vert"),
-        )
-    }
-}
-
-impl<'a> IntoIterator for &'a ParticleSystem {
-    type Item = &'a dyn Geometry;
-    type IntoIter = std::iter::Once<&'a dyn Geometry>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(self)
-    }
-}
-
-impl Geometry for ParticleSystem {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::INFINITE
     }
@@ -276,42 +299,26 @@ impl Geometry for ParticleSystem {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader(lights);
-        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
-                material.use_uniforms(program, camera, lights);
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera,
-                    fragment_shader.attributes,
-                );
-            })
-            .expect("Failed compiling shader");
+        render_with_material(&self.context, camera, &self, material, lights)
     }
 
-    fn render_with_post_material(
+    fn render_with_effect(
         &self,
-        material: &dyn PostMaterial,
+        material: &dyn Effect,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
-                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera,
-                    fragment_shader.attributes,
-                );
-            })
-            .expect("Failed compiling shader");
+        render_with_effect(
+            &self.context,
+            camera,
+            self,
+            material,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 
     fn animate(&mut self, time: f32) {

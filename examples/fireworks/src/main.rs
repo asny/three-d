@@ -10,14 +10,14 @@ struct FireworksMaterial {
 }
 
 impl Material for FireworksMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: include_str!("particles.frag").to_string(),
-            attributes: FragmentAttributes {
-                uv: true,
-                color: true,
-                ..FragmentAttributes::NONE
-            },
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        include_str!("particles.frag").to_string()
+    }
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            color: true,
+            ..FragmentAttributes::NONE
         }
     }
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
@@ -41,6 +41,10 @@ impl Material for FireworksMaterial {
     }
     fn material_type(&self) -> MaterialType {
         MaterialType::Transparent
+    }
+
+    fn id(&self) -> u16 {
+        0b1u16
     }
 }
 // Entry point for non-wasm

@@ -7,15 +7,20 @@ pub struct SkyboxMaterial {
 }
 
 impl Material for SkyboxMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: format!(
-                "{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/skybox_material.frag")
-            ),
-            attributes: FragmentAttributes::NONE,
-        }
+    fn id(&self) -> u16 {
+        0b1u16 << 15 | 0b100u16
+    }
+
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}",
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/skybox_material.frag")
+        )
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes::NONE
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

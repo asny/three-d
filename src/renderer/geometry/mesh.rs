@@ -77,12 +77,35 @@ impl Mesh {
     pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + Send + Sync + 'static) {
         self.animation = Some(Box::new(animation));
     }
+}
+
+impl<'a> IntoIterator for &'a Mesh {
+    type Item = &'a dyn Geometry;
+    type IntoIter = std::iter::Once<&'a dyn Geometry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
+    }
+}
+
+impl Geometry for Mesh {
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        let mut aabb = self.aabb;
+        aabb.transform(&self.current_transformation);
+        aabb
+    }
+
+    fn animate(&mut self, time: f32) {
+        if let Some(animation) = &self.animation {
+            self.current_transformation = self.transformation * animation(time);
+        }
+    }
 
     fn draw(
         &self,
+        camera: &Camera,
         program: &Program,
         render_states: RenderStates,
-        camera: &Camera,
         attributes: FragmentAttributes,
     ) {
         if attributes.normal {
@@ -128,28 +151,22 @@ impl Mesh {
             include_str!("shaders/mesh.vert"),
         )
     }
-}
 
-impl<'a> IntoIterator for &'a Mesh {
-    type Item = &'a dyn Geometry;
-    type IntoIter = std::iter::Once<&'a dyn Geometry>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(self)
-    }
-}
-
-impl Geometry for Mesh {
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        let mut aabb = self.aabb;
-        aabb.transform(&self.current_transformation);
-        aabb
-    }
-
-    fn animate(&mut self, time: f32) {
-        if let Some(animation) = &self.animation {
-            self.current_transformation = self.transformation * animation(time);
+    fn id(&self, required_attributes: FragmentAttributes) -> u16 {
+        let mut id = 0b1u16 << 15 | 0b1u16 << 4;
+        if required_attributes.normal {
+            id |= 0b1u16;
         }
+        if required_attributes.tangents {
+            id |= 0b1u16 << 1;
+        }
+        if required_attributes.uv {
+            id |= 0b1u16 << 2;
+        }
+        if self.base_mesh.colors.is_some() {
+            id |= 0b1u16 << 3;
+        }
+        id
     }
 
     fn render_with_material(
@@ -158,41 +175,25 @@ impl Geometry for Mesh {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader(lights);
-        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
-                material.use_uniforms(program, camera, lights);
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera,
-                    fragment_shader.attributes,
-                );
-            })
-            .expect("Failed compiling shader");
+        render_with_material(&self.context, camera, &self, material, lights);
     }
 
-    fn render_with_post_material(
+    fn render_with_effect(
         &self,
-        material: &dyn PostMaterial,
+        material: &dyn Effect,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        let vertex_shader_source = self.vertex_shader_source(fragment_shader.attributes);
-        self.context
-            .program(vertex_shader_source, fragment_shader.source, |program| {
-                material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera,
-                    fragment_shader.attributes,
-                );
-            })
-            .expect("Failed compiling shader");
+        render_with_effect(
+            &self.context,
+            camera,
+            self,
+            material,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 }

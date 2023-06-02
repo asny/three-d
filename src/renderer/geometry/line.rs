@@ -79,43 +79,33 @@ impl Line {
     }
 }
 
-impl Geometry for Line {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.mesh.render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.mesh
-            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
-    }
-
-    ///
-    /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
-    ///
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        let pixel0: Vec2 = self.pixel0.into();
-        let pixel1: Vec2 = self.pixel1.into();
-        AxisAlignedBoundingBox::new_with_positions(&[pixel0.extend(0.0), pixel1.extend(0.0)])
-    }
-}
-
 impl<'a> IntoIterator for &'a Line {
     type Item = &'a dyn Geometry;
     type IntoIter = std::iter::Once<&'a dyn Geometry>;
 
     fn into_iter(self) -> Self::IntoIter {
         std::iter::once(self)
+    }
+}
+
+use std::ops::Deref;
+impl Deref for Line {
+    type Target = Mesh;
+    fn deref(&self) -> &Self::Target {
+        &self.mesh
+    }
+}
+
+impl std::ops::DerefMut for Line {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.mesh
+    }
+}
+
+impl Geometry for Line {
+    impl_geometry_body!(deref);
+
+    fn animate(&mut self, time: f32) {
+        self.mesh.animate(time)
     }
 }

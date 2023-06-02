@@ -238,31 +238,41 @@ impl<'a> RenderTarget<'a> {
         write_mask: WriteMask,
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            let fragment_shader_source = format!(
-                "{}\n{}\n
-                in vec2 uvs;
-                layout (location = 0) out vec4 color;
-                void main()
-                {{
-                    color = sample_color(uvs);
-                    gl_FragDepth = sample_depth(uvs);
-                }}",
-                color_texture.fragment_shader_source(),
-                depth_texture.fragment_shader_source()
-            );
-            apply_effect(
+            let mut id = full_screen_id().to_le_bytes().to_vec();
+            id.extend(0b1u8.to_le_bytes());
+            let mut programs = self.context.programs.write().unwrap();
+            let program = programs.entry(id).or_insert_with(|| {
+                let fragment_shader_source = format!(
+                    "{}\n{}\n
+                    in vec2 uvs;
+                    layout (location = 0) out vec4 color;
+                    void main()
+                    {{
+                        color = sample_color(uvs);
+                        gl_FragDepth = sample_depth(uvs);
+                    }}",
+                    color_texture.fragment_shader_source(),
+                    depth_texture.fragment_shader_source()
+                );
+                Program::from_source(
+                    &self.context,
+                    full_screen_vertex_shader_source(),
+                    &fragment_shader_source,
+                )
+                .expect("Failed compiling shader")
+            });
+            color_texture.use_uniforms(program);
+            depth_texture.use_uniforms(program);
+
+            full_screen_draw(
                 &self.context,
-                &fragment_shader_source,
+                &program,
                 RenderStates {
                     depth_test: DepthTest::Always,
                     write_mask,
                     ..Default::default()
                 },
                 viewport,
-                |program| {
-                    color_texture.use_uniforms(program);
-                    depth_texture.use_uniforms(program);
-                },
             )
         })
     }
@@ -292,27 +302,37 @@ impl<'a> RenderTarget<'a> {
         write_mask: WriteMask,
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            let fragment_shader_source = format!(
-                "{}\nin vec2 uvs;
-                layout (location = 0) out vec4 color;
-                void main()
-                {{
-                    color = sample_color(uvs);
-                }}",
-                color_texture.fragment_shader_source()
-            );
-            apply_effect(
+            let mut id = full_screen_id().to_le_bytes().to_vec();
+            id.extend(0b10u8.to_le_bytes());
+            let mut programs = self.context.programs.write().unwrap();
+            let program = programs.entry(id).or_insert_with(|| {
+                let fragment_shader_source = format!(
+                    "{}\nin vec2 uvs;
+                    layout (location = 0) out vec4 color;
+                    void main()
+                    {{
+                        color = sample_color(uvs);
+                    }}",
+                    color_texture.fragment_shader_source()
+                );
+                Program::from_source(
+                    &self.context,
+                    full_screen_vertex_shader_source(),
+                    &fragment_shader_source,
+                )
+                .expect("Failed compiling shader")
+            });
+            color_texture.use_uniforms(program);
+
+            full_screen_draw(
                 &self.context,
-                &fragment_shader_source,
+                &program,
                 RenderStates {
                     depth_test: DepthTest::Always,
                     write_mask,
                     ..Default::default()
                 },
                 viewport,
-                |program| {
-                    color_texture.use_uniforms(program);
-                },
             )
         })
     }
@@ -336,27 +356,37 @@ impl<'a> RenderTarget<'a> {
         viewport: Viewport,
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            let fragment_shader_source = format!(
-                "{}\n
-                    in vec2 uvs;
-                    void main()
-                    {{
-                        gl_FragDepth = sample_depth(uvs);
-                    }}",
-                depth_texture.fragment_shader_source(),
-            );
-            apply_effect(
+            let mut id = full_screen_id().to_le_bytes().to_vec();
+            id.extend(0b11u8.to_le_bytes());
+            let mut programs = self.context.programs.write().unwrap();
+            let program = programs.entry(id).or_insert_with(|| {
+                let fragment_shader_source = format!(
+                    "{}\n
+                        in vec2 uvs;
+                        void main()
+                        {{
+                            gl_FragDepth = sample_depth(uvs);
+                        }}",
+                    depth_texture.fragment_shader_source(),
+                );
+                Program::from_source(
+                    &self.context,
+                    full_screen_vertex_shader_source(),
+                    &fragment_shader_source,
+                )
+                .expect("Failed compiling shader")
+            });
+            depth_texture.use_uniforms(program);
+
+            full_screen_draw(
                 &self.context,
-                &fragment_shader_source,
+                &program,
                 RenderStates {
                     depth_test: DepthTest::Always,
                     write_mask: WriteMask::DEPTH,
                     ..Default::default()
                 },
                 viewport,
-                |program| {
-                    depth_texture.use_uniforms(program);
-                },
             )
         })
     }

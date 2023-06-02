@@ -18,13 +18,18 @@ impl FromCpuMaterial for UVMaterial {
 }
 
 impl Material for UVMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: include_str!("shaders/uv_material.frag").to_string(),
-            attributes: FragmentAttributes {
-                uv: true,
-                ..FragmentAttributes::NONE
-            },
+    fn id(&self) -> u16 {
+        0b1u16 << 15 | 0b101u16
+    }
+
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        include_str!("shaders/uv_material.frag").to_string()
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
         }
     }
 

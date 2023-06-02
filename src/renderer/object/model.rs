@@ -35,7 +35,8 @@ impl<M: Material> ModelPart<M> {
     }
 }
 
-impl<M: Material> std::ops::Deref for ModelPart<M> {
+use std::ops::Deref;
+impl<M: Material> Deref for ModelPart<M> {
     type Target = Gm<Mesh, M>;
     fn deref(&self) -> &Self::Target {
         &self.gm
@@ -49,42 +50,15 @@ impl<M: Material> std::ops::DerefMut for ModelPart<M> {
 }
 
 impl<M: Material> Geometry for ModelPart<M> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.gm.render_with_material(material, camera, lights)
-    }
+    impl_geometry_body!(deref);
 
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.gm
-            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.gm.aabb()
-    }
     fn animate(&mut self, time: f32) {
         self.gm.animate(time)
     }
 }
-impl<M: Material> Object for ModelPart<M> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.gm.render(camera, lights)
-    }
 
-    fn material_type(&self) -> MaterialType {
-        self.gm.material_type()
-    }
+impl<M: Material> Object for ModelPart<M> {
+    impl_object_body!(deref);
 }
 
 impl<'a, M: Material> IntoIterator for &'a ModelPart<M> {

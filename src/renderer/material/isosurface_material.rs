@@ -25,15 +25,20 @@ pub struct IsosurfaceMaterial {
 }
 
 impl Material for IsosurfaceMaterial {
-    fn fragment_shader(&self, lights: &[&dyn Light]) -> FragmentShader {
+    fn id(&self) -> u16 {
+        0b1u16 << 15 | 0b1100u16
+    }
+
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         let mut source = lights_shader_source(lights, self.lighting_model);
         source.push_str(include_str!("shaders/isosurface_material.frag"));
-        FragmentShader {
-            source,
-            attributes: FragmentAttributes {
-                position: true,
-                ..FragmentAttributes::NONE
-            },
+        source
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            position: true,
+            ..FragmentAttributes::NONE
         }
     }
 

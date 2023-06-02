@@ -66,6 +66,7 @@ pub enum CoreError {
 /// The fragment shader get the uv coordinates of the viewport (specified by `in vec2 uvs;`),
 /// where uv coordinates of `(0, 0)` corresponds to the bottom left corner of the viewport and `(1, 1)` to the top right corner.
 ///
+#[deprecated = "Use apply_screen_material or apply_screen_effect in the renderer module"]
 pub fn apply_effect(
     context: &Context,
     fragment_shader_source: &str,
@@ -73,7 +74,15 @@ pub fn apply_effect(
     viewport: Viewport,
     use_uniforms: impl FnOnce(&Program),
 ) {
-    let position_buffer = full_screen_buffer(context);
+    let position_buffer = VertexBuffer::new_with_data(
+        context,
+        &[
+            vec3(-3.0, -1.0, 0.0),
+            vec3(3.0, -1.0, 0.0),
+            vec3(0.0, 2.0, 0.0),
+        ],
+    );
+    #[allow(deprecated)]
     context
         .program(
             "
@@ -100,6 +109,7 @@ pub fn apply_effect(
 /// Applies a 2D/screen space effect to the given viewport of the given side of a cube map.
 /// The fragment shader get the 3D position (specified by `in vec3 pos;`) of the fragment on the cube with minimum position `(-1, -1, -1)` and maximum position `(1, 1, 1)`.
 ///
+#[deprecated = "Use apply_screen_material or apply_screen_effect in the renderer module"]
 pub fn apply_cube_effect(
     context: &Context,
     side: CubeMapSide,
@@ -108,7 +118,15 @@ pub fn apply_cube_effect(
     viewport: Viewport,
     use_uniforms: impl FnOnce(&Program),
 ) {
-    let position_buffer = full_screen_buffer(context);
+    let position_buffer = VertexBuffer::new_with_data(
+        context,
+        &[
+            vec3(-3.0, -1.0, 0.0),
+            vec3(3.0, -1.0, 0.0),
+            vec3(0.0, 2.0, 0.0),
+        ],
+    );
+    #[allow(deprecated)]
     context
         .program(
             "
@@ -136,15 +154,40 @@ pub fn apply_cube_effect(
         .expect("Failed compiling shader");
 }
 
-fn full_screen_buffer(context: &Context) -> VertexBuffer {
-    VertexBuffer::new_with_data(
+pub(crate) fn full_screen_id() -> u16 {
+    0b1u16 << 15
+}
+
+pub(crate) fn full_screen_draw(
+    context: &Context,
+    program: &Program,
+    render_states: RenderStates,
+    viewport: Viewport,
+) {
+    let position_buffer = VertexBuffer::new_with_data(
         context,
         &[
             vec3(-3.0, -1.0, 0.0),
             vec3(3.0, -1.0, 0.0),
             vec3(0.0, 2.0, 0.0),
         ],
-    )
+    );
+    program.use_vertex_attribute("position", &position_buffer);
+    program.draw_arrays(render_states, viewport, 3);
+}
+
+pub(crate) fn full_screen_vertex_shader_source() -> &'static str {
+    "
+        in vec3 position;
+        out vec2 uvs;
+        out vec4 col;
+        void main()
+        {
+            uvs = 0.5 * position.xy + 0.5;
+            col = vec4(1.0);
+            gl_Position = vec4(position, 1.0);
+        }
+    "
 }
 
 mod data_type;

@@ -34,7 +34,17 @@ impl<M: Material> InstancedModelPart<M> {
     }
 }
 
-impl<M: Material> std::ops::Deref for InstancedModelPart<M> {
+impl<'a, M: Material> IntoIterator for &'a InstancedModelPart<M> {
+    type Item = &'a dyn Object;
+    type IntoIter = std::iter::Once<&'a dyn Object>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.gm.into_iter()
+    }
+}
+
+use std::ops::Deref;
+impl<M: Material> Deref for InstancedModelPart<M> {
     type Target = Gm<InstancedMesh, M>;
     fn deref(&self) -> &Self::Target {
         &self.gm
@@ -48,52 +58,15 @@ impl<M: Material> std::ops::DerefMut for InstancedModelPart<M> {
 }
 
 impl<M: Material> Geometry for InstancedModelPart<M> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.gm.render_with_material(material, camera, lights)
-    }
+    impl_geometry_body!(deref);
 
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.gm
-            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.gm.aabb()
-    }
     fn animate(&mut self, time: f32) {
         self.gm.animate(time)
     }
 }
 
 impl<M: Material> Object for InstancedModelPart<M> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.gm.render(camera, lights)
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.gm.material_type()
-    }
-}
-
-impl<'a, M: Material> IntoIterator for &'a InstancedModelPart<M> {
-    type Item = &'a dyn Object;
-    type IntoIter = std::iter::Once<&'a dyn Object>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.gm.into_iter()
-    }
+    impl_object_body!(deref);
 }
 
 ///

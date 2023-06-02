@@ -64,23 +64,46 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-            .write(|| {
-                apply_effect(
-                    &context,
-                    include_str!("shader.frag"),
-                    RenderStates {
-                        write_mask: WriteMask::COLOR,
-                        blend: Blend::TRANSPARENCY,
-                        ..Default::default()
-                    },
-                    frame_input.viewport,
-                    |program| {
-                        program.use_texture("image", &image);
-                    },
-                );
-            })
+            .apply_screen_material(&LogoMaterial { image: &image }, &camera, &[])
             .render(&camera, &model, &[]);
 
         FrameOutput::default()
     });
+}
+
+struct LogoMaterial<'a> {
+    image: &'a Texture2D,
+}
+
+impl Material for LogoMaterial<'_> {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        include_str!("shader.frag").to_string()
+    }
+
+    fn id(&self) -> u16 {
+        0b1u16
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
+        program.use_texture("image", &self.image);
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates {
+            write_mask: WriteMask::COLOR,
+            blend: Blend::TRANSPARENCY,
+            ..Default::default()
+        }
+    }
+
+    fn material_type(&self) -> MaterialType {
+        MaterialType::Transparent
+    }
 }

@@ -146,20 +146,15 @@ pub fn main() {
 
         // Then, based on whether or not we render the instanced cubes, collect the renderable
         // objects.
-        let render_objects: Vec<&dyn Object> = if is_instanced {
-            instanced_mesh.into_iter().collect()
+        let screen = frame_input.screen();
+        screen.clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0));
+        if is_instanced {
+            screen.render(&camera, &instanced_mesh, &[&light0, &light1]);
         } else {
-            non_instanced_meshes
-                .iter()
-                .map(|x| x as &dyn Object)
-                .collect()
+            screen.render(&camera, &non_instanced_meshes, &[&light0, &light1]);
         };
 
-        frame_input
-            .screen()
-            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            .render(&camera, render_objects, &[&light0, &light1])
-            .write(|| gui.render());
+        screen.write(|| gui.render());
 
         FrameOutput::default()
     });

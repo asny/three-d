@@ -3,15 +3,17 @@ use three_d::*;
 struct MandelbrotMaterial {}
 
 impl Material for MandelbrotMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: include_str!("mandelbrot.frag").to_string(),
-            attributes: FragmentAttributes {
-                position: true,
-                ..FragmentAttributes::NONE
-            },
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        include_str!("mandelbrot.frag").to_string()
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            position: true,
+            ..FragmentAttributes::NONE
         }
     }
+
     fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
     fn render_states(&self) -> RenderStates {
         RenderStates {
@@ -23,6 +25,10 @@ impl Material for MandelbrotMaterial {
     }
     fn material_type(&self) -> MaterialType {
         MaterialType::Opaque
+    }
+
+    fn id(&self) -> u16 {
+        0b11u16
     }
 }
 

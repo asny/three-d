@@ -1,9 +1,22 @@
+#![macro_use]
 //!
 //! A collection of objects implementing the [Object] trait.
 //!
 //! Objects can be rendered directly or used in a render call, for example [RenderTarget::render].
 //! Use the [Gm] struct to combine any [geometry] and [material] into an [Object].
 //!
+
+macro_rules! impl_object_body {
+    ($inner:ident) => {
+        fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
+            self.$inner().render(camera, lights)
+        }
+
+        fn material_type(&self) -> MaterialType {
+            self.$inner().material_type()
+        }
+    };
+}
 
 mod gm;
 #[doc(inline)]
@@ -61,64 +74,29 @@ pub trait Object: Geometry {
     fn material_type(&self) -> MaterialType;
 }
 
+use std::ops::Deref;
 impl<T: Object + ?Sized> Object for &T {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        (*self).render(camera, lights)
-    }
-
-    fn material_type(&self) -> MaterialType {
-        (*self).material_type()
-    }
+    impl_object_body!(deref);
 }
 
 impl<T: Object + ?Sized> Object for &mut T {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        (**self).render(camera, lights)
-    }
-
-    fn material_type(&self) -> MaterialType {
-        (**self).material_type()
-    }
+    impl_object_body!(deref);
 }
 
 impl<T: Object> Object for Box<T> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.as_ref().render(camera, lights)
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.as_ref().material_type()
-    }
+    impl_object_body!(as_ref);
 }
 
 impl<T: Object> Object for std::rc::Rc<T> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.as_ref().render(camera, lights)
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.as_ref().material_type()
-    }
+    impl_object_body!(as_ref);
 }
 
 impl<T: Object> Object for std::sync::Arc<T> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.as_ref().render(camera, lights)
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.as_ref().material_type()
-    }
+    impl_object_body!(as_ref);
 }
 
 impl<T: Object> Object for std::cell::RefCell<T> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.borrow().render(camera, lights)
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.borrow().material_type()
-    }
+    impl_object_body!(borrow);
 }
 
 impl<T: Object> Object for std::sync::RwLock<T> {

@@ -4,8 +4,8 @@
 //!
 //! This module contains five main traits
 //! - [Geometry] - a geometric representation in 3D space
-//! - [Material] - a material that can be applied to a geometry
-//! - [PostMaterial] - a material that can be applied to a geometry and rendered after the rest of the scene has been rendered
+//! - [Material] - a material that can be applied to a geometry or the screen
+//! - [Effect] - an effect that can be applied to a geometry or the screen after the rest of the scene has been rendered
 //! - [Object] - an object in 3D space which has both geometry and material information (use the [Gm] struct to combine any [Material] and [Geometry] into an object)
 //! - [Light] - a light that shines onto objects in the scene (some materials are affected by lights, others are not)
 //!
@@ -121,18 +121,17 @@ macro_rules! impl_render_target_extensions_body {
                 });
 
                 // Lighting pass
-                self.write_partially(scissor_box, || {
-                    DeferredPhysicalMaterial::lighting_pass(
-                        &self.context,
-                        camera,
-                        ColorTexture::Array {
-                            texture: &geometry_pass_texture,
-                            layers: &gbuffer_layers,
-                        },
-                        DepthTexture::Single(&geometry_pass_depth_texture),
-                        lights,
-                    )
-                });
+                self.apply_screen_effect_partially(
+                    scissor_box,
+                    &lighting_pass::LightingPassEffect {},
+                    camera,
+                    lights,
+                    Some(ColorTexture::Array {
+                        texture: &geometry_pass_texture,
+                        layers: &gbuffer_layers,
+                    }),
+                    Some(DepthTexture::Single(&geometry_pass_depth_texture)),
+                );
             }
 
             // Forward
@@ -178,32 +177,32 @@ macro_rules! impl_render_target_extensions_body {
             lights: &[&dyn Light],
         ) -> &Self {
             self.write_partially(scissor_box, || {
-                for object in geometries
+                for geometry in geometries
                     .into_iter()
                     .filter(|o| camera.in_frustum(&o.aabb()))
                 {
-                    object.render_with_material(material, camera, lights);
+                    render_with_material(&self.context, camera, geometry, material, lights);
                 }
             });
             self
         }
 
         ///
-        /// Render the geometries with the given [PostMaterial] using the given camera and lights into this render target.
-        /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+        /// Render the geometries with the given [Effect] using the given camera and lights into this render target.
+        /// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
         ///
-        pub fn render_with_post_material(
+        pub fn render_with_effect(
             &self,
-            material: &dyn PostMaterial,
+            effect: &dyn Effect,
             camera: &Camera,
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
-            self.render_partially_with_post_material(
+            self.render_partially_with_effect(
                 self.scissor_box(),
-                material,
+                effect,
                 camera,
                 geometries,
                 lights,
@@ -213,13 +212,13 @@ macro_rules! impl_render_target_extensions_body {
         }
 
         ///
-        /// Render the geometries with the given [PostMaterial] using the given camera and lights into the part of this render target defined by the scissor box.
-        /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+        /// Render the geometries with the given [Effect] using the given camera and lights into the part of this render target defined by the scissor box.
+        /// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
         ///
-        pub fn render_partially_with_post_material(
+        pub fn render_partially_with_effect(
             &self,
             scissor_box: ScissorBox,
-            material: &dyn PostMaterial,
+            effect: &dyn Effect,
             camera: &Camera,
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
@@ -227,18 +226,98 @@ macro_rules! impl_render_target_extensions_body {
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
             self.write_partially(scissor_box, || {
-                for object in geometries
+                for geometry in geometries
                     .into_iter()
                     .filter(|o| camera.in_frustum(&o.aabb()))
                 {
-                    object.render_with_post_material(
-                        material,
+                    render_with_effect(
+                        &self.context,
                         camera,
+                        geometry,
+                        effect,
                         lights,
                         color_texture,
                         depth_texture,
                     );
                 }
+            });
+            self
+        }
+
+        ///
+        /// Apply the given [Material] to this render target.
+        /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+        ///
+        pub fn apply_screen_material(
+            &self,
+            material: &dyn Material,
+            camera: &Camera,
+            lights: &[&dyn Light],
+        ) -> &Self {
+            self.apply_screen_material_partially(self.scissor_box(), material, camera, lights)
+        }
+
+        ///
+        /// Apply the given [Material] to the part of this render target defined by the scissor box.
+        /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+        ///
+        pub fn apply_screen_material_partially(
+            &self,
+            scissor_box: ScissorBox,
+            material: &dyn Material,
+            camera: &Camera,
+            lights: &[&dyn Light],
+        ) -> &Self {
+            self.write_partially(scissor_box, || {
+                apply_screen_material(&self.context, material, camera, lights)
+            });
+            self
+        }
+
+        ///
+        /// Apply the given [Effect] to this render target.
+        /// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
+        ///
+        pub fn apply_screen_effect(
+            &self,
+            effect: &dyn Effect,
+            camera: &Camera,
+            lights: &[&dyn Light],
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) -> &Self {
+            self.apply_screen_effect_partially(
+                self.scissor_box(),
+                effect,
+                camera,
+                lights,
+                color_texture,
+                depth_texture,
+            )
+        }
+
+        ///
+        /// Apply the given [Effect] to the part of this render target defined by the scissor box.
+        /// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
+        ///
+        pub fn apply_screen_effect_partially(
+            &self,
+            scissor_box: ScissorBox,
+            effect: &dyn Effect,
+            camera: &Camera,
+            lights: &[&dyn Light],
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) -> &Self {
+            self.write_partially(scissor_box, || {
+                apply_screen_effect(
+                    &self.context,
+                    effect,
+                    camera,
+                    lights,
+                    color_texture,
+                    depth_texture,
+                )
             });
             self
         }
@@ -278,6 +357,144 @@ impl_render_target_extensions!(DepthTarget<'a>);
 impl_render_target_extensions!(RenderTargetMultisample<C: TextureDataType, D: DepthTextureDataType>);
 impl_render_target_extensions!(ColorTargetMultisample<C: TextureDataType>);
 impl_render_target_extensions!(DepthTargetMultisample<D: DepthTextureDataType>);
+
+///
+/// Render the given [Geometry] with the given [Material].
+/// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+/// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+///
+pub fn render_with_material(
+    context: &Context,
+    camera: &Camera,
+    geometry: impl Geometry,
+    material: impl Material,
+    lights: &[&dyn Light],
+) {
+    let fragment_attributes = material.fragment_attributes();
+    let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
+    id.extend(material.id().to_le_bytes());
+    id.extend(lights.iter().map(|l| l.id()));
+
+    let mut programs = context.programs.write().unwrap();
+    let program = programs.entry(id).or_insert_with(|| {
+        Program::from_source(
+            context,
+            &geometry.vertex_shader_source(fragment_attributes),
+            &material.fragment_shader_source(lights),
+        )
+        .expect("Failed compiling shader")
+    });
+    material.use_uniforms(program, camera, lights);
+    geometry.draw(
+        camera,
+        program,
+        material.render_states(),
+        fragment_attributes,
+    );
+}
+
+///
+/// Render the given [Geometry] with the given [Effect].
+/// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+/// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
+///
+pub fn render_with_effect(
+    context: &Context,
+    camera: &Camera,
+    geometry: impl Geometry,
+    effect: impl Effect,
+    lights: &[&dyn Light],
+    color_texture: Option<ColorTexture>,
+    depth_texture: Option<DepthTexture>,
+) {
+    let fragment_attributes = effect.fragment_attributes();
+    let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
+    id.extend(effect.id().to_le_bytes());
+    id.extend(lights.iter().map(|l| l.id()));
+
+    let mut programs = context.programs.write().unwrap();
+    let program = programs.entry(id).or_insert_with(|| {
+        Program::from_source(
+            context,
+            &geometry.vertex_shader_source(fragment_attributes),
+            &effect.fragment_shader_source(lights, color_texture, depth_texture),
+        )
+        .expect("Failed compiling shader")
+    });
+    effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
+    geometry.draw(camera, program, effect.render_states(), fragment_attributes);
+}
+
+///
+/// Apply the given [Material] to the entire sceen.
+/// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+/// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+///
+pub fn apply_screen_material(
+    context: &Context,
+    material: impl Material,
+    camera: &Camera,
+    lights: &[&dyn Light],
+) {
+    let fragment_attributes = material.fragment_attributes();
+    if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
+        panic!("Not possible to use the given material to render full screen, the full screen geometry only provides uv coordinates and color");
+    }
+    let mut id = full_screen_id().to_le_bytes().to_vec();
+    id.extend(material.id().to_le_bytes());
+    id.extend(lights.iter().map(|l| l.id()));
+
+    let mut programs = context.programs.write().unwrap();
+    let program = programs.entry(id).or_insert_with(|| {
+        Program::from_source(
+            context,
+            full_screen_vertex_shader_source(),
+            &material.fragment_shader_source(lights),
+        )
+        .expect("Failed compiling shader")
+    });
+    material.use_uniforms(program, &camera2d(camera.viewport()), lights);
+    full_screen_draw(
+        context,
+        program,
+        material.render_states(),
+        camera.viewport(),
+    );
+}
+
+///
+/// Apply the given [Effect] to the entire sceen.
+/// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+/// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
+///
+pub fn apply_screen_effect(
+    context: &Context,
+    effect: impl Effect,
+    camera: &Camera,
+    lights: &[&dyn Light],
+    color_texture: Option<ColorTexture>,
+    depth_texture: Option<DepthTexture>,
+) {
+    let fragment_attributes = effect.fragment_attributes();
+    if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
+        panic!("Not possible to use the given effect to render full screen, the full screen geometry only provides uv coordinates and color");
+    }
+    let mut id = full_screen_id().to_le_bytes().to_vec();
+    id.extend(effect.id().to_le_bytes());
+    id.extend(lights.iter().map(|l| l.id()));
+
+    let mut programs = context.programs.write().unwrap();
+    let program = programs.entry(id).or_insert_with(|| {
+        Program::from_source(
+            context,
+            full_screen_vertex_shader_source(),
+            &effect.fragment_shader_source(lights, color_texture, depth_texture),
+        )
+        .expect("Failed compiling shader")
+    });
+    effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
+    full_screen_draw(context, program, effect.render_states(), camera.viewport());
+}
 
 ///
 /// Returns an orthographic camera for viewing 2D content.
@@ -420,7 +637,7 @@ pub fn ray_intersect(
     .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
     .write(|| {
         for geometry in geometries {
-            geometry.render_with_material(&depth_material, &camera, &[]);
+            render_with_material(context, &camera, &geometry, &depth_material, &[]);
         }
     })
     .read_color()[0];

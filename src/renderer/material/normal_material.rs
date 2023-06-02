@@ -52,7 +52,15 @@ impl FromCpuMaterial for NormalMaterial {
 }
 
 impl Material for NormalMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
+    fn id(&self) -> u16 {
+        if self.normal_texture.is_some() {
+            0b1u16 << 15 | 0b110u16
+        } else {
+            0b1u16 << 15 | 0b111u16
+        }
+    }
+
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         let mut attributes = FragmentAttributes {
             normal: true,
             ..FragmentAttributes::NONE
@@ -64,7 +72,16 @@ impl Material for NormalMaterial {
             source.push_str("#define USE_TEXTURE\nin vec2 uvs;\nin vec3 tang;\nin vec3 bitang;\n");
         }
         source.push_str(include_str!("shaders/normal_material.frag"));
-        FragmentShader { source, attributes }
+        source
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            normal: true,
+            uv: self.normal_texture.is_some(),
+            tangents: self.normal_texture.is_some(),
+            ..FragmentAttributes::NONE
+        }
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

@@ -114,6 +114,52 @@ impl ColorTexture<'_> {
             ColorTexture::CubeMap { texture, .. } => texture.height(),
         }
     }
+    ///
+    /// Returns the fragment shader source for using this texture in a shader.
+    ///
+    pub fn fragment_shader_source(&self) -> String {
+        match self {
+            Self::Single(_) => "
+                uniform sampler2D colorMap;
+                vec4 sample_color(vec2 uv)
+                {
+                    return texture(colorMap, uv);
+                }"
+            .to_owned(),
+            Self::Array { .. } => "
+                uniform sampler2DArray colorMap;
+                uniform int colorLayers[4];
+                vec4 sample_color(vec2 uv)
+                {
+                    return texture(colorMap, vec3(uv, colorLayers[0]));
+                }
+                vec4 sample_layer(vec2 uv, int index)
+                {
+                    return texture(colorMap, vec3(uv, colorLayers[index]));
+                }"
+            .to_owned(),
+            Self::CubeMap { .. } => todo!(),
+        }
+    }
+
+    ///
+    /// Sends the uniform data needed for this texture to the fragment shader.
+    ///
+    pub fn use_uniforms(&self, program: &Program) {
+        match self {
+            Self::Single(texture) => program.use_texture("colorMap", texture),
+            Self::Array { texture, layers } => {
+                let mut la: [i32; 4] = [0; 4];
+                layers
+                    .iter()
+                    .enumerate()
+                    .for_each(|(i, l)| la[i] = *l as i32);
+                program.use_uniform_array("colorLayers", &la);
+                program.use_texture_array("colorMap", texture);
+            }
+            Self::CubeMap { .. } => todo!(),
+        }
+    }
 }
 
 ///
@@ -156,6 +202,45 @@ impl DepthTexture<'_> {
             DepthTexture::Single(texture) => texture.height(),
             DepthTexture::Array { texture, .. } => texture.height(),
             DepthTexture::CubeMap { texture, .. } => texture.height(),
+        }
+    }
+    ///
+    /// Returns the fragment shader source for using this texture in a shader.
+    ///
+    pub fn fragment_shader_source(&self) -> String {
+        match self {
+            Self::Single { .. } => "
+                uniform sampler2D depthMap;
+                float sample_depth(vec2 uv)
+                {
+                    return texture(depthMap, uv).x;
+                }"
+            .to_owned(),
+            Self::Array { .. } => "
+                uniform sampler2DArray depthMap;
+                uniform int depthLayer;
+                float sample_depth(vec2 uv)
+                {
+                    return texture(depthMap, vec3(uv, depthLayer)).x;
+                }"
+            .to_owned(),
+            Self::CubeMap { .. } => {
+                todo!()
+            }
+        }
+    }
+
+    ///
+    /// Sends the uniform data needed for this texture to the fragment shader.
+    ///
+    pub fn use_uniforms(&self, program: &Program) {
+        match self {
+            Self::Single(texture) => program.use_depth_texture("depthMap", texture),
+            Self::Array { texture, layer } => {
+                program.use_uniform("depthLayer", layer);
+                program.use_depth_texture_array("depthMap", texture);
+            }
+            Self::CubeMap { .. } => todo!(),
         }
     }
 }

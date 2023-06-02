@@ -11,6 +11,7 @@ const NO_VIEW_ANGLES: u32 = 8;
 /// rendered continuously instead of the expensive objects.
 ///
 pub struct Imposters {
+    context: Context,
     sprites: Sprites,
     material: ImpostersMaterial,
 }
@@ -35,6 +36,7 @@ impl Imposters {
         let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)));
         sprites.set_transformation(get_sprite_transform(aabb));
         Imposters {
+            context: context.clone(),
             sprites,
             material: ImpostersMaterial::new(context, aabb, objects, lights, max_texture_size),
         }
@@ -89,41 +91,27 @@ impl<'a> IntoIterator for &'a Imposters {
     }
 }
 
+use std::ops::Deref;
+impl Deref for Imposters {
+    type Target = Sprites;
+    fn deref(&self) -> &Self::Target {
+        &self.sprites
+    }
+}
+
+impl std::ops::DerefMut for Imposters {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.sprites
+    }
+}
+
 impl Geometry for Imposters {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.sprites.render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.sprites.render_with_post_material(
-            material,
-            camera,
-            lights,
-            color_texture,
-            depth_texture,
-        )
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.sprites.aabb()
-    }
+    impl_geometry_body!(deref);
 }
 
 impl Object for Imposters {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.render_with_material(&self.material, camera, lights)
+        render_with_material(&self.context, camera, &self, &self.material, lights)
     }
 
     fn material_type(&self) -> MaterialType {
@@ -223,17 +211,22 @@ impl ImpostersMaterial {
 }
 
 impl Material for ImpostersMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        FragmentShader {
-            source: format!(
-                "{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/imposter.frag")
-            ),
-            attributes: FragmentAttributes {
-                uv: true,
-                ..FragmentAttributes::NONE
-            },
+    fn id(&self) -> u16 {
+        0b1u16 << 15 | 0b1101u16
+    }
+
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}",
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/imposter.frag")
+        )
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
         }
     }
 

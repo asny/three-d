@@ -37,7 +37,8 @@ impl<'a, M: Material> IntoIterator for &'a VoxelGrid<M> {
     }
 }
 
-impl<M: Material> std::ops::Deref for VoxelGrid<M> {
+use std::ops::Deref;
+impl<M: Material> Deref for VoxelGrid<M> {
     type Target = Gm<Mesh, M>;
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -51,38 +52,13 @@ impl<M: Material> std::ops::DerefMut for VoxelGrid<M> {
 }
 
 impl<M: Material> Geometry for VoxelGrid<M> {
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.0.aabb()
-    }
+    impl_geometry_body!(deref);
 
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) {
-        self.0.render_with_material(material, camera, lights)
-    }
-
-    fn render_with_post_material(
-        &self,
-        material: &dyn PostMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-        color_texture: Option<ColorTexture>,
-        depth_texture: Option<DepthTexture>,
-    ) {
-        self.0
-            .render_with_post_material(material, camera, lights, color_texture, depth_texture)
+    fn animate(&mut self, time: f32) {
+        self.0.animate(time)
     }
 }
 
 impl<M: Material> Object for VoxelGrid<M> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.0.render(camera, lights)
-    }
-
-    fn material_type(&self) -> MaterialType {
-        self.0.material_type()
-    }
+    impl_object_body!(deref);
 }

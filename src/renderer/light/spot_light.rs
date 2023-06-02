@@ -116,7 +116,13 @@ impl SpotLight {
                     .into_iter()
                     .filter(|g| shadow_camera.in_frustum(&g.aabb()))
                 {
-                    geometry.render_with_material(&depth_material, &shadow_camera, &[]);
+                    render_with_material(
+                        &self.context,
+                        &shadow_camera,
+                        &geometry,
+                        &depth_material,
+                        &[],
+                    );
                 }
             });
         self.shadow_texture = Some(shadow_texture);
@@ -212,5 +218,13 @@ impl Light for SpotLight {
         program.use_uniform(&format!("position{}", i), self.position);
         program.use_uniform(&format!("direction{}", i), self.direction.normalize());
         program.use_uniform(&format!("cutoff{}", i), self.cutoff.0);
+    }
+
+    fn id(&self) -> u8 {
+        if self.shadow_texture.is_some() {
+            0b1u8 << 7 | 0b101u8
+        } else {
+            0b1u8 << 7 | 0b110u8
+        }
     }
 }

@@ -128,6 +128,27 @@ impl<'a> IntoIterator for &'a Skybox {
 }
 
 impl Geometry for Skybox {
+    fn draw(
+        &self,
+        camera: &Camera,
+        program: &Program,
+        render_states: RenderStates,
+        _attributes: FragmentAttributes,
+    ) {
+        program.use_uniform("view", camera.view());
+        program.use_uniform("projection", camera.projection());
+        program.use_vertex_attribute("position", &self.vertex_buffer);
+        program.draw_arrays(render_states, camera.viewport(), 36);
+    }
+
+    fn vertex_shader_source(&self, _required_attributes: FragmentAttributes) -> String {
+        include_str!("shaders/skybox.vert").to_owned()
+    }
+
+    fn id(&self, _required_attributes: FragmentAttributes) -> u16 {
+        0b1u16 << 15 | 0b1u16
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::INFINITE
     }
@@ -138,50 +159,32 @@ impl Geometry for Skybox {
         camera: &Camera,
         lights: &[&dyn Light],
     ) {
-        let fragment_shader = material.fragment_shader(lights);
-        self.context
-            .program(
-                include_str!("shaders/skybox.vert").to_owned(),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights);
-                    program.use_uniform("view", camera.view());
-                    program.use_uniform("projection", camera.projection());
-                    program.use_vertex_attribute("position", &self.vertex_buffer);
-                    program.draw_arrays(material.render_states(), camera.viewport(), 36);
-                },
-            )
-            .expect("Failed compiling shader");
+        render_with_material(&self.context, camera, &self, material, lights)
     }
 
-    fn render_with_post_material(
+    fn render_with_effect(
         &self,
-        material: &dyn PostMaterial,
+        material: &dyn Effect,
         camera: &Camera,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        let fragment_shader = material.fragment_shader(lights, color_texture, depth_texture);
-        self.context
-            .program(
-                include_str!("shaders/skybox.vert").to_owned(),
-                fragment_shader.source,
-                |program| {
-                    material.use_uniforms(program, camera, lights, color_texture, depth_texture);
-                    program.use_uniform("view", camera.view());
-                    program.use_uniform("projection", camera.projection());
-                    program.use_vertex_attribute("position", &self.vertex_buffer);
-                    program.draw_arrays(material.render_states(), camera.viewport(), 36);
-                },
-            )
-            .expect("Failed compiling shader");
+        render_with_effect(
+            &self.context,
+            camera,
+            self,
+            material,
+            lights,
+            color_texture,
+            depth_texture,
+        )
     }
 }
 
 impl Object for Skybox {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.render_with_material(&self.material, camera, lights)
+        render_with_material(&self.context, camera, self, &self.material, lights)
     }
 
     fn material_type(&self) -> MaterialType {

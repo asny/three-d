@@ -104,7 +104,7 @@ pub fn main() {
         )
         .unwrap();
 
-    let mut opaque_meshes_opaque_instances = Gm::new(
+    let opaque_meshes_opaque_instances = Gm::new(
         InstancedMesh::new(&context, &opaque_instances, &thin_cube_right),
         PhysicalMaterial::new_opaque(
             &context,
@@ -119,8 +119,6 @@ pub fn main() {
             },
         ),
     );
-    // Testing that changing the instance count still works as expected, blue should disappear.
-    opaque_meshes_opaque_instances.set_instance_count(3);
 
     let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
     let ambient_light = three_d::renderer::light::AmbientLight::new(&context, 0.1, Color::WHITE);

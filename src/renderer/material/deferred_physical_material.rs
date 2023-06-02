@@ -143,35 +143,14 @@ impl DeferredPhysicalMaterial {
         geometry_pass_depth_texture: DepthTexture,
         lights: &[&dyn Light],
     ) {
-        let mut fragment_shader = lights_shader_source(
-            lights,
-            LightingModel::Cook(
-                NormalDistributionFunction::TrowbridgeReitzGGX,
-                GeometryFunction::SmithSchlickGGX,
-            ),
-        );
-        fragment_shader.push_str(&geometry_pass_color_texture.fragment_shader_source());
-        fragment_shader.push_str(&geometry_pass_depth_texture.fragment_shader_source());
-        fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
-        apply_effect(
+        apply_screen_effect(
             context,
-            &fragment_shader,
-            RenderStates::default(),
-            camera.viewport(),
-            |program| {
-                geometry_pass_color_texture.use_uniforms(program);
-                geometry_pass_depth_texture.use_uniforms(program);
-                program.use_uniform_if_required("cameraPosition", camera.position());
-                for (i, light) in lights.iter().enumerate() {
-                    light.use_uniforms(program, i as u32);
-                }
-                program.use_uniform_if_required(
-                    "viewProjectionInverse",
-                    (camera.projection() * camera.view()).invert().unwrap(),
-                );
-                program.use_uniform("debug_type", DebugType::None as i32);
-            },
-        )
+            lighting_pass::LightingPassEffect {},
+            camera,
+            lights,
+            Some(geometry_pass_color_texture),
+            Some(geometry_pass_depth_texture),
+        );
     }
 }
 
@@ -182,13 +161,30 @@ impl FromCpuMaterial for DeferredPhysicalMaterial {
 }
 
 impl Material for DeferredPhysicalMaterial {
-    fn fragment_shader(&self, _lights: &[&dyn Light]) -> FragmentShader {
-        let mut attributes = FragmentAttributes {
-            position: true,
-            normal: true,
-            color: true,
-            ..FragmentAttributes::NONE
-        };
+    fn id(&self) -> u16 {
+        let mut id = 0b1u16 << 15 | 0b1u16 << 6;
+        if self.albedo_texture.is_some() {
+            id |= 0b1u16;
+        }
+        if self.metallic_roughness_texture.is_some() {
+            id |= 0b1u16 << 1;
+        }
+        if self.occlusion_texture.is_some() {
+            id |= 0b1u16 << 2;
+        }
+        if self.normal_texture.is_some() {
+            id |= 0b1u16 << 3;
+        }
+        if self.emissive_texture.is_some() {
+            id |= 0b1u16 << 4;
+        }
+        if self.alpha_cutout.is_some() {
+            id |= 0b1u16 << 5;
+        }
+        id
+    }
+
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         let mut output = include_str!("../../core/shared.frag").to_string();
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
@@ -197,7 +193,6 @@ impl Material for DeferredPhysicalMaterial {
             || self.emissive_texture.is_some()
             || self.alpha_cutout.is_some()
         {
-            attributes.uv = true;
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
                 output.push_str("#define USE_ALBEDO_TEXTURE;\n");
@@ -209,7 +204,6 @@ impl Material for DeferredPhysicalMaterial {
                 output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
             }
             if self.normal_texture.is_some() {
-                attributes.tangents = true;
                 output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
             }
             if self.emissive_texture.is_some() {
@@ -226,9 +220,21 @@ impl Material for DeferredPhysicalMaterial {
             }
         }
         output.push_str(include_str!("shaders/deferred_physical_material.frag"));
-        FragmentShader {
-            source: output,
-            attributes,
+        output
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            position: true,
+            normal: true,
+            color: true,
+            uv: self.albedo_texture.is_some()
+                || self.metallic_roughness_texture.is_some()
+                || self.normal_texture.is_some()
+                || self.occlusion_texture.is_some()
+                || self.emissive_texture.is_some()
+                || self.alpha_cutout.is_some(),
+            tangents: self.normal_texture.is_some(),
         }
     }
 
@@ -291,20 +297,4 @@ impl Default for DeferredPhysicalMaterial {
             emissive_texture: None,
         }
     }
-}
-
-///
-/// Used for debug purposes - only internal.
-///
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-#[allow(missing_docs)]
-#[allow(dead_code)]
-enum DebugType {
-    Position,
-    Normal,
-    Color,
-    Depth,
-    Orm,
-    Uv,
-    None,
 }

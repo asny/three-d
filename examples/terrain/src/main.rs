@@ -266,7 +266,7 @@ pub async fn run() {
                 camera.viewport(),
                 WriteMask::default(),
             )
-            .render_with_post_material(
+            .render_with_effect(
                 &water_material,
                 &camera,
                 &water,
