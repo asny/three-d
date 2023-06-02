@@ -1,5 +1,5 @@
 //!
-//! A collection of materials implementing the [Material] and/or [Effect] trait.
+//! A collection of materials implementing the [Material] trait.
 //!
 //! A material together with a [geometry] can be rendered directly (using [Geometry::render_with_material] or [Geometry::render_with_effect]).
 //! A [Material] can also be combined into an [object] (see [Gm]) and be used in a render call, for example [RenderTarget::render].

@@ -1,5 +1,5 @@
 //!
-//! A collection of image based effects, ie. effects applied to each pixel of a rendered image.
+//! A collection of effects implementing the [Effect] trait.
 //!
 
 macro_rules! impl_effect_body {
