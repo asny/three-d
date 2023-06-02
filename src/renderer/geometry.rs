@@ -43,13 +43,8 @@ macro_rules! impl_geometry_body {
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) {
-            self.$inner().render_with_effect(
-                material,
-                camera,
-                lights,
-                color_texture,
-                depth_texture,
-            )
+            self.$inner()
+                .render_with_effect(material, camera, lights, color_texture, depth_texture)
         }
 
         fn aabb(&self) -> AxisAlignedBoundingBox {
