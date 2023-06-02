@@ -14,11 +14,13 @@ impl FxaaEffect {
     ///
     #[deprecated = "use `apply_screen_effect` instead"]
     pub fn apply(&self, context: &Context, color_texture: ColorTexture) {
-        let (w, h) = color_texture.resolution();
         apply_screen_effect(
             context,
             self,
-            &camera2d(Viewport::new_at_origo(w, h)),
+            &camera2d(Viewport::new_at_origo(
+                color_texture.width(),
+                color_texture.height(),
+            )),
             &[],
             Some(color_texture),
             None,
@@ -63,7 +65,8 @@ impl Effect for FxaaEffect {
     ) {
         let color_texture =
             color_texture.expect("Must supply a color texture to apply a fxaa effect");
-        let (w, h) = color_texture.resolution();
+        let w = color_texture.width();
+        let h = color_texture.height();
         color_texture.use_uniforms(program);
         program.use_uniform("resolution", vec2(w as f32, h as f32));
     }

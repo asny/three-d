@@ -160,17 +160,6 @@ impl ColorTexture<'_> {
             Self::CubeMap { .. } => todo!(),
         }
     }
-
-    ///
-    /// The resolution of the underlying texture if there is any.
-    ///
-    pub fn resolution(&self) -> (u32, u32) {
-        match self {
-            Self::Single(texture) => (texture.width(), texture.height()),
-            Self::Array { texture, .. } => (texture.width(), texture.height()),
-            Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
-        }
-    }
 }
 
 ///
@@ -252,17 +241,6 @@ impl DepthTexture<'_> {
                 program.use_depth_texture_array("depthMap", texture);
             }
             Self::CubeMap { .. } => todo!(),
-        }
-    }
-
-    ///
-    /// The resolution of the underlying texture if there is any.
-    ///
-    pub fn resolution(&self) -> (u32, u32) {
-        match self {
-            Self::Single(texture) => (texture.width(), texture.height()),
-            Self::Array { texture, .. } => (texture.width(), texture.height()),
-            Self::CubeMap { texture, .. } => (texture.width(), texture.height()),
         }
     }
 }
