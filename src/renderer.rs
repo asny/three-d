@@ -380,7 +380,7 @@ pub fn render_with_material(
 ///
 /// Render the given [Geometry] with the given [Effect].
 /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
-/// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
+/// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
 ///
 pub fn render_with_effect(
     context: &Context,
@@ -446,6 +446,11 @@ pub fn apply_screen_material(
     );
 }
 
+///
+/// Apply the given [Effect] to the entire sceen.
+/// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
+/// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
+///
 pub fn apply_screen_effect(
     context: &Context,
     effect: impl Effect,
