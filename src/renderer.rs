@@ -456,7 +456,7 @@ pub fn apply_screen_material(
         )
         .expect("Failed compiling shader")
     });
-    material.use_uniforms(program, &camera2d(camera.viewport()), lights);
+    material.use_uniforms(program, camera, lights);
     full_screen_draw(
         context,
         program,
