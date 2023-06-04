@@ -5,30 +5,31 @@ pub enum ToneMapping {
     #[default]
     None = 0,
     Reinhard = 1,
+    Aces = 2,
 }
 
 impl ToneMapping {
     pub fn fragment_shader_source() -> &'static str {
         "
-        vec3 reinhard_tone_mapping(vec3 color) {
-            return color / (color + vec3(1.0));
-        }
-        
-        vec3 inverse_reinhard_tone_mapping(vec3 color) { 
-            return color / max(vec3(1.0) - color, vec3(0.001, 0.001, 0.001));
-        }
-
         uniform uint toneMappingType;
+
         vec3 tone_mapping(vec3 color) {
             if (toneMappingType == 1u) {
-                return reinhard_tone_mapping(color);
+                return color / (color + vec3(1.0));
+            } else if(toneMappingType == 2u) {
+                const float a = 2.51;
+                const float b = 0.03;
+                const float c = 2.43;
+                const float d = 0.59;
+                const float e = 0.14;
+                return clamp((color * (a*color+b)) / (color * (c*color+d) + e), 0.0, 1.0);
             }
             return color;
         }
 
         vec3 inverse_tone_mapping(vec3 color) {
             if (toneMappingType == 1u) {
-                return inverse_reinhard_tone_mapping(color);
+                return color / max(vec3(1.0) - color, vec3(0.001, 0.001, 0.001));
             }
             return color;
         }

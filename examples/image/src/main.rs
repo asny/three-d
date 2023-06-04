@@ -36,7 +36,6 @@ pub async fn run() {
     let mut gui = GUI::new(&context);
 
     // main loop
-    let mut tone_mapping = 1.0;
     let mut texture_transform_scale = 1.0;
     let mut texture_transform_x = 0.0;
     let mut texture_transform_y = 0.0;
@@ -66,6 +65,7 @@ pub async fn run() {
                     ui.label("Tone mapping");
                     ui.radio_value(&mut camera.tone_mapping, ToneMapping::None, "None");
                     ui.radio_value(&mut camera.tone_mapping, ToneMapping::Reinhard, "Reinhard");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Aces, "Aces");
                 });
                 panel_width = gui_context.used_rect().width();
             },
