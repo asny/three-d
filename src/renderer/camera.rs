@@ -6,6 +6,7 @@ pub enum ToneMapping {
     None = 0,
     Reinhard = 1,
     Aces = 2,
+    Uncharted2 = 3,
 }
 
 impl ToneMapping {
@@ -15,16 +16,29 @@ impl ToneMapping {
 
         vec3 tone_mapping(vec3 color) {
             if (toneMappingType == 1u) {
-                return color / (color + vec3(1.0));
+                color = color / (color + vec3(1.0));
             } else if(toneMappingType == 2u) {
                 const float a = 2.51;
                 const float b = 0.03;
                 const float c = 2.43;
                 const float d = 0.59;
                 const float e = 0.14;
-                return clamp((color * (a*color+b)) / (color * (c*color+d) + e), 0.0, 1.0);
+                color = (color * (a*color+b)) / (color * (c*color+d) + e);
+            } else if(toneMappingType == 3u) {
+                const float exposure_bias = 2.0f;
+                const float A = 0.15;
+                const float B = 0.50;
+                const float C = 0.10;
+                const float D = 0.20;
+                const float E = 0.02;
+                const float F = 0.30;
+                const float W = 11.2;
+                
+                vec4 x = vec4(exposure_bias * color, W);
+                x = ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+                color = x.xyz / x.w;
             }
-            return color;
+            return clamp(color, 0.0, 1.0);
         }
 
         vec3 inverse_tone_mapping(vec3 color) {
