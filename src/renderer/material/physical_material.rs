@@ -178,6 +178,7 @@ impl Material for PhysicalMaterial {
                 output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
             }
         }
+        output.push_str(ToneMapping::fragment_shader_source());
         output.push_str(include_str!("shaders/physical_material.frag"));
         output
     }
@@ -197,6 +198,7 @@ impl Material for PhysicalMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
+        camera.tone_mapping.use_uniforms(program);
         if !lights.is_empty() {
             program.use_uniform_if_required("cameraPosition", camera.position());
             for (i, light) in lights.iter().enumerate() {

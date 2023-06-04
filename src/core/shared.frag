@@ -34,14 +34,6 @@ vec3 world_pos_from_depth(mat4 viewProjectionInverse, float depth, vec2 uv) {
     return position.xyz / position.w;
 }
 
-vec3 reinhard_tone_mapping(vec3 color) {
-    return color / (color + vec3(1.0));
-}
-
-vec3 inverse_reinhard_tone_mapping(vec3 color) { 
-    return color / max(vec3(1.0) - color, vec3(0.001, 0.001, 0.001));
-}
-
 // http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 // efficient VanDerCorpus calculation.
 float RadicalInverse_VdC(uint bits) 

@@ -27,6 +27,7 @@ pub async fn run() {
         0.1,
         1000.0,
     );
+    camera.tone_mapping = ToneMapping::Reinhard;
     let mut control = FirstPersonControl::new(0.01);
 
     // Source: https://polyhaven.com/
@@ -227,7 +228,8 @@ pub async fn run() {
             camera.target().y + y_new - camera.position().y,
             camera.target().z,
         );
-        camera.set_view(vec3(p.x, y_new, p.y), target, *camera.up());
+        let up = *camera.up();
+        camera.set_view(vec3(p.x, y_new, p.y), target, up);
 
         terrain.set_center(p);
         water.set_center(p);

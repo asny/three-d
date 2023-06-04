@@ -18,6 +18,7 @@ impl Effect for LightingPassEffect {
         );
         fragment_shader.push_str(&color_texture.unwrap().fragment_shader_source());
         fragment_shader.push_str(&depth_texture.unwrap().fragment_shader_source());
+        fragment_shader.push_str(ToneMapping::fragment_shader_source());
         fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
         fragment_shader
     }
@@ -41,6 +42,7 @@ impl Effect for LightingPassEffect {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
+        camera.tone_mapping.use_uniforms(program);
         color_texture.unwrap().use_uniforms(program);
         depth_texture.unwrap().use_uniforms(program);
         program.use_uniform_if_required("cameraPosition", camera.position());
