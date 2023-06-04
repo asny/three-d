@@ -2,9 +2,9 @@ use crate::core::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 pub enum ToneMapping {
-    #[default]
     None = 0,
     Reinhard = 1,
+    #[default]
     Aces = 2,
     Uncharted2 = 3,
 }
