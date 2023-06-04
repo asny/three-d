@@ -17,6 +17,8 @@ pub async fn run() {
     .unwrap();
     let context = window.gl();
 
+    let mut camera = camera2d(window.viewport());
+
     // Source: https://polyhaven.com/
     let mut loaded = if let Ok(loaded) =
         three_d_asset::io::load_async(&["../assets/syferfontein_18d_clear_4k.hdr"]).await
@@ -49,7 +51,6 @@ pub async fn run() {
                 use three_d::egui::*;
                 SidePanel::right("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
-                    ui.add(Slider::new(&mut tone_mapping, 0.0..=50.0).text("Tone mapping"));
                     ui.add(
                         Slider::new(&mut texture_transform_scale, 0.0..=10.0)
                             .text("Texture transform scale"),
@@ -62,6 +63,9 @@ pub async fn run() {
                         Slider::new(&mut texture_transform_y, 0.0..=1.0)
                             .text("Texture transform y"),
                     );
+                    ui.label("Tone mapping");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::None, "None");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Reinhard, "Reinhard");
                 });
                 panel_width = gui_context.used_rect().width();
             },
@@ -71,6 +75,7 @@ pub async fn run() {
             frame_input.viewport.width - (panel_width * frame_input.device_pixel_ratio) as u32,
             frame_input.viewport.height,
         );
+        camera.set_viewport(viewport);
 
         let material = ColorMaterial {
             texture: Some(Texture2DRef {
@@ -84,7 +89,7 @@ pub async fn run() {
         frame_input
             .screen()
             .clear(ClearState::default())
-            .apply_screen_material(&material, &camera2d(viewport), &[])
+            .apply_screen_material(&material, &camera, &[])
             .write(|| {
                 gui.render();
             });
