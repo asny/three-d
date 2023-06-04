@@ -40,7 +40,7 @@ pub mod prelude {
     pub use three_d_asset::prelude::*;
 }
 pub use prelude::*;
-pub use three_d_asset::{Camera, Viewport};
+pub use three_d_asset::Viewport;
 
 /// A result for this crate.
 use thiserror::Error;

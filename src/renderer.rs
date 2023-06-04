@@ -31,6 +31,9 @@ pub enum RendererError {
     MissingMaterial(String, String),
 }
 
+pub mod camera;
+pub use camera::*;
+
 pub mod material;
 pub use material::*;
 
