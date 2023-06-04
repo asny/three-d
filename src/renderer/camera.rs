@@ -18,12 +18,7 @@ impl ToneMapping {
             if (toneMappingType == 1u) {
                 color = color / (color + vec3(1.0));
             } else if(toneMappingType == 2u) {
-                const float a = 2.51;
-                const float b = 0.03;
-                const float c = 2.43;
-                const float d = 0.59;
-                const float e = 0.14;
-                color = (color * (a*color+b)) / (color * (c*color+d) + e);
+                color = color*(2.51*color + .03) / (color*(2.43*color + .59) + .14);
             } else if(toneMappingType == 3u) {
                 const float exposure_bias = 2.0f;
                 const float A = 0.15;
@@ -44,6 +39,8 @@ impl ToneMapping {
         vec3 inverse_tone_mapping(vec3 color) {
             if (toneMappingType == 1u) {
                 return color / max(vec3(1.0) - color, vec3(0.001, 0.001, 0.001));
+            } else if(toneMappingType == 2u) {
+                color = (sqrt(-10127.*color*color + 13702.*color + 9.) + 59.*color - 3.) / (502. - 486.*color);
             }
             return color;
         }

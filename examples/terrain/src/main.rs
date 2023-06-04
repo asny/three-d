@@ -27,7 +27,6 @@ pub async fn run() {
         0.1,
         1000.0,
     );
-    camera.tone_mapping = ToneMapping::Reinhard;
     let mut control = FirstPersonControl::new(0.01);
 
     // Source: https://polyhaven.com/
