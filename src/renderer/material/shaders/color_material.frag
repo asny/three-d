@@ -18,5 +18,6 @@ void main()
     outColor *= vec4(rgb_from_srgb(tex_color.rgb), tex_color.a);
     #endif
 
+    outColor.rgb = tone_mapping(outColor.rgb);
     outColor.rgb = srgb_from_rgb(outColor.rgb);
 }

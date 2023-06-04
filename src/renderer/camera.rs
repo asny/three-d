@@ -3,20 +3,25 @@ use crate::core::*;
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 pub enum ToneMapping {
     #[default]
-    None,
-    Reinhard,
+    None = 0,
+    Reinhard = 1,
 }
 
 impl ToneMapping {
-    pub fn fragment_shader_source(color_name: &'static str) -> String {
-        format!(
-            "
-        if toneMapping == 1 {{
-            {0}.rgb = reinhard_tone_mapping({0}.rgb);
-        }}
-        ",
-            color_name
-        )
+    pub fn fragment_shader_source() -> &'static str {
+        "
+        uniform uint toneMappingType;
+        vec3 tone_mapping(vec3 color) {
+            if (toneMappingType == 1u) {
+                return reinhard_tone_mapping(color);
+            }
+            return color;
+        }
+        "
+    }
+
+    pub fn use_uniforms(&self, program: &Program) {
+        program.use_uniform("toneMappingType", *self as u32)
     }
 }
 
