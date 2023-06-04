@@ -205,6 +205,16 @@ pub async fn run() {
                         "Cook (Trowbridge-Reitz GGX)",
                     );
 
+                    ui.label("Tone mapping");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::None, "None");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Reinhard, "Reinhard");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Aces, "Aces");
+                    ui.radio_value(
+                        &mut camera.tone_mapping,
+                        ToneMapping::Uncharted2,
+                        "Uncharted2",
+                    );
+
                     ui.label("Material options");
                     ui.radio_value(&mut material_type, MaterialType::Forward, "Forward");
                     ui.radio_value(&mut material_type, MaterialType::Deferred, "Deferred");
