@@ -1,10 +1,14 @@
 use super::*;
 use crate::core::*;
 
+
+pub use serde::{Serialize, Deserialize};
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 ///
 /// A set of possible actions to apply to a camera when recieving input.
 ///
-#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CameraAction {
     /// No action.
     None,

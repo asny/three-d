@@ -4,10 +4,11 @@ use crate::WindowError;
 use std::sync::Arc;
 use winit::window::Window;
 
+pub use serde::{Serialize,Deserialize};
+
 #[cfg(target_arch = "wasm32")]
 mod inner {
     use crate::HardwareAcceleration;
-    use serde::{Deserialize, Serialize};
     use wasm_bindgen::JsCast;
     use winit::platform::web::WindowExtWebSys;
 

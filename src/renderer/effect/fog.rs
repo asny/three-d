@@ -1,9 +1,13 @@
 use crate::renderer::*;
 
+
+pub use serde::{Serialize, Deserialize};
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 ///
 /// An effect that simulates fog, ie. the area where it is applied gets hazy when objects are far away.
 ///
-#[derive(Clone, Debug)]
 pub struct FogEffect {
     /// The color of the fog.
     pub color: Color,

@@ -2,7 +2,10 @@ use crate::core::*;
 use crate::renderer::*;
 use std::sync::Arc;
 
+pub use serde::{Serialize, Deserialize};
+
 /// Specifies the Level of Detail (LOD) for a geometry.
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub enum Lod {
     /// High number of triangles - looks good, but slow to render. Use this close to the camera.
     High,

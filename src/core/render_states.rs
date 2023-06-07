@@ -2,10 +2,13 @@
 //! Definitions of the input state needed for any draw call.
 //!
 
+pub use serde::{Serialize, Deserialize};
+
 ///
 /// A set of render specific states that has to be specified at each render call.
 ///
 #[derive(Debug, Copy, Clone, Default)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 pub struct RenderStates {
     ///
     /// Defines which channels (red, green, blue, alpha and depth) to write to in a render call.
@@ -37,6 +40,7 @@ pub struct RenderStates {
 /// Defines whether the triangles that are backfacing, frontfacing, both or none should be rendered in a render call.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 pub enum Cull {
     /// Render both front- and backfacing triangles.
     None,
@@ -62,6 +66,7 @@ impl Default for Cull {
 ///
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 pub enum DepthTest {
     Never,
     Less,
@@ -84,6 +89,8 @@ impl Default for DepthTest {
 ///
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
+
 pub struct WriteMask {
     pub red: bool,
     pub green: bool,
@@ -152,6 +159,7 @@ impl Default for WriteMask {
 ///
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 pub enum Blend {
     Enabled {
         source_rgb_multiplier: BlendMultiplierType,
@@ -214,6 +222,7 @@ impl Default for Blend {
 ///
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 pub enum BlendMultiplierType {
     Zero,
     One,
@@ -233,6 +242,7 @@ pub enum BlendMultiplierType {
 ///
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 pub enum BlendEquationType {
     Add,
     Subtract,

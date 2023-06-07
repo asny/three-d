@@ -1,9 +1,12 @@
 use crate::core::texture::*;
 
+pub use serde::{Serialize, Deserialize};
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 ///
 /// The 6 sides of a cube map
 ///
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 pub enum CubeMapSide {
     /// Positive y
     Top,

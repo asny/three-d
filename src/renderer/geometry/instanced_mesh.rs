@@ -380,6 +380,8 @@ impl Geometry for InstancedMesh {
     }
 }
 
+pub use serde::{Serialize, Deserialize};
+
 ///
 /// Defines the attributes for the instances of the model defined in [InstancedMesh] or [InstancedModel].
 ///
@@ -388,6 +390,7 @@ impl Geometry for InstancedMesh {
 /// The [Instances::transformations] are applied after the transformation applied to all instances (see [InstancedMesh::set_transformation]).
 ///
 #[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct Instances {
     /// The transformations applied to each instance.
     pub transformations: Vec<Mat4>,

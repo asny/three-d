@@ -1,11 +1,14 @@
 use crate::core::*;
 use crate::renderer::*;
 
+pub use serde::{Serialize, Deserialize};
+
 ///
 /// Render the object with colors that reflect its uv coordinates which primarily is used for debug purposes.
 /// The u coordinate maps to the red channel and the v coordinate to the green channel.
 ///
 #[derive(Default, Clone)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct UVMaterial {
     /// Render states.
     pub render_states: RenderStates,

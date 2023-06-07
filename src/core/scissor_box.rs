@@ -1,9 +1,13 @@
+
+pub use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 ///
 /// Defines the part of the screen or render target that is rendered to.
 /// All pixels outside of the scissor box will not be modified.
 /// All values should be given in physical pixels.
 ///
-#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ScissorBox {
     /// The distance in pixels from the left edge of the target.
     pub x: i32,

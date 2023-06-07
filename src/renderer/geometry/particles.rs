@@ -4,12 +4,16 @@ use std::collections::HashMap;
 
 use super::BaseMesh;
 
+pub use serde::{Serialize, Deserialize};
+
 ///
 /// Used for defining the attributes for each particle in a [ParticleSystem], for example its starting position and velocity.
 ///
 /// Each list of attributes must contain the same number of elements as the number of particles.
 ///
+
 #[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct Particles {
     /// Initial positions of each particle in world coordinates.
     pub start_positions: Vec<Vec3>,

@@ -2,6 +2,8 @@ use crate::core::*;
 use crate::renderer::*;
 use std::sync::Arc;
 
+pub use serde::{Serialize, Deserialize};
+
 const VERTICES_PER_SIDE: usize = 33;
 /// The maximum number of waves.
 pub const MAX_WAVE_COUNT: usize = 4;
@@ -10,6 +12,7 @@ pub const MAX_WAVE_COUNT: usize = 4;
 /// A set of parameters that defines one wave of the water surface.
 ///
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct WaveParameters {
     /// The distance between each top of the wave.
     pub wavelength: f32,

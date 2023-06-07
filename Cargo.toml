@@ -21,16 +21,20 @@ default = ["window"]
 window = ["glutin", "winit", "raw-window-handle", "wasm-bindgen", "serde", "serde-wasm-bindgen", "web-sys"] # Window module
 headless = ["glutin_029"] # Headless rendering
 egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features 
+serde-window=[]
+serde-renderer=[]
+serde-core=[]
 
 [dependencies]
 glow = "0.12"
 cgmath = "0.18"
-three-d-asset = {git = "https://github.com/asny/three-d-asset"}
+three-d-asset = {version="0.6",path="C:\\Users\\mcmil\\OneDrive\\Desktop\\three-d-asset-main"}
 thiserror = "1"
 winit = {version = "0.28", optional = true}
 egui = { version = "0.21", optional = true }
 egui_glow = { version = "0.21", optional = true }
 getrandom = { version = "0.2", features = ["js"], optional = true }
+serde = { version = "1", features = ["derive"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 glutin = { version = "0.30", optional = true }
@@ -47,9 +51,10 @@ instant = "0.1.12"
 
 [dev-dependencies]
 rand = "0.7"
-three-d-asset = {git = "https://github.com/asny/three-d-asset", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
+three-d-asset = {path="C:\\Users\\mcmil\\OneDrive\\Desktop\\three-d-asset-main", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
 noise = {version = "0.6", default-features = false}
 winit = "0.28"
+
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

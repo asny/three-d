@@ -1,10 +1,14 @@
 use crate::core::*;
 
+
+pub use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 ///
 /// Defines which channels (red, green, blue, alpha and depth) to clear when starting to write to a [RenderTarget].
 /// If `None` then the channel is not cleared and if `Some(value)` the channel is cleared to that value (the value must be between 0 and 1).
 ///
-#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ClearState {
     /// Defines the clear value for the red channel.
     pub red: Option<f32>,

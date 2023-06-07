@@ -1,5 +1,9 @@
-/// Selects the level of hardware graphics acceleration.
+
+pub use serde::{Serialize,Deserialize};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde-window", derive(Serialize, Deserialize))]
+/// Selects the level of hardware graphics acceleration.
 pub enum HardwareAcceleration {
     /// Require graphics acceleration.
     Required,
@@ -57,6 +61,7 @@ impl Default for SurfaceSettings {
 ///
 /// Settings for the default [Window](super::Window).
 ///
+///cannot serialize due to canvas
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WindowSettings {
     /// The title of the window.

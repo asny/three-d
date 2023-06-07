@@ -32,6 +32,8 @@ mod point_light;
 #[doc(inline)]
 pub use point_light::*;
 
+pub use serde::{Serialize, Deserialize};
+
 mod ambient_light;
 #[doc(inline)]
 pub use ambient_light::*;
@@ -47,6 +49,7 @@ use crate::core::*;
 /// The light intensity is scaled by ``` 1 / max(1, constant + distance * linear + distance * distance * quadratic) ```.
 ///
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct Attenuation {
     /// Constant attenuation factor.
     pub constant: f32,

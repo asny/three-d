@@ -1,6 +1,9 @@
 use crate::context::UniformLocation;
 use crate::core::*;
 
+pub use serde::{Serialize, Deserialize};
+
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 pub enum UniformType {
     Value,
     Vec2,

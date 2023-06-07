@@ -4,6 +4,8 @@
 //!
 #![allow(unsafe_code)]
 
+pub use serde::{Serialize, Deserialize};
+
 mod context;
 #[doc(inline)]
 pub use context::*;
@@ -49,6 +51,7 @@ use thiserror::Error;
 /// Error in the [core](crate::core) module.
 ///
 #[derive(Debug, Error)]
+#[cfg_attr(feature = "serde-core", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum CoreError {
     #[error("failed creating context with error: {0}")]

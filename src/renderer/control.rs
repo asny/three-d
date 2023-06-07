@@ -2,6 +2,8 @@
 //! A collection of controls for example to control the camera.
 //!
 
+pub use serde::{Serialize, Deserialize};
+
 mod camera_control;
 #[doc(inline)]
 pub use camera_control::*;
@@ -25,6 +27,7 @@ pub use three_d_asset::PixelPoint as PhysicalPoint;
 /// and `y` is on the vertical axis with zero being at top edge.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct LogicalPoint {
     /// The horizontal pixel distance from the left edge.
     pub x: f32,
@@ -77,6 +80,7 @@ impl From<&LogicalPoint> for PhysicalPoint {
 }
 
 /// Type of mouse button.
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
     /// Left mouse button or one finger on touch.
@@ -89,6 +93,7 @@ pub enum MouseButton {
 
 /// An input event (from mouse, keyboard or similar).
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub enum Event {
     /// Fired when a button is pressed or the screen is touched.
     MousePress {
@@ -169,6 +174,7 @@ pub enum Event {
 
 /// Keyboard key input.
 #[allow(missing_docs)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum Key {
     ArrowDown,
@@ -240,6 +246,7 @@ pub enum Key {
 
 /// State of modifiers (alt, ctrl, shift and command).
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct Modifiers {
     /// Either of the alt keys are down (option ⌥ on Mac).
     pub alt: bool,

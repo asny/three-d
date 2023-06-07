@@ -1,11 +1,14 @@
 use crate::core::*;
 use crate::renderer::*;
 
+pub use serde::{Serialize, Deserialize};
+
 ///
 /// Used for rendering the distance from the camera to the object with this material in each pixel.
 /// Can be used for debug purposes but is also used to create shadow maps from light sources.
 ///
 #[derive(Default, Clone)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct DepthMaterial {
     /// The minimum distance from the camera to any object. If None, then the near plane of the camera is used.
     pub min_distance: Option<f32>,

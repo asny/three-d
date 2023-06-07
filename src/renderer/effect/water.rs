@@ -2,6 +2,8 @@ use crate::core::*;
 use crate::renderer::*;
 use std::sync::Arc;
 
+pub use serde::{Serialize, Deserialize};
+
 /// The background of the scene.
 #[derive(Clone)]
 pub enum Background {

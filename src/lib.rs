@@ -16,6 +16,8 @@ pub mod core;
 pub mod renderer;
 pub use renderer::*;
 
+pub use serde::{Serialize, Deserialize};
+
 pub mod window;
 pub use window::*;
 

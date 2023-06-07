@@ -1,11 +1,14 @@
 use crate::core::*;
 use crate::renderer::*;
 
+pub use serde::{Serialize, Deserialize};
+
 ///
 /// Render the object with colors that reflect its position which primarily is used for debug purposes.
 /// The x coordinate maps to the red channel, y to green and z to blue.
 ///
 #[derive(Default, Clone)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct PositionMaterial {
     /// Render states.
     pub render_states: RenderStates,

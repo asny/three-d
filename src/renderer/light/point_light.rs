@@ -1,9 +1,12 @@
 use crate::core::*;
 use crate::renderer::*;
 
+pub use serde::{Serialize, Deserialize};
+
 ///
 /// A light which shines from the given position in all directions.
 ///
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct PointLight {
     /// The intensity of the light. This allows for higher intensity than 1 which can be used to simulate high intensity light sources like the sun.
     pub intensity: f32,

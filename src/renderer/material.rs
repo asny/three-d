@@ -5,6 +5,7 @@
 //! A [Material] can also be combined into an [object] (see [Gm]) and be used in a render call, for example [RenderTarget::render].
 //!
 
+
 macro_rules! impl_material_body {
     ($inner:ident) => {
         fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
@@ -27,6 +28,7 @@ macro_rules! impl_material_body {
         }
     };
 }
+pub use serde::{Serialize, Deserialize};
 
 use crate::renderer::*;
 
@@ -109,6 +111,7 @@ impl std::convert::From<Arc<Texture2D>> for Texture2DRef {
 /// For example, transparent objects need to be rendered back to front, whereas opaque objects need to be rendered front to back.
 ///
 #[derive(Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Debug)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub enum MaterialType {
     /// Forward opaque
     Opaque,
@@ -123,6 +126,7 @@ pub enum MaterialType {
 /// To use an attribute for a material, add the relevant shader code to the fragment shader source (documented for each attribute) and return this struct from [Material::fragment_attributes] with the relevant attribute set to true.
 ///
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde-renderer", derive(Serialize, Deserialize))]
 pub struct FragmentAttributes {
     /// Position in world space: `in vec3 pos;`
     pub position: bool,
