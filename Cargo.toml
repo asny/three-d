@@ -28,7 +28,7 @@ serde-core=[]
 [dependencies]
 glow = "0.12"
 cgmath = "0.18"
-three-d-asset = {version="0.6",path="C:\\Users\\mcmil\\OneDrive\\Desktop\\three-d-asset-main"}
+three-d-asset = {version="0.6",git="https://github.com/morgandotunwrap/three-d-asset-serde"}
 thiserror = "1"
 winit = {version = "0.28", optional = true}
 egui = { version = "0.21", optional = true }
@@ -51,7 +51,7 @@ instant = "0.1.12"
 
 [dev-dependencies]
 rand = "0.7"
-three-d-asset = {path="C:\\Users\\mcmil\\OneDrive\\Desktop\\three-d-asset-main", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
+three-d-asset = {git="https://github.com/morgandotunwrap/three-d-asset-serde", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
 noise = {version = "0.6", default-features = false}
 winit = "0.28"
 
