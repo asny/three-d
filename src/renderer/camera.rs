@@ -23,7 +23,6 @@ impl ToneMapping {
             } else if(toneMappingType == 2u) {
                 color = color*(2.51*color + .03) / (color*(2.43*color + .59) + .14);
             } else if(toneMappingType == 3u) {
-                const float exposure_bias = 2.0f;
                 const float A = 0.15;
                 const float B = 0.50;
                 const float C = 0.10;
@@ -32,7 +31,7 @@ impl ToneMapping {
                 const float F = 0.30;
                 const float W = 11.2;
                 
-                vec4 x = vec4(exposure_bias * color, W);
+                vec4 x = vec4(color, W);
                 x = ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
                 color = x.xyz / x.w;
             }
