@@ -66,11 +66,7 @@ pub async fn run() {
                     ui.radio_value(&mut camera.tone_mapping, ToneMapping::None, "None");
                     ui.radio_value(&mut camera.tone_mapping, ToneMapping::Reinhard, "Reinhard");
                     ui.radio_value(&mut camera.tone_mapping, ToneMapping::Aces, "Aces");
-                    ui.radio_value(
-                        &mut camera.tone_mapping,
-                        ToneMapping::Uncharted2,
-                        "Uncharted2",
-                    );
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Filmic, "Filmic");
                 });
                 panel_width = gui_context.used_rect().width();
             },
