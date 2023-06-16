@@ -21,9 +21,10 @@ default = ["window"]
 window = ["glutin", "winit", "raw-window-handle", "wasm-bindgen", "serde", "serde-wasm-bindgen", "web-sys"] # Window module
 headless = ["glutin_029"] # Headless rendering
 egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features 
+serde=["serde-code","serde-window","serde-renderer"]
 serde-window=[]
 serde-renderer=[]
-serde-core=[]
+serde-core=["three-d-asset/serde-core"]
 
 [dependencies]
 glow = "0.12"
