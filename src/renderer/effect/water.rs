@@ -42,7 +42,7 @@ impl Effect for WaterMaterial {
         depth_texture: Option<DepthTexture>,
     ) -> String {
         format!(
-            "{}\n{}\n{}\n{}\n{}\n{}",
+            "{}\n{}\n{}\n{}\n{}\n{}\n{}",
             match &self.background {
                 Background::Color(_) => "",
                 Background::Texture(_) => "#define USE_BACKGROUND_TEXTURE",
@@ -55,6 +55,7 @@ impl Effect for WaterMaterial {
                 .fragment_shader_source(),
             lights_shader_source(lights, self.lighting_model),
             ToneMapping::fragment_shader_source(),
+            ColorSpace::fragment_shader_source(),
             include_str!("shaders/water_effect.frag")
         )
     }
@@ -88,6 +89,7 @@ impl Effect for WaterMaterial {
         depth_texture: Option<DepthTexture>,
     ) {
         camera.tone_mapping.use_uniforms(program);
+        camera.target_color_space.use_uniforms(program);
         color_texture
             .expect("Must supply a color texture to apply a water effect")
             .use_uniforms(program);

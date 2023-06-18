@@ -51,7 +51,7 @@ void main() {
             vec3 normal = estimate_normal(uvw);
             outColor.rgb = calculate_lighting(cameraPosition, surfaceColor.rgb, rayPos, normal, metallic, roughness, 1.0);
             outColor.rgb = tone_mapping(outColor.rgb);
-            outColor.rgb = srgb_from_rgb(outColor.rgb);
+            outColor.rgb = color_mapping(outColor.rgb);
             outColor.a = surfaceColor.a;
             break;
         }
