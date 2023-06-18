@@ -1,4 +1,4 @@
-use crate::{core::*, Camera, Effect, FragmentAttributes};
+use crate::{core::*, Camera, ColorSpace, Effect, FragmentAttributes};
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 pub enum ToneMapping {
@@ -25,6 +25,7 @@ impl Effect for ToneMapping {
             "
             {}
             {}
+            {}
 
             in vec2 uvs;
 
@@ -34,11 +35,13 @@ impl Effect for ToneMapping {
             {{
                 outColor = sample_color(uvs);
                 outColor.rgb = tone_mapping(outColor.rgb);
+                outColor.rgb = color_mapping(outColor.rgb);
             }}
 
         ",
             Self::fragment_shader_source(),
-            color_texture.fragment_shader_source()
+            color_texture.fragment_shader_source(),
+            ColorSpace::fragment_shader_source(),
         )
     }
 
@@ -56,11 +59,12 @@ impl Effect for ToneMapping {
     fn use_uniforms(
         &self,
         program: &Program,
-        _camera: &Camera,
+        camera: &Camera,
         _lights: &[&dyn crate::Light],
         color_texture: Option<ColorTexture>,
         _depth_texture: Option<DepthTexture>,
     ) {
+        camera.target_color_space.use_uniforms(program);
         self.use_uniforms(program);
         let color_texture =
             color_texture.expect("Must supply a color texture to apply a tone mapping effect");
