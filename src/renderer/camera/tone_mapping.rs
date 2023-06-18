@@ -20,7 +20,7 @@ impl Effect for ToneMapping {
         _depth_texture: Option<DepthTexture>,
     ) -> String {
         let color_texture =
-            color_texture.expect("Must supply a color texture to apply a fxaa effect");
+            color_texture.expect("Must supply a color texture to apply a tone mapping effect");
         format!(
             "
             {}

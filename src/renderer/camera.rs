@@ -1,6 +1,9 @@
 mod tone_mapping;
 pub use tone_mapping::*;
 
+mod color_space;
+pub use color_space::*;
+
 use crate::core::*;
 
 #[derive(Clone, Debug)]
@@ -8,6 +11,7 @@ pub struct Camera {
     camera: three_d_asset::Camera,
     /// Tone mapping applied to the final color
     pub tone_mapping: ToneMapping,
+    pub target_color_space: ColorSpace,
 }
 
 impl Camera {
@@ -25,6 +29,7 @@ impl Camera {
                 viewport, position, target, up, height, z_near, z_far,
             ),
             tone_mapping: ToneMapping::default(),
+            target_color_space: ColorSpace::default(),
         }
     }
     pub fn new_perspective(
@@ -47,6 +52,7 @@ impl Camera {
                 z_far,
             ),
             tone_mapping: ToneMapping::default(),
+            target_color_space: ColorSpace::default(),
         }
     }
 }
