@@ -43,7 +43,7 @@ impl Effect for ToneMapping {
     }
 
     fn id(&self) -> u16 {
-        todo!()
+        0b11u16 << 14 | 0b110u16
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

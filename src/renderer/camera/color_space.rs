@@ -68,7 +68,7 @@ impl Effect for ColorSpace {
     }
 
     fn id(&self) -> u16 {
-        todo!()
+        0b11u16 << 14 | 0b101u16
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {
