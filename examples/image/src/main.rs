@@ -18,6 +18,7 @@ pub async fn run() {
     let context = window.gl();
 
     let mut camera = camera2d(window.viewport());
+    camera.tone_mapping = ToneMapping::None;
 
     // Source: https://polyhaven.com/
     let mut loaded = if let Ok(loaded) =
@@ -39,6 +40,7 @@ pub async fn run() {
     let mut texture_transform_scale = 1.0;
     let mut texture_transform_x = 0.0;
     let mut texture_transform_y = 0.0;
+    let mut tone_mapping = ToneMapping::default();
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
         gui.update(
@@ -63,10 +65,10 @@ pub async fn run() {
                             .text("Texture transform y"),
                     );
                     ui.label("Tone mapping");
-                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::None, "None");
-                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Reinhard, "Reinhard");
-                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Aces, "Aces");
-                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Filmic, "Filmic");
+                    ui.radio_value(&mut tone_mapping, ToneMapping::None, "None");
+                    ui.radio_value(&mut tone_mapping, ToneMapping::Reinhard, "Reinhard");
+                    ui.radio_value(&mut tone_mapping, ToneMapping::Aces, "Aces");
+                    ui.radio_value(&mut tone_mapping, ToneMapping::Filmic, "Filmic");
                 });
                 panel_width = gui_context.used_rect().width();
             },
@@ -87,10 +89,34 @@ pub async fn run() {
             ..Default::default()
         };
 
+        let mut target = Texture2D::new_empty::<[f16; 4]>(
+            &context,
+            viewport.width,
+            viewport.height,
+            Interpolation::Nearest,
+            Interpolation::Nearest,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+        );
+
+        camera.target_color_space = ColorSpace::Compute;
+        target
+            .as_color_target(None)
+            .clear(ClearState::default())
+            .apply_screen_material(&material, &camera, &[]);
+
+        camera.target_color_space = ColorSpace::Srgb;
         frame_input
             .screen()
             .clear(ClearState::default())
-            .apply_screen_material(&material, &camera, &[])
+            .apply_screen_effect(
+                &tone_mapping,
+                &camera,
+                &[],
+                Some(ColorTexture::Single(&target)),
+                None,
+            )
             .write(|| {
                 gui.render();
             });
