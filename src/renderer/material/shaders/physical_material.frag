@@ -78,6 +78,6 @@ void main()
 
     outColor.rgb = total_emissive + calculate_lighting(cameraPosition, surface_color.rgb, pos, normal, metallic_factor, roughness_factor, occlusion);
     outColor.rgb = tone_mapping(outColor.rgb);
-    outColor.rgb = srgb_from_rgb(outColor.rgb);
+    outColor.rgb = color_mapping(outColor.rgb);
     outColor.a = surface_color.a;
 }

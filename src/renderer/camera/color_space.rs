@@ -16,7 +16,7 @@ impl ColorSpace {
         uniform uint colorSpaceType;
 
         vec3 color_mapping(vec3 color) {
-            if (colorSpaceType == 1) {
+            if (colorSpaceType == 1u) {
                 vec3 a = vec3(0.055, 0.055, 0.055);
                 vec3 ap1 = vec3(1.0, 1.0, 1.0) + a;
                 vec3 g = vec3(2.4, 2.4, 2.4);
