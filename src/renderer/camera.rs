@@ -1,4 +1,4 @@
-use crate::core::*;
+use crate::{core::*, Effect, FragmentAttributes};
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 pub enum ToneMapping {
@@ -10,6 +10,66 @@ pub enum ToneMapping {
     Aces = 2,
     /// John Hables presentation "Uncharted 2 HDR Lighting", Page 142 to 143. http://www.gdcvault.com/play/1012459/Uncharted_2__HDR_Lighting
     Filmic = 3,
+}
+
+impl Effect for ToneMapping {
+    fn fragment_shader_source(
+        &self,
+        _lights: &[&dyn crate::Light],
+        color_texture: Option<ColorTexture>,
+        _depth_texture: Option<DepthTexture>,
+    ) -> String {
+        let color_texture =
+            color_texture.expect("Must supply a color texture to apply a fxaa effect");
+        format!(
+            "
+            {}
+            {}
+
+            in vec2 uvs;
+
+            layout (location = 0) out vec4 outColor;
+
+            void main()
+            {{
+                outColor = sample_color(uvs);
+                outColor.rgb = tone_mapping(outColor.rgb);
+            }}
+
+        ",
+            Self::fragment_shader_source(),
+            color_texture.fragment_shader_source()
+        )
+    }
+
+    fn id(&self) -> u16 {
+        todo!()
+    }
+
+    fn fragment_attributes(&self) -> FragmentAttributes {
+        FragmentAttributes {
+            uv: true,
+            ..FragmentAttributes::NONE
+        }
+    }
+
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        _camera: &Camera,
+        _lights: &[&dyn crate::Light],
+        color_texture: Option<ColorTexture>,
+        _depth_texture: Option<DepthTexture>,
+    ) {
+        self.use_uniforms(program);
+        let color_texture =
+            color_texture.expect("Must supply a color texture to apply a tone mapping effect");
+        color_texture.use_uniforms(program);
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates::default()
+    }
 }
 
 impl ToneMapping {
@@ -50,7 +110,7 @@ impl ToneMapping {
     }
 
     pub fn use_uniforms(&self, program: &Program) {
-        program.use_uniform("toneMappingType", *self as u32)
+        program.use_uniform("toneMappingType", *self as u32);
     }
 }
 
