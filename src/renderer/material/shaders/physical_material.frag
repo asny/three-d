@@ -46,7 +46,7 @@ void main()
     #ifdef ALPHACUT
         if (c.a < acut) discard;
     #endif
-    surface_color *= vec4(rgb_from_srgb(c.rgb), c.a);
+    surface_color *= c;
 #endif
 
     float metallic_factor = metallic;
@@ -72,8 +72,7 @@ void main()
 
     vec3 total_emissive = emissive.rgb;
 #ifdef USE_EMISSIVE_TEXTURE
-    vec4 e = texture(emissiveTexture, (emissiveTexTransform * vec3(uvs, 1.0)).xy);
-    total_emissive *= rgb_from_srgb(e.rgb);
+    total_emissive *= texture(emissiveTexture, (emissiveTexTransform * vec3(uvs, 1.0)).xy).rgb;
 #endif
 
     outColor.rgb = total_emissive + calculate_lighting(cameraPosition, surface_color.rgb, pos, normal, metallic_factor, roughness_factor, occlusion);
