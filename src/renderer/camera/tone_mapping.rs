@@ -72,7 +72,11 @@ impl Effect for ToneMapping {
     }
 
     fn render_states(&self) -> RenderStates {
-        RenderStates::default()
+        RenderStates {
+            write_mask: WriteMask::COLOR,
+            cull: Cull::Back,
+            ..Default::default()
+        }
     }
 }
 
@@ -100,15 +104,6 @@ impl ToneMapping {
                 color = x.xyz / x.w;
             }
             return clamp(color, 0.0, 1.0);
-        }
-
-        vec3 inverse_tone_mapping(vec3 color) {
-            if (toneMappingType == 1u) {
-                return color / max(vec3(1.0) - color, vec3(0.001, 0.001, 0.001));
-            } else if(toneMappingType == 2u) {
-                color = (sqrt(-10127.*color*color + 13702.*color + 9.) + 59.*color - 3.) / (502. - 486.*color);
-            }
-            return color;
         }
         "
     }

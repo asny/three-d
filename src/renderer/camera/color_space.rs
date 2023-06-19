@@ -93,6 +93,10 @@ impl Effect for ColorSpace {
     }
 
     fn render_states(&self) -> RenderStates {
-        RenderStates::default()
+        RenderStates {
+            write_mask: WriteMask::COLOR,
+            cull: Cull::Back,
+            ..Default::default()
+        }
     }
 }

@@ -235,7 +235,9 @@ pub async fn run() {
         water.animate(frame_input.accumulated_time as f32);
 
         if change {
-            color_texture = Texture2D::new_empty::<[u8; 4]>(
+            camera.tone_mapping = ToneMapping::None;
+            camera.target_color_space = ColorSpace::Compute;
+            color_texture = Texture2D::new_empty::<[f16; 4]>(
                 &context,
                 frame_input.viewport.width,
                 frame_input.viewport.height,
@@ -259,13 +261,17 @@ pub async fn run() {
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
             .render(&camera, skybox.into_iter().chain(&terrain), &[&light]);
         }
+        camera.tone_mapping = ToneMapping::Aces;
+        camera.target_color_space = ColorSpace::Srgb;
         frame_input
             .screen()
-            .copy_from(
-                ColorTexture::Single(&color_texture),
-                DepthTexture::Single(&depth_texture),
-                camera.viewport(),
-                WriteMask::default(),
+            .copy_from_depth(DepthTexture::Single(&depth_texture), camera.viewport())
+            .apply_screen_effect(
+                &camera.tone_mapping,
+                &camera,
+                &[&light],
+                Some(ColorTexture::Single(&color_texture)),
+                Some(DepthTexture::Single(&depth_texture)),
             )
             .render_with_effect(
                 &water_material,
