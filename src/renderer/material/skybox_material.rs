@@ -13,9 +13,10 @@ impl Material for SkyboxMaterial {
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         format!(
-            "{}{}{}",
+            "{}{}{}{}",
             include_str!("../../core/shared.frag"),
             ToneMapping::fragment_shader_source(),
+            ColorSpace::fragment_shader_source(),
             include_str!("shaders/skybox_material.frag")
         )
     }
@@ -26,7 +27,7 @@ impl Material for SkyboxMaterial {
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
         camera.tone_mapping.use_uniforms(program);
-        program.use_uniform("isHDR", i32::from(self.texture.is_hdr()));
+        camera.target_color_space.use_uniforms(program);
         program.use_texture_cube("texture0", &self.texture);
     }
 
