@@ -1,7 +1,7 @@
 in vec4 v_color;
 out vec4 fragColor;
 
-vec3 srgb_from_rgb(vec3 rgb) {
+vec3 srgb_from_linear_srgb(vec3 rgb) {
     vec3 a = vec3(0.055, 0.055, 0.055);
     vec3 ap1 = vec3(1.0, 1.0, 1.0) + a;
     vec3 g = vec3(2.4, 2.4, 2.4);
@@ -14,5 +14,5 @@ vec3 srgb_from_rgb(vec3 rgb) {
 
 void main() {
     fragColor = v_color;
-    fragColor.rgb = srgb_from_rgb(fragColor.rgb);
+    fragColor.rgb = srgb_from_linear_srgb(fragColor.rgb);
 }
