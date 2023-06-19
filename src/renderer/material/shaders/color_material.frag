@@ -14,8 +14,7 @@ void main()
     outColor = surfaceColor * col;
     
     #ifdef USE_TEXTURE
-    vec4 tex_color = texture(tex, (textureTransformation * vec3(uvs, 1.0)).xy);
-    outColor *= vec4(rgb_from_srgb(tex_color.rgb), tex_color.a);
+    outColor *= texture(tex, (textureTransformation * vec3(uvs, 1.0)).xy);
     #endif
 
     outColor.rgb = color_mapping(outColor.rgb);
