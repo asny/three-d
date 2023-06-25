@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::sync::Arc;
 
 ///
 /// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
@@ -35,11 +34,10 @@ impl ColorMaterial {
     /// Constructs a new opaque color material from a [CpuMaterial].
     pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
-            Arc::new(Texture2D::new(
+            Texture2DRef::from_cpu_texture(
                 context,
                 cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            ))
-            .into()
+            )
         });
         Self {
             color: cpu_material.albedo,
@@ -52,11 +50,10 @@ impl ColorMaterial {
     /// Constructs a new transparent color material from a [CpuMaterial].
     pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
-            Arc::new(Texture2D::new(
+            Texture2DRef::from_cpu_texture(
                 context,
                 cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            ))
-            .into()
+            )
         });
         Self {
             color: cpu_material.albedo,

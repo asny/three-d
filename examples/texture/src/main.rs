@@ -56,13 +56,10 @@ pub async fn run() {
     let mut box_object = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()),
         ColorMaterial {
-            texture: Some(
-                std::sync::Arc::new(Texture2D::new(
-                    &context,
-                    &cpu_texture.to_linear_srgb().unwrap(),
-                ))
-                .into(),
-            ),
+            texture: Some(Texture2DRef::from_cpu_texture(
+                &context,
+                &cpu_texture.to_linear_srgb().unwrap(),
+            )),
             ..Default::default()
         },
     );

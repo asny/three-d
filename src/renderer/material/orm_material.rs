@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::sync::Arc;
 
 ///
 /// Render the object with colors that reflect its ORM (occlusion, roughness and metallic) values which primarily is used for debug purposes.
@@ -29,12 +28,12 @@ impl ORMMaterial {
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
-                Some(Arc::new(Texture2D::new(context, cpu_texture)).into())
+                Some(Texture2DRef::from_cpu_texture(context, cpu_texture))
             } else {
                 cpu_material
                     .metallic_roughness_texture
                     .as_ref()
-                    .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into())
+                    .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture))
             };
         let occlusion_texture = if cpu_material.occlusion_metallic_roughness_texture.is_some() {
             metallic_roughness_texture.clone()
@@ -42,7 +41,7 @@ impl ORMMaterial {
             cpu_material
                 .occlusion_texture
                 .as_ref()
-                .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into())
+                .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture))
         };
         Self {
             metallic: cpu_material.metallic,

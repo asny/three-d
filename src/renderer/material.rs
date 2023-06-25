@@ -88,6 +88,22 @@ pub struct Texture2DRef {
     pub transformation: Mat3,
 }
 
+impl Texture2DRef {
+    pub fn from_cpu_texture(context: &Context, cpu_texture: &CpuTexture) -> Self {
+        Self {
+            texture: Arc::new(Texture2D::new(context, cpu_texture)),
+            transformation: Mat3::identity(),
+        }
+    }
+
+    pub fn from_texture(texture: Texture2D) -> Self {
+        Self {
+            texture: Arc::new(texture),
+            transformation: Mat3::identity(),
+        }
+    }
+}
+
 impl std::ops::Deref for Texture2DRef {
     type Target = Texture2D;
     fn deref(&self) -> &Self::Target {
@@ -95,10 +111,16 @@ impl std::ops::Deref for Texture2DRef {
     }
 }
 
+impl std::convert::From<Texture2D> for Texture2DRef {
+    fn from(texture: Texture2D) -> Self {
+        Self::from_texture(texture)
+    }
+}
+
 impl std::convert::From<Arc<Texture2D>> for Texture2DRef {
     fn from(texture: Arc<Texture2D>) -> Self {
         Self {
-            texture,
+            texture: texture,
             transformation: Mat3::identity(),
         }
     }

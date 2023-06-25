@@ -36,13 +36,10 @@ pub async fn run() {
         .unwrap();
     let material = ColorMaterial {
         color: Color::WHITE,
-        texture: Some(
-            std::sync::Arc::new(Texture2D::new(
-                &context,
-                img.to_linear_srgb().as_ref().unwrap(),
-            ))
-            .into(),
-        ),
+        texture: Some(Texture2DRef::from_cpu_texture(
+            &context,
+            img.to_linear_srgb().as_ref().unwrap(),
+        )),
         ..Default::default()
     };
 
