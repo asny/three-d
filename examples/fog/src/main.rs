@@ -53,16 +53,21 @@ pub async fn run() {
     // main loop
     let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
         &context,
-        1,
-        1,
+        camera.viewport().width,
+        camera.viewport().height,
         Interpolation::Nearest,
         Interpolation::Nearest,
         None,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let mut depth_texture =
-        DepthTexture2D::new::<f32>(&context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge);
+    let mut depth_texture = DepthTexture2D::new::<f32>(
+        &context,
+        camera.viewport().width,
+        camera.viewport().height,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+    );
     window.render_loop(move |mut frame_input| {
         let mut change = frame_input.first_frame;
         change |= camera.set_viewport(frame_input.viewport);
@@ -80,23 +85,27 @@ pub async fn run() {
 
         if change {
             // Draw the scene to a render target if a change has occured
-            color_texture = Texture2D::new_empty::<[u8; 4]>(
-                &context,
-                frame_input.viewport.width,
-                frame_input.viewport.height,
-                Interpolation::Nearest,
-                Interpolation::Nearest,
-                None,
-                Wrapping::ClampToEdge,
-                Wrapping::ClampToEdge,
-            );
-            depth_texture = DepthTexture2D::new::<f32>(
-                &context,
-                frame_input.viewport.width,
-                frame_input.viewport.height,
-                Wrapping::ClampToEdge,
-                Wrapping::ClampToEdge,
-            );
+            if camera.viewport().width != color_texture.width()
+                || camera.viewport().height != color_texture.height()
+            {
+                color_texture = Texture2D::new_empty::<[u8; 4]>(
+                    &context,
+                    camera.viewport().width,
+                    camera.viewport().height,
+                    Interpolation::Nearest,
+                    Interpolation::Nearest,
+                    None,
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                );
+                depth_texture = DepthTexture2D::new::<f32>(
+                    &context,
+                    camera.viewport().width,
+                    camera.viewport().height,
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                );
+            }
             RenderTarget::new(
                 color_texture.as_color_target(None),
                 depth_texture.as_depth_target(),
@@ -105,34 +114,29 @@ pub async fn run() {
             .render(&camera, &monkey, &[&ambient, &directional]);
         }
 
-        if fog_enabled {
-            // Apply fog nomatter if a change has occured since it contain animation.
-            frame_input
-                .screen()
-                .copy_from(
-                    ColorTexture::Single(&color_texture),
-                    DepthTexture::Single(&depth_texture),
-                    frame_input.viewport,
-                    WriteMask::default(),
-                )
-                .apply_screen_effect(
+        change |= fog_enabled; // Always render if fog is enabled since it contain animation.
+
+        if change {
+            frame_input.screen().copy_from(
+                ColorTexture::Single(&color_texture),
+                DepthTexture::Single(&depth_texture),
+                frame_input.viewport,
+                WriteMask::default(),
+            );
+
+            if fog_enabled {
+                frame_input.screen().apply_screen_effect(
                     &fog_effect,
                     &camera,
                     &[],
                     None,
                     Some(DepthTexture::Single(&depth_texture)),
                 );
-        } else if change {
-            // If a change has happened and no fog is applied, copy the result to the screen
-            frame_input.screen().copy_from_color(
-                ColorTexture::Single(&color_texture),
-                frame_input.viewport,
-                WriteMask::default(),
-            );
+            }
         }
 
         FrameOutput {
-            swap_buffers: change || fog_enabled,
+            swap_buffers: change,
             ..Default::default()
         }
     });
