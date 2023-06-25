@@ -42,6 +42,51 @@ pub use three_d_asset::texture::{
     Interpolation, Texture2D as CpuTexture, Texture3D as CpuTexture3D, TextureData, Wrapping,
 };
 
+pub trait CpuTextureExtensions {
+    fn to_linear_srgb(&self) -> Option<CpuTexture>;
+}
+
+impl CpuTextureExtensions for CpuTexture {
+    fn to_linear_srgb(&self) -> Option<CpuTexture> {
+        let convert = |rgb: &[u8]| {
+            let mut linear_rgb = [0u8; 3];
+            for i in 0..3 {
+                let c = rgb[i] as f32 / 255.0;
+                let c = if c < 0.04045 {
+                    c / 12.92
+                } else {
+                    ((c + 0.055) / 1.055).powf(2.4)
+                };
+                linear_rgb[i] = (c * 255.0) as u8;
+            }
+            linear_rgb
+        };
+
+        let data = match &self.data {
+            TextureData::RgbU8(data) => {
+                TextureData::RgbU8(data.iter().map(|color| convert(color)).collect())
+            }
+            TextureData::RgbaU8(data) => TextureData::RgbaU8(
+                data.into_iter()
+                    .map(|color| {
+                        let rgb = convert(color);
+                        let mut rgba = color.clone();
+                        for i in 0..3 {
+                            rgba[i] = rgb[i];
+                        }
+                        rgba
+                    })
+                    .collect(),
+            ),
+            _ => return None,
+        };
+        Some(CpuTexture {
+            data,
+            ..self.clone()
+        })
+    }
+}
+
 /// The basic data type used for each channel of each pixel in a texture.
 pub trait TextureDataType: DataType {}
 impl TextureDataType for u8 {}

@@ -25,8 +25,18 @@ impl Skybox {
         front: &CpuTexture,
         back: &CpuTexture,
     ) -> Self {
-        let texture = TextureCubeMap::new(context, right, left, top, bottom, front, back);
-        Self::new_with_texture(context, Arc::new(texture))
+        Self::new_with_texture(
+            context,
+            Arc::new(TextureCubeMap::new(
+                context,
+                right.to_linear_srgb().as_ref().unwrap_or(right),
+                left.to_linear_srgb().as_ref().unwrap_or(left),
+                top.to_linear_srgb().as_ref().unwrap_or(top),
+                bottom.to_linear_srgb().as_ref().unwrap_or(bottom),
+                front.to_linear_srgb().as_ref().unwrap_or(front),
+                back.to_linear_srgb().as_ref().unwrap_or(back),
+            )),
+        )
     }
 
     ///
@@ -37,21 +47,24 @@ impl Skybox {
             TextureData::RgbaU8(_)
             | TextureData::RgbU8(_)
             | TextureData::RgU8(_)
-            | TextureData::RU8(_) => {
-                TextureCubeMap::new_from_equirectangular::<u8>(context, cpu_texture)
-            }
+            | TextureData::RU8(_) => TextureCubeMap::new_from_equirectangular::<u8>(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            ),
             TextureData::RgbaF16(_)
             | TextureData::RgbF16(_)
             | TextureData::RgF16(_)
-            | TextureData::RF16(_) => {
-                TextureCubeMap::new_from_equirectangular::<f16>(context, cpu_texture)
-            }
+            | TextureData::RF16(_) => TextureCubeMap::new_from_equirectangular::<f16>(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            ),
             TextureData::RgbaF32(_)
             | TextureData::RgbF32(_)
             | TextureData::RgF32(_)
-            | TextureData::RF32(_) => {
-                TextureCubeMap::new_from_equirectangular::<f32>(context, cpu_texture)
-            }
+            | TextureData::RF32(_) => TextureCubeMap::new_from_equirectangular::<f32>(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            ),
         };
 
         Self::new_with_texture(context, Arc::new(texture))

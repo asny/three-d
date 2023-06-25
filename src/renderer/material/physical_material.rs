@@ -69,10 +69,13 @@ impl PhysicalMaterial {
     }
 
     fn new_internal(context: &Context, cpu_material: &CpuMaterial, is_transparent: bool) -> Self {
-        let albedo_texture = cpu_material
-            .albedo_texture
-            .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+        let albedo_texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
+            Arc::new(Texture2D::new(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            ))
+            .into()
+        });
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
                 Some(Arc::new(Texture2D::new(context, cpu_texture)).into())
@@ -94,10 +97,13 @@ impl PhysicalMaterial {
             .normal_texture
             .as_ref()
             .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
-        let emissive_texture = cpu_material
-            .emissive_texture
-            .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+        let emissive_texture = cpu_material.emissive_texture.as_ref().map(|cpu_texture| {
+            Arc::new(Texture2D::new(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            ))
+            .into()
+        });
         Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
