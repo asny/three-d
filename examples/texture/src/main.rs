@@ -39,6 +39,7 @@ pub async fn run() {
     .await
     .unwrap();
 
+    // Skybox
     let top_tex = loaded.deserialize("top").unwrap();
     let skybox = Skybox::new(
         &context,
@@ -49,13 +50,16 @@ pub async fn run() {
         &loaded.deserialize("front").unwrap(),
         &loaded.deserialize("back").unwrap(),
     );
+
+    // Box
+    let cpu_texture: CpuTexture = loaded.deserialize("Skybox_example").unwrap();
     let mut box_object = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()),
         ColorMaterial {
             texture: Some(
                 std::sync::Arc::new(Texture2D::new(
                     &context,
-                    &loaded.deserialize("Skybox_example").unwrap(),
+                    &cpu_texture.to_linear_srgb().unwrap(),
                 ))
                 .into(),
             ),
@@ -63,6 +67,8 @@ pub async fn run() {
         },
     );
     box_object.material.render_states.cull = Cull::Back;
+
+    // Penguin
     let model = loaded.deserialize("PenguinBaseMesh.obj").unwrap();
     let mut penguin = Model::<PhysicalMaterial>::new(&context, &model).unwrap();
     penguin.iter_mut().for_each(|m| {
@@ -70,6 +76,7 @@ pub async fn run() {
         m.material.render_states.cull = Cull::Back;
     });
 
+    // Lights
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
     let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0));
 
