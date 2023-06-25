@@ -122,7 +122,7 @@ impl std::convert::From<Texture2D> for Texture2DRef {
 impl std::convert::From<Arc<Texture2D>> for Texture2DRef {
     fn from(texture: Arc<Texture2D>) -> Self {
         Self {
-            texture: texture,
+            texture,
             transformation: Mat3::identity(),
         }
     }
