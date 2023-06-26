@@ -101,17 +101,19 @@ pub async fn run() {
         );
 
         camera.target_color_space = ColorSpace::Compute;
+        camera.tone_mapping = ToneMapping::None;
         target
             .as_color_target(None)
             .clear(ClearState::default())
             .apply_screen_material(&material, &camera, &[]);
 
         camera.target_color_space = ColorSpace::Srgb;
+        camera.tone_mapping = tone_mapping;
         frame_input
             .screen()
             .clear(ClearState::default())
             .apply_screen_effect(
-                &tone_mapping,
+                &CopyEffect {},
                 &camera,
                 &[],
                 Some(ColorTexture::Single(&target)),

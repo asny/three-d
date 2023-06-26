@@ -44,6 +44,10 @@ mod fog;
 #[doc(inline)]
 pub use fog::*;
 
+mod copy;
+#[doc(inline)]
+pub use copy::*;
+
 mod fxaa;
 #[doc(inline)]
 pub use fxaa::*;
