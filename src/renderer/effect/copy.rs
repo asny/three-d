@@ -8,31 +8,39 @@ impl Effect for CopyEffect {
         &self,
         _lights: &[&dyn crate::Light],
         color_texture: Option<ColorTexture>,
-        _depth_texture: Option<DepthTexture>,
+        depth_texture: Option<DepthTexture>,
     ) -> String {
-        let color_texture =
-            color_texture.expect("Must supply a color texture to apply a copy effect");
         format!(
-            "
-            {}
-            {}
-            {}
+            "{}{}{}{}
 
             in vec2 uvs;
-
             layout (location = 0) out vec4 outColor;
 
             void main()
             {{
-                outColor = sample_color(uvs);
-                outColor.rgb = tone_mapping(outColor.rgb);
-                outColor.rgb = color_mapping(outColor.rgb);
+                {}
+                {}
             }}
 
         ",
-            color_texture.fragment_shader_source(),
+            color_texture
+                .map(|t| t.fragment_shader_source())
+                .unwrap_or("".to_string()),
+            depth_texture
+                .map(|t| t.fragment_shader_source())
+                .unwrap_or("".to_string()),
             ToneMapping::fragment_shader_source(),
             ColorSpace::fragment_shader_source(),
+            color_texture
+                .map(|_| "
+                    outColor = sample_color(uvs);
+                    outColor.rgb = tone_mapping(outColor.rgb);
+                    outColor.rgb = color_mapping(outColor.rgb);"
+                    .to_string())
+                .unwrap_or("".to_string()),
+            depth_texture
+                .map(|_| "gl_FragDepth = sample_depth(uvs);".to_string())
+                .unwrap_or("".to_string()),
         )
     }
 
@@ -56,13 +64,16 @@ impl Effect for CopyEffect {
         camera: &Camera,
         _lights: &[&dyn crate::Light],
         color_texture: Option<ColorTexture>,
-        _depth_texture: Option<DepthTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
         camera.tone_mapping.use_uniforms(program);
         camera.target_color_space.use_uniforms(program);
-        let color_texture =
-            color_texture.expect("Must supply a color texture to apply a copy effect");
-        color_texture.use_uniforms(program);
+        if let Some(color_texture) = color_texture {
+            color_texture.use_uniforms(program);
+        }
+        if let Some(depth_texture) = depth_texture {
+            depth_texture.use_uniforms(program);
+        }
     }
 
     fn render_states(&self) -> RenderStates {
