@@ -78,7 +78,6 @@ impl Effect for CopyEffect {
 
     fn render_states(&self) -> RenderStates {
         RenderStates {
-            write_mask: WriteMask::COLOR,
             cull: Cull::Back,
             ..Default::default()
         }
