@@ -412,7 +412,7 @@ pub fn render_with_effect(
 ) {
     let fragment_attributes = effect.fragment_attributes();
     let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
-    id.extend(effect.id().to_le_bytes());
+    id.extend(effect.id(color_texture, depth_texture).to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
     let mut programs = context.programs.write().unwrap();
@@ -483,7 +483,7 @@ pub fn apply_screen_effect(
         panic!("Not possible to use the given effect to render full screen, the full screen geometry only provides uv coordinates and color");
     }
     let mut id = full_screen_id().to_le_bytes().to_vec();
-    id.extend(effect.id().to_le_bytes());
+    id.extend(effect.id(color_texture, depth_texture).to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
     let mut programs = context.programs.write().unwrap();

@@ -187,6 +187,17 @@ impl ColorTexture<'_> {
         }
     }
 
+    pub fn id(&self) -> u16 {
+        0b11u16 << 12
+            | match self {
+                Self::Single { .. } => 1u16,
+                Self::Array { .. } => 10u16,
+                Self::CubeMap { .. } => {
+                    todo!()
+                }
+            }
+    }
+
     ///
     /// Sends the uniform data needed for this texture to the fragment shader.
     ///
@@ -273,6 +284,17 @@ impl DepthTexture<'_> {
                 todo!()
             }
         }
+    }
+
+    pub fn id(&self) -> u16 {
+        0b11u16 << 13
+            | match self {
+                Self::Single { .. } => 1u16,
+                Self::Array { .. } => 10u16,
+                Self::CubeMap { .. } => {
+                    todo!()
+                }
+            }
     }
 
     ///

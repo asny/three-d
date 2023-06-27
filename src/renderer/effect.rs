@@ -14,8 +14,12 @@ macro_rules! impl_effect_body {
                 .fragment_shader_source(lights, color_texture, depth_texture)
         }
 
-        fn id(&self) -> u16 {
-            self.$inner().id()
+        fn id(
+            &self,
+            color_texture: Option<ColorTexture>,
+            depth_texture: Option<DepthTexture>,
+        ) -> u16 {
+            self.$inner().id(color_texture, depth_texture)
         }
 
         fn fragment_attributes(&self) -> FragmentAttributes {
@@ -82,7 +86,7 @@ pub trait Effect {
     /// **Note:** The first 16 bits are reserved to internally implemented effects, so if implementing the `Effect` trait
     /// outside of this crate, always return an id that is larger than or equal to `0b1u16 << 16`.
     ///
-    fn id(&self) -> u16;
+    fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16;
 
     ///
     /// Returns a [FragmentAttributes] struct that describes which fragment attributes,
@@ -144,8 +148,8 @@ impl<T: Effect> Effect for std::sync::RwLock<T> {
             .fragment_shader_source(lights, color_texture, depth_texture)
     }
 
-    fn id(&self) -> u16 {
-        self.read().unwrap().id()
+    fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
+        self.read().unwrap().id(color_texture, depth_texture)
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {
