@@ -1,7 +1,4 @@
 use crate::core::*;
-use crate::Camera;
-use crate::Effect;
-use crate::FragmentAttributes;
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum ColorSpace {

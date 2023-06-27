@@ -1,4 +1,4 @@
-use crate::{core::*, Camera, ColorSpace, Effect, FragmentAttributes};
+use crate::core::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 pub enum ToneMapping {
