@@ -66,9 +66,9 @@ impl Effect for CopyEffect {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        camera.tone_mapping.use_uniforms(program);
-        camera.target_color_space.use_uniforms(program);
         if let Some(color_texture) = color_texture {
+            camera.tone_mapping.use_uniforms(program);
+            camera.target_color_space.use_uniforms(program);
             color_texture.use_uniforms(program);
         }
         if let Some(depth_texture) = depth_texture {
