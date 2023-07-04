@@ -90,7 +90,7 @@ The examples that fit with a specific release can be found in the branch for tha
 `three-d` is supported
 
 - on all major desktop OS (Windows, Mac, Linux) by using OpenGL 3.3 graphics API. _Note: MacOS has deprecated OpenGL so it still works, but it might not perform optimally._
-- in all major browsers (Chrome, Firefox, Edge and Safari) by compiling to WebAssembly and using the WebGL 2.0 graphics API.
+- in all major browsers (Chrome, Firefox, Edge and Safari) by compiling to WebAssembly and using the WebGL 2.0 graphics API (see `web/README.md`)
 - on embedded/mobile systems with OpenGL ES 3.0 support. _Note: this is not tested regularly, please report any issues._
 
 ### State of the project
