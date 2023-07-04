@@ -1,13 +1,25 @@
-# Building for the web
+# Build for the web
 
-In order to build the three-d examples for the browser, you can follow these steps. **Make sure you have both Rust and npm (which should include `npx`) installed.**
+In order to build the `three-d` examples for the web, you can follow these steps. All commands should run in this `web/` directory.
 
-You can find an overview of all examples in `examples/README.md`.
+1. Make sure you have both `Rust` and `npm` (which should include `npx`) installed.
 
-## Step by step
+2. Run
 
-1. Run `npm install` in the `web/` directory
-2. Run the following command to build the `shapes` example. Replace the path to the example to build other examples
-    * `npx wasm-pack build "../examples/shapes" --target web --out-name web --out-dir ../../web/pkg`
-3. Run `npm run serve` to show the application in the browser
-4. Open `http://localhost:8080` in the browser
+```console
+$ npm install
+```
+
+3. Run (The following command builds the `triangle` example. Replace the path to the example to build other examples. You can find an overview of all examples in `examples/README.md`.)
+
+```console
+$ npx wasm-pack build "../examples/triangle" --target web --out-name web --out-dir ../../web/pkg
+```
+
+4. Run
+
+```console
+$ npm run serve
+```
+
+5. Open `http://localhost:8080` in a browser

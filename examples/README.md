@@ -4,16 +4,15 @@
 
 #### Native:
 
-Build and run an example, in this case 'triangle':
+Build and run an example, in this case the `triangle` example:
 
 ```console
-$ cargo run --example triangle --release
+$ cargo run --release --example triangle
 ```
 
 #### WebAssembly:
 
 See `web/README.md`.
-
 
 ### A note on async
 
