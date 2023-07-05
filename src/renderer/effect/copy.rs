@@ -78,6 +78,7 @@ impl Effect for CopyEffect {
 
     fn render_states(&self) -> RenderStates {
         RenderStates {
+            depth_test: DepthTest::Always,
             cull: Cull::Back,
             ..Default::default()
         }
