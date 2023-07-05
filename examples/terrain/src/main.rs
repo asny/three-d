@@ -94,7 +94,7 @@ pub async fn run() {
         ),
     };
 
-    let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
+    let mut color_texture = Texture2D::new_empty::<[f16; 4]>(
         &context,
         1,
         1,
@@ -265,11 +265,10 @@ pub async fn run() {
         camera.target_color_space = ColorSpace::Srgb;
         frame_input
             .screen()
-            .copy_from_depth(DepthTexture::Single(&depth_texture), camera.viewport())
             .apply_screen_effect(
-                &camera.tone_mapping,
+                &CopyEffect {},
                 &camera,
-                &[&light],
+                &[],
                 Some(ColorTexture::Single(&color_texture)),
                 Some(DepthTexture::Single(&depth_texture)),
             )
