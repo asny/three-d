@@ -42,10 +42,10 @@ pub async fn run() {
     let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Fog
-    let fog_effect = FogEffect {
+    let mut fog_effect = FogEffect {
         color: Color::new_opaque(200, 200, 200),
         density: 0.2,
-        animation: 0.2,
+        animation: 0.1,
         ..Default::default()
     };
     let mut fog_enabled = true;
@@ -125,6 +125,7 @@ pub async fn run() {
             );
 
             if fog_enabled {
+                fog_effect.time = frame_input.accumulated_time as f32;
                 frame_input.screen().apply_screen_effect(
                     &fog_effect,
                     &camera,
