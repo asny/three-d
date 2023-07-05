@@ -4,30 +4,15 @@
 
 #### Native:
 
-Build and run an example, in this case 'triangle':
+Build and run an example, in this case the `triangle` example:
 
 ```console
-$ cargo run --example triangle --release
+$ cargo run --release --example triangle
 ```
 
 #### WebAssembly:
 
-Prerequisites:
-
-- A server that properly defines the `application/wasm` mime type (for example [http-server](https://www.npmjs.com/package/http-server))
-- [wasm-pack](https://rustwasm.github.io/wasm-pack/)
-
-Build and generate web output (webassembly, javascript and html files) into the pkg folder:
-
-```console
-$ wasm-pack build examples/triangle --target web --out-name web --out-dir ../../pkg
-```
-
-Start the server and go to http://localhost:8080 in a browser:
-
-```console
-$ http-server
-```
+See `web/README.md`.
 
 ### A note on async
 
