@@ -61,7 +61,7 @@ impl Effect for WaterMaterial {
     }
 
     fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
-        0b11u16 << 14
+        0b1u16 << 15
             | 0b100u16
             | color_texture
                 .expect("Must supply a color texture to apply a water effect")

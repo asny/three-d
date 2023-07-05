@@ -45,7 +45,7 @@ impl Effect for CopyEffect {
     }
 
     fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
-        0b11u16 << 14
+        0b1u16 << 15
             | 0b100u16
             | color_texture.map(|t| t.id()).unwrap_or(0u16)
             | depth_texture.map(|t| t.id()).unwrap_or(0u16)
