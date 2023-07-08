@@ -6,15 +6,22 @@ pub use color_space::*;
 
 use crate::core::*;
 
+///
+/// Represents a camera used for viewing [Object]s.
+///
 #[derive(Clone, Debug)]
 pub struct Camera {
     camera: three_d_asset::Camera,
-    /// Tone mapping applied to the final color
+    /// This tone mapping is applied to the final color of renders using this camera.
     pub tone_mapping: ToneMapping,
+    /// The final color of renders using this camera is converted to this color space.
     pub target_color_space: ColorSpace,
 }
 
 impl Camera {
+    ///
+    /// New camera which projects the world with an orthographic projection.
+    ///
     pub fn new_orthographic(
         viewport: Viewport,
         position: Vec3,
@@ -32,6 +39,10 @@ impl Camera {
             target_color_space: ColorSpace::default(),
         }
     }
+
+    ///
+    /// New camera which projects the world with a perspective projection.
+    ///
     pub fn new_perspective(
         viewport: Viewport,
         position: Vec3,

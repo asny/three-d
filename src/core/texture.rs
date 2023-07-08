@@ -114,6 +114,7 @@ impl ColorTexture<'_> {
             ColorTexture::CubeMap { texture, .. } => texture.height(),
         }
     }
+
     ///
     /// Returns the fragment shader source for using this texture in a shader.
     ///

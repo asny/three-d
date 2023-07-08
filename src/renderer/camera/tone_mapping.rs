@@ -13,6 +13,9 @@ pub enum ToneMapping {
 }
 
 impl ToneMapping {
+    ///
+    /// Returns the fragment shader source for applying the specified tone mapping in a shader.
+    ///
     pub fn fragment_shader_source() -> &'static str {
         "
         uniform uint toneMappingType;

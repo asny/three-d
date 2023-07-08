@@ -1,13 +1,19 @@
 use crate::core::*;
 
+/// Color space used for specifying the targeted color space when rendering.
 #[derive(Clone, Debug, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum ColorSpace {
+    /// Use this if you want to use the rendered result as input to a following render pass.
     Compute = 0,
+    /// Use this if this is the final render pass, ie. you write to the screen or want to save it as an image.
     #[default]
     Srgb = 1,
 }
 
 impl ColorSpace {
+    ///
+    /// Returns the fragment shader source for converting to the specified color space in a shader.
+    ///
     pub fn fragment_shader_source() -> &'static str {
         "
         uniform uint colorSpaceType;
