@@ -63,7 +63,7 @@ impl Environment {
                             environment_map,
                             side,
                         },
-                        &camera2d(viewport),
+                        &Camera::new_2d(viewport),
                         &[],
                     );
             }
@@ -100,7 +100,7 @@ impl Environment {
                                 mip,
                                 max_mip_levels,
                             },
-                            &camera2d(viewport),
+                            &Camera::new_2d(viewport),
                             &[],
                         );
                 }
@@ -122,7 +122,11 @@ impl Environment {
         brdf_map
             .as_color_target(None)
             .clear(ClearState::default())
-            .apply_screen_material(&BrdfMaterial { lighting_model }, &camera2d(viewport), &[]);
+            .apply_screen_material(
+                &BrdfMaterial { lighting_model },
+                &Camera::new_2d(viewport),
+                &[],
+            );
 
         Self {
             irradiance_map,

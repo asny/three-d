@@ -505,6 +505,7 @@ pub fn apply_screen_effect(
 /// The (0, 0) position is at the bottom left corner and the
 /// (`viewport.width`, `viewport.height`) position is at the top right corner.
 ///
+#[deprecated = "use Camera::new_2d instead"]
 pub fn camera2d(viewport: Viewport) -> Camera {
     Camera::new_orthographic(
         viewport,

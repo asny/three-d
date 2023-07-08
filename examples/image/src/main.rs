@@ -17,7 +17,7 @@ pub async fn run() {
     .unwrap();
     let context = window.gl();
 
-    let mut camera = camera2d(window.viewport());
+    let mut camera = Camera::new_2d(window.viewport());
     camera.tone_mapping = ToneMapping::None;
 
     // Source: https://polyhaven.com/

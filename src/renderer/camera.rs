@@ -66,6 +66,32 @@ impl Camera {
             target_color_space: ColorSpace::default(),
         }
     }
+
+    ///
+    /// Returns an orthographic camera for viewing 2D content.
+    /// The camera is placed at the center of the given viewport.
+    /// The (0, 0) position is at the bottom left corner and the
+    /// (`viewport.width`, `viewport.height`) position is at the top right corner.
+    ///
+    pub fn new_2d(viewport: Viewport) -> Self {
+        Self::new_orthographic(
+            viewport,
+            vec3(
+                viewport.width as f32 * 0.5,
+                viewport.height as f32 * 0.5,
+                1.0,
+            ),
+            vec3(
+                viewport.width as f32 * 0.5,
+                viewport.height as f32 * 0.5,
+                0.0,
+            ),
+            vec3(0.0, 1.0, 0.0),
+            viewport.height as f32,
+            0.0,
+            10.0,
+        )
+    }
 }
 
 use std::ops::Deref;

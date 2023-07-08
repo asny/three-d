@@ -17,7 +17,7 @@ impl FxaaEffect {
         apply_screen_effect(
             context,
             self,
-            &camera2d(Viewport::new_at_origo(
+            &Camera::new_2d(Viewport::new_at_origo(
                 color_texture.width(),
                 color_texture.height(),
             )),
