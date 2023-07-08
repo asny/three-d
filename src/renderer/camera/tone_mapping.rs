@@ -1,7 +1,12 @@
 use crate::core::*;
 
+///
+/// Tone mapping is the process of mapping HDR color values computed with physical based rendering in the range `[0,∞)`
+/// into LDR values that can be displayed on the screen in the range `[0,1]`.
+///
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 pub enum ToneMapping {
+    /// No tone mapping. Use this if you are rendering into an intermediate render target, ie. this is not the final render pass that renders into the screen.
     None = 0,
     /// Photographic Tone Reproduction for Digital Images. `<http://www.cmap.polytechnique.fr/~peyre/cours/x2005signal/hdr_photographic.pdf>`
     Reinhard = 1,

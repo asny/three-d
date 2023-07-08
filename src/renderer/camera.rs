@@ -7,7 +7,7 @@ pub use color_space::*;
 use crate::core::*;
 
 ///
-/// Represents a camera used for viewing [Object]s.
+/// Represents a camera used for viewing 2D and 3D objects.
 ///
 #[derive(Clone, Debug)]
 pub struct Camera {
