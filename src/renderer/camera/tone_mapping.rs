@@ -28,8 +28,10 @@ impl ToneMapping {
         vec3 tone_mapping(vec3 color) {
             if (toneMappingType == 1u) {
                 color = color / (color + vec3(1.0));
+                color = clamp(color, 0.0, 1.0);
             } else if(toneMappingType == 2u) {
                 color = color*(2.51*color + .03) / (color*(2.43*color + .59) + .14);
+                color = clamp(color, 0.0, 1.0);
             } else if(toneMappingType == 3u) {
                 const float A = 0.15;
                 const float B = 0.50;
@@ -42,8 +44,9 @@ impl ToneMapping {
                 vec4 x = vec4(color, W);
                 x = ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
                 color = x.xyz / x.w;
+                color = clamp(color, 0.0, 1.0);
             }
-            return clamp(color, 0.0, 1.0);
+            return color;
         }
         "
     }
