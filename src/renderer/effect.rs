@@ -81,9 +81,9 @@ pub trait Effect {
     ) -> String;
 
     ///
-    /// Returns a unique ID for each variation of the shader source returned from `Effect::fragment_shader_source`.
+    /// Returns a unique ID for each variation of the shader source returned from [Effect::fragment_shader_source].
     ///
-    /// **Note:** The first 16 bits are reserved to internally implemented effects, so if implementing the `Effect` trait
+    /// **Note:** The first 16 bits are reserved to internally implemented effects, so if implementing the [Effect] trait
     /// outside of this crate, always return an id that is larger than or equal to `0b1u16 << 16`.
     ///
     fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16;

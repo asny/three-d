@@ -1,5 +1,9 @@
 use crate::renderer::*;
 
+///
+/// Copies the content of the color and/or depth texture.
+/// In addition, the [ToneMapping] and target [ColorSpace] specified in the [Camera] is applied to the color.
+///
 #[derive(Clone, Debug, Default)]
 pub struct CopyEffect {}
 

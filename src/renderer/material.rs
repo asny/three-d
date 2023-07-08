@@ -191,9 +191,9 @@ pub trait Material {
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String;
 
     ///
-    /// Returns a unique ID for each variation of the shader source returned from `Material::fragment_shader_source`.
+    /// Returns a unique ID for each variation of the shader source returned from [Material::fragment_shader_source].
     ///
-    /// **Note:** The last bit is reserved to internally implemented materials, so if implementing the `Material` trait
+    /// **Note:** The last bit is reserved to internally implemented materials, so if implementing the [Material] trait
     /// outside of this crate, always return an id that is smaller than `0b1u16 << 15`.
     ///
     fn id(&self) -> u16;

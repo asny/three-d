@@ -18,9 +18,8 @@ impl Default for Background {
 }
 
 ///
-/// A material that simulates a water surface.
-/// This material needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections/refractions.
-/// Therefore, the material needs to be updated/constructed each frame.
+/// An effect that simulates a water surface and should therefore only be applied to a water surface geometry.
+/// This effect needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections and refractions.
 ///
 #[derive(Clone)]
 pub struct WaterMaterial {
@@ -30,7 +29,7 @@ pub struct WaterMaterial {
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the surface is.
     pub roughness: f32,
-    /// The lighting model used when rendering this material
+    /// The lighting model used when rendering this effect
     pub lighting_model: LightingModel,
 }
 
