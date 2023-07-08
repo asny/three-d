@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::sync::Arc;
 
 ///
 /// Render the object with colors that reflect its normals which primarily is used for debug purposes.
@@ -23,7 +22,7 @@ impl NormalMaterial {
         let normal_texture = cpu_material
             .normal_texture
             .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+            .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture));
         Self {
             normal_scale: cpu_material.normal_scale,
             normal_texture,

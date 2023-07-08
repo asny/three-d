@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::sync::Arc;
 
 ///
 /// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
@@ -34,10 +33,12 @@ impl ColorMaterial {
 
     /// Constructs a new opaque color material from a [CpuMaterial].
     pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture = cpu_material
-            .albedo_texture
-            .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+        let texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
+            Texture2DRef::from_cpu_texture(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            )
+        });
         Self {
             color: cpu_material.albedo,
             texture,
@@ -48,10 +49,12 @@ impl ColorMaterial {
 
     /// Constructs a new transparent color material from a [CpuMaterial].
     pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture = cpu_material
-            .albedo_texture
-            .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+        let texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
+            Texture2DRef::from_cpu_texture(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            )
+        });
         Self {
             color: cpu_material.albedo,
             texture,
@@ -96,6 +99,7 @@ impl Material for ColorMaterial {
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
         }
         shader.push_str(include_str!("../../core/shared.frag"));
+        shader.push_str(ColorSpace::fragment_shader_source());
         shader.push_str(include_str!("shaders/color_material.frag"));
         shader
     }
@@ -108,7 +112,8 @@ impl Material for ColorMaterial {
         }
     }
 
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
+        camera.target_color_space.use_uniforms(program);
         program.use_uniform("surfaceColor", self.color);
         if let Some(ref tex) = self.texture {
             program.use_uniform("textureTransformation", tex.transformation);

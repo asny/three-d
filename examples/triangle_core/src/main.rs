@@ -1,8 +1,8 @@
 use three_d::core::{
-    degrees, radians, vec3, Camera, ClearState, Color, Context, Mat4, Program, RenderStates,
-    VertexBuffer,
+    degrees, radians, vec3, ClearState, Color, Context, Mat4, Program, RenderStates, VertexBuffer,
 };
 use three_d::window::{FrameOutput, Window, WindowSettings};
+use three_d_asset::Camera;
 
 pub fn main() {
     // Create a window (a canvas on web)

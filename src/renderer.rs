@@ -31,6 +31,9 @@ pub enum RendererError {
     MissingMaterial(String, String),
 }
 
+mod camera;
+pub use camera::*;
+
 pub mod material;
 pub use material::*;
 
@@ -409,7 +412,7 @@ pub fn render_with_effect(
 ) {
     let fragment_attributes = effect.fragment_attributes();
     let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
-    id.extend(effect.id().to_le_bytes());
+    id.extend(effect.id(color_texture, depth_texture).to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
     let mut programs = context.programs.write().unwrap();
@@ -453,7 +456,7 @@ pub fn apply_screen_material(
         )
         .expect("Failed compiling shader")
     });
-    material.use_uniforms(program, &camera2d(camera.viewport()), lights);
+    material.use_uniforms(program, camera, lights);
     full_screen_draw(
         context,
         program,
@@ -480,7 +483,7 @@ pub fn apply_screen_effect(
         panic!("Not possible to use the given effect to render full screen, the full screen geometry only provides uv coordinates and color");
     }
     let mut id = full_screen_id().to_le_bytes().to_vec();
-    id.extend(effect.id().to_le_bytes());
+    id.extend(effect.id(color_texture, depth_texture).to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
     let mut programs = context.programs.write().unwrap();
@@ -502,24 +505,9 @@ pub fn apply_screen_effect(
 /// The (0, 0) position is at the bottom left corner and the
 /// (`viewport.width`, `viewport.height`) position is at the top right corner.
 ///
+#[deprecated = "use Camera::new_2d instead"]
 pub fn camera2d(viewport: Viewport) -> Camera {
-    Camera::new_orthographic(
-        viewport,
-        vec3(
-            viewport.width as f32 * 0.5,
-            viewport.height as f32 * 0.5,
-            1.0,
-        ),
-        vec3(
-            viewport.width as f32 * 0.5,
-            viewport.height as f32 * 0.5,
-            0.0,
-        ),
-        vec3(0.0, 1.0, 0.0),
-        viewport.height as f32,
-        0.0,
-        10.0,
-    )
+    Camera::new_2d(viewport)
 }
 
 ///

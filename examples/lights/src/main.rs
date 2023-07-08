@@ -82,6 +82,12 @@ pub async fn run() {
                             .text("Attenuation quadratic"),
                     );
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
+
+                    ui.label("Tone mapping");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::None, "None");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Reinhard, "Reinhard");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Aces, "Aces");
+                    ui.radio_value(&mut camera.tone_mapping, ToneMapping::Filmic, "Filmic");
                 });
                 panel_width = gui_context.used_rect().width();
             },

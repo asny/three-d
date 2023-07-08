@@ -84,7 +84,7 @@ pub async fn run() {
         0.3,
         [],
     );
-    let mut water_material = WaterMaterial {
+    let mut water_material = WaterEffect {
         background: Background::Texture(skybox.texture().clone()),
         metallic: 0.0,
         roughness: 1.0,
@@ -94,18 +94,23 @@ pub async fn run() {
         ),
     };
 
-    let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
+    let mut color_texture = Texture2D::new_empty::<[f16; 4]>(
         &context,
-        1,
-        1,
+        camera.viewport().width,
+        camera.viewport().height,
         Interpolation::Nearest,
         Interpolation::Nearest,
         None,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let mut depth_texture =
-        DepthTexture2D::new::<f32>(&context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge);
+    let mut depth_texture = DepthTexture2D::new::<f32>(
+        &context,
+        camera.viewport().width,
+        camera.viewport().height,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+    );
     let mut gui = GUI::new(&context);
 
     let mut wavelength = 3.0;
@@ -227,30 +232,37 @@ pub async fn run() {
             camera.target().y + y_new - camera.position().y,
             camera.target().z,
         );
-        camera.set_view(vec3(p.x, y_new, p.y), target, *camera.up());
+        let up = *camera.up();
+        camera.set_view(vec3(p.x, y_new, p.y), target, up);
 
         terrain.set_center(p);
         water.set_center(p);
         water.animate(frame_input.accumulated_time as f32);
 
         if change {
-            color_texture = Texture2D::new_empty::<[u8; 4]>(
-                &context,
-                frame_input.viewport.width,
-                frame_input.viewport.height,
-                Interpolation::Nearest,
-                Interpolation::Nearest,
-                None,
-                Wrapping::ClampToEdge,
-                Wrapping::ClampToEdge,
-            );
-            depth_texture = DepthTexture2D::new::<f32>(
-                &context,
-                frame_input.viewport.width,
-                frame_input.viewport.height,
-                Wrapping::ClampToEdge,
-                Wrapping::ClampToEdge,
-            );
+            camera.tone_mapping = ToneMapping::None;
+            camera.target_color_space = ColorSpace::Compute;
+            if camera.viewport().width != color_texture.width()
+                || camera.viewport().height != color_texture.height()
+            {
+                color_texture = Texture2D::new_empty::<[f16; 4]>(
+                    &context,
+                    camera.viewport().width,
+                    camera.viewport().height,
+                    Interpolation::Nearest,
+                    Interpolation::Nearest,
+                    None,
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                );
+                depth_texture = DepthTexture2D::new::<f32>(
+                    &context,
+                    camera.viewport().width,
+                    camera.viewport().height,
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                );
+            }
             RenderTarget::new(
                 color_texture.as_color_target(None),
                 depth_texture.as_depth_target(),
@@ -258,13 +270,16 @@ pub async fn run() {
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
             .render(&camera, skybox.into_iter().chain(&terrain), &[&light]);
         }
+        camera.tone_mapping = ToneMapping::Aces;
+        camera.target_color_space = ColorSpace::Srgb;
         frame_input
             .screen()
-            .copy_from(
-                ColorTexture::Single(&color_texture),
-                DepthTexture::Single(&depth_texture),
-                camera.viewport(),
-                WriteMask::default(),
+            .apply_screen_effect(
+                &CopyEffect {},
+                &camera,
+                &[],
+                Some(ColorTexture::Single(&color_texture)),
+                Some(DepthTexture::Single(&depth_texture)),
             )
             .render_with_effect(
                 &water_material,

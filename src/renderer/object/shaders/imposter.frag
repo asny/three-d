@@ -4,7 +4,7 @@ uniform mat4 view;
 uniform int no_views;
 in vec2 uvs;
 
-layout (location = 0) out vec4 out_color;
+layout (location = 0) out vec4 outColor;
 
 void main()
 {
@@ -19,12 +19,11 @@ void main()
     float frac = layer - index0;
 
     vec4 color0 = texture(tex, vec3(uvs.x, uvs.y, index0));
-    color0.rgb = rgb_from_srgb(color0.rgb);
     vec4 color1 = texture(tex, vec3(uvs.x, uvs.y, index1));
-    color1.rgb = rgb_from_srgb(color1.rgb);
-    out_color = mix(color0, color1, frac);
-    out_color = vec4(srgb_from_rgb(out_color.rgb), out_color.a);
-    if(out_color.a < 0.5) {
+    outColor = mix(color0, color1, frac);
+    if(outColor.a < 0.5) {
         discard;
     }
+    outColor.rgb = tone_mapping(outColor.rgb);
+    outColor.rgb = color_mapping(outColor.rgb);
 }

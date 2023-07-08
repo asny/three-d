@@ -18,12 +18,14 @@ impl Effect for LightingPassEffect {
         );
         fragment_shader.push_str(&color_texture.unwrap().fragment_shader_source());
         fragment_shader.push_str(&depth_texture.unwrap().fragment_shader_source());
+        fragment_shader.push_str(ToneMapping::fragment_shader_source());
+        fragment_shader.push_str(ColorSpace::fragment_shader_source());
         fragment_shader.push_str(include_str!("shaders/deferred_lighting.frag"));
         fragment_shader
     }
 
-    fn id(&self) -> u16 {
-        0b11u16 << 14 | 0b11u16
+    fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
+        0b1u16 << 14 | 0b1u16 << 12 | color_texture.unwrap().id() | depth_texture.unwrap().id()
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {
@@ -41,6 +43,8 @@ impl Effect for LightingPassEffect {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
+        camera.tone_mapping.use_uniforms(program);
+        camera.target_color_space.use_uniforms(program);
         color_texture.unwrap().use_uniforms(program);
         depth_texture.unwrap().use_uniforms(program);
         program.use_uniform_if_required("cameraPosition", camera.position());

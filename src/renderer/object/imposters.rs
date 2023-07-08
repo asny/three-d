@@ -173,6 +173,8 @@ impl ImpostersMaterial {
                 0.0,
                 4.0 * (width + height),
             );
+            camera.target_color_space = ColorSpace::Compute;
+            camera.tone_mapping = ToneMapping::None;
             self.texture = Texture2DArray::new_empty::<[f16; 4]>(
                 &self.context,
                 texture_width,
@@ -217,7 +219,9 @@ impl Material for ImpostersMaterial {
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         format!(
-            "{}{}",
+            "{}{}{}{}",
+            ToneMapping::fragment_shader_source(),
+            ColorSpace::fragment_shader_source(),
             include_str!("../../core/shared.frag"),
             include_str!("shaders/imposter.frag")
         )
@@ -231,6 +235,8 @@ impl Material for ImpostersMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
+        camera.tone_mapping.use_uniforms(program);
+        camera.target_color_space.use_uniforms(program);
         program.use_uniform("no_views", NO_VIEW_ANGLES as i32);
         program.use_uniform("view", camera.view());
         program.use_texture_array("tex", &self.texture);

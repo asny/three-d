@@ -29,14 +29,17 @@ pub async fn run() {
 
     let axes = Axes::new(&context, 0.1, 1.0);
 
-    let img = three_d_asset::io::load_async(&["examples/assets/test_texture.jpg"])
+    let img: CpuTexture = three_d_asset::io::load_async(&["examples/assets/test_texture.jpg"])
         .await
         .unwrap()
         .deserialize("")
         .unwrap();
     let material = ColorMaterial {
         color: Color::WHITE,
-        texture: Some(std::sync::Arc::new(Texture2D::new(&context, &img)).into()),
+        texture: Some(Texture2DRef::from_cpu_texture(
+            &context,
+            img.to_linear_srgb().as_ref().unwrap(),
+        )),
         ..Default::default()
     };
 

@@ -7,8 +7,6 @@ layout (location = 0) out vec4 outColor;
 
 void main() {
     outColor = vec4(texture(texture0, coords).rgb, 1.0);
-    if(isHDR == 1) {
-        outColor.rgb = reinhard_tone_mapping(outColor.rgb);
-        outColor.rgb = srgb_from_rgb(outColor.rgb);
-    }
+    outColor.rgb = tone_mapping(outColor.rgb);
+    outColor.rgb = color_mapping(outColor.rgb);
 }

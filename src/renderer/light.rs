@@ -41,6 +41,7 @@ mod environment;
 pub use environment::*;
 
 use crate::core::*;
+use crate::renderer::camera::*;
 
 ///
 /// Specifies how the intensity of a light fades over distance.

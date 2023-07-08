@@ -17,7 +17,7 @@ impl FxaaEffect {
         apply_screen_effect(
             context,
             self,
-            &camera2d(Viewport::new_at_origo(
+            &Camera::new_2d(Viewport::new_at_origo(
                 color_texture.width(),
                 color_texture.height(),
             )),
@@ -44,8 +44,10 @@ impl Effect for FxaaEffect {
         )
     }
 
-    fn id(&self) -> u16 {
-        0b11u16 << 14 | 0b10u16
+    fn id(&self, color_texture: Option<ColorTexture>, _depth_texture: Option<DepthTexture>) -> u16 {
+        let color_texture =
+            color_texture.expect("Must supply a color texture to apply a fxaa effect");
+        0b1u16 << 14 | 0b1u16 << 13 | 0b1u16 << 12 | 0b1u16 << 11 | color_texture.id()
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

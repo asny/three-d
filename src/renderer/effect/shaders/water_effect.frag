@@ -40,10 +40,10 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
         vec3 p = world_pos_from_depth(viewProjectionInverse, texture(depthMap, uv).x, uv);
         if(distance(cameraPosition, p) < distance(cameraPosition, p_ray))
         {
-            return inverse_reinhard_tone_mapping(rgb_from_srgb(texture(colorMap, uv).xyz));
+            return sample_color(uv).rgb;
         }
     }
-    return texture(environmentMap, reflectDir).xyz;
+    return texture(environmentMap, reflectDir).rgb;
 #else
     return environmentColor.rgb;
 #endif
@@ -70,7 +70,7 @@ void main()
     screen_uv -= 0.05 * normal.xz; // Shift the water bottom/sky.
     float depth = sample_depth(screen_uv);
     vec3 backgroundPos = world_pos_from_depth(viewProjectionInverse, depth, screen_uv);
-    outColor.rgb = inverse_reinhard_tone_mapping(rgb_from_srgb(sample_color(screen_uv).rgb));
+    outColor.rgb = sample_color(screen_uv).rgb;
     
     // Compute cosine to the incident angle
     float cosAngle = dot(normal, -incidentDir);
@@ -88,8 +88,8 @@ void main()
     outColor.rgb = mix(refractColor, reflectColor, fresnel);
 
     outColor.rgb = calculate_lighting(cameraPosition, outColor.rgb, pos, normal, metallic, roughness, 1.0);
-    outColor.rgb = reinhard_tone_mapping(outColor.rgb);
-    outColor.rgb = srgb_from_rgb(outColor.rgb);
+    outColor.rgb = tone_mapping(outColor.rgb);
+    outColor.rgb = color_mapping(outColor.rgb);
     outColor.a = 1.0;
     
 }

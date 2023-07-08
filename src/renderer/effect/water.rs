@@ -18,23 +18,29 @@ impl Default for Background {
 }
 
 ///
-/// A material that simulates a water surface.
-/// This material needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections/refractions.
-/// Therefore, the material needs to be updated/constructed each frame.
+/// An effect that simulates a water surface and should therefore only be applied to a water surface geometry.
+/// This effect needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections and refractions.
+///
+#[deprecated = "renamed to WaterEffect"]
+pub type WaterMaterial = WaterEffect;
+
+///
+/// An effect that simulates a water surface and should therefore only be applied to a water surface geometry.
+/// This effect needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections and refractions.
 ///
 #[derive(Clone)]
-pub struct WaterMaterial {
+pub struct WaterEffect {
     /// The background of the scene which is used for reflections.
     pub background: Background,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the surface is.
     pub roughness: f32,
-    /// The lighting model used when rendering this material
+    /// The lighting model used when rendering this effect
     pub lighting_model: LightingModel,
 }
 
-impl Effect for WaterMaterial {
+impl Effect for WaterEffect {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
@@ -42,7 +48,7 @@ impl Effect for WaterMaterial {
         depth_texture: Option<DepthTexture>,
     ) -> String {
         format!(
-            "{}\n{}\n{}\n{}\n{}",
+            "{}\n{}\n{}\n{}\n{}\n{}\n{}",
             match &self.background {
                 Background::Color(_) => "",
                 Background::Texture(_) => "#define USE_BACKGROUND_TEXTURE",
@@ -54,12 +60,22 @@ impl Effect for WaterMaterial {
                 .expect("Must supply a depth texture to apply a water effect")
                 .fragment_shader_source(),
             lights_shader_source(lights, self.lighting_model),
+            ToneMapping::fragment_shader_source(),
+            ColorSpace::fragment_shader_source(),
             include_str!("shaders/water_effect.frag")
         )
     }
 
-    fn id(&self) -> u16 {
-        0b11u16 << 14 | 0b100u16
+    fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
+        0b1u16 << 14
+            | 0b1u16 << 12
+            | 0b1u16 << 11
+            | color_texture
+                .expect("Must supply a color texture to apply a water effect")
+                .id()
+            | depth_texture
+                .expect("Must supply a depth texture to apply a water effect")
+                .id()
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {
@@ -86,6 +102,8 @@ impl Effect for WaterMaterial {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
+        camera.tone_mapping.use_uniforms(program);
+        camera.target_color_space.use_uniforms(program);
         color_texture
             .expect("Must supply a color texture to apply a water effect")
             .use_uniforms(program);
@@ -117,7 +135,7 @@ impl Effect for WaterMaterial {
     }
 }
 
-impl Default for WaterMaterial {
+impl Default for WaterEffect {
     fn default() -> Self {
         Self {
             background: Background::default(),

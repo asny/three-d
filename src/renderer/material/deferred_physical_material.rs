@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::sync::Arc;
 
 ///
 /// Similar to [PhysicalMaterial] except that rendering happens in two stages which produces the same result, but is more efficient for complex scenes.
@@ -55,18 +54,20 @@ impl DeferredPhysicalMaterial {
     /// [DeferredPhysicalMaterial::metallic_roughness_texture] and [DeferredPhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
     ///
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let albedo_texture = cpu_material
-            .albedo_texture
-            .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+        let albedo_texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
+            Texture2DRef::from_cpu_texture(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            )
+        });
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
-                Some(Arc::new(Texture2D::new(context, cpu_texture)).into())
+                Some(Texture2DRef::from_cpu_texture(context, cpu_texture))
             } else {
                 cpu_material
                     .metallic_roughness_texture
                     .as_ref()
-                    .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into())
+                    .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture))
             };
         let occlusion_texture = if cpu_material.occlusion_metallic_roughness_texture.is_some() {
             metallic_roughness_texture.clone()
@@ -74,16 +75,18 @@ impl DeferredPhysicalMaterial {
             cpu_material
                 .occlusion_texture
                 .as_ref()
-                .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into())
+                .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture))
         };
         let normal_texture = cpu_material
             .normal_texture
             .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
-        let emissive_texture = cpu_material
-            .emissive_texture
-            .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+            .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture));
+        let emissive_texture = cpu_material.emissive_texture.as_ref().map(|cpu_texture| {
+            Texture2DRef::from_cpu_texture(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            )
+        });
         Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,

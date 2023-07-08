@@ -17,6 +17,9 @@ pub async fn run() {
     .unwrap();
     let context = window.gl();
 
+    let mut camera = Camera::new_2d(window.viewport());
+    camera.tone_mapping = ToneMapping::None;
+
     // Source: https://polyhaven.com/
     let mut loaded = if let Ok(loaded) =
         three_d_asset::io::load_async(&["../assets/syferfontein_18d_clear_4k.hdr"]).await
@@ -34,10 +37,10 @@ pub async fn run() {
     let mut gui = GUI::new(&context);
 
     // main loop
-    let mut tone_mapping = 1.0;
     let mut texture_transform_scale = 1.0;
     let mut texture_transform_x = 0.0;
     let mut texture_transform_y = 0.0;
+    let mut tone_mapping = ToneMapping::default();
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
         gui.update(
@@ -49,7 +52,6 @@ pub async fn run() {
                 use three_d::egui::*;
                 SidePanel::right("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
-                    ui.add(Slider::new(&mut tone_mapping, 0.0..=50.0).text("Tone mapping"));
                     ui.add(
                         Slider::new(&mut texture_transform_scale, 0.0..=10.0)
                             .text("Texture transform scale"),
@@ -62,6 +64,11 @@ pub async fn run() {
                         Slider::new(&mut texture_transform_y, 0.0..=1.0)
                             .text("Texture transform y"),
                     );
+                    ui.label("Tone mapping");
+                    ui.radio_value(&mut tone_mapping, ToneMapping::None, "None");
+                    ui.radio_value(&mut tone_mapping, ToneMapping::Reinhard, "Reinhard");
+                    ui.radio_value(&mut tone_mapping, ToneMapping::Aces, "Aces");
+                    ui.radio_value(&mut tone_mapping, ToneMapping::Filmic, "Filmic");
                 });
                 panel_width = gui_context.used_rect().width();
             },
@@ -71,6 +78,7 @@ pub async fn run() {
             frame_input.viewport.width - (panel_width * frame_input.device_pixel_ratio) as u32,
             frame_input.viewport.height,
         );
+        camera.set_viewport(viewport);
 
         let material = ColorMaterial {
             texture: Some(Texture2DRef {
@@ -81,10 +89,36 @@ pub async fn run() {
             ..Default::default()
         };
 
+        let mut target = Texture2D::new_empty::<[f16; 4]>(
+            &context,
+            viewport.width,
+            viewport.height,
+            Interpolation::Nearest,
+            Interpolation::Nearest,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+        );
+
+        camera.target_color_space = ColorSpace::Compute;
+        camera.tone_mapping = ToneMapping::None;
+        target
+            .as_color_target(None)
+            .clear(ClearState::default())
+            .apply_screen_material(&material, &camera, &[]);
+
+        camera.target_color_space = ColorSpace::Srgb;
+        camera.tone_mapping = tone_mapping;
         frame_input
             .screen()
             .clear(ClearState::default())
-            .apply_screen_material(&material, &camera2d(viewport), &[])
+            .apply_screen_effect(
+                &CopyEffect {},
+                &camera,
+                &[],
+                Some(ColorTexture::Single(&target)),
+                None,
+            )
             .write(|| {
                 gui.render();
             });

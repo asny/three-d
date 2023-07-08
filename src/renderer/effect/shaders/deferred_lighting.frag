@@ -45,7 +45,7 @@ void main()
     }
     else if(debug_type == 2) // Color
     {
-        outColor = vec4(srgb_from_rgb(surface_color.rgb), surface_color.a);
+        outColor = vec4(color_mapping(surface_color.rgb), surface_color.a);
     }
     else if(debug_type == 3) // Depth
     {
@@ -62,8 +62,8 @@ void main()
     }
     else { // None
         outColor.rgb = total_emissive + calculate_lighting(cameraPosition, surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);
-        outColor.rgb = reinhard_tone_mapping(outColor.rgb);
-        outColor.rgb = srgb_from_rgb(outColor.rgb);
+        outColor.rgb = tone_mapping(outColor.rgb);
+        outColor.rgb = color_mapping(outColor.rgb);
         outColor.a = surface_color.a;
     }
 }

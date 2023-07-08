@@ -1,5 +1,4 @@
-use super::*;
-use crate::core::*;
+use crate::renderer::*;
 
 ///
 /// A control that makes the camera fly through the 3D scene.

@@ -1,7 +1,7 @@
 use crate::renderer::*;
 
 ///
-/// A rectangle 2D geometry which can be rendered using the [camera2d] camera.
+/// A rectangle 2D geometry which can be rendered using a camera created by [Camera::new_2d].
 ///
 pub struct Rectangle {
     mesh: Mesh,

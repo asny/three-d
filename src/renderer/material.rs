@@ -88,10 +88,34 @@ pub struct Texture2DRef {
     pub transformation: Mat3,
 }
 
+impl Texture2DRef {
+    /// Creates a new [Texture2DRef] with an identity transformation from a [CpuTexture].
+    pub fn from_cpu_texture(context: &Context, cpu_texture: &CpuTexture) -> Self {
+        Self {
+            texture: Arc::new(Texture2D::new(context, cpu_texture)),
+            transformation: Mat3::identity(),
+        }
+    }
+
+    /// Creates a new [Texture2DRef] with an identity transformation from a [Texture2D].
+    pub fn from_texture(texture: Texture2D) -> Self {
+        Self {
+            texture: Arc::new(texture),
+            transformation: Mat3::identity(),
+        }
+    }
+}
+
 impl std::ops::Deref for Texture2DRef {
     type Target = Texture2D;
     fn deref(&self) -> &Self::Target {
         &self.texture
+    }
+}
+
+impl std::convert::From<Texture2D> for Texture2DRef {
+    fn from(texture: Texture2D) -> Self {
+        Self::from_texture(texture)
     }
 }
 
@@ -167,9 +191,9 @@ pub trait Material {
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String;
 
     ///
-    /// Returns a unique ID for each variation of the shader source returned from `Material::fragment_shader_source`.
+    /// Returns a unique ID for each variation of the shader source returned from [Material::fragment_shader_source].
     ///
-    /// **Note:** The last bit is reserved to internally implemented materials, so if implementing the `Material` trait
+    /// **Note:** The last bit is reserved to internally implemented materials, so if implementing the [Material] trait
     /// outside of this crate, always return an id that is smaller than `0b1u16 << 15`.
     ///
     fn id(&self) -> u16;

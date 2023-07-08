@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::sync::Arc;
 
 ///
 /// A physically-based material that renders a [Geometry] in an approximate correct physical manner based on Physically Based Rendering (PBR).
@@ -69,18 +68,20 @@ impl PhysicalMaterial {
     }
 
     fn new_internal(context: &Context, cpu_material: &CpuMaterial, is_transparent: bool) -> Self {
-        let albedo_texture = cpu_material
-            .albedo_texture
-            .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+        let albedo_texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
+            Texture2DRef::from_cpu_texture(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            )
+        });
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
-                Some(Arc::new(Texture2D::new(context, cpu_texture)).into())
+                Some(Texture2DRef::from_cpu_texture(context, cpu_texture))
             } else {
                 cpu_material
                     .metallic_roughness_texture
                     .as_ref()
-                    .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into())
+                    .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture))
             };
         let occlusion_texture = if cpu_material.occlusion_metallic_roughness_texture.is_some() {
             metallic_roughness_texture.clone()
@@ -88,16 +89,18 @@ impl PhysicalMaterial {
             cpu_material
                 .occlusion_texture
                 .as_ref()
-                .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into())
+                .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture))
         };
         let normal_texture = cpu_material
             .normal_texture
             .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
-        let emissive_texture = cpu_material
-            .emissive_texture
-            .as_ref()
-            .map(|cpu_texture| Arc::new(Texture2D::new(context, cpu_texture)).into());
+            .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture));
+        let emissive_texture = cpu_material.emissive_texture.as_ref().map(|cpu_texture| {
+            Texture2DRef::from_cpu_texture(
+                context,
+                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
+            )
+        });
         Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
@@ -178,6 +181,8 @@ impl Material for PhysicalMaterial {
                 output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
             }
         }
+        output.push_str(ToneMapping::fragment_shader_source());
+        output.push_str(ColorSpace::fragment_shader_source());
         output.push_str(include_str!("shaders/physical_material.frag"));
         output
     }
@@ -197,6 +202,8 @@ impl Material for PhysicalMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
+        camera.tone_mapping.use_uniforms(program);
+        camera.target_color_space.use_uniforms(program);
         if !lights.is_empty() {
             program.use_uniform_if_required("cameraPosition", camera.position());
             for (i, light) in lights.iter().enumerate() {
