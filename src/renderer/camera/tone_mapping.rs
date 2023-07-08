@@ -43,6 +43,9 @@ impl ToneMapping {
         "
     }
 
+    ///
+    /// Sends the uniform data needed to apply this tone mapping to the fragment shader.
+    ///
     pub fn use_uniforms(&self, program: &Program) {
         program.use_uniform("toneMappingType", *self as u32);
     }

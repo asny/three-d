@@ -143,6 +143,9 @@ impl ColorTexture<'_> {
         }
     }
 
+    ///
+    /// Returns a unique ID for each variation of the shader source returned from [ColorTexture::fragment_shader_source].
+    ///
     pub fn id(&self) -> u16 {
         match self {
             Self::Single { .. } => 1u16 << 3,
@@ -241,6 +244,9 @@ impl DepthTexture<'_> {
         }
     }
 
+    ///
+    /// Returns a unique ID for each variation of the shader source returned from [DepthTexture::fragment_shader_source].
+    ///
     pub fn id(&self) -> u16 {
         match self {
             Self::Single { .. } => 1u16,

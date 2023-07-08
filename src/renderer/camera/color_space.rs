@@ -12,7 +12,7 @@ pub enum ColorSpace {
 
 impl ColorSpace {
     ///
-    /// Returns the fragment shader source for converting to the specified color space in a shader.
+    /// Returns the fragment shader source for mapping to the specified color space in a shader.
     ///
     pub fn fragment_shader_source() -> &'static str {
         "
@@ -35,6 +35,9 @@ impl ColorSpace {
         "
     }
 
+    ///
+    /// Sends the uniform data needed to apply this color space mapping to the fragment shader.
+    ///
     pub fn use_uniforms(&self, program: &Program) {
         program.use_uniform("colorSpaceType", *self as u32);
     }
