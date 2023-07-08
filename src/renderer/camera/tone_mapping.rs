@@ -3,12 +3,12 @@ use crate::core::*;
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 pub enum ToneMapping {
     None = 0,
-    /// Photographic Tone Reproduction for Digital Images. http://www.cmap.polytechnique.fr/~peyre/cours/x2005signal/hdr_photographic.pdf
+    /// Photographic Tone Reproduction for Digital Images. `<http://www.cmap.polytechnique.fr/~peyre/cours/x2005signal/hdr_photographic.pdf>`
     Reinhard = 1,
-    /// ACES Filmic Tone Mapping Curve. https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+    /// ACES Filmic Tone Mapping Curve. `<https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/>`
     #[default]
     Aces = 2,
-    /// John Hables presentation "Uncharted 2 HDR Lighting", Page 142 to 143. http://www.gdcvault.com/play/1012459/Uncharted_2__HDR_Lighting
+    /// John Hables presentation "Uncharted 2 HDR Lighting", Page 142 to 143. `<http://www.gdcvault.com/play/1012459/Uncharted_2__HDR_Lighting>`
     Filmic = 3,
 }
 
