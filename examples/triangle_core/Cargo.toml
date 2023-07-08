@@ -8,6 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 three-d = { path = "../../" }
+three-d-asset = { git = "https://github.com/asny/three-d-asset" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"
