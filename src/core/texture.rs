@@ -188,14 +188,13 @@ impl ColorTexture<'_> {
     }
 
     pub fn id(&self) -> u16 {
-        0b1u16 << 12
-            | match self {
-                Self::Single { .. } => 1u16,
-                Self::Array { .. } => 10u16,
-                Self::CubeMap { .. } => {
-                    todo!()
-                }
+        match self {
+            Self::Single { .. } => 1u16 << 3,
+            Self::Array { .. } => 10u16 << 3,
+            Self::CubeMap { .. } => {
+                todo!()
             }
+        }
     }
 
     ///
@@ -287,14 +286,13 @@ impl DepthTexture<'_> {
     }
 
     pub fn id(&self) -> u16 {
-        0b1u16 << 13
-            | match self {
-                Self::Single { .. } => 1u16,
-                Self::Array { .. } => 10u16,
-                Self::CubeMap { .. } => {
-                    todo!()
-                }
+        match self {
+            Self::Single { .. } => 1u16,
+            Self::Array { .. } => 10u16,
+            Self::CubeMap { .. } => {
+                todo!()
             }
+        }
     }
 
     ///

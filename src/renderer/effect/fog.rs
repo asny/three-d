@@ -63,8 +63,9 @@ impl Effect for FogEffect {
     }
 
     fn id(&self, _color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
-        0b1u16 << 15
-            | 0b1u16
+        0b1u16 << 14
+            | 0b1u16 << 13
+            | 0b1u16 << 12
             | depth_texture
                 .expect("Must supply a depth texture to apply a fog effect")
                 .id()
