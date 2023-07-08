@@ -96,16 +96,21 @@ pub async fn run() {
 
     let mut color_texture = Texture2D::new_empty::<[f16; 4]>(
         &context,
-        1,
-        1,
+        camera.viewport().width,
+        camera.viewport().height,
         Interpolation::Nearest,
         Interpolation::Nearest,
         None,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let mut depth_texture =
-        DepthTexture2D::new::<f32>(&context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge);
+    let mut depth_texture = DepthTexture2D::new::<f32>(
+        &context,
+        camera.viewport().width,
+        camera.viewport().height,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+    );
     let mut gui = GUI::new(&context);
 
     let mut wavelength = 3.0;
@@ -237,23 +242,27 @@ pub async fn run() {
         if change {
             camera.tone_mapping = ToneMapping::None;
             camera.target_color_space = ColorSpace::Compute;
-            color_texture = Texture2D::new_empty::<[f16; 4]>(
-                &context,
-                frame_input.viewport.width,
-                frame_input.viewport.height,
-                Interpolation::Nearest,
-                Interpolation::Nearest,
-                None,
-                Wrapping::ClampToEdge,
-                Wrapping::ClampToEdge,
-            );
-            depth_texture = DepthTexture2D::new::<f32>(
-                &context,
-                frame_input.viewport.width,
-                frame_input.viewport.height,
-                Wrapping::ClampToEdge,
-                Wrapping::ClampToEdge,
-            );
+            if camera.viewport().width != color_texture.width()
+                || camera.viewport().height != color_texture.height()
+            {
+                color_texture = Texture2D::new_empty::<[f16; 4]>(
+                    &context,
+                    camera.viewport().width,
+                    camera.viewport().height,
+                    Interpolation::Nearest,
+                    Interpolation::Nearest,
+                    None,
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                );
+                depth_texture = DepthTexture2D::new::<f32>(
+                    &context,
+                    camera.viewport().width,
+                    camera.viewport().height,
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                );
+            }
             RenderTarget::new(
                 color_texture.as_color_target(None),
                 depth_texture.as_depth_target(),
