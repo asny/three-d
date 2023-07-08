@@ -84,7 +84,7 @@ pub async fn run() {
         0.3,
         [],
     );
-    let mut water_material = WaterMaterial {
+    let mut water_material = WaterEffect {
         background: Background::Texture(skybox.texture().clone()),
         metallic: 0.0,
         roughness: 1.0,

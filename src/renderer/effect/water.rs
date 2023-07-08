@@ -21,8 +21,15 @@ impl Default for Background {
 /// An effect that simulates a water surface and should therefore only be applied to a water surface geometry.
 /// This effect needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections and refractions.
 ///
+#[deprecated = "renamed to WaterEffect"]
+pub type WaterMaterial = WaterEffect;
+
+///
+/// An effect that simulates a water surface and should therefore only be applied to a water surface geometry.
+/// This effect needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections and refractions.
+///
 #[derive(Clone)]
-pub struct WaterMaterial {
+pub struct WaterEffect {
     /// The background of the scene which is used for reflections.
     pub background: Background,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
@@ -33,7 +40,7 @@ pub struct WaterMaterial {
     pub lighting_model: LightingModel,
 }
 
-impl Effect for WaterMaterial {
+impl Effect for WaterEffect {
     fn fragment_shader_source(
         &self,
         lights: &[&dyn Light],
@@ -128,7 +135,7 @@ impl Effect for WaterMaterial {
     }
 }
 
-impl Default for WaterMaterial {
+impl Default for WaterEffect {
     fn default() -> Self {
         Self {
             background: Background::default(),
