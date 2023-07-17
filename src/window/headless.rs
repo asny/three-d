@@ -88,7 +88,7 @@ fn build_context_osmesa<T1: ContextCurrentState>(
 #[cfg(target_os = "linux")]
 fn build_context<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
-) -> Result<(glutin_029::Context<NotCurrent>), CreationError> {
+) -> Result<glutin_029::Context<NotCurrent>, CreationError> {
     // On unix operating systems, you should always try for surfaceless first,
     // and if that does not work, headless (pbuffers), and if that too fails,
     // finally osmesa.
@@ -96,13 +96,13 @@ fn build_context<T1: ContextCurrentState>(
     // If willing, you could attempt to use hidden windows instead of os mesa,
     // but note that you must handle events for the window that come on the
     // events loop.
-    
+
     /*
     let err1 = match build_context_surfaceless(cb.clone(), &el) {
         Ok(ctx) => return Ok((ctx, el)),
         Err(err) => err,
     };*/
-    
+
     let _err3 = match build_context_osmesa(cb.clone()) {
         Ok(ctx) => return Ok(ctx),
         Err(err) => err,
