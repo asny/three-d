@@ -121,7 +121,7 @@ fn build_context<T1: ContextCurrentState>(
 #[cfg(not(target_os = "linux"))]
 fn build_context<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
-) -> Result<(glutin_029::Context<NotCurrent>, EventLoop<()>), CreationError> {
+) -> Result<glutin_029::Context<NotCurrent>, CreationError> {
     let el = EventLoop::new();
-    build_context_headless(cb.clone(), &el).map(|ctx| (ctx, el))
+    build_context_headless(cb.clone(), &el)
 }
