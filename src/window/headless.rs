@@ -38,7 +38,7 @@ impl HeadlessContext {
     #[allow(unsafe_code)]
     pub fn new() -> Result<Self, HeadlessError> {
         let cb = ContextBuilder::new();
-        let (glutin_context, _el) = build_context(cb)?;
+        let glutin_context = build_context(cb)?;
         let glutin_context = unsafe { glutin_context.make_current().map_err(|(_, e)| e)? };
         let context = Context::from_gl_context(std::sync::Arc::new(unsafe {
             crate::context::Context::from_loader_function(|s| {
@@ -88,7 +88,7 @@ fn build_context_osmesa<T1: ContextCurrentState>(
 #[cfg(target_os = "linux")]
 fn build_context<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
-) -> Result<(glutin_029::Context<NotCurrent>, EventLoop<()>), CreationError> {
+) -> Result<glutin_029::Context<NotCurrent>, CreationError> {
     // On unix operating systems, you should always try for surfaceless first,
     // and if that does not work, headless (pbuffers), and if that too fails,
     // finally osmesa.
@@ -96,7 +96,6 @@ fn build_context<T1: ContextCurrentState>(
     // If willing, you could attempt to use hidden windows instead of os mesa,
     // but note that you must handle events for the window that come on the
     // events loop.
-    let el = EventLoop::new();
 
     /*
     let err1 = match build_context_surfaceless(cb.clone(), &el) {
@@ -104,13 +103,15 @@ fn build_context<T1: ContextCurrentState>(
         Err(err) => err,
     };*/
 
-    let err2 = match build_context_headless(cb.clone(), &el) {
-        Ok(ctx) => return Ok((ctx, el)),
+    let _err3 = match build_context_osmesa(cb.clone()) {
+        Ok(ctx) => return Ok(ctx),
         Err(err) => err,
     };
 
-    let _err3 = match build_context_osmesa(cb) {
-        Ok(ctx) => return Ok((ctx, el)),
+    let el = EventLoop::new();
+
+    let err2 = match build_context_headless(cb, &el) {
+        Ok(ctx) => return Ok(ctx),
         Err(err) => err,
     };
 
@@ -120,7 +121,7 @@ fn build_context<T1: ContextCurrentState>(
 #[cfg(not(target_os = "linux"))]
 fn build_context<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
-) -> Result<(glutin_029::Context<NotCurrent>, EventLoop<()>), CreationError> {
+) -> Result<glutin_029::Context<NotCurrent>, CreationError> {
     let el = EventLoop::new();
-    build_context_headless(cb.clone(), &el).map(|ctx| (ctx, el))
+    build_context_headless(cb.clone(), &el)
 }
