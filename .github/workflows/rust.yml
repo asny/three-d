@@ -71,19 +71,19 @@ jobs:
             fi
           done
 
-headless:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v2
-    - uses: actions-rs/cargo@v1
-    - run: sudo apt-get update && sudo apt-get install -y xvfb
+  headless:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/cargo@v1
+      - run: sudo apt-get update && sudo apt-get install -y xvfb
 
-    - name: Install Rust Toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
+      - name: Install Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
 
-    - run: |
-        xvfb-run -a cargo run --example headless --features="headless"
+      - run: |
+          xvfb-run -a cargo run --example headless --features="headless"
