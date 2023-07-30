@@ -158,12 +158,20 @@ impl GUI {
                     }
                     Event::Text(text) => Some(egui::Event::Text(text.clone())),
                     Event::MouseLeave => Some(egui::Event::PointerGone),
-                    Event::MouseWheel { delta, handled, .. } => {
+                    Event::MouseWheel {
+                        delta,
+                        handled,
+                        modifiers,
+                        ..
+                    } => {
                         if !handled {
-                            Some(egui::Event::Scroll(egui::Vec2::new(
-                                delta.0 as f32,
-                                delta.1 as f32,
-                            )))
+                            Some(match modifiers.ctrl {
+                                true => egui::Event::Zoom((delta.1 as f32 / 200.0).exp()),
+                                false => egui::Event::Scroll(match modifiers.shift {
+                                    true => egui::Vec2::new(delta.1 as f32, delta.0 as f32),
+                                    false => egui::Vec2::new(delta.0 as f32, delta.1 as f32),
+                                }),
+                            })
                         } else {
                             None
                         }
