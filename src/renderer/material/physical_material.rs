@@ -250,8 +250,8 @@ impl Material for PhysicalMaterial {
                 }
             }
         }
-        program.use_uniform("albedo", self.albedo.to_linear_srgba());
-        program.use_uniform("emissive", self.emissive.to_linear_srgba());
+        program.use_uniform("albedo", self.albedo.to_linear_srgb());
+        program.use_uniform("emissive", self.emissive.to_linear_srgb());
         if program.requires_uniform("emissiveTexture") {
             if let Some(ref texture) = self.emissive_texture {
                 program.use_uniform("emissiveTexTransform", texture.transformation);

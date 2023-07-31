@@ -51,7 +51,7 @@ impl Material for IsosurfaceMaterial {
             light.use_uniforms(program, i as u32);
         }
         program.use_uniform("cameraPosition", camera.position());
-        program.use_uniform("surfaceColor", self.color.to_linear_srgba());
+        program.use_uniform("surfaceColor", self.color.to_linear_srgb());
         program.use_uniform("metallic", self.metallic);
         program.use_uniform_if_required("roughness", self.roughness);
         program.use_uniform("size", self.size);

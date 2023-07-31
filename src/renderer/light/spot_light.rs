@@ -205,7 +205,7 @@ impl Light for SpotLight {
         }
         program.use_uniform(
             &format!("color{}", i),
-            Vec4::from(self.color.to_linear_srgba()).truncate() * self.intensity,
+            Vec4::from(self.color.to_linear_srgb()).truncate() * self.intensity,
         );
         program.use_uniform(
             &format!("attenuation{}", i),

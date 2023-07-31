@@ -299,7 +299,7 @@ impl BaseMesh {
             colors: cpu_mesh.colors.as_ref().map(|data| {
                 VertexBuffer::new_with_data(
                     context,
-                    &data.iter().map(|c| c.to_linear_srgba()).collect::<Vec<_>>(),
+                    &data.iter().map(|c| c.to_linear_srgb()).collect::<Vec<_>>(),
                 )
             }),
         }

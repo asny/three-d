@@ -192,7 +192,7 @@ impl InstancedMesh {
             // Create the re-ordered color buffer by depth.
             let ordered_instance_colors = indices
                 .iter()
-                .map(|i| instance_colors[*i].to_linear_srgba())
+                .map(|i| instance_colors[*i].to_linear_srgb())
                 .collect::<Vec<Vec4>>();
             instance_buffers.insert(
                 "instance_color".to_string(),

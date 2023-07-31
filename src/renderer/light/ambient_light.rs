@@ -96,7 +96,7 @@ impl Light for AmbientLight {
         }
         program.use_uniform(
             "ambientColor",
-            Vec4::from(self.color.to_linear_srgba()).truncate() * self.intensity,
+            Vec4::from(self.color.to_linear_srgb()).truncate() * self.intensity,
         );
     }
 

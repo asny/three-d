@@ -127,7 +127,7 @@ impl Material for ColorMaterial {
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
         camera.target_color_space.use_uniforms(program);
-        program.use_uniform("surfaceColor", self.color.to_linear_srgba());
+        program.use_uniform("surfaceColor", self.color.to_linear_srgb());
         if let Some(ref tex) = self.texture {
             program.use_uniform("textureTransformation", tex.transformation);
             program.use_texture("tex", tex);

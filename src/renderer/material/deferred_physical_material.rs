@@ -256,8 +256,8 @@ impl Material for DeferredPhysicalMaterial {
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);
-        program.use_uniform("albedo", self.albedo.to_linear_srgba());
-        program.use_uniform("emissive", self.emissive.to_linear_srgba());
+        program.use_uniform("albedo", self.albedo.to_linear_srgb());
+        program.use_uniform("emissive", self.emissive.to_linear_srgb());
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture);
             program.use_uniform("albedoTexTransform", texture.transformation);

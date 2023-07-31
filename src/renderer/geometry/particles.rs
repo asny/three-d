@@ -169,7 +169,7 @@ impl ParticleSystem {
                     &self.context,
                     &instance_colors
                         .iter()
-                        .map(|c| c.to_linear_srgba())
+                        .map(|c| c.to_linear_srgb())
                         .collect::<Vec<_>>(),
                 ),
             );
