@@ -9,14 +9,14 @@ pub struct AmbientLight {
     /// The intensity of the light. This allows for higher intensity than 1 which can be used to simulate high intensity light sources like the sun.
     pub intensity: f32,
     /// The base color of the light.
-    pub color: Color,
+    pub color: Srgba,
     /// The light shining from the environment. This is calculated based on an environment map.
     pub environment: Option<Environment>,
 }
 
 impl AmbientLight {
     /// Constructs an ambient light that shines equally on all surfaces.
-    pub fn new(_context: &Context, intensity: f32, color: Color) -> Self {
+    pub fn new(_context: &Context, intensity: f32, color: Srgba) -> Self {
         Self {
             intensity,
             color,
@@ -28,7 +28,7 @@ impl AmbientLight {
     pub fn new_with_environment(
         context: &Context,
         intensity: f32,
-        color: Color,
+        color: Srgba,
         environment_map: &TextureCubeMap,
     ) -> Self {
         Self {
@@ -94,7 +94,10 @@ impl Light for AmbientLight {
             program.use_texture_cube("prefilterMap", &environment.prefilter_map);
             program.use_texture("brdfLUT", &environment.brdf_map);
         }
-        program.use_uniform("ambientColor", self.color.to_vec3() * self.intensity);
+        program.use_uniform(
+            "ambientColor",
+            Vec4::from(self.color.to_linear_srgba()).truncate() * self.intensity,
+        );
     }
 
     fn id(&self) -> u8 {

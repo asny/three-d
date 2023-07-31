@@ -33,12 +33,18 @@ impl ColorMaterial {
 
     /// Constructs a new opaque color material from a [CpuMaterial].
     pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
-            Texture2DRef::from_cpu_texture(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            )
-        });
+        let texture =
+            cpu_material
+                .albedo_texture
+                .as_ref()
+                .map(|cpu_texture| match &cpu_texture.data {
+                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
+                        let mut cpu_texture = cpu_texture.clone();
+                        cpu_texture.data.to_linear_srgb();
+                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
+                    }
+                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
+                });
         Self {
             color: cpu_material.albedo,
             texture,
@@ -49,12 +55,18 @@ impl ColorMaterial {
 
     /// Constructs a new transparent color material from a [CpuMaterial].
     pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
-            Texture2DRef::from_cpu_texture(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            )
-        });
+        let texture =
+            cpu_material
+                .albedo_texture
+                .as_ref()
+                .map(|cpu_texture| match &cpu_texture.data {
+                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
+                        let mut cpu_texture = cpu_texture.clone();
+                        cpu_texture.data.to_linear_srgb();
+                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
+                    }
+                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
+                });
         Self {
             color: cpu_material.albedo,
             texture,

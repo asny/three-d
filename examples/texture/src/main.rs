@@ -52,14 +52,12 @@ pub async fn run() {
     );
 
     // Box
-    let cpu_texture: CpuTexture = loaded.deserialize("Skybox_example").unwrap();
+    let mut cpu_texture: CpuTexture = loaded.deserialize("Skybox_example").unwrap();
+    cpu_texture.data.to_linear_srgb();
     let mut box_object = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()),
         ColorMaterial {
-            texture: Some(Texture2DRef::from_cpu_texture(
-                &context,
-                &cpu_texture.to_linear_srgb().unwrap(),
-            )),
+            texture: Some(Texture2DRef::from_cpu_texture(&context, &cpu_texture)),
             ..Default::default()
         },
     );

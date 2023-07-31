@@ -13,7 +13,7 @@ pub struct DirectionalLight {
     /// The intensity of the light. This allows for higher intensity than 1 which can be used to simulate high intensity light sources like the sun.
     pub intensity: f32,
     /// The base color of the light.
-    pub color: Color,
+    pub color: Srgba,
     /// The direction the light shines.
     pub direction: Vec3,
 }
@@ -23,7 +23,7 @@ impl DirectionalLight {
     pub fn new(
         context: &Context,
         intensity: f32,
-        color: Color,
+        color: Srgba,
         direction: &Vec3,
     ) -> DirectionalLight {
         DirectionalLight {
@@ -162,7 +162,7 @@ impl Light for DirectionalLight {
         }
         program.use_uniform(
             &format!("color{}", i),
-            self.color.to_vec3() * self.intensity,
+            Vec4::from(self.color.to_linear_srgba()).truncate() * self.intensity,
         );
         program.use_uniform(&format!("direction{}", i), self.direction.normalize());
     }

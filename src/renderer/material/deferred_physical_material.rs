@@ -54,12 +54,18 @@ impl DeferredPhysicalMaterial {
     /// [DeferredPhysicalMaterial::metallic_roughness_texture] and [DeferredPhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
     ///
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let albedo_texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
-            Texture2DRef::from_cpu_texture(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            )
-        });
+        let albedo_texture =
+            cpu_material
+                .albedo_texture
+                .as_ref()
+                .map(|cpu_texture| match &cpu_texture.data {
+                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
+                        let mut cpu_texture = cpu_texture.clone();
+                        cpu_texture.data.to_linear_srgb();
+                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
+                    }
+                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
+                });
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
                 Some(Texture2DRef::from_cpu_texture(context, cpu_texture))
@@ -81,12 +87,18 @@ impl DeferredPhysicalMaterial {
             .normal_texture
             .as_ref()
             .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture));
-        let emissive_texture = cpu_material.emissive_texture.as_ref().map(|cpu_texture| {
-            Texture2DRef::from_cpu_texture(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            )
-        });
+        let emissive_texture =
+            cpu_material
+                .emissive_texture
+                .as_ref()
+                .map(|cpu_texture| match &cpu_texture.data {
+                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
+                        let mut cpu_texture = cpu_texture.clone();
+                        cpu_texture.data.to_linear_srgb();
+                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
+                    }
+                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
+                });
         Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
