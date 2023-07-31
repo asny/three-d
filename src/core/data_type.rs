@@ -534,39 +534,6 @@ impl<T: PrimitiveDataType> DataType for Quaternion<T> {
     }
 }
 
-impl DataType for Color {
-    fn internal_format() -> u32 {
-        u8::internal_format_with_size(Self::size())
-    }
-
-    fn data_type() -> u32 {
-        u8::data_type()
-    }
-
-    fn size() -> u32 {
-        4
-    }
-
-    fn normalized() -> bool {
-        true
-    }
-
-    fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]) {
-        let data = data
-            .iter()
-            .flat_map(|v| {
-                [
-                    v.r as f32 / 255.0,
-                    v.g as f32 / 255.0,
-                    v.b as f32 / 255.0,
-                    v.a as f32 / 255.0,
-                ]
-            })
-            .collect::<Vec<_>>();
-        f32::send_uniform_with_type(context, location, &data, UniformType::Vec4)
-    }
-}
-
 impl<T: PrimitiveDataType> DataType for Matrix2<T> {
     fn internal_format() -> u32 {
         T::internal_format_with_size(Self::size())
