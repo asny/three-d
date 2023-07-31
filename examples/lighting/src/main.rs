@@ -70,7 +70,7 @@ pub async fn run() {
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
-                albedo: Color::new_opaque(128, 200, 70),
+                albedo: Srgba::new_opaque(128, 200, 70),
                 ..Default::default()
             },
         ),
@@ -80,14 +80,14 @@ pub async fn run() {
         DeferredPhysicalMaterial::from_physical_material(&plane.material),
     );
 
-    let mut ambient = AmbientLight::new(&context, 0.2, Color::WHITE);
-    let mut directional0 = DirectionalLight::new(&context, 1.0, Color::RED, &vec3(0.0, -1.0, 0.0));
+    let mut ambient = AmbientLight::new(&context, 0.2, Srgba::WHITE);
+    let mut directional0 = DirectionalLight::new(&context, 1.0, Srgba::RED, &vec3(0.0, -1.0, 0.0));
     let mut directional1 =
-        DirectionalLight::new(&context, 1.0, Color::GREEN, &vec3(0.0, -1.0, 0.0));
+        DirectionalLight::new(&context, 1.0, Srgba::GREEN, &vec3(0.0, -1.0, 0.0));
     let mut spot0 = SpotLight::new(
         &context,
         2.0,
-        Color::BLUE,
+        Srgba::BLUE,
         &vec3(0.0, 0.0, 0.0),
         &vec3(0.0, -1.0, 0.0),
         degrees(25.0),
@@ -100,7 +100,7 @@ pub async fn run() {
     let mut point0 = PointLight::new(
         &context,
         1.0,
-        Color::GREEN,
+        Srgba::GREEN,
         &vec3(0.0, 0.0, 0.0),
         Attenuation {
             constant: 0.5,
@@ -111,7 +111,7 @@ pub async fn run() {
     let mut point1 = PointLight::new(
         &context,
         1.0,
-        Color::RED,
+        Srgba::RED,
         &vec3(0.0, 0.0, 0.0),
         Attenuation {
             constant: 0.5,

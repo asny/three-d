@@ -112,7 +112,7 @@ impl Light for AmbientLight {
 impl Default for AmbientLight {
     fn default() -> Self {
         Self {
-            color: Color::WHITE,
+            color: Srgba::WHITE,
             intensity: 1.0,
             environment: None,
         }

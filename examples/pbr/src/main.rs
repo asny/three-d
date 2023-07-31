@@ -56,7 +56,7 @@ pub async fn run() {
         .unwrap()
         .remove(0);
 
-    let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
+    let light = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
 
     // main loop
     let mut normal_map_enabled = true;
@@ -130,7 +130,7 @@ pub async fn run() {
                     emissive: if emissive_map_enabled {
                         model.material.emissive
                     } else {
-                        Color::BLACK
+                        Srgba::BLACK
                     },
                     emissive_texture: if emissive_map_enabled {
                         model.material.emissive_texture.clone()

@@ -47,7 +47,7 @@ pub async fn run() {
     };
 
     let skybox = Skybox::new_from_equirectangular(&context, &loaded.deserialize("hdr").unwrap());
-    let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
+    let light = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
 
     let noise_generator = SuperSimplex::new();
     let height_map = std::sync::Arc::new(move |x, y| {

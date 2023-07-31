@@ -20,7 +20,7 @@ pub fn main() {
             200.0 * scale_factor,
         ),
         ColorMaterial {
-            color: Color::RED,
+            color: Srgba::RED,
             ..Default::default()
         },
     );
@@ -31,7 +31,7 @@ pub fn main() {
             200.0 * scale_factor,
         ),
         ColorMaterial {
-            color: Color::BLUE,
+            color: Srgba::BLUE,
             ..Default::default()
         },
     );
@@ -43,7 +43,7 @@ pub fn main() {
             5.0 * scale_factor,
         ),
         ColorMaterial {
-            color: Color::GREEN,
+            color: Srgba::GREEN,
             ..Default::default()
         },
     );

@@ -8,12 +8,12 @@ pub enum Background {
     /// Environnment texture.
     Texture(Arc<TextureCubeMap>),
     /// Background color.
-    Color(Color),
+    Color(Srgba),
 }
 
 impl Default for Background {
     fn default() -> Self {
-        Self::Color(Color::WHITE)
+        Self::Color(Srgba::WHITE)
     }
 }
 
@@ -30,7 +30,7 @@ pub type WaterMaterial = WaterEffect;
 ///
 #[derive(Clone)]
 pub struct WaterEffect {
-    /// The background of the scene which is used for reflections.
+    /// The background of the scene which is used for reflections. Assumed to be in HDR color space.
     pub background: Background,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,

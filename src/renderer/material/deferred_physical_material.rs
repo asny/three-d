@@ -15,9 +15,9 @@ use crate::renderer::*;
 pub struct DeferredPhysicalMaterial {
     /// Name.
     pub name: String,
-    /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
-    pub albedo: Color,
-    /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
+    /// Albedo base color, also called diffuse color.
+    pub albedo: Srgba,
+    /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB (`RgbU8`), sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     pub albedo_texture: Option<Texture2DRef>,
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
@@ -38,8 +38,8 @@ pub struct DeferredPhysicalMaterial {
     /// Render states
     pub render_states: RenderStates,
     /// Color of light shining from an object.
-    pub emissive: Color,
-    /// Texture with color of light shining from an object.
+    pub emissive: Srgba,
+    /// Texture with color of light shining from an object. Assumed to be in sRGB (`RgbU8`), sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     pub emissive_texture: Option<Texture2DRef>,
     /// A threshold on the alpha value of the color as a workaround for transparency.
     /// If the alpha value of a pixel touched by an object with this material is less than the threshold, then that object is not contributing to the color of that pixel.
@@ -297,7 +297,7 @@ impl Default for DeferredPhysicalMaterial {
     fn default() -> Self {
         Self {
             name: "default".to_string(),
-            albedo: Color::WHITE,
+            albedo: Srgba::WHITE,
             albedo_texture: None,
             metallic: 0.0,
             roughness: 1.0,
@@ -308,7 +308,7 @@ impl Default for DeferredPhysicalMaterial {
             occlusion_strength: 1.0,
             render_states: RenderStates::default(),
             alpha_cutout: None,
-            emissive: Color::BLACK,
+            emissive: Srgba::BLACK,
             emissive_texture: None,
         }
     }

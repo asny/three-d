@@ -30,9 +30,9 @@ pub fn main() {
         vec3(0.0, 0.5, 0.0),   // top
     ];
     let colors = vec![
-        Color::RED,   // bottom right
-        Color::GREEN, // bottom left
-        Color::BLUE,  // top
+        Srgba::RED,   // bottom right
+        Srgba::GREEN, // bottom left
+        Srgba::BLUE,  // top
     ];
     let cpu_mesh = CpuMesh {
         positions: Positions::F32(positions),

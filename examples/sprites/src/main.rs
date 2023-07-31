@@ -36,7 +36,7 @@ pub async fn run() {
         .unwrap();
     img.data.to_linear_srgb();
     let material = ColorMaterial {
-        color: Color::WHITE,
+        color: Srgba::WHITE,
         texture: Some(Texture2DRef::from_cpu_texture(&context, &img)),
         ..Default::default()
     };
@@ -71,7 +71,7 @@ pub async fn run() {
         Some(vec3(1.0, 1.0, 0.0).normalize()),
     );
 
-    let ambient = AmbientLight::new(&context, 1.0, Color::WHITE);
+    let ambient = AmbientLight::new(&context, 1.0, Srgba::WHITE);
 
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);

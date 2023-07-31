@@ -6,7 +6,7 @@ use crate::renderer::*;
 #[derive(Clone, Debug)]
 pub struct FogEffect {
     /// The color of the fog.
-    pub color: Color,
+    pub color: Srgba,
     /// The density of the fog.
     pub density: f32,
     /// Determines the variation on the density as a function of time.
@@ -18,7 +18,7 @@ pub struct FogEffect {
 impl Default for FogEffect {
     fn default() -> Self {
         Self {
-            color: Color::WHITE,
+            color: Srgba::WHITE,
             density: 0.2,
             animation: 1.0,
             time: 0.0,

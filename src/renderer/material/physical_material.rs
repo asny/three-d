@@ -9,9 +9,9 @@ use crate::renderer::*;
 pub struct PhysicalMaterial {
     /// Name.
     pub name: String,
-    /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
-    pub albedo: Color,
-    /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
+    /// Albedo base color, also called diffuse color.
+    pub albedo: Srgba,
+    /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB (`RgbU8`), sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     pub albedo_texture: Option<Texture2DRef>,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,
@@ -33,8 +33,8 @@ pub struct PhysicalMaterial {
     pub render_states: RenderStates,
     /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).
     pub is_transparent: bool,
-    /// Color of light shining from an object.
-    pub emissive: Color,
+    /// Color of light shining from an object. Assumed to be in sRGB (`RgbU8`), sRGB with an alpha channel (`RgbaU8`) or HDR color space.
+    pub emissive: Srgba,
     /// Texture with color of light shining from an object.
     pub emissive_texture: Option<Texture2DRef>,
     /// The lighting model used when rendering this material
@@ -276,7 +276,7 @@ impl Default for PhysicalMaterial {
     fn default() -> Self {
         Self {
             name: "default".to_string(),
-            albedo: Color::WHITE,
+            albedo: Srgba::WHITE,
             albedo_texture: None,
             metallic: 0.0,
             roughness: 1.0,
@@ -287,7 +287,7 @@ impl Default for PhysicalMaterial {
             occlusion_strength: 1.0,
             render_states: RenderStates::default(),
             is_transparent: false,
-            emissive: Color::BLACK,
+            emissive: Srgba::BLACK,
             emissive_texture: None,
             lighting_model: LightingModel::Blinn,
         }

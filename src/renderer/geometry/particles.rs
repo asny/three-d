@@ -18,7 +18,7 @@ pub struct Particles {
     /// The texture transform applied to the uv coordinates of each particle.
     pub texture_transforms: Option<Vec<Mat3>>,
     /// A custom color for each particle.
-    pub colors: Option<Vec<Color>>,
+    pub colors: Option<Vec<Srgba>>,
 }
 
 impl Particles {

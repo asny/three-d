@@ -44,7 +44,7 @@ pub async fn run() {
         &context,
         &loaded.deserialize("chinese_garden_4k").unwrap(),
     );
-    let light = AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture());
+    let light = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
 
     let mut model = Gm::new(
         Mesh::new(&context, &CpuMesh::sphere(32)),
@@ -79,7 +79,7 @@ pub async fn run() {
                 panel_width = gui_context.used_rect().width();
             },
         );
-        model.material.albedo = Color::from_rgba_slice(&color);
+        model.material.albedo = Srgba::from_rgba_slice(&color);
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,

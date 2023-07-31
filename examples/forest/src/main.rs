@@ -50,8 +50,8 @@ pub async fn run() {
         .for_each(|m| m.material.render_states.cull = Cull::Back);
 
     // Lights
-    let ambient = AmbientLight::new(&context, 0.3, Color::WHITE);
-    let directional = DirectionalLight::new(&context, 4.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
+    let ambient = AmbientLight::new(&context, 0.3, Srgba::WHITE);
+    let directional = DirectionalLight::new(&context, 4.0, Srgba::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Imposters
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
@@ -92,7 +92,7 @@ pub async fn run() {
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
-                albedo: Color::new_opaque(128, 200, 70),
+                albedo: Srgba::new_opaque(128, 200, 70),
                 metallic: 0.0,
                 roughness: 1.0,
                 ..Default::default()

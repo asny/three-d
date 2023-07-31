@@ -34,14 +34,14 @@ pub async fn run() {
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
-                albedo: Color::RED,
+                albedo: Srgba::RED,
                 ..Default::default()
             },
         ),
     );
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
-    let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
+    let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
+    let directional = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     let mut loaded = three_d_asset::io::load_async(&["examples/assets/suzanne.obj"])
         .await

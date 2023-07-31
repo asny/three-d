@@ -78,14 +78,14 @@ pub fn run() {
     let explosion_speed = 15.0;
     let explosion_time = 3.0;
     let colors = [
-        Color::new_opaque(255, 255, 178),
-        Color::new_opaque(255, 51, 25),
-        Color::new_opaque(51, 102, 51),
-        Color::new_opaque(127, 127, 204),
-        Color::new_opaque(217, 23, 51),
-        Color::new_opaque(250, 237, 38),
-        Color::new_opaque(76, 237, 38),
-        Color::new_opaque(40, 178, 222),
+        Srgba::new_opaque(255, 255, 178),
+        Srgba::new_opaque(255, 51, 25),
+        Srgba::new_opaque(51, 102, 51),
+        Srgba::new_opaque(127, 127, 204),
+        Srgba::new_opaque(217, 23, 51),
+        Srgba::new_opaque(250, 237, 38),
+        Srgba::new_opaque(76, 237, 38),
+        Srgba::new_opaque(40, 178, 222),
     ];
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
@@ -130,7 +130,7 @@ pub fn run() {
             let colors = Some(
                 (0..300)
                     .map(|_| {
-                        Color::new_opaque(
+                        Srgba::new_opaque(
                             (rng.gen::<f32>() * 100.0 - 50.0) as u8,
                             (rng.gen::<f32>() * 100.0 - 50.0) as u8,
                             (rng.gen::<f32>() * 100.0 - 50.0) as u8,

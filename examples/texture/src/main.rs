@@ -72,8 +72,8 @@ pub async fn run() {
     });
 
     // Lights
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
-    let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0));
+    let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
+    let directional = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(0.0, -1.0, -1.0));
 
     // main loop
     window.render_loop(move |mut frame_input| {

@@ -29,9 +29,9 @@ pub fn main() {
     let colors = VertexBuffer::new_with_data(
         &context,
         &[
-            Color::RED,   // bottom right
-            Color::GREEN, // bottom left
-            Color::BLUE,  // top
+            Srgba::RED,   // bottom right
+            Srgba::GREEN, // bottom left
+            Srgba::BLUE,  // top
         ],
     );
 
