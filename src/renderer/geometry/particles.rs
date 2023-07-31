@@ -165,7 +165,13 @@ impl ParticleSystem {
         if let Some(instance_colors) = &particles.colors {
             self.instance_buffers.insert(
                 "instance_color".to_string(),
-                InstanceBuffer::new_with_data(&self.context, instance_colors),
+                InstanceBuffer::new_with_data(
+                    &self.context,
+                    &instance_colors
+                        .iter()
+                        .map(|c| c.to_linear_srgba())
+                        .collect::<Vec<_>>(),
+                ),
             );
         }
     }

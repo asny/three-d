@@ -129,7 +129,9 @@ impl Effect for WaterEffect {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);
         match &self.background {
-            Background::Color(color) => program.use_uniform("environmentColor", color),
+            Background::Color(color) => {
+                program.use_uniform("environmentColor", color.to_linear_srgba())
+            }
             Background::Texture(tex) => program.use_texture_cube("environmentMap", tex),
         }
     }
