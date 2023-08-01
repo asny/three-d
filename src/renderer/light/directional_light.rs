@@ -162,7 +162,7 @@ impl Light for DirectionalLight {
         }
         program.use_uniform(
             &format!("color{}", i),
-            Vec4::from(self.color.to_linear_srgb()).truncate() * self.intensity,
+            self.color.to_linear_srgb().truncate() * self.intensity,
         );
         program.use_uniform(&format!("direction{}", i), self.direction.normalize());
     }

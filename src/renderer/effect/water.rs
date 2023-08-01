@@ -30,7 +30,7 @@ pub type WaterMaterial = WaterEffect;
 ///
 #[derive(Clone)]
 pub struct WaterEffect {
-    /// The background of the scene which is used for reflections. Assumed to be in HDR color space.
+    /// The background of the scene which is used for reflections.
     pub background: Background,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,

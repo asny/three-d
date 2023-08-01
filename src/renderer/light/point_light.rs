@@ -56,7 +56,7 @@ impl Light for PointLight {
     fn use_uniforms(&self, program: &Program, i: u32) {
         program.use_uniform(
             &format!("color{}", i),
-            Vec4::from(self.color.to_linear_srgb()).truncate() * self.intensity,
+            self.color.to_linear_srgb().truncate() * self.intensity,
         );
         program.use_uniform(
             &format!("attenuation{}", i),

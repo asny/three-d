@@ -10,7 +10,7 @@ pub struct ColorMaterial {
     /// Base surface color.
     pub color: Srgba,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
-    /// The colors are assumed to be in sRGB (`RgbU8`), sRGB with an alpha channel (`RgbaU8`) or HDR color space.
+    /// The colors are assumed to be in linear sRGB (`RgbU8`), linear sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     pub texture: Option<Texture2DRef>,
     /// Render states.
     pub render_states: RenderStates,

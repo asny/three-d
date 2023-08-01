@@ -17,7 +17,8 @@ pub struct DeferredPhysicalMaterial {
     pub name: String,
     /// Albedo base color, also called diffuse color.
     pub albedo: Srgba,
-    /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB (`RgbU8`), sRGB with an alpha channel (`RgbaU8`) or HDR color space.
+    /// Texture with albedo base colors, also called diffuse color.
+    /// The colors are assumed to be in linear sRGB (`RgbU8`), linear sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     pub albedo_texture: Option<Texture2DRef>,
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
@@ -39,7 +40,8 @@ pub struct DeferredPhysicalMaterial {
     pub render_states: RenderStates,
     /// Color of light shining from an object.
     pub emissive: Srgba,
-    /// Texture with color of light shining from an object. Assumed to be in sRGB (`RgbU8`), sRGB with an alpha channel (`RgbaU8`) or HDR color space.
+    /// Texture with color of light shining from an object.
+    /// The colors are assumed to be in linear sRGB (`RgbU8`), linear sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     pub emissive_texture: Option<Texture2DRef>,
     /// A threshold on the alpha value of the color as a workaround for transparency.
     /// If the alpha value of a pixel touched by an object with this material is less than the threshold, then that object is not contributing to the color of that pixel.

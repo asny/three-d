@@ -79,6 +79,7 @@ impl Skybox {
 
     ///
     /// Creates a new skybox with the given [TextureCubeMap].
+    /// The colors are assumed to be in linear sRGB (`RgbU8`), linear sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     ///
     pub fn new_with_texture(context: &Context, texture: Arc<TextureCubeMap>) -> Self {
         let vertex_buffer = VertexBuffer::new_with_data(

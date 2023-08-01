@@ -193,7 +193,7 @@ impl InstancedMesh {
             let ordered_instance_colors = indices
                 .iter()
                 .map(|i| instance_colors[*i].to_linear_srgb())
-                .collect::<Vec<Vec4>>();
+                .collect::<Vec<_>>();
             instance_buffers.insert(
                 "instance_color".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &ordered_instance_colors),
