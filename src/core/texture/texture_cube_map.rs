@@ -462,9 +462,9 @@ impl TextureCubeMap {
             uniform vec3 up;
 
             in vec2 uvs;
-            
+
             layout (location = 0) out vec4 outColor;
-            
+
             void main()
             {
                 vec3 right = cross(direction, up);
@@ -510,6 +510,11 @@ impl TextureCubeMap {
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {
         ColorTarget::new_texture_cube_map(&self.context, self, sides, mip_level)
+    }
+
+    /// The id of this texture.
+    pub fn id(&self) -> crate::context::Texture {
+        self.id
     }
 
     /// The width of this texture.

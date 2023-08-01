@@ -63,6 +63,11 @@ impl DepthTexture2DArray {
         DepthTarget::new_texture_2d_array(&self.context, self, layer)
     }
 
+    /// The id of this texture.
+    pub fn id(&self) -> crate::context::Texture {
+        self.id
+    }
+
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width

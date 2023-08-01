@@ -144,6 +144,11 @@ impl Texture3D {
         self.generate_mip_maps();
     }
 
+    /// The id of this texture.
+    pub fn id(&self) -> crate::context::Texture {
+        self.id
+    }
+
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width

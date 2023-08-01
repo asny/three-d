@@ -261,6 +261,11 @@ impl Texture2DArray {
         ColorTarget::new_texture_2d_array(&self.context, self, layers, mip_level)
     }
 
+    /// The id of this texture.
+    pub fn id(&self) -> crate::context::Texture {
+        self.id
+    }
+
     /// The width of this texture.
     pub fn width(&self) -> u32 {
         self.width
