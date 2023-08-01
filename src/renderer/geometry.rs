@@ -296,10 +296,12 @@ impl BaseMesh {
                         .collect::<Vec<_>>(),
                 )
             }),
-            colors: cpu_mesh
-                .colors
-                .as_ref()
-                .map(|data| VertexBuffer::new_with_data(context, data)),
+            colors: cpu_mesh.colors.as_ref().map(|data| {
+                VertexBuffer::new_with_data(
+                    context,
+                    &data.iter().map(|c| c.to_linear_srgb()).collect::<Vec<_>>(),
+                )
+            }),
         }
     }
 

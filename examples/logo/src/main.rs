@@ -45,9 +45,9 @@ pub async fn run() {
         vec3(0.0, 0.6, 0.0),    // top
     ];
     let colors = vec![
-        Color::new(255, 0, 0, 255), // bottom right
-        Color::new(0, 255, 0, 255), // bottom left
-        Color::new(0, 0, 255, 255), // top
+        Srgba::new(255, 0, 0, 255), // bottom right
+        Srgba::new(0, 255, 0, 255), // bottom left
+        Srgba::new(0, 0, 255, 255), // top
     ];
     let cpu_mesh = CpuMesh {
         positions: Positions::F32(positions),

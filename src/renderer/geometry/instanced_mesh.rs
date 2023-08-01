@@ -192,8 +192,8 @@ impl InstancedMesh {
             // Create the re-ordered color buffer by depth.
             let ordered_instance_colors = indices
                 .iter()
-                .map(|i| instance_colors[*i])
-                .collect::<Vec<Color>>();
+                .map(|i| instance_colors[*i].to_linear_srgb())
+                .collect::<Vec<_>>();
             instance_buffers.insert(
                 "instance_color".to_string(),
                 InstanceBuffer::new_with_data(&self.context, &ordered_instance_colors),
@@ -394,7 +394,7 @@ pub struct Instances {
     /// The texture transform applied to the uv coordinates of each instance.
     pub texture_transformations: Option<Vec<Mat3>>,
     /// Colors multiplied onto the base color of each instance.
-    pub colors: Option<Vec<Color>>,
+    pub colors: Option<Vec<Srgba>>,
 }
 
 impl Instances {

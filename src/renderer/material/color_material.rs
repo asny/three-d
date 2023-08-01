@@ -7,9 +7,10 @@ use crate::renderer::*;
 ///
 #[derive(Clone, Default)]
 pub struct ColorMaterial {
-    /// Base surface color. Assumed to be in linear color space.
-    pub color: Color,
+    /// Base surface color.
+    pub color: Srgba,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
+    /// The colors are assumed to be in linear sRGB (`RgbU8`), linear sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     pub texture: Option<Texture2DRef>,
     /// Render states.
     pub render_states: RenderStates,
@@ -33,12 +34,18 @@ impl ColorMaterial {
 
     /// Constructs a new opaque color material from a [CpuMaterial].
     pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
-            Texture2DRef::from_cpu_texture(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            )
-        });
+        let texture =
+            cpu_material
+                .albedo_texture
+                .as_ref()
+                .map(|cpu_texture| match &cpu_texture.data {
+                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
+                        let mut cpu_texture = cpu_texture.clone();
+                        cpu_texture.data.to_linear_srgb();
+                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
+                    }
+                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
+                });
         Self {
             color: cpu_material.albedo,
             texture,
@@ -49,12 +56,18 @@ impl ColorMaterial {
 
     /// Constructs a new transparent color material from a [CpuMaterial].
     pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
-            Texture2DRef::from_cpu_texture(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            )
-        });
+        let texture =
+            cpu_material
+                .albedo_texture
+                .as_ref()
+                .map(|cpu_texture| match &cpu_texture.data {
+                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
+                        let mut cpu_texture = cpu_texture.clone();
+                        cpu_texture.data.to_linear_srgb();
+                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
+                    }
+                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
+                });
         Self {
             color: cpu_material.albedo,
             texture,
@@ -114,7 +127,7 @@ impl Material for ColorMaterial {
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
         camera.target_color_space.use_uniforms(program);
-        program.use_uniform("surfaceColor", self.color);
+        program.use_uniform("surfaceColor", self.color.to_linear_srgb());
         if let Some(ref tex) = self.texture {
             program.use_uniform("textureTransformation", tex.transformation);
             program.use_texture("tex", tex);

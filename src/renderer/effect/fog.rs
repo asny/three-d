@@ -6,7 +6,7 @@ use crate::renderer::*;
 #[derive(Clone, Debug)]
 pub struct FogEffect {
     /// The color of the fog.
-    pub color: Color,
+    pub color: Srgba,
     /// The density of the fog.
     pub density: f32,
     /// Determines the variation on the density as a function of time.
@@ -18,7 +18,7 @@ pub struct FogEffect {
 impl Default for FogEffect {
     fn default() -> Self {
         Self {
-            color: Color::WHITE,
+            color: Srgba::WHITE,
             density: 0.2,
             animation: 1.0,
             time: 0.0,
@@ -93,7 +93,7 @@ impl Effect for FogEffect {
             "viewProjectionInverse",
             (camera.projection() * camera.view()).invert().unwrap(),
         );
-        program.use_uniform("fogColor", self.color);
+        program.use_uniform("fogColor", Vec4::from(self.color));
         program.use_uniform("fogDensity", self.density);
         program.use_uniform("animation", self.animation);
         program.use_uniform("time", 0.001 * self.time);

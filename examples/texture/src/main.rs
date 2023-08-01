@@ -52,14 +52,12 @@ pub async fn run() {
     );
 
     // Box
-    let cpu_texture: CpuTexture = loaded.deserialize("Skybox_example").unwrap();
+    let mut cpu_texture: CpuTexture = loaded.deserialize("Skybox_example").unwrap();
+    cpu_texture.data.to_linear_srgb();
     let mut box_object = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()),
         ColorMaterial {
-            texture: Some(Texture2DRef::from_cpu_texture(
-                &context,
-                &cpu_texture.to_linear_srgb().unwrap(),
-            )),
+            texture: Some(Texture2DRef::from_cpu_texture(&context, &cpu_texture)),
             ..Default::default()
         },
     );
@@ -74,8 +72,8 @@ pub async fn run() {
     });
 
     // Lights
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
-    let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0));
+    let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
+    let directional = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(0.0, -1.0, -1.0));
 
     // main loop
     window.render_loop(move |mut frame_input| {

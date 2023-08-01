@@ -28,9 +28,9 @@ fn main() {
                     vec3(0.0, 0.5, 0.0),   // top
                 ]),
                 colors: Some(vec![
-                    Color::new(255, 0, 0, 255), // bottom right
-                    Color::new(0, 255, 0, 255), // bottom left
-                    Color::new(0, 0, 255, 255), // top
+                    Srgba::new(255, 0, 0, 255), // bottom right
+                    Srgba::new(0, 255, 0, 255), // bottom left
+                    Srgba::new(0, 0, 255, 255), // top
                 ]),
                 ..Default::default()
             },

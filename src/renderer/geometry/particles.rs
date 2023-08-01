@@ -18,7 +18,7 @@ pub struct Particles {
     /// The texture transform applied to the uv coordinates of each particle.
     pub texture_transforms: Option<Vec<Mat3>>,
     /// A custom color for each particle.
-    pub colors: Option<Vec<Color>>,
+    pub colors: Option<Vec<Srgba>>,
 }
 
 impl Particles {
@@ -165,7 +165,13 @@ impl ParticleSystem {
         if let Some(instance_colors) = &particles.colors {
             self.instance_buffers.insert(
                 "instance_color".to_string(),
-                InstanceBuffer::new_with_data(&self.context, instance_colors),
+                InstanceBuffer::new_with_data(
+                    &self.context,
+                    &instance_colors
+                        .iter()
+                        .map(|c| c.to_linear_srgb())
+                        .collect::<Vec<_>>(),
+                ),
             );
         }
     }

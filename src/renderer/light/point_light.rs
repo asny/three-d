@@ -8,7 +8,7 @@ pub struct PointLight {
     /// The intensity of the light. This allows for higher intensity than 1 which can be used to simulate high intensity light sources like the sun.
     pub intensity: f32,
     /// The base color of the light.
-    pub color: Color,
+    pub color: Srgba,
     /// The position of the light.
     pub position: Vec3,
     /// The [Attenuation] of the light.
@@ -20,7 +20,7 @@ impl PointLight {
     pub fn new(
         _context: &Context,
         intensity: f32,
-        color: Color,
+        color: Srgba,
         position: &Vec3,
         attenuation: Attenuation,
     ) -> PointLight {
@@ -56,7 +56,7 @@ impl Light for PointLight {
     fn use_uniforms(&self, program: &Program, i: u32) {
         program.use_uniform(
             &format!("color{}", i),
-            self.color.to_vec3() * self.intensity,
+            self.color.to_linear_srgb().truncate() * self.intensity,
         );
         program.use_uniform(
             &format!("attenuation{}", i),

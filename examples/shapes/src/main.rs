@@ -25,7 +25,7 @@ pub fn main() {
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
-                albedo: Color {
+                albedo: Srgba {
                     r: 255,
                     g: 0,
                     b: 0,
@@ -41,7 +41,7 @@ pub fn main() {
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
-                albedo: Color {
+                albedo: Srgba {
                     r: 0,
                     g: 255,
                     b: 0,
@@ -58,7 +58,7 @@ pub fn main() {
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
-                albedo: Color {
+                albedo: Srgba {
                     r: 0,
                     g: 0,
                     b: 255,
@@ -73,27 +73,27 @@ pub fn main() {
     let bounding_box_sphere = Gm::new(
         BoundingBox::new(&context, sphere.aabb()),
         ColorMaterial {
-            color: Color::BLACK,
+            color: Srgba::BLACK,
             ..Default::default()
         },
     );
     let bounding_box_cube = Gm::new(
         BoundingBox::new(&context, cube.aabb()),
         ColorMaterial {
-            color: Color::BLACK,
+            color: Srgba::BLACK,
             ..Default::default()
         },
     );
     let bounding_box_cylinder = Gm::new(
         BoundingBox::new(&context, cylinder.aabb()),
         ColorMaterial {
-            color: Color::BLACK,
+            color: Srgba::BLACK,
             ..Default::default()
         },
     );
 
-    let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
-    let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5));
+    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
+    let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
 
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);

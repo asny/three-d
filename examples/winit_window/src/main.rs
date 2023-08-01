@@ -46,7 +46,7 @@ pub fn main() {
     let mut model = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()),
         ColorMaterial {
-            color: Color::GREEN,
+            color: Srgba::GREEN,
             ..Default::default()
         },
     );

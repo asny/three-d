@@ -9,9 +9,10 @@ use crate::renderer::*;
 pub struct PhysicalMaterial {
     /// Name.
     pub name: String,
-    /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
-    pub albedo: Color,
-    /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
+    /// Albedo base color, also called diffuse color.
+    pub albedo: Srgba,
+    /// Texture with albedo base colors, also called diffuse color.
+    /// The colors are assumed to be in linear sRGB (`RgbU8`), linear sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     pub albedo_texture: Option<Texture2DRef>,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,
@@ -34,8 +35,9 @@ pub struct PhysicalMaterial {
     /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).
     pub is_transparent: bool,
     /// Color of light shining from an object.
-    pub emissive: Color,
+    pub emissive: Srgba,
     /// Texture with color of light shining from an object.
+    /// The colors are assumed to be in linear sRGB (`RgbU8`), linear sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     pub emissive_texture: Option<Texture2DRef>,
     /// The lighting model used when rendering this material
     pub lighting_model: LightingModel,
@@ -68,12 +70,18 @@ impl PhysicalMaterial {
     }
 
     fn new_internal(context: &Context, cpu_material: &CpuMaterial, is_transparent: bool) -> Self {
-        let albedo_texture = cpu_material.albedo_texture.as_ref().map(|cpu_texture| {
-            Texture2DRef::from_cpu_texture(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            )
-        });
+        let albedo_texture =
+            cpu_material
+                .albedo_texture
+                .as_ref()
+                .map(|cpu_texture| match &cpu_texture.data {
+                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
+                        let mut cpu_texture = cpu_texture.clone();
+                        cpu_texture.data.to_linear_srgb();
+                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
+                    }
+                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
+                });
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
                 Some(Texture2DRef::from_cpu_texture(context, cpu_texture))
@@ -95,12 +103,18 @@ impl PhysicalMaterial {
             .normal_texture
             .as_ref()
             .map(|cpu_texture| Texture2DRef::from_cpu_texture(context, cpu_texture));
-        let emissive_texture = cpu_material.emissive_texture.as_ref().map(|cpu_texture| {
-            Texture2DRef::from_cpu_texture(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            )
-        });
+        let emissive_texture =
+            cpu_material
+                .emissive_texture
+                .as_ref()
+                .map(|cpu_texture| match &cpu_texture.data {
+                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
+                        let mut cpu_texture = cpu_texture.clone();
+                        cpu_texture.data.to_linear_srgb();
+                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
+                    }
+                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
+                });
         Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
@@ -238,8 +252,8 @@ impl Material for PhysicalMaterial {
                 }
             }
         }
-        program.use_uniform("albedo", self.albedo);
-        program.use_uniform("emissive", self.emissive);
+        program.use_uniform("albedo", self.albedo.to_linear_srgb());
+        program.use_uniform("emissive", self.emissive.to_linear_srgb());
         if program.requires_uniform("emissiveTexture") {
             if let Some(ref texture) = self.emissive_texture {
                 program.use_uniform("emissiveTexTransform", texture.transformation);
@@ -264,7 +278,7 @@ impl Default for PhysicalMaterial {
     fn default() -> Self {
         Self {
             name: "default".to_string(),
-            albedo: Color::WHITE,
+            albedo: Srgba::WHITE,
             albedo_texture: None,
             metallic: 0.0,
             roughness: 1.0,
@@ -275,7 +289,7 @@ impl Default for PhysicalMaterial {
             occlusion_strength: 1.0,
             render_states: RenderStates::default(),
             is_transparent: false,
-            emissive: Color::BLACK,
+            emissive: Srgba::BLACK,
             emissive_texture: None,
             lighting_model: LightingModel::Blinn,
         }

@@ -40,7 +40,7 @@ pub async fn run() {
     let mut model_material = PhysicalMaterial::new_opaque(
         &context,
         &CpuMaterial {
-            albedo: Color::new_opaque(50, 50, 50),
+            albedo: Srgba::new_opaque(50, 50, 50),
             roughness: 0.7,
             metallic: 0.8,
             ..Default::default()
@@ -51,7 +51,7 @@ pub async fn run() {
     let mut wireframe_material = PhysicalMaterial::new_opaque(
         &context,
         &CpuMaterial {
-            albedo: Color::new_opaque(220, 50, 50),
+            albedo: Srgba::new_opaque(220, 50, 50),
             roughness: 0.7,
             metallic: 0.8,
             ..Default::default()
@@ -74,9 +74,9 @@ pub async fn run() {
         wireframe_material,
     );
 
-    let ambient = AmbientLight::new(&context, 0.7, Color::WHITE);
-    let directional0 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
-    let directional1 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0));
+    let ambient = AmbientLight::new(&context, 0.7, Srgba::WHITE);
+    let directional0 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(-1.0, -1.0, -1.0));
+    let directional1 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(1.0, 1.0, 1.0));
 
     // main loop
     window.render_loop(move |mut frame_input| {

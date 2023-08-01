@@ -35,9 +35,9 @@ pub async fn run() {
         .unwrap();
     let mut voxel_grid = VoxelGrid::<IsosurfaceMaterial>::new(&context, &cpu_voxel_grid);
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
-    let directional1 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
-    let directional2 = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0));
+    let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
+    let directional1 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(-1.0, -1.0, -1.0));
+    let directional2 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(1.0, 1.0, 1.0));
 
     // main loop
     let mut gui = three_d::GUI::new(&context);
@@ -62,7 +62,7 @@ pub async fn run() {
                 panel_width = gui_context.used_rect().width();
             },
         );
-        voxel_grid.material.color = Color::from_rgba_slice(&color);
+        voxel_grid.material.color = Srgba::from(color);
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,

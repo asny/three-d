@@ -8,12 +8,12 @@ pub enum Background {
     /// Environnment texture.
     Texture(Arc<TextureCubeMap>),
     /// Background color.
-    Color(Color),
+    Color(Srgba),
 }
 
 impl Default for Background {
     fn default() -> Self {
-        Self::Color(Color::WHITE)
+        Self::Color(Srgba::WHITE)
     }
 }
 
@@ -129,7 +129,9 @@ impl Effect for WaterEffect {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);
         match &self.background {
-            Background::Color(color) => program.use_uniform("environmentColor", color),
+            Background::Color(color) => {
+                program.use_uniform("environmentColor", color.to_linear_srgb())
+            }
             Background::Texture(tex) => program.use_texture_cube("environmentMap", tex),
         }
     }

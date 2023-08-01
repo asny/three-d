@@ -12,8 +12,8 @@ pub struct IsosurfaceMaterial {
     pub voxels: std::sync::Arc<Texture3D>,
     /// Threshold (in the range [0..1]) that defines the surface in the voxel data.
     pub threshold: f32,
-    /// Base surface color. Assumed to be in linear color space.
-    pub color: Color,
+    /// Base surface color.
+    pub color: Srgba,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the surface is.
@@ -51,7 +51,7 @@ impl Material for IsosurfaceMaterial {
             light.use_uniforms(program, i as u32);
         }
         program.use_uniform("cameraPosition", camera.position());
-        program.use_uniform("surfaceColor", self.color);
+        program.use_uniform("surfaceColor", self.color.to_linear_srgb());
         program.use_uniform("metallic", self.metallic);
         program.use_uniform_if_required("roughness", self.roughness);
         program.use_uniform("size", self.size);
@@ -84,7 +84,7 @@ impl FromCpuVoxelGrid for IsosurfaceMaterial {
             lighting_model: LightingModel::Blinn,
             size: cpu_voxel_grid.size,
             threshold: 0.15,
-            color: Color::WHITE,
+            color: Srgba::WHITE,
             roughness: 1.0,
             metallic: 0.0,
         }

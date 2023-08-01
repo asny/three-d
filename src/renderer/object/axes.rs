@@ -27,7 +27,7 @@ impl Axes {
                         Mat4::from_angle_y(degrees(-90.0)),
                     ],
                     texture_transformations: None,
-                    colors: Some(vec![Color::RED, Color::GREEN, Color::BLUE]),
+                    colors: Some(vec![Srgba::RED, Srgba::GREEN, Srgba::BLUE]),
                 },
                 &cpu_mesh,
             ),

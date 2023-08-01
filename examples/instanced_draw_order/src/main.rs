@@ -45,13 +45,13 @@ pub fn main() {
             Mat4::from_translation(vec3(3.0, 0.0, 0.5)) * rot_z90 * Mat4::from_angle_x(Deg(-45.0)),
         ],
         colors: Some(vec![
-            Color::new(0, 255, 0, 255),   // green, closest, should obscure everything.
-            Color::new(255, 0, 255, 255), // purple, behind green, second opaque plane.
-            Color::new(255, 0, 0, 128), // Red, third plane, should be behind two opaques, blend in front of blue.
-            Color::new(0, 0, 255, 128), // Furthest, blue layer.
+            Srgba::new(0, 255, 0, 255),   // green, closest, should obscure everything.
+            Srgba::new(255, 0, 255, 255), // purple, behind green, second opaque plane.
+            Srgba::new(255, 0, 0, 128), // Red, third plane, should be behind two opaques, blend in front of blue.
+            Srgba::new(0, 0, 255, 128), // Furthest, blue layer.
             // Next two always intersect.
-            Color::new(0, 128, 128, 128), // Limitation of ordering, cyan
-            Color::new(128, 128, 0, 128), // Limitation of ordering, yellow
+            Srgba::new(0, 128, 128, 128), // Limitation of ordering, cyan
+            Srgba::new(128, 128, 0, 128), // Limitation of ordering, yellow
         ]),
         ..Default::default()
     };
@@ -66,12 +66,7 @@ pub fn main() {
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
-                albedo: Color {
-                    r: 255,
-                    g: 255,
-                    b: 255,
-                    a: 255,
-                },
+                albedo: Srgba::WHITE,
                 ..Default::default()
             },
         ),
@@ -86,7 +81,7 @@ pub fn main() {
                 .as_ref()
                 .unwrap()
                 .iter()
-                .map(|c| Color {
+                .map(|c| Srgba {
                     r: c.r,
                     g: c.g,
                     b: c.b,
@@ -109,19 +104,14 @@ pub fn main() {
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
-                albedo: Color {
-                    r: 255,
-                    g: 255,
-                    b: 255,
-                    a: 255,
-                },
+                albedo: Srgba::WHITE,
                 ..Default::default()
             },
         ),
     );
 
-    let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
-    let ambient_light = three_d::renderer::light::AmbientLight::new(&context, 0.1, Color::WHITE);
+    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
+    let ambient_light = three_d::renderer::light::AmbientLight::new(&context, 0.1, Srgba::WHITE);
 
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);

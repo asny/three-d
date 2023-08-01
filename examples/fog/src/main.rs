@@ -38,12 +38,12 @@ pub async fn run() {
         .iter_mut()
         .for_each(|m| m.material.render_states.cull = Cull::Back);
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
-    let directional = DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0));
+    let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
+    let directional = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Fog
     let mut fog_effect = FogEffect {
-        color: Color::new_opaque(200, 200, 200),
+        color: Srgba::new_opaque(200, 200, 200),
         density: 0.2,
         animation: 0.1,
         ..Default::default()

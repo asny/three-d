@@ -38,7 +38,6 @@ impl<T: BufferDataType + PrimitiveDataType> BufferDataType for [T; 2] {}
 impl<T: BufferDataType + PrimitiveDataType> BufferDataType for [T; 3] {}
 impl<T: BufferDataType + PrimitiveDataType> BufferDataType for [T; 4] {}
 
-impl BufferDataType for Color {}
 impl BufferDataType for Quat {}
 
 impl<T: BufferDataType + ?Sized> BufferDataType for &T {}

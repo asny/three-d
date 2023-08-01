@@ -25,16 +25,24 @@ impl Skybox {
         front: &CpuTexture,
         back: &CpuTexture,
     ) -> Self {
+        let convert = |cpu_texture: &CpuTexture| match &cpu_texture.data {
+            TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
+                let mut cpu_texture = cpu_texture.clone();
+                cpu_texture.data.to_linear_srgb();
+                Some(cpu_texture)
+            }
+            _ => None,
+        };
         Self::new_with_texture(
             context,
             Arc::new(TextureCubeMap::new(
                 context,
-                right.to_linear_srgb().as_ref().unwrap_or(right),
-                left.to_linear_srgb().as_ref().unwrap_or(left),
-                top.to_linear_srgb().as_ref().unwrap_or(top),
-                bottom.to_linear_srgb().as_ref().unwrap_or(bottom),
-                front.to_linear_srgb().as_ref().unwrap_or(front),
-                back.to_linear_srgb().as_ref().unwrap_or(back),
+                convert(right).as_ref().unwrap_or(right),
+                convert(left).as_ref().unwrap_or(left),
+                convert(top).as_ref().unwrap_or(top),
+                convert(bottom).as_ref().unwrap_or(bottom),
+                convert(front).as_ref().unwrap_or(front),
+                convert(back).as_ref().unwrap_or(back),
             )),
         )
     }
@@ -44,27 +52,26 @@ impl Skybox {
     ///
     pub fn new_from_equirectangular(context: &Context, cpu_texture: &CpuTexture) -> Self {
         let texture = match cpu_texture.data {
-            TextureData::RgbaU8(_)
-            | TextureData::RgbU8(_)
-            | TextureData::RgU8(_)
-            | TextureData::RU8(_) => TextureCubeMap::new_from_equirectangular::<u8>(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            ),
+            TextureData::RgbaU8(_) | TextureData::RgbU8(_) => {
+                let mut cpu_texture = cpu_texture.clone();
+                cpu_texture.data.to_linear_srgb();
+                TextureCubeMap::new_from_equirectangular::<u8>(context, &cpu_texture)
+            }
+            TextureData::RgU8(_) | TextureData::RU8(_) => {
+                TextureCubeMap::new_from_equirectangular::<u8>(context, cpu_texture)
+            }
             TextureData::RgbaF16(_)
             | TextureData::RgbF16(_)
             | TextureData::RgF16(_)
-            | TextureData::RF16(_) => TextureCubeMap::new_from_equirectangular::<f16>(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            ),
+            | TextureData::RF16(_) => {
+                TextureCubeMap::new_from_equirectangular::<f16>(context, cpu_texture)
+            }
             TextureData::RgbaF32(_)
             | TextureData::RgbF32(_)
             | TextureData::RgF32(_)
-            | TextureData::RF32(_) => TextureCubeMap::new_from_equirectangular::<f32>(
-                context,
-                cpu_texture.to_linear_srgb().as_ref().unwrap_or(cpu_texture),
-            ),
+            | TextureData::RF32(_) => {
+                TextureCubeMap::new_from_equirectangular::<f32>(context, cpu_texture)
+            }
         };
 
         Self::new_with_texture(context, Arc::new(texture))
@@ -72,6 +79,7 @@ impl Skybox {
 
     ///
     /// Creates a new skybox with the given [TextureCubeMap].
+    /// The colors are assumed to be in linear sRGB (`RgbU8`), linear sRGB with an alpha channel (`RgbaU8`) or HDR color space.
     ///
     pub fn new_with_texture(context: &Context, texture: Arc<TextureCubeMap>) -> Self {
         let vertex_buffer = VertexBuffer::new_with_data(

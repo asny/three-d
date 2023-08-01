@@ -90,11 +90,11 @@ pub async fn run() {
         m.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
     });
 
-    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE);
+    let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
     let mut directional = DirectionalLight::new(
         &context,
         10.0,
-        Color::new_opaque(204, 178, 127),
+        Srgba::new_opaque(204, 178, 127),
         &vec3(0.0, -1.0, -1.0),
     );
     directional.generate_shadow_map(
@@ -108,7 +108,7 @@ pub async fn run() {
         bounding_boxes.push(Gm::new(
             BoundingBox::new_with_thickness(&context, geometry.aabb(), 0.5),
             ColorMaterial {
-                color: Color::RED,
+                color: Srgba::RED,
                 ..Default::default()
             },
         ));
@@ -117,7 +117,7 @@ pub async fn run() {
     bounding_boxes.push(Gm::new(
         BoundingBox::new_with_thickness(&context, aabb, 3.0),
         ColorMaterial {
-            color: Color::BLACK,
+            color: Srgba::BLACK,
             ..Default::default()
         },
     ));
