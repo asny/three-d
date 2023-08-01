@@ -62,7 +62,7 @@ pub async fn run() {
                 panel_width = gui_context.used_rect().width();
             },
         );
-        voxel_grid.material.color = Srgba::from_rgba_slice(&color);
+        voxel_grid.material.color = Srgba::from(color);
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,

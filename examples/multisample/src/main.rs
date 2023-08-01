@@ -33,12 +33,7 @@ pub fn main() {
         ColorMaterial::new_opaque(
             &context,
             &CpuMaterial {
-                albedo: Color {
-                    r: 255,
-                    g: 255,
-                    b: 255,
-                    a: 255,
-                },
+                albedo: Srgba::WHITE,
                 ..Default::default()
             },
         ),
@@ -55,12 +50,7 @@ pub fn main() {
             ColorMaterial::new_opaque(
                 &context,
                 &CpuMaterial {
-                    albedo: Color {
-                        r: 255,
-                        g: 255,
-                        b: 255,
-                        a: 255,
-                    },
+                    albedo: Srgba::WHITE,
                     ..Default::default()
                 },
             ),

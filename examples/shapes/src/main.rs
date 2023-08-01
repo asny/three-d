@@ -25,7 +25,7 @@ pub fn main() {
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
-                albedo: Color {
+                albedo: Srgba {
                     r: 255,
                     g: 0,
                     b: 0,
@@ -41,7 +41,7 @@ pub fn main() {
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
-                albedo: Color {
+                albedo: Srgba {
                     r: 0,
                     g: 255,
                     b: 0,
@@ -58,7 +58,7 @@ pub fn main() {
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
-                albedo: Color {
+                albedo: Srgba {
                     r: 0,
                     g: 0,
                     b: 255,

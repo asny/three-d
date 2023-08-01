@@ -1,5 +1,5 @@
 use three_d::core::{
-    degrees, radians, vec3, ClearState, Color, Context, Mat4, Program, RenderStates, VertexBuffer,
+    degrees, radians, vec3, ClearState, Context, Mat4, Program, RenderStates, Srgba, VertexBuffer,
 };
 use three_d::window::{FrameOutput, Window, WindowSettings};
 use three_d_asset::Camera;
@@ -29,9 +29,9 @@ pub fn main() {
     let colors = VertexBuffer::new_with_data(
         &context,
         &[
-            Srgba::RED,   // bottom right
-            Srgba::GREEN, // bottom left
-            Srgba::BLUE,  // top
+            Srgba::RED.to_linear_srgb(),   // bottom right
+            Srgba::GREEN.to_linear_srgb(), // bottom left
+            Srgba::BLUE.to_linear_srgb(),  // top
         ],
     );
 

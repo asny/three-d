@@ -32,7 +32,7 @@ pub fn main() {
         PhysicalMaterial::new(
             &context,
             &CpuMaterial {
-                albedo: Color {
+                albedo: Srgba {
                     r: 128,
                     g: 128,
                     b: 128,
@@ -97,7 +97,7 @@ pub fn main() {
                     PhysicalMaterial::new(
                         &context,
                         &CpuMaterial {
-                            albedo: Color {
+                            albedo: Srgba {
                                 r: 128,
                                 g: 128,
                                 b: 128,

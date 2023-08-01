@@ -79,7 +79,7 @@ pub async fn run() {
                 panel_width = gui_context.used_rect().width();
             },
         );
-        model.material.albedo = Srgba::from_rgba_slice(&color);
+        model.material.albedo = Srgba::from(color);
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,

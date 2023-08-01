@@ -5,7 +5,7 @@ use three_d::*;
 
 #[derive(Clone)]
 struct FireworksMaterial {
-    pub color: Color,
+    pub color: Srgba,
     pub fade: f32,
 }
 
@@ -21,7 +21,7 @@ impl Material for FireworksMaterial {
         }
     }
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
-        program.use_uniform("color", self.color);
+        program.use_uniform("color", self.color.to_linear_srgb());
         program.use_uniform("fade", self.fade);
     }
     fn render_states(&self) -> RenderStates {

@@ -66,12 +66,7 @@ pub fn main() {
         PhysicalMaterial::new_transparent(
             &context,
             &CpuMaterial {
-                albedo: Color {
-                    r: 255,
-                    g: 255,
-                    b: 255,
-                    a: 255,
-                },
+                albedo: Srgba::WHITE,
                 ..Default::default()
             },
         ),
@@ -86,7 +81,7 @@ pub fn main() {
                 .as_ref()
                 .unwrap()
                 .iter()
-                .map(|c| Color {
+                .map(|c| Srgba {
                     r: c.r,
                     g: c.g,
                     b: c.b,
@@ -109,12 +104,7 @@ pub fn main() {
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
-                albedo: Color {
-                    r: 255,
-                    g: 255,
-                    b: 255,
-                    a: 255,
-                },
+                albedo: Srgba::WHITE,
                 ..Default::default()
             },
         ),

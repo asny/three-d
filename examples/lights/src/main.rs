@@ -102,7 +102,7 @@ pub async fn run() {
         for light in lights.iter_mut() {
             light.set_light(
                 intensity,
-                Srgba::from_rgba_slice(&color),
+                Srgba::from(color),
                 Attenuation {
                     constant,
                     linear,
@@ -169,12 +169,11 @@ impl Glow {
         }
     }
 
-    pub fn set_light(&mut self, intensity: f32, color: Color, attenuation: Attenuation) {
+    pub fn set_light(&mut self, intensity: f32, color: Srgba, attenuation: Attenuation) {
         self.light.color = color;
         self.light.intensity = intensity;
         self.light.attenuation = attenuation;
-        let c = color.to_vec4() * intensity;
-        self.sphere.material.emissive = Srgba::from_rgba_slice(&[c.x, c.y, c.z, c.w]);
+        self.sphere.material.emissive = color;
     }
 
     pub fn update(&mut self, delta: f32) {
