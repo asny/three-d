@@ -279,6 +279,17 @@ impl Program {
         texture.bind();
     }
 
+    ///
+    /// Use this function if you want to use a texture which was created using low-level context calls and not using the functionality in the [texture] module.
+    /// This function is only needed in special cases for example if you have a special source of texture data.
+    ///
+    pub fn use_raw_texture(&self, name: &str, target: u32, id: crate::context::Texture) {
+        self.use_texture_internal(name);
+        unsafe {
+            self.context.bind_texture(target, Some(id));
+        }
+    }
+
     fn use_texture_internal(&self, name: &str) -> u32 {
         if !self.textures.read().unwrap().contains_key(name) {
             let mut map = self.textures.write().unwrap();
