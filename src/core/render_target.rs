@@ -241,7 +241,7 @@ impl<'a> RenderTarget<'a> {
         write_mask: WriteMask,
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            let mut id = full_screen_id().to_le_bytes().to_vec();
+            let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
             id.extend(
                 (0b1u16 << 13 | 0b1u16 << 12 | color_texture.id() | depth_texture.id())
                     .to_le_bytes(),
@@ -311,7 +311,7 @@ impl<'a> RenderTarget<'a> {
         write_mask: WriteMask,
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            let mut id = full_screen_id().to_le_bytes().to_vec();
+            let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
             id.extend((0b1u16 << 13 | 0b1u16 << 11 | color_texture.id()).to_le_bytes());
             let mut programs = self.context.programs.write().unwrap();
             let program = programs.entry(id).or_insert_with(|| {
@@ -368,7 +368,7 @@ impl<'a> RenderTarget<'a> {
         viewport: Viewport,
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            let mut id = full_screen_id().to_le_bytes().to_vec();
+            let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
             id.extend((0b1u16 << 13 | 0b1u16 << 10 | depth_texture.id()).to_le_bytes());
             let mut programs = self.context.programs.write().unwrap();
             let program = programs.entry(id).or_insert_with(|| {

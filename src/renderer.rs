@@ -445,7 +445,7 @@ pub fn apply_screen_material(
     if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
         panic!("Not possible to use the given material to render full screen, the full screen geometry only provides uv coordinates and color");
     }
-    let mut id = full_screen_id().to_le_bytes().to_vec();
+    let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
     id.extend(material.id().to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 
@@ -484,7 +484,7 @@ pub fn apply_screen_effect(
     if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
         panic!("Not possible to use the given effect to render full screen, the full screen geometry only provides uv coordinates and color");
     }
-    let mut id = full_screen_id().to_le_bytes().to_vec();
+    let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
     id.extend(effect.id(color_texture, depth_texture).to_le_bytes());
     id.extend(lights.iter().map(|l| l.id()));
 

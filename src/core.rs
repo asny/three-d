@@ -154,10 +154,6 @@ pub fn apply_cube_effect(
         .expect("Failed compiling shader");
 }
 
-pub(crate) fn full_screen_id() -> u16 {
-    0b1u16 << 15
-}
-
 pub(crate) fn full_screen_draw(
     context: &Context,
     program: &Program,
