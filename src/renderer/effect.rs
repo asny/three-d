@@ -52,6 +52,10 @@ mod copy;
 #[doc(inline)]
 pub use copy::*;
 
+mod full_screen;
+#[doc(inline)]
+pub use full_screen::*;
+
 mod fxaa;
 #[doc(inline)]
 pub use fxaa::*;
