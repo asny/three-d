@@ -209,6 +209,7 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the color and depth texture as limited by the [WriteMask]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect with a CopyEffect instead"]
     pub fn copy_from(
         &self,
         color_texture: ColorTexture,
@@ -216,6 +217,7 @@ impl<'a> RenderTarget<'a> {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> &Self {
+        #[allow(deprecated)]
         self.copy_partially_from(
             self.scissor_box(),
             color_texture,
@@ -229,6 +231,7 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the color and depth texture as limited by the [ScissorBox] and [WriteMask]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect_partially with a CopyEffect instead"]
     pub fn copy_partially_from(
         &self,
         scissor_box: ScissorBox,
@@ -284,12 +287,14 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the color texture as limited by the [WriteMask]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect with a CopyEffect instead"]
     pub fn copy_from_color(
         &self,
         color_texture: ColorTexture,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> &Self {
+        #[allow(deprecated)]
         self.copy_partially_from_color(self.scissor_box(), color_texture, viewport, write_mask)
     }
 
@@ -297,6 +302,7 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the color texture as limited by the [ScissorBox] and [WriteMask]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect_partially with a CopyEffect instead"]
     pub fn copy_partially_from_color(
         &self,
         scissor_box: ScissorBox,
@@ -344,7 +350,9 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the depth texture
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect with a CopyEffect instead"]
     pub fn copy_from_depth(&self, depth_texture: DepthTexture, viewport: Viewport) -> &Self {
+        #[allow(deprecated)]
         self.copy_partially_from_depth(self.scissor_box(), depth_texture, viewport)
     }
 
@@ -352,6 +360,7 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the depth texture as limited by the [ScissorBox]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect_partially with a CopyEffect instead"]
     pub fn copy_partially_from_depth(
         &self,
         scissor_box: ScissorBox,
