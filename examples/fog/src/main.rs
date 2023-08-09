@@ -122,7 +122,7 @@ pub async fn run() {
             camera.tone_mapping = ToneMapping::default();
             camera.target_color_space = ColorSpace::Srgb;
             frame_input.screen().apply_screen_effect(
-                &CopyEffect {},
+                &CopyEffect::default(),
                 &camera,
                 &[],
                 Some(ColorTexture::Single(&color_texture)),
