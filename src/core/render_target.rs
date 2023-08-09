@@ -243,8 +243,12 @@ impl<'a> RenderTarget<'a> {
         self.write_partially(scissor_box, || {
             let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
             id.extend(
-                (0b1u16 << 13 | 0b1u16 << 12 | color_texture.id() | depth_texture.id())
-                    .to_le_bytes(),
+                (0b1u16 << 13
+                    | 0b1u16 << 12
+                    | 0b1u16 << 10
+                    | color_texture.id()
+                    | depth_texture.id())
+                .to_le_bytes(),
             );
             let mut programs = self.context.programs.write().unwrap();
             let program = programs.entry(id).or_insert_with(|| {
@@ -312,7 +316,9 @@ impl<'a> RenderTarget<'a> {
     ) -> &Self {
         self.write_partially(scissor_box, || {
             let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
-            id.extend((0b1u16 << 13 | 0b1u16 << 11 | color_texture.id()).to_le_bytes());
+            id.extend(
+                (0b1u16 << 13 | 0b1u16 << 11 | 0b1u16 << 10 | color_texture.id()).to_le_bytes(),
+            );
             let mut programs = self.context.programs.write().unwrap();
             let program = programs.entry(id).or_insert_with(|| {
                 let fragment_shader_source = format!(
