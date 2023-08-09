@@ -54,7 +54,7 @@ pub async fn run() {
     let mut lights = Vec::new();
 
     // main loop
-    let mut intensity = 1.0;
+    let mut intensity = 3.0;
     let mut constant = 0.0;
     let mut linear = 0.5;
     let mut quadratic = 0.5;
