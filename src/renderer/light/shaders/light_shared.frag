@@ -1,4 +1,3 @@
-
 struct BaseLight
 {
     vec3 color;
@@ -15,7 +14,7 @@ vec3 fresnel_schlick(vec3 F0, float cosTheta)
 vec3 fresnel_schlick_roughness(vec3 F0, float cosTheta, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(saturate(1.0 - cosTheta), 5.0);
-} 
+}
 
 
 // following functions are copies of UE4
@@ -87,11 +86,11 @@ vec3 phong_specular(in vec3 V, in vec3 L, in vec3 N, in vec3 specular_fresnel, i
 vec3 blinn_specular(in float NdH, in vec3 specular_fresnel, in float roughness)
 {
     float k = 1.999 / (roughness * roughness);
-    
+
     return min(1.0, 3.0 * 0.0398 * k) * pow(NdH, min(10000.0, k)) * specular_fresnel;
 }
 
-// cook-torrance specular calculation                      
+// cook-torrance specular calculation
 vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 specular_fresnel, in float roughness)
 {
     float D = calculate_D(roughness, NdH);
@@ -133,7 +132,7 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 V, vec3 
     // diffuse is common for any model
     vec3 diffuse_fresnel = 1.0 - specular_fresnel;
     vec3 diffuse = diffuse_fresnel * mix(surface_color, vec3(0.0), metallic) / PI;
-    
+
     // final result
     return (diffuse + specular) * light_color * NdL;
 }
@@ -147,7 +146,7 @@ vec3 attenuate(vec3 light_color, vec3 attenuation, float distance)
     return light_color / max(1.0, att);
 }
 
-float is_visible(sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
+float is_visible(vec3 lightDirection, vec3 normal, sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
 {
     vec2 uv = (shadow_coord.xy + offset)/shadow_coord.w;
     if(uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
@@ -157,11 +156,13 @@ float is_visible(sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
     if(shadow_cast_distance > 0.999) {
         return 1.0;
     }
-    float true_distance = (shadow_coord.z - 0.005)/shadow_coord.w;
+    // Adjust shadow bias based on surface normal and light direction
+    float bias = max(0.05 * (1.0 - dot(normal, lightDirection)), 0.005);
+    float true_distance = (shadow_coord.z - bias)/shadow_coord.w;
     return shadow_cast_distance > true_distance ? 1.0 : 0.0;
 }
 
-float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
+float calculate_shadow(vec3 lightDirection, vec3 normal, sampler2D shadowMap, mat4 shadowMVP, vec3 position)
 {
     vec4 shadow_coord = shadowMVP * vec4(position, 1.);
     float visibility = 0.0;
@@ -173,7 +174,7 @@ float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
                                  );
     for (int i=0;i<4;i++)
     {
-        visibility += is_visible(shadowMap, shadow_coord, poissonDisk[i] * 0.001f);
+        visibility += is_visible(lightDirection, normal, shadowMap, shadow_coord, poissonDisk[i] * 0.001f);
     }
     return visibility * 0.25;
 }
@@ -181,22 +182,22 @@ float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
 vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
 {
 	float a = roughness*roughness;
-	
+
 	float phi = 2.0 * PI * Xi.x;
 	float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
 	float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
-	
+
 	// from spherical coordinates to cartesian coordinates - halfway vector
 	vec3 H;
 	H.x = cos(phi) * sinTheta;
 	H.y = sin(phi) * sinTheta;
 	H.z = cosTheta;
-	
+
 	// from tangent-space H vector to world-space sample vector
 	vec3 up          = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
 	vec3 tangent   = normalize(cross(up, N));
 	vec3 bitangent = cross(N, tangent);
-	
+
 	vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
 	return normalize(sampleVec);
 }

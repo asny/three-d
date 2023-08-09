@@ -130,28 +130,28 @@ impl Light for DirectionalLight {
                 "
                     uniform sampler2D shadowMap{};
                     uniform mat4 shadowMVP{};
-        
+
                     uniform vec3 color{};
                     uniform vec3 direction{};
-        
+
                     vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
                     {{
-                        return calculate_light(color{}, -direction{}, surface_color, view_direction, normal, metallic, roughness) 
-                            * calculate_shadow(shadowMap{}, shadowMVP{}, position);
+                        return calculate_light(color{}, -direction{}, surface_color, view_direction, normal, metallic, roughness)
+                            * calculate_shadow(-direction{}, normal, shadowMap{}, shadowMVP{}, position);
                     }}
-                
-                ", i, i, i, i, i, i, i, i, i)
+
+                ", i, i, i, i, i, i, i, i, i, i)
         } else {
             format!(
                 "
                     uniform vec3 color{};
                     uniform vec3 direction{};
-        
+
                     vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
                     {{
                         return calculate_light(color{}, -direction{}, surface_color, view_direction, normal, metallic, roughness);
                     }}
-                
+
                 ", i, i, i, i, i)
         }
     }

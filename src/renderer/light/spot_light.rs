@@ -143,7 +143,7 @@ impl Light for SpotLight {
                 "
                     uniform sampler2D shadowMap{};
                     uniform mat4 shadowMVP{};
-        
+
                     uniform vec3 color{};
                     uniform vec3 attenuation{};
                     uniform vec3 position{};
@@ -154,20 +154,20 @@ impl Light for SpotLight {
                         vec3 light_direction = position{} - position;
                         float distance = length(light_direction);
                         light_direction = light_direction / distance;
-        
+
                         float angle = acos(dot(-light_direction, normalize(direction{})));
                         float cutoff = cutoff{};
-                    
+
                         vec3 result = vec3(0.0);
                         if (angle < cutoff) {{
                             vec3 light_color = attenuate(color{}, attenuation{}, distance);
-                            result = calculate_light(light_color, light_direction, surface_color, view_direction, normal, 
+                            result = calculate_light(light_color, light_direction, surface_color, view_direction, normal,
                                 metallic, roughness) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
-                            result *= calculate_shadow(shadowMap{}, shadowMVP{}, position);
+                            result *= calculate_shadow(light_direction, normal, shadowMap{}, shadowMVP{}, position);
                         }}
                         return result;
                     }}
-                
+
                 ", i, i, i, i, i, i, i, i, i, i, i, i, i, i, i)
         } else {
             format!(
@@ -182,19 +182,19 @@ impl Light for SpotLight {
                         vec3 light_direction = position{} - position;
                         float distance = length(light_direction);
                         light_direction = light_direction / distance;
-        
+
                         float angle = acos(dot(-light_direction, normalize(direction{})));
                         float cutoff = cutoff{};
-                    
+
                         vec3 result = vec3(0.0);
                         if (angle < cutoff) {{
                             vec3 light_color = attenuate(color{}, attenuation{}, distance);
-                            result = calculate_light(light_color, light_direction, surface_color, view_direction, normal, 
+                            result = calculate_light(light_color, light_direction, surface_color, view_direction, normal,
                                 metallic, roughness) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
                         }}
                         return result;
                     }}
-                
+
                 ", i, i, i, i, i, i, i, i, i, i, i)
         }
     }
