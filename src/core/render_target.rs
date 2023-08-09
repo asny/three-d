@@ -209,6 +209,7 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the color and depth texture as limited by the [WriteMask]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect with a CopyEffect instead"]
     pub fn copy_from(
         &self,
         color_texture: ColorTexture,
@@ -216,6 +217,7 @@ impl<'a> RenderTarget<'a> {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> &Self {
+        #[allow(deprecated)]
         self.copy_partially_from(
             self.scissor_box(),
             color_texture,
@@ -229,6 +231,7 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the color and depth texture as limited by the [ScissorBox] and [WriteMask]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect_partially with a CopyEffect instead"]
     pub fn copy_partially_from(
         &self,
         scissor_box: ScissorBox,
@@ -238,7 +241,7 @@ impl<'a> RenderTarget<'a> {
         write_mask: WriteMask,
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            let mut id = full_screen_id().to_le_bytes().to_vec();
+            let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
             id.extend(
                 (0b1u16 << 13 | 0b1u16 << 12 | color_texture.id() | depth_texture.id())
                     .to_le_bytes(),
@@ -284,12 +287,14 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the color texture as limited by the [WriteMask]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect with a CopyEffect instead"]
     pub fn copy_from_color(
         &self,
         color_texture: ColorTexture,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> &Self {
+        #[allow(deprecated)]
         self.copy_partially_from_color(self.scissor_box(), color_texture, viewport, write_mask)
     }
 
@@ -297,6 +302,7 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the color texture as limited by the [ScissorBox] and [WriteMask]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect_partially with a CopyEffect instead"]
     pub fn copy_partially_from_color(
         &self,
         scissor_box: ScissorBox,
@@ -305,7 +311,7 @@ impl<'a> RenderTarget<'a> {
         write_mask: WriteMask,
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            let mut id = full_screen_id().to_le_bytes().to_vec();
+            let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
             id.extend((0b1u16 << 13 | 0b1u16 << 11 | color_texture.id()).to_le_bytes());
             let mut programs = self.context.programs.write().unwrap();
             let program = programs.entry(id).or_insert_with(|| {
@@ -344,7 +350,9 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the depth texture
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect with a CopyEffect instead"]
     pub fn copy_from_depth(&self, depth_texture: DepthTexture, viewport: Viewport) -> &Self {
+        #[allow(deprecated)]
         self.copy_partially_from_depth(self.scissor_box(), depth_texture, viewport)
     }
 
@@ -352,6 +360,7 @@ impl<'a> RenderTarget<'a> {
     /// Copies the content of the depth texture as limited by the [ScissorBox]
     /// to the part of this render target specified by the [Viewport].
     ///
+    #[deprecated = "use apply_screen_effect_partially with a CopyEffect instead"]
     pub fn copy_partially_from_depth(
         &self,
         scissor_box: ScissorBox,
@@ -359,7 +368,7 @@ impl<'a> RenderTarget<'a> {
         viewport: Viewport,
     ) -> &Self {
         self.write_partially(scissor_box, || {
-            let mut id = full_screen_id().to_le_bytes().to_vec();
+            let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
             id.extend((0b1u16 << 13 | 0b1u16 << 10 | depth_texture.id()).to_le_bytes());
             let mut programs = self.context.programs.write().unwrap();
             let program = programs.entry(id).or_insert_with(|| {

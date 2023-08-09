@@ -67,6 +67,8 @@ pub fn main() {
 
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
+        camera.tone_mapping = ToneMapping::default();
+        camera.target_color_space = ColorSpace::Srgb;
 
         let mut panel_width = 0.0;
         gui.update(
@@ -113,7 +115,7 @@ pub fn main() {
 
         // slowly rotate cube, to better show off aliasing
         cube.set_transformation(Mat4::from_angle_y(radians(
-            (frame_input.accumulated_time * 0.0005) as f32,
+            (frame_input.accumulated_time * 0.00005) as f32,
         )));
 
         //  Consistent clear state and iterator of renderable things for each render method
@@ -159,10 +161,14 @@ pub fn main() {
                 .clear(clear_state)
                 .render(&camera, renderable_things, &[]);
 
-                frame_input.screen().copy_from_color(
-                    ColorTexture::Single(&color_texture),
-                    frame_input.viewport,
-                    WriteMask::default(),
+                camera.tone_mapping = ToneMapping::None;
+                camera.target_color_space = ColorSpace::Compute;
+                frame_input.screen().apply_screen_effect(
+                    &CopyEffect::default(),
+                    &camera,
+                    &[],
+                    Some(ColorTexture::Single(&color_texture)),
+                    None,
                 );
             }
 
@@ -179,10 +185,14 @@ pub fn main() {
                 .render(&camera, renderable_things, &[])
                 .resolve_color();
 
-                frame_input.screen().clear(clear_state).copy_from_color(
-                    ColorTexture::Single(&color_texture),
-                    frame_input.viewport,
-                    WriteMask::default(),
+                camera.tone_mapping = ToneMapping::None;
+                camera.target_color_space = ColorSpace::Compute;
+                frame_input.screen().clear(clear_state).apply_screen_effect(
+                    &CopyEffect::default(),
+                    &camera,
+                    &[],
+                    Some(ColorTexture::Single(&color_texture)),
+                    None,
                 );
             }
         };

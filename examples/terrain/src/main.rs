@@ -275,7 +275,7 @@ pub async fn run() {
         frame_input
             .screen()
             .apply_screen_effect(
-                &CopyEffect {},
+                &CopyEffect::default(),
                 &camera,
                 &[],
                 Some(ColorTexture::Single(&color_texture)),

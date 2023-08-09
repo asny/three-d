@@ -51,7 +51,7 @@ pub async fn run() {
     let mut fog_enabled = true;
 
     // main loop
-    let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
+    let mut color_texture = Texture2D::new_empty::<[f16; 4]>(
         &context,
         camera.viewport().width,
         camera.viewport().height,
@@ -106,6 +106,8 @@ pub async fn run() {
                     Wrapping::ClampToEdge,
                 );
             }
+            camera.tone_mapping = ToneMapping::None;
+            camera.target_color_space = ColorSpace::Compute;
             RenderTarget::new(
                 color_texture.as_color_target(None),
                 depth_texture.as_depth_target(),
@@ -117,11 +119,14 @@ pub async fn run() {
         change |= fog_enabled; // Always render if fog is enabled since it contain animation.
 
         if change {
-            frame_input.screen().copy_from(
-                ColorTexture::Single(&color_texture),
-                DepthTexture::Single(&depth_texture),
-                frame_input.viewport,
-                WriteMask::default(),
+            camera.tone_mapping = ToneMapping::default();
+            camera.target_color_space = ColorSpace::Srgb;
+            frame_input.screen().apply_screen_effect(
+                &CopyEffect::default(),
+                &camera,
+                &[],
+                Some(ColorTexture::Single(&color_texture)),
+                Some(DepthTexture::Single(&depth_texture)),
             );
 
             if fog_enabled {

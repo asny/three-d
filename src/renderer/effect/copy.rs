@@ -1,11 +1,14 @@
 use crate::renderer::*;
 
 ///
-/// Copies the content of the color and/or depth texture.
+/// Copies the content of the color and/or depth texture by rendering a quad with those textures applied.
 /// In addition, the [ToneMapping] and target [ColorSpace] specified in the [Camera] is applied to the color.
 ///
 #[derive(Clone, Debug, Default)]
-pub struct CopyEffect {}
+pub struct CopyEffect {
+    /// Defines which channels (red, green, blue, alpha and depth) to copy.
+    pub write_mask: WriteMask,
+}
 
 impl Effect for CopyEffect {
     fn fragment_shader_source(
@@ -84,6 +87,7 @@ impl Effect for CopyEffect {
         RenderStates {
             depth_test: DepthTest::Always,
             cull: Cull::Back,
+            write_mask: self.write_mask,
             ..Default::default()
         }
     }
