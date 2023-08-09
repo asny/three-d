@@ -14,8 +14,8 @@ pub struct Camera {
     camera: three_d_asset::Camera,
     /// This tone mapping is applied to the final color of renders using this camera.
     pub tone_mapping: ToneMapping,
-    /// The final color of renders using this camera is converted to this color space.
-    pub target_color_space: ColorSpace,
+    /// This color mapping is applied to the final color of renders using this camera.
+    pub color_mapping: ColorMapping,
 }
 
 impl Camera {
@@ -36,7 +36,7 @@ impl Camera {
                 viewport, position, target, up, height, z_near, z_far,
             ),
             tone_mapping: ToneMapping::default(),
-            target_color_space: ColorSpace::default(),
+            color_mapping: ColorMapping::default(),
         }
     }
 
@@ -63,7 +63,7 @@ impl Camera {
                 z_far,
             ),
             tone_mapping: ToneMapping::default(),
-            target_color_space: ColorSpace::default(),
+            color_mapping: ColorMapping::default(),
         }
     }
 

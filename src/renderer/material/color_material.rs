@@ -112,7 +112,7 @@ impl Material for ColorMaterial {
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
         }
         shader.push_str(include_str!("../../core/shared.frag"));
-        shader.push_str(ColorSpace::fragment_shader_source());
+        shader.push_str(ColorMapping::fragment_shader_source());
         shader.push_str(include_str!("shaders/color_material.frag"));
         shader
     }
@@ -126,7 +126,7 @@ impl Material for ColorMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
-        camera.target_color_space.use_uniforms(program);
+        camera.color_mapping.use_uniforms(program);
         program.use_uniform("surfaceColor", self.color.to_linear_srgb());
         if let Some(ref tex) = self.texture {
             program.use_uniform("textureTransformation", tex.transformation);

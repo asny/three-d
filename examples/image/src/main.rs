@@ -100,14 +100,14 @@ pub async fn run() {
             Wrapping::ClampToEdge,
         );
 
-        camera.target_color_space = ColorSpace::Compute;
+        camera.color_mapping = ColorMapping::Compute;
         camera.tone_mapping = ToneMapping::None;
         target
             .as_color_target(None)
             .clear(ClearState::default())
             .apply_screen_material(&material, &camera, &[]);
 
-        camera.target_color_space = ColorSpace::Srgb;
+        camera.color_mapping = ColorMapping::Srgb;
         camera.tone_mapping = tone_mapping;
         frame_input
             .screen()

@@ -2,7 +2,7 @@ use crate::renderer::*;
 
 ///
 /// Copies the content of the color and/or depth texture by rendering a quad with those textures applied.
-/// In addition, the [ToneMapping] and target [ColorSpace] specified in the [Camera] is applied to the color.
+/// In addition, the [ToneMapping] and [ColorMapping] specified in the [Camera] is applied to the color.
 ///
 #[derive(Clone, Debug, Default)]
 pub struct CopyEffect {
@@ -37,7 +37,7 @@ impl Effect for CopyEffect {
                 .map(|t| t.fragment_shader_source())
                 .unwrap_or("".to_string()),
             ToneMapping::fragment_shader_source(),
-            ColorSpace::fragment_shader_source(),
+            ColorMapping::fragment_shader_source(),
             color_texture
                 .map(|_| "
                     outColor = sample_color(uvs);
@@ -75,7 +75,7 @@ impl Effect for CopyEffect {
     ) {
         if let Some(color_texture) = color_texture {
             camera.tone_mapping.use_uniforms(program);
-            camera.target_color_space.use_uniforms(program);
+            camera.color_mapping.use_uniforms(program);
             color_texture.use_uniforms(program);
         }
         if let Some(depth_texture) = depth_texture {

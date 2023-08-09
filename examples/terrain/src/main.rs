@@ -241,7 +241,7 @@ pub async fn run() {
 
         if change {
             camera.tone_mapping = ToneMapping::None;
-            camera.target_color_space = ColorSpace::Compute;
+            camera.color_mapping = ColorMapping::Compute;
             if camera.viewport().width != color_texture.width()
                 || camera.viewport().height != color_texture.height()
             {
@@ -271,7 +271,7 @@ pub async fn run() {
             .render(&camera, skybox.into_iter().chain(&terrain), &[&light]);
         }
         camera.tone_mapping = ToneMapping::Aces;
-        camera.target_color_space = ColorSpace::Srgb;
+        camera.color_mapping = ColorMapping::Srgb;
         frame_input
             .screen()
             .apply_screen_effect(

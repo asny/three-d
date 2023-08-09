@@ -107,7 +107,7 @@ pub async fn run() {
                 );
             }
             camera.tone_mapping = ToneMapping::None;
-            camera.target_color_space = ColorSpace::Compute;
+            camera.color_mapping = ColorMapping::Compute;
             RenderTarget::new(
                 color_texture.as_color_target(None),
                 depth_texture.as_depth_target(),
@@ -120,7 +120,7 @@ pub async fn run() {
 
         if change {
             camera.tone_mapping = ToneMapping::default();
-            camera.target_color_space = ColorSpace::Srgb;
+            camera.color_mapping = ColorMapping::Srgb;
 
             if fog_enabled {
                 fog_effect.time = frame_input.accumulated_time as f32;
