@@ -44,7 +44,7 @@ pub async fn run() {
     // Fog
     let mut fog_effect = FogEffect {
         color: Srgba::new_opaque(200, 200, 200),
-        density: 0.2,
+        density: 0.1,
         animation: 0.1,
         ..Default::default()
     };
@@ -88,7 +88,7 @@ pub async fn run() {
             if camera.viewport().width != color_texture.width()
                 || camera.viewport().height != color_texture.height()
             {
-                color_texture = Texture2D::new_empty::<[u8; 4]>(
+                color_texture = Texture2D::new_empty::<[f16; 4]>(
                     &context,
                     camera.viewport().width,
                     camera.viewport().height,
@@ -121,13 +121,6 @@ pub async fn run() {
         if change {
             camera.tone_mapping = ToneMapping::default();
             camera.target_color_space = ColorSpace::Srgb;
-            frame_input.screen().apply_screen_effect(
-                &CopyEffect::default(),
-                &camera,
-                &[],
-                Some(ColorTexture::Single(&color_texture)),
-                Some(DepthTexture::Single(&depth_texture)),
-            );
 
             if fog_enabled {
                 fog_effect.time = frame_input.accumulated_time as f32;
@@ -135,7 +128,15 @@ pub async fn run() {
                     &fog_effect,
                     &camera,
                     &[],
-                    None,
+                    Some(ColorTexture::Single(&color_texture)),
+                    Some(DepthTexture::Single(&depth_texture)),
+                );
+            } else {
+                frame_input.screen().apply_screen_effect(
+                    &CopyEffect::default(),
+                    &camera,
+                    &[],
+                    Some(ColorTexture::Single(&color_texture)),
                     Some(DepthTexture::Single(&depth_texture)),
                 );
             }

@@ -9,7 +9,7 @@ uniform vec3 eyePosition;
 
 in vec2 uvs;
 
-layout (location = 0) out vec4 color;
+layout (location = 0) out vec4 outColor;
 
 
 //
@@ -127,6 +127,7 @@ float snoise(vec3 v)
 // factor: 1 == full fog, 0 == no fog
 void main()
 {
+    vec4 color = sample_color(uvs);
     float depth = sample_depth(uvs);
     vec3 pos = world_pos_from_depth(viewProjectionInverse, depth, uvs);
 
@@ -142,5 +143,8 @@ void main()
     factor = clamp(factor, 0., 1.);
 
     // Output
-    color = vec4(fogColor.rgb, factor);
+    outColor = mix(color, fogColor, factor);
+    outColor.rgb = tone_mapping(outColor.rgb);
+    outColor.rgb = color_mapping(outColor.rgb);
+    gl_FragDepth = depth;
 }

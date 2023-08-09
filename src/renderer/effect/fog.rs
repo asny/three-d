@@ -49,23 +49,31 @@ impl Effect for FogEffect {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn Light],
-        _color_texture: Option<ColorTexture>,
+        color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) -> String {
         format!(
-            "{}\n{}\n{}",
+            "{}\n{}\n{}\n{}\n{}\n{}",
             include_str!("../../core/shared.frag"),
+            color_texture
+                .expect("Must supply a depth texture to apply a fog effect")
+                .fragment_shader_source(),
             depth_texture
                 .expect("Must supply a depth texture to apply a fog effect")
                 .fragment_shader_source(),
+            ToneMapping::fragment_shader_source(),
+            ColorSpace::fragment_shader_source(),
             include_str!("shaders/fog_effect.frag")
         )
     }
 
-    fn id(&self, _color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
+    fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
         0b1u16 << 14
             | 0b1u16 << 13
             | 0b1u16 << 12
+            | color_texture
+                .expect("Must supply a color texture to apply a fog effect")
+                .id()
             | depth_texture
                 .expect("Must supply a depth texture to apply a fog effect")
                 .id()
@@ -83,9 +91,14 @@ impl Effect for FogEffect {
         program: &Program,
         camera: &Camera,
         _lights: &[&dyn Light],
-        _color_texture: Option<ColorTexture>,
+        color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
+        camera.tone_mapping.use_uniforms(program);
+        camera.target_color_space.use_uniforms(program);
+        color_texture
+            .expect("Must supply a color texture to apply a fog effect")
+            .use_uniforms(program);
         depth_texture
             .expect("Must supply a depth texture to apply a fog effect")
             .use_uniforms(program);
@@ -102,8 +115,7 @@ impl Effect for FogEffect {
 
     fn render_states(&self) -> RenderStates {
         RenderStates {
-            write_mask: WriteMask::COLOR,
-            blend: Blend::TRANSPARENCY,
+            depth_test: DepthTest::Always,
             cull: Cull::Back,
             ..Default::default()
         }

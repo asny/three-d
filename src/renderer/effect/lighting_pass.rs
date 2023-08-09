@@ -59,7 +59,11 @@ impl Effect for LightingPassEffect {
     }
 
     fn render_states(&self) -> RenderStates {
-        RenderStates::default()
+        RenderStates {
+            depth_test: DepthTest::Always,
+            cull: Cull::Back,
+            ..Default::default()
+        }
     }
 }
 
