@@ -130,7 +130,7 @@ pub async fn run() {
                 );
             } else {
                 frame_input.screen().apply_screen_effect(
-                    &FullScreenEffect::default(),
+                    &ScreenEffect::default(),
                     &camera,
                     &[],
                     Some(ColorTexture::Single(&color_texture)),

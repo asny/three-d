@@ -2,14 +2,15 @@ use crate::renderer::*;
 
 ///
 /// Renders a full screen quad with the content of the color and/or depth textures.
+/// The difference from [CopyEffect] is that this effect also applies any mapping set in the [Camera].
 ///
 #[derive(Clone, Debug, Default)]
-pub struct FullScreenEffect {
-    /// Defines which channels (red, green, blue, alpha and depth) to render.
+pub struct ScreenEffect {
+    /// Defines which channels (red, green, blue, alpha and depth) to render into.
     pub write_mask: WriteMask,
 }
 
-impl Effect for FullScreenEffect {
+impl Effect for ScreenEffect {
     fn fragment_shader_source(
         &self,
         _lights: &[&dyn crate::Light],

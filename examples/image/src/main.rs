@@ -111,7 +111,7 @@ pub async fn run() {
             .screen()
             .clear(ClearState::default())
             .apply_screen_effect(
-                &FullScreenEffect::default(),
+                &ScreenEffect::default(),
                 &camera,
                 &[],
                 Some(ColorTexture::Single(&target)),
