@@ -45,23 +45,23 @@ pub fn main() {
             Mat4::from_translation(vec3(3.0, 0.0, 0.5)) * rot_z90 * Mat4::from_angle_x(Deg(-45.0)),
         ],
         colors: Some(vec![
-            Srgba::new(0, 255, 0, 255),   // green, closest, should obscure everything.
-            Srgba::new(255, 0, 255, 255), // purple, behind green, second opaque plane.
-            Srgba::new(255, 0, 0, 128), // Red, third plane, should be behind two opaques, blend in front of blue.
-            Srgba::new(0, 0, 255, 128), // Furthest, blue layer.
+            Srgba::new(255, 255, 255, 128),
+            Srgba::new(255, 0, 255, 128),
+            Srgba::new(255, 0, 0, 128),
+            Srgba::new(0, 0, 255, 128),
             // Next two always intersect.
-            Srgba::new(0, 128, 128, 128), // Limitation of ordering, cyan
-            Srgba::new(128, 128, 0, 128), // Limitation of ordering, yellow
+            Srgba::new(255, 255, 255, 128),
+            Srgba::new(0, 0, 255, 128),
         ]),
         ..Default::default()
     };
 
     let mut thin_cube = CpuMesh::cube();
     thin_cube
-        .transform(&Mat4::from_nonuniform_scale(1.0, 1.0, 0.1))
+        .transform(&Mat4::from_nonuniform_scale(1.0, 1.0, 0.04))
         .unwrap();
 
-    let transparent_meshes = Gm::new(
+    let transparent_models = Gm::new(
         InstancedMesh::new(&context, &transparent_instances, &thin_cube),
         PhysicalMaterial::new_transparent(
             &context,
@@ -91,16 +91,9 @@ pub fn main() {
         ),
         ..Default::default()
     };
-    let mut thin_cube_right = CpuMesh::cube();
-    thin_cube_right
-        .transform(
-            &(Mat4::from_translation(vec3(-3.0, 0.0, 0.0))
-                * Mat4::from_nonuniform_scale(1.0, 1.0, 0.1)),
-        )
-        .unwrap();
 
-    let opaque_meshes_opaque_instances = Gm::new(
-        InstancedMesh::new(&context, &opaque_instances, &thin_cube_right),
+    let mut opaque_models = Gm::new(
+        InstancedMesh::new(&context, &opaque_instances, &thin_cube),
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
@@ -109,9 +102,22 @@ pub fn main() {
             },
         ),
     );
+    opaque_models.set_transformation(Mat4::from_translation(vec3(-6.0, 0.0, 0.0)));
+
+    let mut opaque_model = Gm::new(
+        Mesh::new(&context, &thin_cube),
+        PhysicalMaterial::new_opaque(
+            &context,
+            &CpuMaterial {
+                albedo: Srgba::new(128, 128, 128, 255),
+                ..Default::default()
+            },
+        ),
+    );
+    opaque_model.set_transformation(Mat4::from_translation(vec3(0.0, -0.4, -3.0)));
 
     let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
-    let ambient_light = three_d::renderer::light::AmbientLight::new(&context, 0.1, Srgba::WHITE);
+    let ambient_light = three_d::renderer::light::AmbientLight::new(&context, 0.8, Srgba::WHITE);
 
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
@@ -122,9 +128,10 @@ pub fn main() {
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             .render(
                 &camera,
-                transparent_meshes
+                transparent_models
                     .into_iter()
-                    .chain(&opaque_meshes_opaque_instances),
+                    .chain(&opaque_models)
+                    .chain(&opaque_model),
                 &[&light0, &ambient_light],
             );
 
