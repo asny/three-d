@@ -92,6 +92,22 @@ impl Camera {
             10.0,
         )
     }
+
+    ///
+    /// Disables the tone and color mapping so as to be ready for rendering into an intermediate render target with this camera.
+    ///
+    pub fn disable_tone_and_color_mapping(&mut self) {
+        self.tone_mapping = ToneMapping::None;
+        self.color_mapping = ColorMapping::None;
+    }
+
+    ///
+    /// Sets the tone and color mapping to default so as to be ready for rendering into the final render target (usually the screen) with this camera.
+    ///
+    pub fn set_default_tone_and_color_mapping(&mut self) {
+        self.tone_mapping = ToneMapping::default();
+        self.color_mapping = ColorMapping::default();
+    }
 }
 
 use std::ops::Deref;

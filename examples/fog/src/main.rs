@@ -106,8 +106,7 @@ pub async fn run() {
                     Wrapping::ClampToEdge,
                 );
             }
-            camera.tone_mapping = ToneMapping::None;
-            camera.color_mapping = ColorMapping::Compute;
+            camera.disable_tone_and_color_mapping();
             RenderTarget::new(
                 color_texture.as_color_target(None),
                 depth_texture.as_depth_target(),
@@ -119,9 +118,7 @@ pub async fn run() {
         change |= fog_enabled; // Always render if fog is enabled since it contain animation.
 
         if change {
-            camera.tone_mapping = ToneMapping::default();
-            camera.color_mapping = ColorMapping::Srgb;
-
+            camera.set_default_tone_and_color_mapping();
             if fog_enabled {
                 fog_effect.time = frame_input.accumulated_time as f32;
                 frame_input.screen().apply_screen_effect(

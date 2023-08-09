@@ -173,8 +173,7 @@ impl ImpostersMaterial {
                 0.0,
                 4.0 * (width + height),
             );
-            camera.color_mapping = ColorMapping::Compute;
-            camera.tone_mapping = ToneMapping::None;
+            camera.disable_tone_and_color_mapping();
             self.texture = Texture2DArray::new_empty::<[f16; 4]>(
                 &self.context,
                 texture_width,

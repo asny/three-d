@@ -67,8 +67,7 @@ pub fn main() {
 
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
-        camera.tone_mapping = ToneMapping::default();
-        camera.color_mapping = ColorMapping::Srgb;
+        camera.set_default_tone_and_color_mapping();
 
         let mut panel_width = 0.0;
         gui.update(
@@ -161,8 +160,7 @@ pub fn main() {
                 .clear(clear_state)
                 .render(&camera, renderable_things, &[]);
 
-                camera.tone_mapping = ToneMapping::None;
-                camera.color_mapping = ColorMapping::Compute;
+                camera.disable_tone_and_color_mapping();
                 frame_input.screen().apply_screen_effect(
                     &CopyEffect::default(),
                     &camera,
@@ -185,8 +183,7 @@ pub fn main() {
                 .render(&camera, renderable_things, &[])
                 .resolve_color();
 
-                camera.tone_mapping = ToneMapping::None;
-                camera.color_mapping = ColorMapping::Compute;
+                camera.disable_tone_and_color_mapping();
                 frame_input.screen().clear(clear_state).apply_screen_effect(
                     &CopyEffect::default(),
                     &camera,
