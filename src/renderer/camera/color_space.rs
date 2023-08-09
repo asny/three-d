@@ -1,25 +1,27 @@
 use crate::core::*;
 
-/// Color space used for specifying the targeted color space when rendering.
+///
+/// Color space mapping used for mapping to/from color spaces when rendering.
+///
 #[derive(Clone, Debug, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub enum ColorSpace {
-    /// Use this if you want to use the rendered result as input to a following render pass.
-    Compute = 0,
-    /// Use this if this is the final render pass, ie. you write to the screen or want to save it as an image.
+pub enum ColorMapping {
+    /// No color mapping. Use this if you are rendering into an intermediate render target, ie. this is not the final render pass that renders into the screen.
+    None = 0,
+    /// Maps from compute color space (HDR or linear sRGB) to sRGB color space. Use this if this is the final render pass, ie. you write to the screen or want to save it as an image.
     #[default]
-    Srgb = 1,
+    ComputeToSrgb = 1,
 }
 
-impl ColorSpace {
+impl ColorMapping {
     ///
     /// Returns the fragment shader source for mapping to the specified color space in a shader.
     ///
     pub fn fragment_shader_source() -> &'static str {
         "
-        uniform uint colorSpaceType;
+        uniform uint ColorMappingType;
 
         vec3 color_mapping(vec3 color) {
-            if (colorSpaceType == 1u) {
+            if (ColorMappingType == 1u) {
                 vec3 a = vec3(0.055, 0.055, 0.055);
                 vec3 ap1 = vec3(1.0, 1.0, 1.0) + a;
                 vec3 g = vec3(2.4, 2.4, 2.4);
@@ -39,6 +41,6 @@ impl ColorSpace {
     /// Sends the uniform data needed to apply this color space mapping to the fragment shader.
     ///
     pub fn use_uniforms(&self, program: &Program) {
-        program.use_uniform("colorSpaceType", *self as u32);
+        program.use_uniform("ColorMappingType", *self as u32);
     }
 }

@@ -240,8 +240,7 @@ pub async fn run() {
         water.animate(frame_input.accumulated_time as f32);
 
         if change {
-            camera.tone_mapping = ToneMapping::None;
-            camera.target_color_space = ColorSpace::Compute;
+            camera.disable_tone_and_color_mapping();
             if camera.viewport().width != color_texture.width()
                 || camera.viewport().height != color_texture.height()
             {
@@ -270,12 +269,11 @@ pub async fn run() {
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
             .render(&camera, skybox.into_iter().chain(&terrain), &[&light]);
         }
-        camera.tone_mapping = ToneMapping::Aces;
-        camera.target_color_space = ColorSpace::Srgb;
+        camera.set_default_tone_and_color_mapping();
         frame_input
             .screen()
             .apply_screen_effect(
-                &CopyEffect::default(),
+                &ScreenEffect::default(),
                 &camera,
                 &[],
                 Some(ColorTexture::Single(&color_texture)),

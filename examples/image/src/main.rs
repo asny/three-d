@@ -18,7 +18,6 @@ pub async fn run() {
     let context = window.gl();
 
     let mut camera = Camera::new_2d(window.viewport());
-    camera.tone_mapping = ToneMapping::None;
 
     // Source: https://polyhaven.com/
     let mut loaded = if let Ok(loaded) =
@@ -100,20 +99,19 @@ pub async fn run() {
             Wrapping::ClampToEdge,
         );
 
-        camera.target_color_space = ColorSpace::Compute;
-        camera.tone_mapping = ToneMapping::None;
+        camera.disable_tone_and_color_mapping();
         target
             .as_color_target(None)
             .clear(ClearState::default())
             .apply_screen_material(&material, &camera, &[]);
 
-        camera.target_color_space = ColorSpace::Srgb;
+        camera.color_mapping = ColorMapping::default();
         camera.tone_mapping = tone_mapping;
         frame_input
             .screen()
             .clear(ClearState::default())
             .apply_screen_effect(
-                &CopyEffect::default(),
+                &ScreenEffect::default(),
                 &camera,
                 &[],
                 Some(ColorTexture::Single(&target)),

@@ -16,7 +16,7 @@ impl Material for SkyboxMaterial {
             "{}{}{}{}",
             include_str!("../../core/shared.frag"),
             ToneMapping::fragment_shader_source(),
-            ColorSpace::fragment_shader_source(),
+            ColorMapping::fragment_shader_source(),
             include_str!("shaders/skybox_material.frag")
         )
     }
@@ -27,7 +27,7 @@ impl Material for SkyboxMaterial {
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
         camera.tone_mapping.use_uniforms(program);
-        camera.target_color_space.use_uniforms(program);
+        camera.color_mapping.use_uniforms(program);
         program.use_texture_cube("texture0", &self.texture);
     }
 
