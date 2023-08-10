@@ -9,7 +9,7 @@ readme = "README.md"
 repository = "https://github.com/asny/three-d"
 categories = ["graphics", "rendering", "visualization", "wasm", "web-programming"]
 keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
-exclude = ["/examples", ".gitignore", "index.html"]
+exclude = ["/examples", ".gitignore", "/web"]
 
 [package.metadata.docs.rs]
 all-features = true
