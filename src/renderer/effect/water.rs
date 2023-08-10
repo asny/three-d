@@ -21,13 +21,6 @@ impl Default for Background {
 /// An effect that simulates a water surface and should therefore only be applied to a water surface geometry.
 /// This effect needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections and refractions.
 ///
-#[deprecated = "renamed to WaterEffect"]
-pub type WaterMaterial = WaterEffect;
-
-///
-/// An effect that simulates a water surface and should therefore only be applied to a water surface geometry.
-/// This effect needs the rendered scene (without the water surface) in a color and depth texture to be able to add reflections and refractions.
-///
 #[derive(Clone)]
 pub struct WaterEffect {
     /// The background of the scene which is used for reflections.

@@ -15,7 +15,6 @@ pub use crate::context::HasContext;
 pub struct Context {
     context: Arc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
-    programs_old: Arc<RwLock<HashMap<(String, String), Program>>>,
     /// A cache of programs to avoid recompiling a [Program] every frame.
     pub programs: Arc<RwLock<HashMap<Vec<u8>, Program>>>,
 }
@@ -44,34 +43,10 @@ impl Context {
             Self {
                 context,
                 vao,
-                programs_old: Arc::new(RwLock::new(HashMap::new())),
                 programs: Arc::new(RwLock::new(HashMap::new())),
             }
         };
         Ok(c)
-    }
-
-    ///
-    /// Compiles a [Program] with the given vertex and fragment shader source and stores it for later use.
-    /// If it has already been created, then it is just returned.
-    ///
-    #[deprecated = "Use Context::programs"]
-    pub fn program(
-        &self,
-        vertex_shader_source: String,
-        fragment_shader_source: String,
-        callback: impl FnOnce(&Program),
-    ) -> Result<(), CoreError> {
-        let key = (vertex_shader_source, fragment_shader_source);
-        let mut programs = self.programs_old.write().unwrap();
-        if let Some(program) = programs.get(&key) {
-            callback(program);
-        } else {
-            let program = Program::from_source(self, &key.0, &key.1)?;
-            callback(&program);
-            programs.insert(key, program);
-        }
-        Ok(())
     }
 
     ///

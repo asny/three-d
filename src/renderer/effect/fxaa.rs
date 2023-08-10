@@ -7,27 +7,6 @@ use crate::renderer::*;
 #[derive(Clone, Default, Debug)]
 pub struct FxaaEffect {}
 
-impl FxaaEffect {
-    ///
-    /// Applies the FXAA effect to the given color texture.
-    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
-    ///
-    #[deprecated = "use `apply_screen_effect` instead"]
-    pub fn apply(&self, context: &Context, color_texture: ColorTexture) {
-        apply_screen_effect(
-            context,
-            self,
-            &Camera::new_2d(Viewport::new_at_origo(
-                color_texture.width(),
-                color_texture.height(),
-            )),
-            &[],
-            Some(color_texture),
-            None,
-        );
-    }
-}
-
 impl Effect for FxaaEffect {
     fn fragment_shader_source(
         &self,

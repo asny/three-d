@@ -127,43 +127,6 @@ impl<'a> ColorTarget<'a> {
     }
 
     ///
-    /// Copies the content of the color texture as limited by the [WriteMask]
-    /// to the part of this color target specified by the [Viewport].
-    ///
-    #[deprecated = "use apply_screen_effect with a CopyEffect instead"]
-    pub fn copy_from(
-        &self,
-        color_texture: ColorTexture,
-        viewport: Viewport,
-        write_mask: WriteMask,
-    ) -> &Self {
-        #[allow(deprecated)]
-        self.copy_partially_from(self.scissor_box(), color_texture, viewport, write_mask)
-    }
-
-    ///
-    /// Copies the content of the color texture as limited by the [ScissorBox] and [WriteMask]
-    /// to the part of this color target specified by the [Viewport].
-    ///
-    #[deprecated = "use apply_screen_effect_partially with a CopyEffect instead"]
-    pub fn copy_partially_from(
-        &self,
-        scissor_box: ScissorBox,
-        color_texture: ColorTexture,
-        viewport: Viewport,
-        write_mask: WriteMask,
-    ) -> &Self {
-        #[allow(deprecated)]
-        self.as_render_target().copy_partially_from_color(
-            scissor_box,
-            color_texture,
-            viewport,
-            write_mask,
-        );
-        self
-    }
-
-    ///
     /// Returns the width of the color target in texels.
     /// If using the zero mip level of the underlying texture, then this is simply the width of that texture, otherwise it is the width of the given mip level.
     ///

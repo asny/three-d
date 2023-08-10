@@ -502,17 +502,6 @@ pub fn apply_screen_effect(
 }
 
 ///
-/// Returns an orthographic camera for viewing 2D content.
-/// The camera is placed at the center of the given viewport.
-/// The (0, 0) position is at the bottom left corner and the
-/// (`viewport.width`, `viewport.height`) position is at the top right corner.
-///
-#[deprecated = "use Camera::new_2d instead"]
-pub fn camera2d(viewport: Viewport) -> Camera {
-    Camera::new_2d(viewport)
-}
-
-///
 /// Compare function for sorting objects based on distance from the camera.
 /// The order is opaque objects from nearest to farthest away from the camera,
 /// then transparent objects from farthest away to closest to the camera.

@@ -26,25 +26,6 @@ impl Default for FogEffect {
     }
 }
 
-impl FogEffect {
-    ///
-    /// Apply the fog effect on the current render target based on the given depth texture.
-    /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
-    ///
-    #[deprecated = "use `apply_screen_effect` instead"]
-    pub fn apply(
-        &self,
-        context: &Context,
-        time: f64,
-        camera: &Camera,
-        depth_texture: DepthTexture,
-    ) {
-        let mut effect = self.clone();
-        effect.time = time as f32;
-        apply_screen_effect(context, effect, camera, &[], None, Some(depth_texture));
-    }
-}
-
 impl Effect for FogEffect {
     fn fragment_shader_source(
         &self,

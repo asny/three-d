@@ -109,33 +109,6 @@ impl<'a> DepthTarget<'a> {
         self.as_render_target().read_depth_partially(scissor_box)
     }
 
-    ///
-    /// Copies the content of the depth texture
-    /// to the part of this depth target specified by the [Viewport].
-    ///
-    #[deprecated = "use apply_screen_effect with a CopyEffect instead"]
-    pub fn copy_from(&self, depth_texture: DepthTexture, viewport: Viewport) -> &Self {
-        #[allow(deprecated)]
-        self.copy_partially_from(self.scissor_box(), depth_texture, viewport)
-    }
-
-    ///
-    /// Copies the content of the depth texture as limited by the [ScissorBox]
-    /// to the part of this depth target specified by the [Viewport].
-    ///
-    #[deprecated = "use apply_screen_effect_partially with a CopyEffect instead"]
-    pub fn copy_partially_from(
-        &self,
-        scissor_box: ScissorBox,
-        depth_texture: DepthTexture,
-        viewport: Viewport,
-    ) -> &Self {
-        #[allow(deprecated)]
-        self.as_render_target()
-            .copy_partially_from_depth(scissor_box, depth_texture, viewport);
-        self
-    }
-
     pub(super) fn as_render_target(&self) -> RenderTarget<'a> {
         RenderTarget::new_depth(self.clone())
     }
