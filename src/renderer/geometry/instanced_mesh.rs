@@ -283,12 +283,12 @@ impl Geometry for InstancedMesh {
             } else {
                 ""
             },
-            if self.base_mesh.colors.is_some() {
+            if required_attributes.color && self.base_mesh.colors.is_some() {
                 "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
             },
-            if instance_buffers.contains_key("instance_color") {
+            if required_attributes.color && instance_buffers.contains_key("instance_color") {
                 "#define USE_INSTANCE_COLORS\n"
             } else {
                 ""
@@ -298,7 +298,7 @@ impl Geometry for InstancedMesh {
             } else {
                 "#define USE_INSTANCE_TRANSFORMS\n"
             },
-            if instance_buffers.contains_key("tex_transform_row1") {
+            if required_attributes.uv && instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
             } else {
                 ""
@@ -324,16 +324,16 @@ impl Geometry for InstancedMesh {
         if required_attributes.uv {
             id |= 0b1u16 << 2;
         }
-        if self.base_mesh.colors.is_some() {
+        if required_attributes.color && self.base_mesh.colors.is_some() {
             id |= 0b1u16 << 3;
         }
-        if instance_buffers.contains_key("instance_color") {
+        if required_attributes.color && instance_buffers.contains_key("instance_color") {
             id |= 0b1u16 << 4;
         }
         if instance_buffers.contains_key("instance_translation") {
             id |= 0b1u16 << 5;
         }
-        if instance_buffers.contains_key("tex_transform_row1") {
+        if required_attributes.uv && instance_buffers.contains_key("tex_transform_row1") {
             id |= 0b1u16 << 6;
         }
         id
