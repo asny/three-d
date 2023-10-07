@@ -142,7 +142,7 @@ impl Geometry for Mesh {
             } else {
                 ""
             },
-            if self.base_mesh.colors.is_some() {
+            if required_attributes.color && self.base_mesh.colors.is_some() {
                 "#define USE_VERTEX_COLORS\n"
             } else {
                 ""
@@ -163,7 +163,7 @@ impl Geometry for Mesh {
         if required_attributes.uv {
             id |= 0b1u16 << 2;
         }
-        if self.base_mesh.colors.is_some() {
+        if required_attributes.color && self.base_mesh.colors.is_some() {
             id |= 0b1u16 << 3;
         }
         id

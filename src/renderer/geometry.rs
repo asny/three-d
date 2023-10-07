@@ -387,8 +387,10 @@ impl BaseMesh {
             );
         }
 
-        if let Some(colors) = &self.colors {
-            program.use_vertex_attribute("color", colors);
+        if attributes.color {
+            if let Some(colors) = &self.colors {
+                program.use_vertex_attribute("color", colors);
+            }
         }
     }
 }
