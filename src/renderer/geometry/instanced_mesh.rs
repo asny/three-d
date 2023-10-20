@@ -123,6 +123,7 @@ impl InstancedMesh {
 
         // Next, we can compute the instance buffers with that ordering.
         let instance_buffers = &mut s.0;
+        instance_buffers.clear();
 
         if indices
             .iter()
