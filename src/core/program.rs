@@ -96,16 +96,13 @@ impl Program {
             let num_attribs = context.get_active_attributes(id);
             let mut attributes = HashMap::new();
             for i in 0..num_attribs {
-                if let Some(crate::context::ActiveAttribute { name, .. }) =
-                    context.get_active_attribute(id, i)
+                if let Some(crate::context::ActiveAttribute { name, .. }) = context
+                    .get_active_attribute(id, i)
+                    .filter(|a| !a.name.starts_with("gl_"))
                 {
                     let location = context.get_attrib_location(id, &name).unwrap_or_else(|| {
-                        panic!("Could not get the location of uniform {}", name)
+                        panic!("Could not get the location of attribute {}", name)
                     });
-                    /*println!(
-                        "Attribute location: {}, name: {}, type: {}, size: {}",
-                        location, name, atype, size
-                    );*/
                     attributes.insert(name, location);
                 }
             }
@@ -114,17 +111,15 @@ impl Program {
             let num_uniforms = context.get_active_uniforms(id);
             let mut uniforms = HashMap::new();
             for i in 0..num_uniforms {
-                if let Some(crate::context::ActiveUniform { name, .. }) =
-                    context.get_active_uniform(id, i)
+                if let Some(crate::context::ActiveUniform { name, .. }) = context
+                    .get_active_uniform(id, i)
+                    .filter(|a| !a.name.starts_with("gl_"))
                 {
-                    if let Some(location) = context.get_uniform_location(id, &name) {
-                        let name = name.split('[').collect::<Vec<_>>()[0].to_string();
-                        /*println!(
-                            "Uniform location: {:?}, name: {}, type: {}, size: {}",
-                            location, name, utype, size
-                        );*/
-                        uniforms.insert(name, location);
-                    }
+                    let location = context.get_uniform_location(id, &name).unwrap_or_else(|| {
+                        panic!("Could not get the location of uniform {}", name)
+                    });
+                    let name = name.split('[').next().unwrap().to_string();
+                    uniforms.insert(name, location);
                 }
             }
 
