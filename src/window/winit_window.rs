@@ -309,6 +309,13 @@ impl Window {
     }
 
     ///
+    /// Returns the winit window.
+    ///
+    pub fn window(&self) -> &winit::window::Window {
+        &self.window
+    }
+
+    ///
     /// Returns the graphics context for this window.
     ///
     pub fn gl(&self) -> Context {
