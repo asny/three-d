@@ -1,5 +1,6 @@
 use super::*;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -13,7 +14,7 @@ pub use crate::context::HasContext;
 ///
 #[derive(Clone)]
 pub struct Context {
-    context: Arc<crate::context::Context>,
+    context: Rc<crate::context::Context>,
     pub(super) vao: crate::context::VertexArray,
     /// A cache of programs to avoid recompiling a [Program] every frame.
     pub programs: Arc<RwLock<HashMap<Vec<u8>, Program>>>,
@@ -26,7 +27,7 @@ impl Context {
     /// Since the content in the [context](crate::context) module is just a re-export of [glow](https://crates.io/crates/glow),
     /// you can also call this method with a reference counter to a glow context created using glow and not the re-export in [context](crate::context).
     ///
-    pub fn from_gl_context(context: Arc<crate::context::Context>) -> Result<Self, CoreError> {
+    pub fn from_gl_context(context: Rc<crate::context::Context>) -> Result<Self, CoreError> {
         unsafe {
             if !context.version().is_embedded {
                 // Enable seamless cube map textures - not available on OpenGL ES and WebGL
@@ -304,7 +305,7 @@ impl std::fmt::Debug for Context {
 }
 
 impl std::ops::Deref for Context {
-    type Target = Arc<crate::context::Context>;
+    type Target = Rc<crate::context::Context>;
     fn deref(&self) -> &Self::Target {
         &self.context
     }
