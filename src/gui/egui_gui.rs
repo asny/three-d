@@ -262,6 +262,12 @@ impl GUI {
     }
 }
 
+impl Drop for GUI {
+    fn drop(&mut self) {
+        self.painter.borrow_mut().destroy();
+    }
+}
+
 impl From<&Key> for egui::Key {
     fn from(key: &Key) -> Self {
         use crate::control::Key::*;
