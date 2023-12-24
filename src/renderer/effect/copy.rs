@@ -8,6 +8,8 @@ use crate::renderer::*;
 pub struct CopyEffect {
     /// Defines which channels (red, green, blue, alpha and depth) to copy.
     pub write_mask: WriteMask,
+    /// Defines which type of blending to use when writing the copied color to the render target.
+    pub blend: Blend,
 }
 
 impl Effect for CopyEffect {
@@ -82,7 +84,7 @@ impl Effect for CopyEffect {
             depth_test: DepthTest::Always,
             cull: Cull::Back,
             write_mask: self.write_mask,
-            ..Default::default()
+            blend: self.blend,
         }
     }
 }

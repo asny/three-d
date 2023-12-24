@@ -8,6 +8,8 @@ use crate::renderer::*;
 pub struct ScreenEffect {
     /// Defines which channels (red, green, blue, alpha and depth) to render into.
     pub write_mask: WriteMask,
+    /// Defines which type of blending to use when writing the color to the render target.
+    pub blend: Blend,
 }
 
 impl Effect for ScreenEffect {
@@ -89,7 +91,7 @@ impl Effect for ScreenEffect {
             depth_test: DepthTest::Always,
             cull: Cull::Back,
             write_mask: self.write_mask,
-            ..Default::default()
+            blend: self.blend,
         }
     }
 }
