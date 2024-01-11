@@ -157,6 +157,7 @@ impl Window {
         };
 
         let winit_window = window_builder.build(&event_loop)?;
+        winit_window.focus_window();
         Self::from_winit_window(
             winit_window,
             event_loop,
