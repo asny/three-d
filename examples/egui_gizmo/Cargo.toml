@@ -1,0 +1,24 @@
+[package]
+name = "egui_gizmo"
+version = "0.1.0"
+authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+egui = "0.25.0"
+egui-gizmo = "0.14.1"
+mint = "0.5.9"
+three-d = { path = "../../", features = ["egui-gui"]}
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+log = "0.4"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+console_error_panic_hook = "0.1"
+console_log = "0.2"

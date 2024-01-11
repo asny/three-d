@@ -189,3 +189,8 @@ required-features = ["headless"]
 [[example]]
 name = "logo"
 path = "examples/logo/src/main.rs"
+
+[[example]]
+name = "egui_gizmo"
+path = "examples/egui_gizmo/src/main.rs"
+required-features = ["egui-gui"]

@@ -151,3 +151,7 @@ Shows how to create multiple [winit](https://crates.io/crates/winit) windows and
 ## Headless [[code](https://github.com/asny/three-d/tree/master/examples/headless/src/main.rs)]
 
 This example does not create a window but render directly to a render target and saves the result to disk. Therefore, this example does not work on web.
+
+## Egui Gizmo [[code](egui_gizmo/src/main.rs)]
+
+Shows how to use [egui-gizmo](https://crates.io/crates/egui-gizmo) with `three-d`
