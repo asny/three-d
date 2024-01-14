@@ -49,6 +49,8 @@ instant = "0.1.12"
 rand = "0.7"
 three-d-asset = {version = "0.6", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
 noise = {version = "0.6", default-features = false}
+egui-gizmo = "0.14.1"
+mint = "0.5.9"
 winit = "0.28"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
