@@ -73,7 +73,6 @@ impl GUI {
                         + viewport.height as f32 / device_pixel_ratio as f32,
                 },
             }),
-            pixels_per_point: Some(device_pixel_ratio as f32),
             time: Some(accumulated_time_in_ms * 0.001),
             modifiers: (&self.modifiers).into(),
             events: events
@@ -90,6 +89,7 @@ impl GUI {
                                 pressed: true,
                                 modifiers: modifiers.into(),
                                 repeat: false,
+                                physical_key: None,
                             })
                         } else {
                             None
@@ -106,6 +106,7 @@ impl GUI {
                                 pressed: false,
                                 modifiers: modifiers.into(),
                                 repeat: false,
+                                physical_key: None,
                             })
                         } else {
                             None
@@ -252,8 +253,8 @@ impl GUI {
             .borrow_mut()
             .take()
             .expect("need to call GUI::update before GUI::render");
-        let clipped_meshes = self.egui_context.tessellate(output.shapes);
         let scale = self.egui_context.pixels_per_point();
+        let clipped_meshes = self.egui_context.tessellate(output.shapes, scale);
         self.painter.borrow_mut().paint_and_update_textures(
             [self.viewport.width, self.viewport.height],
             scale,
