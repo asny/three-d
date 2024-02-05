@@ -100,10 +100,9 @@ impl Program {
                     .get_active_attribute(id, i)
                     .filter(|a| !a.name.starts_with("gl_"))
                 {
-                    let location = context.get_attrib_location(id, &name).unwrap_or_else(|| {
-                        panic!("Could not get the location of attribute {}", name)
-                    });
-                    attributes.insert(name, location);
+                    if let Some(location) = context.get_attrib_location(id, &name) {
+                        attributes.insert(name, location);
+                    }
                 }
             }
 
@@ -115,11 +114,10 @@ impl Program {
                     .get_active_uniform(id, i)
                     .filter(|a| !a.name.starts_with("gl_"))
                 {
-                    let location = context.get_uniform_location(id, &name).unwrap_or_else(|| {
-                        panic!("Could not get the location of uniform {}", name)
-                    });
-                    let name = name.split('[').next().unwrap().to_string();
-                    uniforms.insert(name, location);
+                    if let Some(location) = context.get_uniform_location(id, &name) {
+                        let name = name.split('[').next().unwrap().to_string();
+                        uniforms.insert(name, location);
+                    }
                 }
             }
 
