@@ -108,7 +108,7 @@ pub fn main() {
             .screen()
             .clear_partially(
                 secondary_viewport.into(),
-                ClearState::color(0.3, 0.3, 0.3, 1.0),
+                ClearState::color_and_depth(0.3, 0.3, 0.3, 1.0, 1.0),
             )
             .render_partially(secondary_viewport.into(), &camera, &model, &[]);
 
