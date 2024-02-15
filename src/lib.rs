@@ -17,7 +17,9 @@ pub mod renderer;
 pub use renderer::*;
 
 pub mod window;
+#[allow(unused_imports)]
 pub use window::*;
 
 mod gui;
+#[allow(unused_imports)]
 pub use gui::*;
