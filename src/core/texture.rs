@@ -355,12 +355,10 @@ fn calculate_number_of_mip_maps(
     height: u32,
     depth: Option<u32>,
 ) -> u32 {
-    if mip_map_filter.is_some()
-        && width == height
-        && depth.map(|d| d == width).unwrap_or(true)
-        && width.is_power_of_two()
-    {
-        (width as f64).log2() as u32 + 1
+    if mip_map_filter.is_some() {
+        let max_size = width.max(height).max(depth.unwrap_or(0));
+        let power_of_two = max_size.next_power_of_two();
+        (power_of_two as f64).log2() as u32
     } else {
         1
     }
