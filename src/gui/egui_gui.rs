@@ -59,6 +59,8 @@ impl GUI {
         device_pixel_ratio: f32,
         callback: impl FnOnce(&egui::Context),
     ) -> bool {
+        self.egui_context
+            .set_pixels_per_point(device_pixel_ratio as f32);
         self.viewport = viewport;
         let egui_input = egui::RawInput {
             screen_rect: Some(egui::Rect {
