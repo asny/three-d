@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 three-d = { path = "../../", features=["egui-gui"] }
-three-d-asset = {version = "0.6",features = ["gltf", "png", "jpeg", "http"] }
+three-d-asset = {version = "0.7",features = ["gltf", "png", "jpeg", "http"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rand = "0.7"
@@ -20,5 +20,5 @@ log = "0.4"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 console_error_panic_hook = "0.1"
-console_log = "0.2"
+console_log = "1"
 rand = {version = "0.7", features = ["wasm-bindgen"] }

@@ -23,13 +23,13 @@ headless = ["glutin_029"] # Headless rendering
 egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features 
 
 [dependencies]
-glow = "0.13.0"
+glow = "0.13"
 cgmath = "0.18"
-three-d-asset = {version = "0.6"}
+three-d-asset = {version = "0.7"}
 thiserror = "1"
 winit = {version = "0.28", optional = true}
-egui = { version = "0.25.0", optional = true }
-egui_glow = { version = "0.25.0", optional = true }
+egui = { version = "0.26", optional = true }
+egui_glow = { version = "0.26", optional = true }
 getrandom = { version = "0.2", features = ["js"], optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -41,13 +41,13 @@ image = { version = "0.24", default-features = false, features = ["png"], option
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = {version = "0.2", optional = true }
 serde = { version = "1", features = ["derive"], optional = true }
-serde-wasm-bindgen = { version = "0.5", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
 web-sys = { version = "0.3", features = ['Document', 'HtmlCollection', 'HtmlCanvasElement', 'Window'], optional = true }
 instant = "0.1.12"
 
 [dev-dependencies]
 rand = "0.7"
-three-d-asset = {version = "0.6", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
+three-d-asset = {version = "0.7", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
 noise = {version = "0.6", default-features = false}
 winit = "0.28"
 
