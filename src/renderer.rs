@@ -619,7 +619,7 @@ pub fn ray_intersect(
             render_with_material(context, &camera, &geometry, &depth_material, &[]);
         }
     })
-    .read_color()[0];
+    .read_color::<[f32; 4]>()[0][0];
     if depth < 1.0 {
         Some(position + direction * depth * max_depth)
     } else {

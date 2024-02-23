@@ -125,9 +125,15 @@ impl<'a> RenderTarget<'a> {
 
     ///
     /// Returns the colors of the pixels in this render target.
-    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
+    /// The number of channels per pixel and the data format for each channel returned from this function is specified by the generic parameter `T`.
     ///
-    /// **Note:** On web, the data format needs to match the data format of the color texture.
+    /// **Note:**
+    /// The base type of the generic parameter `T` must match the base type of the render target, for example if the render targets base type is `u8`, the base type of `T` must also be `u8`.
+    ///
+    /// **Web:**
+    /// The generic parameter `T` is limited to:
+    /// - Unsigned byte RGBA (Specify `T` as either `Vec4<u8>` or `[u8; 4]`) which works with any render target using `u8` as its base type.
+    /// - 32-bit float RGBA (Specify `T` as either `Vec4<f32>` or `[f32; 4]`) which works with any render target using `f16` or `f32` as its base type.
     ///
     pub fn read_color<T: TextureDataType>(&self) -> Vec<T> {
         self.read_color_partially(self.scissor_box())
@@ -135,21 +141,34 @@ impl<'a> RenderTarget<'a> {
 
     ///
     /// Returns the colors of the pixels in this render target inside the given scissor box.
-    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
+    /// The number of channels per pixel and the data format for each channel returned from this function is specified by the generic parameter `T`.
     ///
-    /// **Note:** On web, the data format needs to match the data format of the color texture.
+    /// **Note:**
+    /// The base type of the generic parameter `T` must match the base type of the render target, for example if the render targets base type is `u8`, the base type of `T` must also be `u8`.
+    ///
+    /// **Web:**
+    /// The generic parameter `T` is limited to:
+    /// - Unsigned byte RGBA (Specify `T` as either `Vec4<u8>` or `[u8; 4]`) which works with any render target using `u8` as its base type.
+    /// - 32-bit float RGBA (Specify `T` as either `Vec4<f32>` or `[f32; 4]`) which works with any render target using `f16` or `f32` as its base type.
     ///
     pub fn read_color_partially<T: TextureDataType>(&self, scissor_box: ScissorBox) -> Vec<T> {
         if self.id.is_some() && self.color.is_none() {
-            panic!("cannot read color from a render target without a color target");
+            panic!("Cannot read color from a render target without a color target");
         }
+        let format = format_from_data_type::<T>();
+        let data_type = T::data_type();
+
+        // On web, the read format needs to be RGBA and f16 is not supported (see https://webglfundamentals.org/webgl/lessons/webgl-readpixels.html).
+        #[cfg(target_arch = "wasm32")]
+        if format != crate::context::RGBA
+            || !(data_type == crate::context::UNSIGNED_BYTE || data_type == crate::context::FLOAT)
+        {
+            panic!("Only the texture data types `Vec4<T>` and `[T; 4]` where `T` is either `u8` or `f32` are supported when reading color from a render target on web.");
+        }
+
         self.bind(crate::context::DRAW_FRAMEBUFFER);
         self.bind(crate::context::READ_FRAMEBUFFER);
-        let mut data_size = std::mem::size_of::<T>();
-        // On web, the format needs to be RGBA if the data type is byte.
-        if data_size / T::size() as usize == 1 {
-            data_size *= 4 / T::size() as usize
-        }
+        let data_size = std::mem::size_of::<T>();
         let mut bytes =
             vec![0u8; scissor_box.width as usize * scissor_box.height as usize * data_size];
         unsafe {
@@ -158,8 +177,8 @@ impl<'a> RenderTarget<'a> {
                 scissor_box.y,
                 scissor_box.width as i32,
                 scissor_box.height as i32,
-                format_from_data_type::<T>(),
-                T::data_type(),
+                format,
+                data_type,
                 crate::context::PixelPackData::Slice(&mut bytes),
             );
         }

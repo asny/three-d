@@ -108,9 +108,15 @@ impl<'a> ColorTarget<'a> {
 
     ///
     /// Returns the colors of the pixels in this color target.
-    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
+    /// The number of channels per pixel and the data format for each channel returned from this function is specified by the generic parameter `T`.
     ///
-    /// **Note:** On web, the data format needs to match the data format of the color texture.
+    /// **Note:**
+    /// The base type of the generic parameter `T` must match the base type of the color target, for example if the color targets base type is `u8`, the base type of `T` must also be `u8`.
+    ///
+    /// **Web:**
+    /// The generic parameter `T` is limited to:
+    /// - Unsigned byte RGBA (Specify `T` as either `Vec4<u8>` or `[u8; 4]`) which works with any color target using `u8` as its base type.
+    /// - 32-bit float RGBA (Specify `T` as either `Vec4<f32>` or `[f32; 4]`) which works with any color target using `f16` or `f32` as its base type.
     ///
     pub fn read<T: TextureDataType>(&self) -> Vec<T> {
         self.read_partially(self.scissor_box())
@@ -118,9 +124,15 @@ impl<'a> ColorTarget<'a> {
 
     ///
     /// Returns the colors of the pixels in this color target inside the given scissor box.
-    /// The number of channels per pixel and the data format for each channel is specified by the generic parameter.
+    /// The number of channels per pixel and the data format for each channel returned from this function is specified by the generic parameter `T`.
     ///
-    /// **Note:** On web, the data format needs to match the data format of the color texture.
+    /// **Note:**
+    /// The base type of the generic parameter `T` must match the base type of the color target, for example if the color targets base type is `u8`, the base type of `T` must also be `u8`.
+    ///
+    /// **Web:**
+    /// The generic parameter `T` is limited to:
+    /// - Unsigned byte RGBA (Specify `T` as either `Vec4<u8>` or `[u8; 4]`) which works with any color target using `u8` as its base type.
+    /// - 32-bit float RGBA (Specify `T` as either `Vec4<f32>` or `[f32; 4]`) which works with any color target using `f16` or `f32` as its base type.
     ///
     pub fn read_partially<T: TextureDataType>(&self, scissor_box: ScissorBox) -> Vec<T> {
         self.as_render_target().read_color_partially(scissor_box)
