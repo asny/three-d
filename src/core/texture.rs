@@ -349,12 +349,19 @@ fn set_parameters(
     }
 }
 
-fn calculate_number_of_mip_maps(
+fn calculate_number_of_mip_maps<T: TextureDataType>(
     mip_map_filter: Option<Interpolation>,
     width: u32,
     height: u32,
     depth: Option<u32>,
 ) -> u32 {
+    // Cannot generate mip maps for RGB16F or RGB32F textures on web (https://registry.khronos.org/webgl/extensions/EXT_color_buffer_float/)
+    if (T::data_type() == crate::context::FLOAT || T::data_type() == crate::context::HALF_FLOAT)
+        && T::size() == 3
+    {
+        return 1;
+    }
+
     if mip_map_filter.is_some() {
         let max_size = width.max(height).max(depth.unwrap_or(0));
         let power_of_two = max_size.next_power_of_two();

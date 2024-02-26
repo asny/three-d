@@ -21,6 +21,8 @@ impl Texture2DArray {
     /// Creates a new texture array from the given [CpuTexture]s.
     /// All of the cpu textures must contain data with the same [TextureDataType] and the same width and height.
     ///
+    /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
+    ///
     pub fn new(context: &Context, cpu_textures: &[&CpuTexture]) -> Self {
         let cpu_texture = cpu_textures
             .get(0)
@@ -145,6 +147,8 @@ impl Texture2DArray {
     ///
     /// Creates a new array of 2D textures.
     ///
+    /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
+    ///
     pub fn new_empty<T: TextureDataType>(
         context: &Context,
         width: u32,
@@ -157,7 +161,8 @@ impl Texture2DArray {
         wrap_t: Wrapping,
     ) -> Self {
         let id = generate(context);
-        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
+        let number_of_mip_maps =
+            calculate_number_of_mip_maps::<T>(mip_map_filter, width, height, None);
         let texture = Self {
             context: context.clone(),
             id,

@@ -118,6 +118,8 @@ impl TextureCubeMap {
     /// Creates a new cube map texture from the given [CpuTexture]s.
     /// All of the cpu textures must contain data with the same [TextureDataType].
     ///
+    /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
+    ///
     pub fn new(
         context: &Context,
         right: &CpuTexture,
@@ -299,6 +301,8 @@ impl TextureCubeMap {
     ///
     /// Creates a new texture cube map.
     ///
+    /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
+    ///
     pub fn new_empty<T: TextureDataType>(
         context: &Context,
         width: u32,
@@ -311,7 +315,8 @@ impl TextureCubeMap {
         wrap_r: Wrapping,
     ) -> Self {
         let id = generate(context);
-        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
+        let number_of_mip_maps =
+            calculate_number_of_mip_maps::<T>(mip_map_filter, width, height, None);
         let texture = Self {
             context: context.clone(),
             id,

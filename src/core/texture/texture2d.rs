@@ -16,6 +16,8 @@ impl Texture2D {
     ///
     /// Construcs a new texture with the given data.
     ///
+    /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
+    ///
     pub fn new(context: &Context, cpu_texture: &CpuTexture) -> Self {
         match cpu_texture.data {
             TextureData::RU8(ref data) => Self::new_with_data(context, cpu_texture, data),
@@ -57,6 +59,8 @@ impl Texture2D {
     /// The format is determined by the generic [TextureDataType] parameter
     /// (for example, if [u8; 4] is specified, the format is RGBA and the data type is byte).
     ///
+    /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
+    ///
     pub fn new_empty<T: TextureDataType>(
         context: &Context,
         width: u32,
@@ -68,7 +72,8 @@ impl Texture2D {
         wrap_t: Wrapping,
     ) -> Self {
         let id = generate(context);
-        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
+        let number_of_mip_maps =
+            calculate_number_of_mip_maps::<T>(mip_map_filter, width, height, None);
         let texture = Self {
             context: context.clone(),
             id,

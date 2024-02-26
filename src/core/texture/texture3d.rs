@@ -16,6 +16,8 @@ impl Texture3D {
     ///
     /// Construcs a new 3D texture with the given data.
     ///
+    /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
+    ///
     pub fn new(context: &Context, cpu_texture: &CpuTexture3D) -> Self {
         match cpu_texture.data {
             TextureData::RU8(ref data) => Self::new_with_data(context, cpu_texture, data),
@@ -57,6 +59,8 @@ impl Texture3D {
     ///
     /// Creates a new empty 3D color texture.
     ///
+    /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
+    ///
     pub fn new_empty<T: TextureDataType>(
         context: &Context,
         width: u32,
@@ -71,7 +75,7 @@ impl Texture3D {
     ) -> Self {
         let id = generate(context);
         let number_of_mip_maps =
-            calculate_number_of_mip_maps(mip_map_filter, width, height, Some(depth));
+            calculate_number_of_mip_maps::<T>(mip_map_filter, width, height, Some(depth));
         let texture = Self {
             context: context.clone(),
             id,
