@@ -441,6 +441,8 @@ impl TextureCubeMap {
         context: &Context,
         cpu_texture: &CpuTexture,
     ) -> Self {
+        let mut cpu_texture = cpu_texture.clone();
+        cpu_texture.mip_map_filter = None;
         let texture_size = cpu_texture.width / 4;
         let mut texture = Self::new_empty::<[T; 4]>(
             context,
@@ -455,7 +457,7 @@ impl TextureCubeMap {
         );
 
         {
-            let map = Texture2D::new(context, cpu_texture);
+            let map = Texture2D::new(context, &cpu_texture);
             let fragment_shader_source = "
             uniform sampler2D equirectangularMap;
             uniform vec3 direction;
