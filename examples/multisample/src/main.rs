@@ -192,7 +192,7 @@ pub fn main() {
         };
 
         // Render GUI to screen
-        frame_input.screen().write(|| gui.render());
+        frame_input.screen().write(|| gui.render()).unwrap();
 
         FrameOutput::default()
     });

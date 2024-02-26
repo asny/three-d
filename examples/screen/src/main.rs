@@ -94,7 +94,8 @@ pub fn main() {
                 ClearState::color(0.5, 0.5, 0.5, 1.0),
             )
             .render_partially(scissor_box_zoomed, &camera, &model, &[])
-            .write(|| gui.render());
+            .write(|| gui.render())
+            .unwrap();
 
         // Secondary view
         let secondary_viewport = Viewport {

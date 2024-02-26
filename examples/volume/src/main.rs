@@ -83,7 +83,8 @@ pub async fn run() {
                 &voxel_grid,
                 &[&ambient, &directional1, &directional2],
             )
-            .write(|| gui.render());
+            .write(|| gui.render())
+            .unwrap();
 
         FrameOutput::default()
     });

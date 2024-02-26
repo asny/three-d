@@ -267,18 +267,21 @@ pub async fn run() {
         screen.clear(ClearState::default());
         match material_type {
             MaterialType::Normal => {
-                screen.write(|| {
-                    model.render_with_material(
-                        &NormalMaterial::from_physical_material(&model.material),
-                        &camera,
-                        &lights,
-                    );
-                    plane.render_with_material(
-                        &NormalMaterial::from_physical_material(&plane.material),
-                        &camera,
-                        &lights,
-                    )
-                });
+                screen
+                    .write::<RendererError>(|| {
+                        model.render_with_material(
+                            &NormalMaterial::from_physical_material(&model.material),
+                            &camera,
+                            &lights,
+                        );
+                        plane.render_with_material(
+                            &NormalMaterial::from_physical_material(&plane.material),
+                            &camera,
+                            &lights,
+                        );
+                        Ok(())
+                    })
+                    .unwrap();
             }
             MaterialType::Depth => {
                 screen.render_with_material(
@@ -289,18 +292,21 @@ pub async fn run() {
                 );
             }
             MaterialType::Orm => {
-                screen.write(|| {
-                    model.render_with_material(
-                        &ORMMaterial::from_physical_material(&model.material),
-                        &camera,
-                        &lights,
-                    );
-                    plane.render_with_material(
-                        &ORMMaterial::from_physical_material(&plane.material),
-                        &camera,
-                        &lights,
-                    )
-                });
+                screen
+                    .write::<RendererError>(|| {
+                        model.render_with_material(
+                            &ORMMaterial::from_physical_material(&model.material),
+                            &camera,
+                            &lights,
+                        );
+                        plane.render_with_material(
+                            &ORMMaterial::from_physical_material(&plane.material),
+                            &camera,
+                            &lights,
+                        );
+                        Ok(())
+                    })
+                    .unwrap();
             }
             MaterialType::Position => {
                 screen.render_with_material(
@@ -319,18 +325,21 @@ pub async fn run() {
                 );
             }
             MaterialType::Color => {
-                screen.write(|| {
-                    model.render_with_material(
-                        &ColorMaterial::from_physical_material(&model.material),
-                        &camera,
-                        &lights,
-                    );
-                    plane.render_with_material(
-                        &ColorMaterial::from_physical_material(&plane.material),
-                        &camera,
-                        &lights,
-                    )
-                });
+                screen
+                    .write::<RendererError>(|| {
+                        model.render_with_material(
+                            &ColorMaterial::from_physical_material(&model.material),
+                            &camera,
+                            &lights,
+                        );
+                        plane.render_with_material(
+                            &ColorMaterial::from_physical_material(&plane.material),
+                            &camera,
+                            &lights,
+                        );
+                        Ok(())
+                    })
+                    .unwrap();
             }
             MaterialType::Forward => {
                 screen.render(&camera, model.into_iter().chain(&plane), &lights);
@@ -343,7 +352,7 @@ pub async fn run() {
                 );
             }
         }
-        screen.write(|| gui.render());
+        screen.write(|| gui.render()).unwrap();
 
         FrameOutput::default()
     });

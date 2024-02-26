@@ -154,7 +154,7 @@ pub fn main() {
             screen.render(&camera, &non_instanced_meshes, &[&light0, &light1]);
         };
 
-        screen.write(|| gui.render());
+        screen.write(|| gui.render()).unwrap();
 
         FrameOutput::default()
     });

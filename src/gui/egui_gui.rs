@@ -249,7 +249,7 @@ impl GUI {
     /// Render the GUI defined in the [update](Self::update) function.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    pub fn render(&self) {
+    pub fn render(&self) -> Result<(), crate::CoreError> {
         let output = self
             .output
             .borrow_mut()
@@ -269,6 +269,7 @@ impl GUI {
             use glow::HasContext as _;
             self.painter.borrow().gl().disable(glow::FRAMEBUFFER_SRGB);
         }
+        Ok(())
     }
 }
 

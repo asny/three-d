@@ -485,12 +485,14 @@ impl TextureCubeMap {
                 texture
                     .as_color_target(&[side], None)
                     .clear(ClearState::default())
-                    .write(|| {
+                    .write::<CoreError>(|| {
                         program.use_texture("equirectangularMap", &map);
                         program.use_uniform("direction", side.direction());
                         program.use_uniform("up", side.up());
-                        full_screen_draw(context, &program, RenderStates::default(), viewport)
-                    });
+                        full_screen_draw(context, &program, RenderStates::default(), viewport);
+                        Ok(())
+                    })
+                    .unwrap();
             }
         }
         texture

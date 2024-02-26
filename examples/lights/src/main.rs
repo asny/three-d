@@ -130,9 +130,8 @@ pub async fn run() {
                 lights.iter().map(|l| l.object()).chain(&model),
                 &lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
             )
-            .write(|| {
-                gui.render();
-            });
+            .write(|| gui.render())
+            .unwrap();
 
         FrameOutput::default()
     });

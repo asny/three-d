@@ -117,11 +117,13 @@ macro_rules! impl_render_target_extensions_body {
                     geometry_pass_depth_texture.as_depth_target(),
                 )
                 .clear(ClearState::default())
-                .write(|| {
+                .write::<RendererError>(|| {
                     for object in deferred_objects {
                         object.render(&geometry_pass_camera, lights);
                     }
-                });
+                    Ok(())
+                })
+                .unwrap();
 
                 // Lighting pass
                 self.apply_screen_effect_partially(
@@ -139,11 +141,13 @@ macro_rules! impl_render_target_extensions_body {
 
             // Forward
             forward_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
-            self.write_partially(scissor_box, || {
+            self.write_partially::<RendererError>(scissor_box, || {
                 for object in forward_objects {
                     object.render(camera, lights);
                 }
-            });
+                Ok(())
+            })
+            .unwrap();
             self
         }
 
@@ -179,14 +183,16 @@ macro_rules! impl_render_target_extensions_body {
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
         ) -> &Self {
-            self.write_partially(scissor_box, || {
+            self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
                     .filter(|o| camera.in_frustum(&o.aabb()))
                 {
                     render_with_material(&self.context, camera, geometry, material, lights);
                 }
-            });
+                Ok(())
+            })
+            .unwrap();
             self
         }
 
@@ -228,7 +234,7 @@ macro_rules! impl_render_target_extensions_body {
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
-            self.write_partially(scissor_box, || {
+            self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
                     .filter(|o| camera.in_frustum(&o.aabb()))
@@ -243,7 +249,9 @@ macro_rules! impl_render_target_extensions_body {
                         depth_texture,
                     );
                 }
-            });
+                Ok(())
+            })
+            .unwrap();
             self
         }
 
@@ -271,9 +279,11 @@ macro_rules! impl_render_target_extensions_body {
             camera: &Camera,
             lights: &[&dyn Light],
         ) -> &Self {
-            self.write_partially(scissor_box, || {
-                apply_screen_material(&self.context, material, camera, lights)
-            });
+            self.write_partially::<RendererError>(scissor_box, || {
+                apply_screen_material(&self.context, material, camera, lights);
+                Ok(())
+            })
+            .unwrap();
             self
         }
 
@@ -312,7 +322,7 @@ macro_rules! impl_render_target_extensions_body {
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
-            self.write_partially(scissor_box, || {
+            self.write_partially::<RendererError>(scissor_box, || {
                 apply_screen_effect(
                     &self.context,
                     effect,
@@ -320,8 +330,10 @@ macro_rules! impl_render_target_extensions_body {
                     lights,
                     color_texture,
                     depth_texture,
-                )
-            });
+                );
+                Ok(())
+            })
+            .unwrap();
             self
         }
     };
@@ -614,11 +626,13 @@ pub fn ray_intersect(
         depth_texture.as_depth_target(),
     )
     .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-    .write(|| {
+    .write::<RendererError>(|| {
         for geometry in geometries {
             render_with_material(context, &camera, &geometry, &depth_material, &[]);
         }
+        Ok(())
     })
+    .unwrap()
     .read_color::<[f32; 4]>()[0][0];
     if depth < 1.0 {
         Some(position + direction * depth * max_depth)

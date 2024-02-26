@@ -2,6 +2,7 @@ use three_d::core::{
     degrees, radians, vec3, ClearState, Context, Mat4, Program, RenderStates, Srgba, VertexBuffer,
 };
 use three_d::window::{FrameOutput, Window, WindowSettings};
+use three_d::CoreError;
 use three_d_asset::Camera;
 
 pub fn main() {
@@ -59,7 +60,7 @@ pub fn main() {
             .screen()
             // Clear the color and depth of the screen render target
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            .write(|| {
+            .write::<CoreError>(|| {
                 let time = frame_input.accumulated_time as f32;
                 program.use_uniform("model", Mat4::from_angle_y(radians(time * 0.005)));
                 program.use_uniform("viewProjection", camera.projection() * camera.view());
@@ -70,7 +71,9 @@ pub fn main() {
                     frame_input.viewport,
                     positions.vertex_count(),
                 );
-            });
+                Ok(())
+            })
+            .unwrap();
 
         FrameOutput::default()
     });

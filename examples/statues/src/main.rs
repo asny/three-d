@@ -178,8 +178,9 @@ pub async fn run() {
                         bounding_box.render(camera, &[]);
                     }
                 }
-                gui.render();
-            });
+                gui.render()
+            })
+            .unwrap();
 
         FrameOutput::default()
     });

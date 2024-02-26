@@ -287,9 +287,8 @@ pub async fn run() {
                 Some(ColorTexture::Single(&color_texture)),
                 Some(DepthTexture::Single(&depth_texture)),
             )
-            .write(|| {
-                gui.render();
-            });
+            .write(|| gui.render())
+            .unwrap();
 
         FrameOutput::default()
     });

@@ -117,9 +117,8 @@ pub async fn run() {
                 Some(ColorTexture::Single(&target)),
                 None,
             )
-            .write(|| {
-                gui.render();
-            });
+            .write(|| gui.render())
+            .unwrap();
 
         FrameOutput::default()
     });
