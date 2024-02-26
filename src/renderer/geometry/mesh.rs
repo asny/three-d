@@ -77,6 +77,43 @@ impl Mesh {
     pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + Send + Sync + 'static) {
         self.animation = Some(Box::new(animation));
     }
+
+    ///
+    /// Returns the number of vertices in this mesh.
+    ///
+    pub fn vertex_count(&self) -> u32 {
+        self.base_mesh.positions.vertex_count()
+    }
+
+    /// Updates the vertex positions of the mesh.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the number of positions does not match the number of vertices in the mesh.
+    pub fn update_positions(&mut self, positions: &[Vector3<f32>]) {
+        if positions.len() as u32 != self.vertex_count() {
+            panic!("Failed updating positions: The number of positions {} does not match the number of vertices {} in the mesh.", positions.len(), self.vertex_count())
+        }
+        self.base_mesh.positions.fill(positions);
+    }
+
+    ///
+    /// Updates the vertex normals of the mesh.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the number of normals does not match the number of vertices in the mesh.
+    pub fn update_normals(&mut self, normals: &[Vector3<f32>]) {
+        if normals.len() as u32 != self.vertex_count() {
+            panic!("Failed updating normals: The number of normals {} does not match the number of vertices {} in the mesh.", normals.len(), self.vertex_count())
+        }
+
+        if let Some(normal_buffer) = &mut self.base_mesh.normals {
+            normal_buffer.fill(normals);
+        } else {
+            self.base_mesh.normals = Some(VertexBuffer::new_with_data(&self.context, normals));
+        }
+    }
 }
 
 impl<'a> IntoIterator for &'a Mesh {
