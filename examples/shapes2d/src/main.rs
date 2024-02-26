@@ -55,19 +55,19 @@ pub fn main() {
                 position,
                 modifiers,
                 ..
-            } = event
+            } = *event
             {
-                if *button == MouseButton::Left && !modifiers.ctrl {
+                if button == MouseButton::Left && !modifiers.ctrl {
                     rectangle.set_center(position);
                 }
-                if *button == MouseButton::Right && !modifiers.ctrl {
+                if button == MouseButton::Right && !modifiers.ctrl {
                     circle.set_center(position);
                 }
-                if *button == MouseButton::Left && modifiers.ctrl {
+                if button == MouseButton::Left && modifiers.ctrl {
                     let ep = line.end_point1();
                     line.set_endpoints(position, ep);
                 }
-                if *button == MouseButton::Right && modifiers.ctrl {
+                if button == MouseButton::Right && modifiers.ctrl {
                     let ep = line.end_point0();
                     line.set_endpoints(ep, position);
                 }

@@ -20,62 +20,6 @@ pub use fly_control::*;
 
 pub use three_d_asset::PixelPoint as PhysicalPoint;
 
-///
-/// A pixel coordinate in logical pixels, where `x` is on the horizontal axis with zero being at the left edge
-/// and `y` is on the vertical axis with zero being at top edge.
-///
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct LogicalPoint {
-    /// The horizontal pixel distance from the left edge.
-    pub x: f32,
-    /// The vertical pixel distance from the top edge.
-    pub y: f32,
-    pub(crate) device_pixel_ratio: f32,
-    pub(crate) height: f32,
-}
-
-impl From<LogicalPoint> for (f32, f32) {
-    fn from(value: LogicalPoint) -> Self {
-        Self::from(&value)
-    }
-}
-
-impl From<&LogicalPoint> for (f32, f32) {
-    fn from(value: &LogicalPoint) -> Self {
-        (value.x, value.y)
-    }
-}
-
-impl From<LogicalPoint> for crate::Vec2 {
-    fn from(value: LogicalPoint) -> Self {
-        Self::from(&value)
-    }
-}
-
-impl From<&LogicalPoint> for crate::Vec2 {
-    fn from(value: &LogicalPoint) -> Self {
-        Self {
-            x: value.x,
-            y: value.y,
-        }
-    }
-}
-
-impl From<LogicalPoint> for PhysicalPoint {
-    fn from(value: LogicalPoint) -> Self {
-        Self::from(&value)
-    }
-}
-
-impl From<&LogicalPoint> for PhysicalPoint {
-    fn from(value: &LogicalPoint) -> Self {
-        Self {
-            x: value.x * value.device_pixel_ratio,
-            y: value.height - value.y * value.device_pixel_ratio,
-        }
-    }
-}
-
 /// Type of mouse button.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
@@ -94,8 +38,8 @@ pub enum Event {
     MousePress {
         /// Type of button
         button: MouseButton,
-        /// The screen position in logical pixels.
-        position: LogicalPoint,
+        /// The screen position in physical pixels.
+        position: PhysicalPoint,
         /// The state of modifiers.
         modifiers: Modifiers,
         /// Whether or not this event already have been handled.
@@ -105,8 +49,8 @@ pub enum Event {
     MouseRelease {
         /// Type of button
         button: MouseButton,
-        /// The screen position in logical pixels.
-        position: LogicalPoint,
+        /// The screen position in physical pixels.
+        position: PhysicalPoint,
         /// The state of modifiers.
         modifiers: Modifiers,
         /// Whether or not this event already have been handled.
@@ -116,10 +60,10 @@ pub enum Event {
     MouseMotion {
         /// Type of button if a button is pressed.
         button: Option<MouseButton>,
-        /// The relative movement of the mouse/finger since last [Event::MouseMotion] event.
+        /// The relative movement of the mouse/finger since last [Event::MouseMotion] event in logical pixels.
         delta: (f32, f32),
-        /// The screen position in logical pixels.
-        position: LogicalPoint,
+        /// The screen position in physical pixels.
+        position: PhysicalPoint,
         /// The state of modifiers.
         modifiers: Modifiers,
         /// Whether or not this event already have been handled.
@@ -129,8 +73,8 @@ pub enum Event {
     MouseWheel {
         /// The relative scrolling since the last [Event::MouseWheel] event.
         delta: (f32, f32),
-        /// The screen position in logical pixels.
-        position: LogicalPoint,
+        /// The screen position in physical pixels.
+        position: PhysicalPoint,
         /// The state of modifiers.
         modifiers: Modifiers,
         /// Whether or not this event already have been handled.

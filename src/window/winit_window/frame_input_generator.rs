@@ -191,7 +191,7 @@ impl FrameInputGenerator {
                             let line_height = 24.0; // TODO
                             self.events.push(crate::Event::MouseWheel {
                                 delta: (*x * line_height, *y * line_height),
-                                position,
+                                position: position.into(),
                                 modifiers: self.modifiers,
                                 handled: false,
                             });
@@ -200,7 +200,7 @@ impl FrameInputGenerator {
                             let d = delta.to_logical(self.device_pixel_ratio);
                             self.events.push(crate::Event::MouseWheel {
                                 delta: (d.x, d.y),
-                                position,
+                                position: position.into(),
                                 modifiers: self.modifiers,
                                 handled: false,
                             });
@@ -222,7 +222,7 @@ impl FrameInputGenerator {
                                 self.mouse_pressed = Some(b);
                                 crate::Event::MousePress {
                                     button: b,
-                                    position,
+                                    position: position.into(),
                                     modifiers: self.modifiers,
                                     handled: false,
                                 }
@@ -230,7 +230,7 @@ impl FrameInputGenerator {
                                 self.mouse_pressed = None;
                                 crate::Event::MouseRelease {
                                     button: b,
-                                    position,
+                                    position: position.into(),
                                     modifiers: self.modifiers,
                                     handled: false,
                                 }
@@ -254,7 +254,7 @@ impl FrameInputGenerator {
                 self.events.push(crate::Event::MouseMotion {
                     button: self.mouse_pressed,
                     delta,
-                    position,
+                    position: position.into(),
                     modifiers: self.modifiers,
                     handled: false,
                 });
@@ -285,7 +285,7 @@ impl FrameInputGenerator {
                         if self.finger_id.is_none() {
                             self.events.push(crate::Event::MousePress {
                                 button: MouseButton::Left,
-                                position,
+                                position: position.into(),
                                 modifiers: self.modifiers,
                                 handled: false,
                             });
@@ -300,7 +300,7 @@ impl FrameInputGenerator {
                         if self.finger_id.map(|id| id == touch.id).unwrap_or(false) {
                             self.events.push(crate::Event::MouseRelease {
                                 button: MouseButton::Left,
-                                position,
+                                position: position.into(),
                                 modifiers: self.modifiers,
                                 handled: false,
                             });
@@ -320,7 +320,7 @@ impl FrameInputGenerator {
                             let last_pos = self.cursor_pos.unwrap();
                             if let Some(p) = self.secondary_cursor_pos {
                                 self.events.push(crate::Event::MouseWheel {
-                                    position,
+                                    position: position.into(),
                                     modifiers: self.modifiers,
                                     handled: false,
                                     delta: (
@@ -331,7 +331,7 @@ impl FrameInputGenerator {
                             } else {
                                 self.events.push(crate::Event::MouseMotion {
                                     button: Some(MouseButton::Left),
-                                    position,
+                                    position: position.into(),
                                     modifiers: self.modifiers,
                                     handled: false,
                                     delta: (position.x - last_pos.x, position.y - last_pos.y),
@@ -346,7 +346,7 @@ impl FrameInputGenerator {
                             let last_pos = self.secondary_cursor_pos.unwrap();
                             if let Some(p) = self.cursor_pos {
                                 self.events.push(crate::Event::MouseWheel {
-                                    position: p,
+                                    position: p.into(),
                                     modifiers: self.modifiers,
                                     handled: false,
                                     delta: (
@@ -437,4 +437,27 @@ fn translate_virtual_key_code(key: winit::event::VirtualKeyCode) -> Option<crate
             return None;
         }
     })
+}
+
+///
+/// A pixel coordinate in logical pixels, where `x` is on the horizontal axis with zero being at the left edge
+/// and `y` is on the vertical axis with zero being at top edge.
+///
+#[derive(Debug, Copy, Clone, PartialEq)]
+struct LogicalPoint {
+    /// The horizontal pixel distance from the left edge.
+    x: f32,
+    /// The vertical pixel distance from the top edge.
+    y: f32,
+    device_pixel_ratio: f32,
+    height: f32,
+}
+
+impl From<LogicalPoint> for PhysicalPoint {
+    fn from(value: LogicalPoint) -> Self {
+        Self {
+            x: value.x * value.device_pixel_ratio,
+            y: value.height - value.y * value.device_pixel_ratio,
+        }
+    }
 }

@@ -77,9 +77,9 @@ pub fn main() {
         redraw |= camera.set_viewport(frame_input.viewport);
 
         for event in frame_input.events.iter() {
-            match event {
+            match *event {
                 Event::MouseMotion { delta, button, .. } => {
-                    if *button == Some(MouseButton::Left) {
+                    if button == Some(MouseButton::Left) {
                         let speed = 0.003 * camera.position().z.abs();
                         let right = camera.right_direction();
                         let up = right.cross(camera.view_direction());
