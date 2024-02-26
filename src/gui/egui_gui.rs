@@ -123,8 +123,9 @@ impl GUI {
                         if !handled {
                             Some(egui::Event::PointerButton {
                                 pos: egui::Pos2 {
-                                    x: position.x,
-                                    y: position.y,
+                                    x: position.x / device_pixel_ratio as f32,
+                                    y: (viewport.height as f32 - position.y)
+                                        / device_pixel_ratio as f32,
                                 },
                                 button: button.into(),
                                 pressed: true,
@@ -143,8 +144,9 @@ impl GUI {
                         if !handled {
                             Some(egui::Event::PointerButton {
                                 pos: egui::Pos2 {
-                                    x: position.x,
-                                    y: position.y,
+                                    x: position.x / device_pixel_ratio as f32,
+                                    y: (viewport.height as f32 - position.y)
+                                        / device_pixel_ratio as f32,
                                 },
                                 button: button.into(),
                                 pressed: false,
@@ -159,8 +161,9 @@ impl GUI {
                     } => {
                         if !handled {
                             Some(egui::Event::PointerMoved(egui::Pos2 {
-                                x: position.x,
-                                y: position.y,
+                                x: position.x / device_pixel_ratio as f32,
+                                y: (viewport.height as f32 - position.y)
+                                    / device_pixel_ratio as f32,
                             }))
                         } else {
                             None
