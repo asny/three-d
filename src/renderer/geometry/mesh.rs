@@ -110,7 +110,7 @@ impl Geometry for Mesh {
     ) {
         if attributes.normal {
             if let Some(inverse) = self.current_transformation.invert() {
-                program.use_uniform("normalMatrix", inverse.transpose());
+                program.use_uniform_if_required("normalMatrix", inverse.transpose());
             } else {
                 // determinant is float zero
                 return;

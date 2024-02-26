@@ -230,7 +230,7 @@ impl Geometry for InstancedMesh {
         let instance_buffers = &self.instance_buffers.read().unwrap().0;
         if attributes.normal && instance_buffers.contains_key("instance_translation") {
             if let Some(inverse) = self.current_transformation.invert() {
-                program.use_uniform("normalMatrix", inverse.transpose());
+                program.use_uniform_if_required("normalMatrix", inverse.transpose());
             } else {
                 // determinant is float zero
                 return;
