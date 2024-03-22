@@ -274,6 +274,8 @@ impl<'a> RenderTarget<'a> {
         } else {
             unreachable!()
         };
+        self.context
+            .set_scissor(ScissorBox::new_at_origo(target.width, target.height));
         unsafe {
             self.context
                 .bind_framebuffer(crate::context::READ_FRAMEBUFFER, self.id);
