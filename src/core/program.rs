@@ -429,6 +429,7 @@ impl Program {
         self.context.set_render_states(render_states);
         self.use_program();
         unsafe {
+            self.context.bind_vertex_array(Some(self.context.vao));
             self.context
                 .draw_arrays(crate::context::TRIANGLES, 0, count as i32);
             for location in self.attributes.values() {
