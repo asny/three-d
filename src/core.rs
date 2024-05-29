@@ -67,6 +67,7 @@ pub(crate) fn full_screen_draw(
     render_states: RenderStates,
     viewport: Viewport,
 ) {
+    unsafe { context.bind_vertex_array(Some(context.vao)) };
     program.draw_arrays(render_states, viewport, 3);
 }
 
