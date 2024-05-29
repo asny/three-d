@@ -67,25 +67,24 @@ pub(crate) fn full_screen_draw(
     render_states: RenderStates,
     viewport: Viewport,
 ) {
-    let position_buffer = VertexBuffer::new_with_data(
-        context,
-        &[
-            vec3(-3.0, -1.0, 0.0),
-            vec3(3.0, -1.0, 0.0),
-            vec3(0.0, 2.0, 0.0),
-        ],
-    );
-    program.use_vertex_attribute("position", &position_buffer);
+    unsafe { context.bind_vertex_array(Some(context.vao)) };
     program.draw_arrays(render_states, viewport, 3);
 }
 
 pub(crate) fn full_screen_vertex_shader_source() -> &'static str {
     "
-        in vec3 position;
         out vec2 uvs;
         out vec4 col;
         void main()
         {
+            vec3 vertices[3] = vec3[3](
+                vec3(-3.0, -1.0, 0.0),
+                vec3(3.0, -1.0, 0.0),
+                vec3(0.0, 2.0, 0.0)
+            );
+
+            vec3 position = vertices[gl_VertexID];
+
             uvs = 0.5 * position.xy + 0.5;
             col = vec4(1.0);
             gl_Position = vec4(position, 1.0);
