@@ -364,8 +364,12 @@ fn calculate_number_of_mip_maps<T: TextureDataType>(
 
     if mip_map_filter.is_some() {
         let max_size = width.max(height).max(depth.unwrap_or(0));
-        let power_of_two = max_size.next_power_of_two();
-        (power_of_two as f64).log2() as u32
+        if max_size < 2 {
+            1
+        } else {
+            let power_of_two = max_size.next_power_of_two();
+            (power_of_two as f64).log2() as u32
+        }
     } else {
         1
     }
