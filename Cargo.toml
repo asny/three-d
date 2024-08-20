@@ -23,7 +23,7 @@ headless = ["glutin_029"] # Headless rendering
 egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features 
 
 [dependencies]
-glow = "0.13"
+glow = "0.14"
 cgmath = "0.18"
 three-d-asset = {version = "0.7"}
 thiserror = "1"
