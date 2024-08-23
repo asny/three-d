@@ -106,19 +106,18 @@ impl Window {
                 .with_decorations(!window_settings.borderless);
 
             match (window_settings.initial_size, window_settings.max_size) {
-                (Some((width, height)), Some((max_width, max_height))) => 
-                    window_builder
-                        .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
-                        .with_max_inner_size(dpi::LogicalSize::new(max_width as f64, max_height as f64)),
-                (Some((width, height)), None) =>
-                    window_builder
-                        .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64)),
-                (None, Some((width, height))) =>
-                    window_builder
-                        .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
-                        .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64)),
-                (None, None) =>
-                    window_builder.with_maximized(true)
+                (Some((width, height)), Some((max_width, max_height))) => window_builder
+                    .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
+                    .with_max_inner_size(dpi::LogicalSize::new(
+                        max_width as f64,
+                        max_height as f64,
+                    )),
+                (Some((width, height)), None) => window_builder
+                    .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64)),
+                (None, Some((width, height))) => window_builder
+                    .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
+                    .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64)),
+                (None, None) => window_builder.with_maximized(true),
             }
         };
         #[cfg(target_arch = "wasm32")]
