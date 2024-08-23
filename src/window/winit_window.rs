@@ -105,12 +105,20 @@ impl Window {
                 ))
                 .with_decorations(!window_settings.borderless);
 
-            if let Some((width, height)) = window_settings.max_size {
-                window_builder
-                    .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
-                    .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
-            } else {
-                window_builder.with_maximized(true)
+            match (window_settings.initial_size, window_settings.max_size) {
+                (Some((width, height)), Some((max_width, max_height))) => 
+                    window_builder
+                        .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
+                        .with_max_inner_size(dpi::LogicalSize::new(max_width as f64, max_height as f64)),
+                (Some((width, height)), None) =>
+                    window_builder
+                        .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64)),
+                (None, Some((width, height))) =>
+                    window_builder
+                        .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
+                        .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64)),
+                (None, None) =>
+                    window_builder.with_maximized(true)
             }
         };
         #[cfg(target_arch = "wasm32")]
@@ -135,7 +143,8 @@ impl Window {
             };
 
             let inner_size = window_settings
-                .max_size
+                .initial_size
+                .or(window_settings.max_size)
                 .map(|(width, height)| LogicalSize::new(width as f64, height as f64))
                 .unwrap_or_else(|| {
                     let browser_window = canvas
@@ -162,7 +171,7 @@ impl Window {
             winit_window,
             event_loop,
             window_settings.surface_settings,
-            window_settings.max_size.is_none(),
+            window_settings.max_size.is_none() && window_settings.initial_size.is_none(),
         )
     }
 
