@@ -178,12 +178,10 @@ impl GUI {
                         ..
                     } => {
                         if !handled {
-                            Some(match modifiers.ctrl {
-                                true => egui::Event::Zoom((delta.1 as f32 / 200.0).exp()),
-                                false => egui::Event::Scroll(match modifiers.shift {
-                                    true => egui::Vec2::new(delta.1 as f32, delta.0 as f32),
-                                    false => egui::Vec2::new(delta.0 as f32, delta.1 as f32),
-                                }),
+                            Some(egui::Event::MouseWheel {
+                                delta: egui::Vec2::new(delta.0 as f32, delta.1 as f32),
+                                unit: egui::MouseWheelUnit::Point,
+                                modifiers: modifiers.into(),
                             })
                         } else {
                             None
