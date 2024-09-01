@@ -60,15 +60,10 @@ impl Effect for WaterEffect {
     }
 
     fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
-        0b1u16 << 14
-            | 0b1u16 << 12
-            | 0b1u16 << 11
-            | color_texture
-                .expect("Must supply a color texture to apply a water effect")
-                .id()
-            | depth_texture
-                .expect("Must supply a depth texture to apply a water effect")
-                .id()
+        EffectMaterialID::WaterEffect(
+            color_texture.expect("Must supply a color texture to apply a water effect"),
+            depth_texture.expect("Must supply a depth texture to apply a water effect"),
+        ).0
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

@@ -31,6 +31,9 @@ pub enum RendererError {
     MissingMaterial(String, String),
 }
 
+mod shader_ids;
+pub(crate) use shader_ids::*;
+
 mod camera;
 pub use camera::*;
 
