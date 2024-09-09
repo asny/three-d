@@ -28,6 +28,7 @@ pub struct FrameInputGenerator {
     secondary_finger_id: Option<u64>,
     modifiers: Modifiers,
     mouse_pressed: Option<MouseButton>,
+    redraw_needed: bool,
 }
 
 impl FrameInputGenerator {
@@ -52,6 +53,7 @@ impl FrameInputGenerator {
             secondary_finger_id: None,
             modifiers: Modifiers::default(),
             mouse_pressed: None,
+            redraw_needed: false,
         }
     }
 
@@ -83,9 +85,11 @@ impl FrameInputGenerator {
             device_pixel_ratio: self.device_pixel_ratio as f32,
             first_frame: self.first_frame,
             context: context.clone(),
+            redraw_needed: self.redraw_needed,
         };
         self.first_frame = false;
-
+        self.redraw_needed = false;
+        
         #[cfg(not(target_arch = "wasm32"))]
         if let Some(exit_time) = option_env!("THREE_D_EXIT").map(|v| v.parse::<f64>().unwrap()) {
             if exit_time < frame_input.accumulated_time {
@@ -134,6 +138,9 @@ impl FrameInputGenerator {
                 let logical_size = new_inner_size.to_logical(self.device_pixel_ratio);
                 self.window_width = logical_size.width;
                 self.window_height = logical_size.height;
+            }
+            WindowEvent::Occluded(false) => {
+                self.redraw_needed = true;
             }
             WindowEvent::KeyboardInput { input, .. } => {
                 if let Some(keycode) = input.virtual_keycode {

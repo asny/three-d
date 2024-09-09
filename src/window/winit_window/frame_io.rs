@@ -38,6 +38,9 @@ pub struct FrameInput {
 
     /// The graphics context for the window.
     pub context: Context,
+
+    /// Whether or not a redraw is needed after the window becomes (partially) visible.
+    pub redraw_needed: bool,
 }
 
 impl FrameInput {
