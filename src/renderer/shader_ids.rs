@@ -24,7 +24,7 @@ macro_rules! bitfield_bit {
 }
 
 macro_rules! enum_bitfield {
-    ($base_name:ident, $name:ident($($field:ident),+)) => {
+    ($base_name:ident, $name:ident($($field:ident),+ $(,)?)) => {
         #[allow(non_snake_case)]
         #[inline]
         pub(crate) fn $name($($field: bool),+) -> Self {
@@ -37,7 +37,7 @@ macro_rules! enum_bitfield {
 }
 
 macro_rules! enum_effectfield {
-    ($base_name:ident, $name:ident($($texture:ident: Option<$textureType:ty>),+)) => {
+    ($base_name:ident, $name:ident($($texture:ident: Option<$textureType:ty>),+ $(,)?)) => {
         #[allow(non_snake_case)]
         #[inline]
         pub(crate) fn $name($($texture: Option<$textureType>),*) -> Self {
@@ -52,7 +52,7 @@ macro_rules! enum_effectfield {
         enum_effectfield!($base_name, $name(color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>));
     };
 
-    ($base_name:ident, $name:ident($($texture:ident: $textureType:ty),+)) => {
+    ($base_name:ident, $name:ident($($texture:ident: $textureType:ty),+ $(,)?)) => {
         #[allow(non_snake_case)]
         #[inline]
         pub(crate) fn $name($($texture: $textureType),*) -> Self {
@@ -101,7 +101,7 @@ impl GeometryID {
             color,
             instance_color,
             instance_transformation,
-            instance_uv
+            instance_uv,
         )
     );
 }
@@ -157,7 +157,7 @@ impl EffectMaterialID {
             metallic_roughness_texture,
             occlusion_texture,
             normal_texture,
-            emissive_texture
+            emissive_texture,
         )
     );
     enum_bitfield!(
@@ -168,7 +168,7 @@ impl EffectMaterialID {
             occlusion_texture,
             normal_texture,
             emissive_texture,
-            alpha_cutout
+            alpha_cutout,
         )
     );
 }
