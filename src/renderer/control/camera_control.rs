@@ -19,6 +19,13 @@ pub enum CameraAction {
         /// The speed of the rotation.
         speed: f32,
     },
+    /// Freely orbits around the given target in the up direction as seen from the camera.
+    FreeOrbitUp {
+        /// The target of the rotation.
+        target: Vec3,
+        /// The speed of the rotation.
+        speed: f32,
+    },
     /// Rotate the camera around the vertical axis as seen from the camera.
     Yaw {
         /// The speed of the rotation.
@@ -26,6 +33,13 @@ pub enum CameraAction {
     },
     /// Orbits around the given target in the left direction as seen from the camera.
     OrbitLeft {
+        /// The target of the rotation.
+        target: Vec3,
+        /// The speed of the rotation.
+        speed: f32,
+    },
+    /// Freely orbits around the given target in the left direction as seen from the camera.
+    FreeOrbitLeft {
         /// The target of the rotation.
         target: Vec3,
         /// The speed of the rotation.
@@ -151,11 +165,17 @@ impl CameraControl {
             CameraAction::OrbitUp { speed, target } => {
                 camera.rotate_around_with_fixed_up(&target, 0.0, speed * x);
             }
+            CameraAction::FreeOrbitUp { speed, target } => {
+                camera.rotate_around(&target, 0.0, speed * x);
+            }
             CameraAction::Yaw { speed } => {
                 camera.yaw(radians(speed * x));
             }
             CameraAction::OrbitLeft { speed, target } => {
                 camera.rotate_around_with_fixed_up(&target, speed * x, 0.0);
+            }
+            CameraAction::FreeOrbitLeft { speed, target } => {
+                camera.rotate_around(&target, speed * x, 0.0);
             }
             CameraAction::Roll { speed } => {
                 camera.roll(radians(speed * x));

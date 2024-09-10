@@ -10,6 +10,10 @@ mod orbit_control;
 #[doc(inline)]
 pub use orbit_control::*;
 
+mod free_orbit_control;
+#[doc(inline)]
+pub use free_orbit_control::*;
+
 mod first_person_control;
 #[doc(inline)]
 pub use first_person_control::*;
