@@ -37,9 +37,7 @@ impl FreeOrbitControl {
             let x = target.distance(*camera.position());
             *speed = 0.01 * x + 0.001;
         }
-        if let CameraAction::FreeOrbitUp { speed, target } =
-            &mut self.control.left_drag_vertical
-        {
+        if let CameraAction::FreeOrbitUp { speed, target } = &mut self.control.left_drag_vertical {
             let x = target.distance(*camera.position());
             *speed = 0.01 * x + 0.001;
         }
