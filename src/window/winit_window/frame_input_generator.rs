@@ -85,7 +85,7 @@ impl FrameInputGenerator {
             context: context.clone(),
         };
         self.first_frame = false;
-        
+
         #[cfg(not(target_arch = "wasm32"))]
         if let Some(exit_time) = option_env!("THREE_D_EXIT").map(|v| v.parse::<f64>().unwrap()) {
             if exit_time < frame_input.accumulated_time {
