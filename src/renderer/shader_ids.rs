@@ -1,10 +1,9 @@
-
 //!
-//! Each shader is allocated a unique ID within its catetory so that they can be cached between frames.
+//! Each shader is allocated a unique ID within its category so that they can be cached between frames.
 //! If you implement custom shaders, ensure to give them an ID not already allocated here.
-//! Reductions of the public use ID ranges will be considered a breaking change and result in the appropriate version incrementation.
+//! Reductions of the public use ID ranges will be considered a breaking change and result in the appropriate version increment.
 //! The allocation of internal use IDs should be considered unstable.
-//! 
+//!
 
 use crate::texture::{ColorTexture, DepthTexture};
 
@@ -81,16 +80,30 @@ pub(crate) enum GeometryID {
     TerrainPatchBase = 0x8002, // To 0x8003
     Sprites = 0x8004,
     WaterPatch = 0x8005,
-    MeshBase = 0x8010, // To 0x801F
+    MeshBase = 0x8010,           // To 0x801F
     ParticleSystemBase = 0x8040, // To 0x807F
-    InstancedMeshBase = 0x8080, // To 0x80FF
+    InstancedMeshBase = 0x8080,  // To 0x80FF
 }
 
 impl GeometryID {
     enum_bitfield!(TerrainPatchBase, TerrainPatch(normal_tangent));
     enum_bitfield!(MeshBase, Mesh(normal, tangents, uv, color));
-    enum_bitfield!(ParticleSystemBase, ParticleSystem(normal, tangents, uv, color, instance_color, instance_uv));
-    enum_bitfield!(InstancedMeshBase, InstancedMesh(normal, tangents, uv, color, instance_color, instance_transformation, instance_uv));
+    enum_bitfield!(
+        ParticleSystemBase,
+        ParticleSystem(normal, tangents, uv, color, instance_color, instance_uv)
+    );
+    enum_bitfield!(
+        InstancedMeshBase,
+        InstancedMesh(
+            normal,
+            tangents,
+            uv,
+            color,
+            instance_color,
+            instance_transformation,
+            instance_uv
+        )
+    );
 }
 
 ///
@@ -101,11 +114,11 @@ impl GeometryID {
 #[repr(u16)]
 pub(crate) enum EffectMaterialID {
     LightingPassEffectBase = 0x5000, // To 0x503F
-    WaterEffectBase = 0x5800, // To 0x583F
-    CopyEffectBase = 0x6000, // To 0x603F
-    ScreenEffectBase = 0x6800, // To 0x683F
-    FogEffectBase = 0x7000, // To 0x703F
-    FxaaEffectBase = 0x7800, // To 0x7838 (has holes)
+    WaterEffectBase = 0x5800,        // To 0x583F
+    CopyEffectBase = 0x6000,         // To 0x603F
+    ScreenEffectBase = 0x6800,       // To 0x683F
+    FogEffectBase = 0x7000,          // To 0x703F
+    FxaaEffectBase = 0x7800,         // To 0x7838 (has holes)
 
     ColorMaterialBase = 0x8000, // To 0x8001
     DepthMaterial = 0x8002,
@@ -117,10 +130,10 @@ pub(crate) enum EffectMaterialID {
     ImpostersMaterial = 0x800D,
     BrdfMaterial = 0x800E,
     IrradianceMaterial = 0x800F,
-    ORMMaterialBase = 0x8010, // To 0x8013
-    PhysicalMaterialBase = 0x8020, // To 0x803F
+    ORMMaterialBase = 0x8010,              // To 0x8013
+    PhysicalMaterialBase = 0x8020,         // To 0x803F
     DeferredPhysicalMaterialBase = 0x8040, // To 0x807F
-    PrefilterMaterial = 0x8080
+    PrefilterMaterial = 0x8080,
 }
 
 impl EffectMaterialID {
@@ -133,9 +146,31 @@ impl EffectMaterialID {
 
     enum_bitfield!(ColorMaterialBase, ColorMaterial(texture));
     enum_bitfield!(NormalMaterialBase, NormalMaterial(normal_texture));
-    enum_bitfield!(ORMMaterialBase, ORMMaterial(metallic_roughness_texture, occlusion_texture));
-    enum_bitfield!(PhysicalMaterialBase, PhysicalMaterial(albedo_texture, metallic_roughness_texture, occlusion_texture, normal_texture, emissive_texture));
-    enum_bitfield!(DeferredPhysicalMaterialBase, DeferredPhysicalMaterial(albedo_texture, metallic_roughness_texture, occlusion_texture, normal_texture, emissive_texture, alpha_cutout));
+    enum_bitfield!(
+        ORMMaterialBase,
+        ORMMaterial(metallic_roughness_texture, occlusion_texture)
+    );
+    enum_bitfield!(
+        PhysicalMaterialBase,
+        PhysicalMaterial(
+            albedo_texture,
+            metallic_roughness_texture,
+            occlusion_texture,
+            normal_texture,
+            emissive_texture
+        )
+    );
+    enum_bitfield!(
+        DeferredPhysicalMaterialBase,
+        DeferredPhysicalMaterial(
+            albedo_texture,
+            metallic_roughness_texture,
+            occlusion_texture,
+            normal_texture,
+            emissive_texture,
+            alpha_cutout
+        )
+    );
 }
 
 ///
@@ -145,7 +180,7 @@ impl EffectMaterialID {
 #[open_enum]
 #[repr(u8)]
 pub(crate) enum LightID {
-    AmbientLightBase = 0x80, // To 0x81
+    AmbientLightBase = 0x80,     // To 0x81
     DirectionalLightBase = 0x82, // To 0x83
     PointLight = 0x84,
     SpotLightBase = 0x86, // To 0x87

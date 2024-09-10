@@ -316,14 +316,15 @@ impl Geometry for InstancedMesh {
             .expect("failed to acquire read access")
             .0;
         GeometryID::InstancedMesh(
-            required_attributes.normal, 
+            required_attributes.normal,
             required_attributes.tangents,
             required_attributes.uv,
             required_attributes.color && self.base_mesh.colors.is_some(),
             required_attributes.color && instance_buffers.contains_key("instance_color"),
             instance_buffers.contains_key("instance_translation"),
             required_attributes.uv && instance_buffers.contains_key("tex_transform_row1"),
-        ).0
+        )
+        .0
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

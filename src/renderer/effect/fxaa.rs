@@ -26,7 +26,8 @@ impl Effect for FxaaEffect {
     fn id(&self, color_texture: Option<ColorTexture>, _depth_texture: Option<DepthTexture>) -> u16 {
         EffectMaterialID::FxaaEffect(
             color_texture.expect("Must supply a color texture to apply a fxaa effect"),
-        ).0
+        )
+        .0
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

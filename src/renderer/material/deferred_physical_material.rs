@@ -186,7 +186,8 @@ impl Material for DeferredPhysicalMaterial {
             self.normal_texture.is_some(),
             self.emissive_texture.is_some(),
             self.alpha_cutout.is_some(),
-        ).0
+        )
+        .0
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

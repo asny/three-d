@@ -195,7 +195,8 @@ impl Geometry for ParticleSystem {
             required_attributes.color && self.base_mesh.colors.is_some(),
             required_attributes.color && self.instance_buffers.contains_key("instance_color"),
             required_attributes.uv && self.instance_buffers.contains_key("tex_transform_row1"),
-        ).0
+        )
+        .0
     }
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {

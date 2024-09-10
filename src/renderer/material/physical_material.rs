@@ -157,7 +157,8 @@ impl Material for PhysicalMaterial {
             self.occlusion_texture.is_some(),
             self.normal_texture.is_some(),
             self.emissive_texture.is_some(),
-        ).0
+        )
+        .0
     }
 
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {

@@ -81,7 +81,8 @@ impl Material for ORMMaterial {
         EffectMaterialID::ORMMaterial(
             self.metallic_roughness_texture.is_some(),
             self.occlusion_texture.is_some(),
-        ).0
+        )
+        .0
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

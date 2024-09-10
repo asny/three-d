@@ -195,7 +195,8 @@ impl Geometry for Mesh {
             required_attributes.tangents,
             required_attributes.uv,
             required_attributes.color,
-        ).0
+        )
+        .0
     }
 
     fn render_with_material(
