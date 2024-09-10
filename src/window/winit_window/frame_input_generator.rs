@@ -135,6 +135,9 @@ impl FrameInputGenerator {
                 self.window_width = logical_size.width;
                 self.window_height = logical_size.height;
             }
+            WindowEvent::Occluded(false) => {
+                self.first_frame = true;
+            }
             WindowEvent::KeyboardInput { input, .. } => {
                 if let Some(keycode) = input.virtual_keycode {
                     use winit::event::VirtualKeyCode;

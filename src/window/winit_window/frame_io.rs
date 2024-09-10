@@ -33,7 +33,7 @@ pub struct FrameInput {
     /// Number of physical pixels for each logical pixel.
     pub device_pixel_ratio: f32,
 
-    /// Whether or not this is the first frame.
+    /// Whether or not this is the first frame. Note: also set after the window becomes (partially) visible.
     pub first_frame: bool,
 
     /// The graphics context for the window.
