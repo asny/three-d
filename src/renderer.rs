@@ -29,6 +29,8 @@ pub enum RendererError {
     InvalidBufferLength(String, usize, usize),
     #[error("the material {0} is required by the geometry {1} but could not be found")]
     MissingMaterial(String, String),
+    #[error("picking requires at most u32::MAX - 1 geometries")]
+    GeometryIndexError,
 }
 
 mod camera;
@@ -545,7 +547,7 @@ pub fn cmp_render_order(
 }
 
 ///
-/// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
+/// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries, together with the intersected geometry index.
 /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
 /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
 /// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
@@ -555,7 +557,7 @@ pub fn pick(
     camera: &Camera,
     pixel: impl Into<PhysicalPoint> + Copy,
     geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<Vec3> {
+) -> Option<(u32, Vec3)> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
     ray_intersect(
@@ -568,7 +570,7 @@ pub fn pick(
 }
 
 ///
-/// Finds the closest intersection between a ray starting at the given position in the given direction and the given geometries.
+/// Finds the closest intersection between a ray starting at the given position in the given direction and the given geometries, together with the intersected geometry index.
 /// Returns ```None``` if no geometry was hit before the given maximum depth.
 ///
 pub fn ray_intersect(
@@ -577,7 +579,7 @@ pub fn ray_intersect(
     direction: Vec3,
     max_depth: f32,
     geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<Vec3> {
+) -> Option<(u32, Vec3)> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
     let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
@@ -594,7 +596,9 @@ pub fn ray_intersect(
         0.0,
         max_depth,
     );
-    let mut texture = Texture2D::new_empty::<f32>(
+
+    // note: could be [f32; 2] on desktop but web requires 4 components
+    let mut texture = Texture2D::new_empty::<[f32; 4]>(
         context,
         viewport.width,
         viewport.height,
@@ -604,6 +608,7 @@ pub fn ray_intersect(
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
+
     let mut depth_texture = DepthTexture2D::new::<f32>(
         context,
         viewport.width,
@@ -611,31 +616,54 @@ pub fn ray_intersect(
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let depth_material = DepthMaterial {
+
+    let mut id_material = IdMaterial {
         render_states: RenderStates {
             write_mask: WriteMask {
                 red: true,
+                green: true,
                 ..WriteMask::DEPTH
             },
             ..Default::default()
         },
         ..Default::default()
     };
-    let depth = RenderTarget::new(
+
+    let render_target = RenderTarget::new(
         texture.as_color_target(None),
         depth_texture.as_depth_target(),
-    )
-    .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-    .write::<RendererError>(|| {
-        for geometry in geometries {
-            render_with_material(context, &camera, &geometry, &depth_material, &[]);
-        }
-        Ok(())
-    })
-    .unwrap()
-    .read_color::<[f32; 4]>()[0][0];
-    if depth < 1.0 {
-        Some(position + direction * depth * max_depth)
+    );
+
+    render_target
+        .clear(ClearState::color_and_depth(
+            0 as u32 as f32,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+        ))
+        .write::<RendererError>(|| {
+            let mut id = 1 as u32;
+            for geometry in geometries {
+                id_material.geometry_id = id;
+                render_with_material(context, &camera, geometry, &id_material, &[]);
+
+                id = id + 1;
+                if id == u32::MAX {
+                    return Err(RendererError::GeometryIndexError);
+                }
+            }
+            Ok(())
+        })
+        .unwrap();
+
+    let color: [f32; 4] = render_target.read_color()[0];
+    let depth = color[1];
+    let id = color[0] as u32;
+
+    if depth < 1.0 && id > 0 {
+        let hit = position + direction * depth * max_depth;
+        Some((id - 1, hit))
     } else {
         None
     }
