@@ -557,7 +557,7 @@ pub fn pick(
     camera: &Camera,
     pixel: impl Into<PhysicalPoint> + Copy,
     geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<(u32, Vec3)> {
+) -> Option<(usize, Vec3)> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
     ray_intersect(
@@ -579,7 +579,7 @@ pub fn ray_intersect(
     direction: Vec3,
     max_depth: f32,
     geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<(u32, Vec3)> {
+) -> Option<(usize, Vec3)> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
     let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
@@ -661,7 +661,7 @@ pub fn ray_intersect(
 
     let color: [f32; 4] = render_target.read_color()[0];
     let depth = color[1];
-    let id = color[0] as u32;
+    let id = color[0] as u32 as usize;
 
     if depth < 1.0 && id > 0 {
         let hit = position + direction * depth * max_depth;
