@@ -649,7 +649,7 @@ pub fn ray_intersect(
                 if id == 0 {
                     return Err(RendererError::GeometryIndexError);
                 }
-                
+
                 id_material.geometry_id = id;
                 render_with_material(context, &camera, geometry, &id_material, &[]);
 
