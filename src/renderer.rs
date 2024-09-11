@@ -636,8 +636,8 @@ pub fn ray_intersect(
 
     render_target
         .clear(ClearState::color_and_depth(
-            0 as u32 as f32,
-            0.0,
+            1.0,             // maximum depth
+            0 as u32 as f32, // no object
             0.0,
             0.0,
             1.0,
@@ -645,13 +645,15 @@ pub fn ray_intersect(
         .write::<RendererError>(|| {
             let mut id = 1 as u32;
             for geometry in geometries {
+                // handle u32 wrapping
+                if id == 0 {
+                    return Err(RendererError::GeometryIndexError);
+                }
+                
                 id_material.geometry_id = id;
                 render_with_material(context, &camera, geometry, &id_material, &[]);
 
                 id = id + 1;
-                if id == u32::MAX {
-                    return Err(RendererError::GeometryIndexError);
-                }
             }
             Ok(())
         })
