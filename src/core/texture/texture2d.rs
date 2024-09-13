@@ -160,6 +160,11 @@ impl Texture2D {
         self.height
     }
 
+    /// The number of mip maps of this texture.
+    pub fn number_of_mip_maps(&self) -> u32 {
+        self.number_of_mip_maps
+    }
+
     pub(crate) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.bind();
