@@ -1,6 +1,7 @@
 use super::FrameInput;
 use crate::control::*;
 use crate::core::*;
+use std::collections::HashSet;
 #[cfg(target_arch = "wasm32")]
 use instant::Instant;
 #[cfg(not(target_arch = "wasm32"))]
@@ -8,6 +9,7 @@ use std::time::Instant;
 use winit::dpi::PhysicalSize;
 use winit::event::TouchPhase;
 use winit::event::WindowEvent;
+use winit::event::DeviceId;
 
 ///
 /// Use this to generate [FrameInput] for a new frame with a custom [winit](https://crates.io/crates/winit) window.
@@ -28,6 +30,7 @@ pub struct FrameInputGenerator {
     secondary_finger_id: Option<u64>,
     modifiers: Modifiers,
     mouse_pressed: Option<MouseButton>,
+    gesture_input_devices: HashSet<DeviceId>,
 }
 
 impl FrameInputGenerator {
@@ -52,6 +55,7 @@ impl FrameInputGenerator {
             secondary_finger_id: None,
             modifiers: Modifiers::default(),
             mouse_pressed: None,
+            gesture_input_devices: HashSet::new(),
         }
     }
 
@@ -187,7 +191,7 @@ impl FrameInputGenerator {
                     }
                 }
             }
-            WindowEvent::MouseWheel { delta, .. } => {
+            WindowEvent::MouseWheel { delta, device_id, .. } => {
                 if let Some(position) = self.cursor_pos {
                     match delta {
                         winit::event::MouseScrollDelta::LineDelta(x, y) => {
@@ -197,6 +201,7 @@ impl FrameInputGenerator {
                                 position: position.into(),
                                 modifiers: self.modifiers,
                                 handled: false,
+                                gesture_capable: self.gesture_input_devices.contains(device_id),
                             });
                         }
                         winit::event::MouseScrollDelta::PixelDelta(delta) => {
@@ -206,9 +211,34 @@ impl FrameInputGenerator {
                                 position: position.into(),
                                 modifiers: self.modifiers,
                                 handled: false,
+                                gesture_capable: self.gesture_input_devices.contains(device_id),
                             });
                         }
                     }
+                }
+            }
+            WindowEvent::TouchpadMagnify { delta, device_id, .. } => { // Renamed to PinchGesture in winit 0.30.0
+                self.gesture_input_devices.insert(*device_id);
+                if let Some(position) = self.cursor_pos {
+                    let d = *delta as f32;
+                    self.events.push(crate::Event::PinchGesture {
+                        delta: d,
+                        position: position.into(),
+                        modifiers: self.modifiers,
+                        handled: false,
+                    });
+                }
+            }
+            WindowEvent::TouchpadRotate { delta, device_id, .. } => { // Renamed to RotationGesture in winit 0.30.0
+                self.gesture_input_devices.insert(*device_id);
+                if let Some(position) = self.cursor_pos {
+                    let d = radians(*delta);
+                    self.events.push(crate::Event::RotationGesture {
+                        delta: d,
+                        position: position.into(),
+                        modifiers: self.modifiers,
+                        handled: false,
+                    });
                 }
             }
             WindowEvent::MouseInput { state, button, .. } => {
@@ -330,6 +360,7 @@ impl FrameInputGenerator {
                                         (position.x - p.x).abs() - (last_pos.x - p.x).abs(),
                                         (position.y - p.y).abs() - (last_pos.y - p.y).abs(),
                                     ),
+                                    gesture_capable: false,
                                 });
                             } else {
                                 self.events.push(crate::Event::MouseMotion {
@@ -356,6 +387,7 @@ impl FrameInputGenerator {
                                         (position.x - p.x).abs() - (last_pos.x - p.x).abs(),
                                         (position.y - p.y).abs() - (last_pos.y - p.y).abs(),
                                     ),
+                                    gesture_capable: false,
                                 });
                             }
                             self.secondary_cursor_pos = Some(position);

@@ -24,6 +24,8 @@ pub use fly_control::*;
 
 pub use three_d_asset::PixelPoint as PhysicalPoint;
 
+use three_d_asset::Radians;
+
 /// Type of mouse button.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
@@ -77,6 +79,30 @@ pub enum Event {
     MouseWheel {
         /// The relative scrolling since the last [Event::MouseWheel] event.
         delta: (f32, f32),
+        /// The screen position in physical pixels.
+        position: PhysicalPoint,
+        /// The state of modifiers.
+        modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
+        handled: bool,
+        /// Whether or not this event came from a gesture-capable input
+        gesture_capable: bool,
+    },
+    /// Fired continuously when a pinch input gesture is recognized, such as on a Mac trackpad
+    PinchGesture {
+        /// The relative pinching since the last [Event::PinchGesture] event (positive is zoom in).
+        delta: f32,
+        /// The screen position in physical pixels.
+        position: PhysicalPoint,
+        /// The state of modifiers.
+        modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
+        handled: bool,
+    },
+    /// Fired continuously when a rotation input gesture is recognized, such as on a Mac trackpad
+    RotationGesture {
+        /// The relative rotation since the last [Event::RotationGesture] event (positive is zoom in).
+        delta: Radians,
         /// The screen position in physical pixels.
         position: PhysicalPoint,
         /// The state of modifiers.

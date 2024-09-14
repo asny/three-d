@@ -187,6 +187,17 @@ impl GUI {
                             None
                         }
                     }
+                    Event::PinchGesture {
+                        delta,
+                        handled,
+                        ..
+                    } => {
+                        if !handled {
+                            Some(egui::Event::Zoom(delta.exp()))
+                        } else {
+                            None
+                        }
+                    }
                     _ => None,
                 })
                 .collect::<Vec<_>>(),
@@ -219,6 +230,16 @@ impl GUI {
                         *handled = true;
                     }
                     Event::MouseMotion {
+                        ref mut handled, ..
+                    } => {
+                        *handled = true;
+                    }
+                    Event::PinchGesture {
+                        ref mut handled, ..
+                    } => {
+                        *handled = true;
+                    }
+                    Event::RotationGesture {
                         ref mut handled, ..
                     } => {
                         *handled = true;
