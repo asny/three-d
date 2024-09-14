@@ -187,11 +187,7 @@ impl GUI {
                             None
                         }
                     }
-                    Event::PinchGesture {
-                        delta,
-                        handled,
-                        ..
-                    } => {
+                    Event::PinchGesture { delta, handled, .. } => {
                         if !handled {
                             Some(egui::Event::Zoom(delta.exp()))
                         } else {

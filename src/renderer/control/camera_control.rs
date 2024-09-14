@@ -148,7 +148,13 @@ impl CameraControl {
                         }
                     }
                 }
-                Event::MouseWheel { delta, modifiers, gesture_capable, handled, .. } => {
+                Event::MouseWheel {
+                    delta,
+                    modifiers,
+                    gesture_capable,
+                    handled,
+                    ..
+                } => {
                     if !*handled {
                         if !*gesture_capable && modifiers.ctrl {
                             // Remap vertical scrolling to the pinch event if the ctrl key is held (automatically triggered by some trackpads)
@@ -162,11 +168,11 @@ impl CameraControl {
                 }
                 Event::PinchGesture { delta, handled, .. } => {
                     if !*handled {
-                        *handled = self.handle_action(camera, self.pinch, *delta * 100.0);  
+                        *handled = self.handle_action(camera, self.pinch, *delta * 100.0);
                         change |= *handled;
                     }
                 }
-                Event::RotationGesture { delta, handled , ..} => {
+                Event::RotationGesture { delta, handled, .. } => {
                     if !*handled {
                         *handled = self.handle_action(camera, self.rotate, delta.0);
                         change |= *handled;

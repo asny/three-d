@@ -47,7 +47,7 @@ impl FreeOrbitControl {
             let x = target.distance(*camera.position());
             *speed = 0.01 * x + 0.001;
         }
-        if let CameraAction::Zoom { target, speed, ..} = &mut self.control.pinch {
+        if let CameraAction::Zoom { target, speed, .. } = &mut self.control.pinch {
             let x = target.distance(*camera.position());
             *speed = 0.01 * x + 0.001;
         }

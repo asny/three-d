@@ -1,15 +1,15 @@
 use super::FrameInput;
 use crate::control::*;
 use crate::core::*;
-use std::collections::HashSet;
 #[cfg(target_arch = "wasm32")]
 use instant::Instant;
+use std::collections::HashSet;
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::Instant;
 use winit::dpi::PhysicalSize;
+use winit::event::DeviceId;
 use winit::event::TouchPhase;
 use winit::event::WindowEvent;
-use winit::event::DeviceId;
 
 ///
 /// Use this to generate [FrameInput] for a new frame with a custom [winit](https://crates.io/crates/winit) window.
@@ -191,7 +191,9 @@ impl FrameInputGenerator {
                     }
                 }
             }
-            WindowEvent::MouseWheel { delta, device_id, .. } => {
+            WindowEvent::MouseWheel {
+                delta, device_id, ..
+            } => {
                 if let Some(position) = self.cursor_pos {
                     match delta {
                         winit::event::MouseScrollDelta::LineDelta(x, y) => {
@@ -217,7 +219,10 @@ impl FrameInputGenerator {
                     }
                 }
             }
-            WindowEvent::TouchpadMagnify { delta, device_id, .. } => { // Renamed to PinchGesture in winit 0.30.0
+            WindowEvent::TouchpadMagnify {
+                delta, device_id, ..
+            } => {
+                // Renamed to PinchGesture in winit 0.30.0
                 self.gesture_input_devices.insert(*device_id);
                 if let Some(position) = self.cursor_pos {
                     let d = *delta as f32;
@@ -229,7 +234,10 @@ impl FrameInputGenerator {
                     });
                 }
             }
-            WindowEvent::TouchpadRotate { delta, device_id, .. } => { // Renamed to RotationGesture in winit 0.30.0
+            WindowEvent::TouchpadRotate {
+                delta, device_id, ..
+            } => {
+                // Renamed to RotationGesture in winit 0.30.0
                 self.gesture_input_devices.insert(*device_id);
                 if let Some(position) = self.cursor_pos {
                     let d = radians(*delta);
