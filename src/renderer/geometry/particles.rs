@@ -188,26 +188,15 @@ impl<'a> IntoIterator for &'a ParticleSystem {
 
 impl Geometry for ParticleSystem {
     fn id(&self, required_attributes: FragmentAttributes) -> u16 {
-        let mut id = 0b1u16 << 15 | 0b1u16 << 5;
-        if required_attributes.normal {
-            id |= 0b1u16;
-        }
-        if required_attributes.tangents {
-            id |= 0b1u16 << 1;
-        }
-        if required_attributes.uv {
-            id |= 0b1u16 << 2;
-        }
-        if required_attributes.color && self.base_mesh.colors.is_some() {
-            id |= 0b1u16 << 3;
-        }
-        if required_attributes.color && self.instance_buffers.contains_key("instance_color") {
-            id |= 0b1u16 << 4;
-        }
-        if required_attributes.uv && self.instance_buffers.contains_key("tex_transform_row1") {
-            id |= 0b1u16 << 5;
-        }
-        id
+        GeometryId::ParticleSystem(
+            required_attributes.normal,
+            required_attributes.tangents,
+            required_attributes.uv,
+            required_attributes.color && self.base_mesh.colors.is_some(),
+            required_attributes.color && self.instance_buffers.contains_key("instance_color"),
+            required_attributes.uv && self.instance_buffers.contains_key("tex_transform_row1"),
+        )
+        .0
     }
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {

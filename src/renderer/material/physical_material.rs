@@ -151,23 +151,14 @@ impl FromCpuMaterial for PhysicalMaterial {
 
 impl Material for PhysicalMaterial {
     fn id(&self) -> u16 {
-        let mut id = 0b1u16 << 15 | 0b1u16 << 5;
-        if self.albedo_texture.is_some() {
-            id |= 0b1u16;
-        }
-        if self.metallic_roughness_texture.is_some() {
-            id |= 0b1u16 << 1;
-        }
-        if self.occlusion_texture.is_some() {
-            id |= 0b1u16 << 2;
-        }
-        if self.normal_texture.is_some() {
-            id |= 0b1u16 << 3;
-        }
-        if self.emissive_texture.is_some() {
-            id |= 0b1u16 << 4;
-        }
-        id
+        EffectMaterialId::PhysicalMaterial(
+            self.albedo_texture.is_some(),
+            self.metallic_roughness_texture.is_some(),
+            self.occlusion_texture.is_some(),
+            self.normal_texture.is_some(),
+            self.emissive_texture.is_some(),
+        )
+        .0
     }
 
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {

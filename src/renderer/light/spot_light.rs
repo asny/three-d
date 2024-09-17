@@ -223,10 +223,6 @@ impl Light for SpotLight {
     }
 
     fn id(&self) -> u8 {
-        if self.shadow_texture.is_some() {
-            0b1u8 << 7 | 0b101u8
-        } else {
-            0b1u8 << 7 | 0b110u8
-        }
+        LightId::SpotLight(self.shadow_texture.is_some()).0
     }
 }

@@ -131,7 +131,7 @@ impl Geometry for Sprites {
     }
 
     fn id(&self, _required_attributes: FragmentAttributes) -> u16 {
-        0b1u16 << 15 | 0b100u16
+        GeometryId::Sprites.0
     }
 
     fn render_with_material(

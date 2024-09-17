@@ -78,14 +78,11 @@ impl FromCpuMaterial for ORMMaterial {
 
 impl Material for ORMMaterial {
     fn id(&self) -> u16 {
-        let mut id = 0b1u16 << 15 | 0b1u16 << 4;
-        if self.metallic_roughness_texture.is_some() {
-            id |= 0b1u16;
-        }
-        if self.occlusion_texture.is_some() {
-            id |= 0b1u16 << 1;
-        }
-        id
+        EffectMaterialId::ORMMaterial(
+            self.metallic_roughness_texture.is_some(),
+            self.occlusion_texture.is_some(),
+        )
+        .0
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

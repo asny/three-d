@@ -52,11 +52,7 @@ impl FromCpuMaterial for NormalMaterial {
 
 impl Material for NormalMaterial {
     fn id(&self) -> u16 {
-        if self.normal_texture.is_some() {
-            0b1u16 << 15 | 0b110u16
-        } else {
-            0b1u16 << 15 | 0b111u16
-        }
+        EffectMaterialId::NormalMaterial(self.normal_texture.is_some()).0
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

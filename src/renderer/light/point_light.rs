@@ -70,6 +70,6 @@ impl Light for PointLight {
     }
 
     fn id(&self) -> u8 {
-        0b1u8 << 7 | 0b100u8
+        LightId::PointLight.0
     }
 }

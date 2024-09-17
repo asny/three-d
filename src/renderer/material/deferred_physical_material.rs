@@ -179,26 +179,15 @@ impl FromCpuMaterial for DeferredPhysicalMaterial {
 
 impl Material for DeferredPhysicalMaterial {
     fn id(&self) -> u16 {
-        let mut id = 0b1u16 << 15 | 0b1u16 << 6;
-        if self.albedo_texture.is_some() {
-            id |= 0b1u16;
-        }
-        if self.metallic_roughness_texture.is_some() {
-            id |= 0b1u16 << 1;
-        }
-        if self.occlusion_texture.is_some() {
-            id |= 0b1u16 << 2;
-        }
-        if self.normal_texture.is_some() {
-            id |= 0b1u16 << 3;
-        }
-        if self.emissive_texture.is_some() {
-            id |= 0b1u16 << 4;
-        }
-        if self.alpha_cutout.is_some() {
-            id |= 0b1u16 << 5;
-        }
-        id
+        EffectMaterialId::DeferredPhysicalMaterial(
+            self.albedo_texture.is_some(),
+            self.metallic_roughness_texture.is_some(),
+            self.occlusion_texture.is_some(),
+            self.normal_texture.is_some(),
+            self.emissive_texture.is_some(),
+            self.alpha_cutout.is_some(),
+        )
+        .0
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
