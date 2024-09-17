@@ -12,17 +12,26 @@ use open_enum::open_enum;
 // TODO: Utilizing the open_enum crate, convert all ID usage to these types (breaking change for externally implemented shaders)
 // NOTE: It may be possible to eventually also create a proc macro that automatically allocates IDs based on the width of their subfields
 
+///
+/// Recursive macro to assemble multiple booleans into a single bitfield (as a variable width int literal)
+///
 macro_rules! bitfield_bit {
     ($field:ident << $shift:expr) => {
+        // Base case, unwrapping a boolean into an int literal and shifting by the computed amount
         ((if $field { 1 } else { 0 }) << $shift)
     };
 
     ($field:ident, $($fields:ident),+ << $shift:expr) => {
+        // Recursive case, breaking off the first bit and adding one to the shift of the remainder
         bitfield_bit!($field << $shift)
             | bitfield_bit!($($fields),+ << $shift + 1)
     };
 }
 
+///
+/// Generates a function accepting bit parameters, ordering from least significant bit to most significant bit
+/// bitfield_bit abstracts out the process of converting a tuple of bools into a single int literal
+///
 macro_rules! enum_bitfield {
     ($base_name:ident, $name:ident($($field:ident),+ $(,)?)) => {
         #[allow(non_snake_case)]
@@ -36,8 +45,12 @@ macro_rules! enum_bitfield {
     };
 }
 
+///
+/// Generates a function accepting effect parameters, which self-describe which bits they set
+///
 macro_rules! enum_effectfield {
     ($base_name:ident, $name:ident($($texture:ident: Option<$textureType:ty>),+ $(,)?)) => {
+        // Effect field function taking optional effects, which default to zero if unset
         #[allow(non_snake_case)]
         #[inline]
         pub(crate) fn $name($($texture: Option<$textureType>),*) -> Self {
@@ -49,10 +62,12 @@ macro_rules! enum_effectfield {
     };
 
     ($base_name:ident, $name:ident(Option<...Default>)) => {
+        // Default for effect field is to accept both color and depth options
         enum_effectfield!($base_name, $name(color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>));
     };
 
     ($base_name:ident, $name:ident($($texture:ident: $textureType:ty),+ $(,)?)) => {
+        // Effect field function taking non-optional effects, which have no default
         #[allow(non_snake_case)]
         #[inline]
         pub(crate) fn $name($($texture: $textureType),*) -> Self {
@@ -64,6 +79,7 @@ macro_rules! enum_effectfield {
     };
 
     ($base_name:ident, $name:ident(...Default)) => {
+        // Default for effect field is to accept both color and depth options
         enum_effectfield!($base_name, $name(color_texture: ColorTexture, depth_texture: DepthTexture));
     };
 }
