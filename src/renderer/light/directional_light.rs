@@ -170,6 +170,6 @@ impl Light for DirectionalLight {
     }
 
     fn id(&self) -> u8 {
-        LightID::DirectionalLight(self.shadow_texture.is_some()).0
+        LightId::DirectionalLight(self.shadow_texture.is_some()).0
     }
 }

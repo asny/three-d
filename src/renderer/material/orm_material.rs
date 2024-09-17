@@ -78,7 +78,7 @@ impl FromCpuMaterial for ORMMaterial {
 
 impl Material for ORMMaterial {
     fn id(&self) -> u16 {
-        EffectMaterialID::ORMMaterial(
+        EffectMaterialId::ORMMaterial(
             self.metallic_roughness_texture.is_some(),
             self.occlusion_texture.is_some(),
         )

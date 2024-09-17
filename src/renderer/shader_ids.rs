@@ -74,8 +74,8 @@ macro_rules! enum_effectfield {
 ///
 #[open_enum]
 #[repr(u16)]
-pub(crate) enum GeometryID {
-    SCREEN = 0x8000,
+pub(crate) enum GeometryId {
+    Screen = 0x8000,
     Skybox = 0x8001,
     TerrainPatchBase = 0x8002, // To 0x8003
     Sprites = 0x8004,
@@ -85,7 +85,7 @@ pub(crate) enum GeometryID {
     InstancedMeshBase = 0x8080,  // To 0x80FF
 }
 
-impl GeometryID {
+impl GeometryId {
     enum_bitfield!(TerrainPatchBase, TerrainPatch(normal_tangent));
     enum_bitfield!(MeshBase, Mesh(normal, tangents, uv, color));
     enum_bitfield!(
@@ -112,7 +112,7 @@ impl GeometryID {
 ///
 #[open_enum]
 #[repr(u16)]
-pub(crate) enum EffectMaterialID {
+pub(crate) enum EffectMaterialId {
     LightingPassEffectBase = 0x5000, // To 0x503F
     WaterEffectBase = 0x5800,        // To 0x583F
     CopyEffectBase = 0x6000,         // To 0x603F
@@ -136,7 +136,7 @@ pub(crate) enum EffectMaterialID {
     PrefilterMaterial = 0x8080,
 }
 
-impl EffectMaterialID {
+impl EffectMaterialId {
     enum_effectfield!(LightingPassEffectBase, LightingPassEffect(...Default));
     enum_effectfield!(WaterEffectBase, WaterEffect(...Default));
     enum_effectfield!(CopyEffectBase, CopyEffect(Option<...Default>));
@@ -179,14 +179,14 @@ impl EffectMaterialID {
 ///
 #[open_enum]
 #[repr(u8)]
-pub(crate) enum LightID {
+pub(crate) enum LightId {
     AmbientLightBase = 0x80,     // To 0x81
     DirectionalLightBase = 0x82, // To 0x83
     PointLight = 0x84,
     SpotLightBase = 0x86, // To 0x87
 }
 
-impl LightID {
+impl LightId {
     enum_bitfield!(AmbientLightBase, AmbientLight(environment));
     enum_bitfield!(DirectionalLightBase, DirectionalLight(shadow_texture));
     enum_bitfield!(SpotLightBase, SpotLight(shadow_texture));

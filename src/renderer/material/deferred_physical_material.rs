@@ -179,7 +179,7 @@ impl FromCpuMaterial for DeferredPhysicalMaterial {
 
 impl Material for DeferredPhysicalMaterial {
     fn id(&self) -> u16 {
-        EffectMaterialID::DeferredPhysicalMaterial(
+        EffectMaterialId::DeferredPhysicalMaterial(
             self.albedo_texture.is_some(),
             self.metallic_roughness_texture.is_some(),
             self.occlusion_texture.is_some(),

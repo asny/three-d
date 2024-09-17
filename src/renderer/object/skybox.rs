@@ -167,7 +167,7 @@ impl Geometry for Skybox {
     }
 
     fn id(&self, _required_attributes: FragmentAttributes) -> u16 {
-        GeometryID::Skybox.0
+        GeometryId::Skybox.0
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

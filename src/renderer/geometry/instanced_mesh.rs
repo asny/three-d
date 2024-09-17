@@ -315,7 +315,7 @@ impl Geometry for InstancedMesh {
             .read()
             .expect("failed to acquire read access")
             .0;
-        GeometryID::InstancedMesh(
+        GeometryId::InstancedMesh(
             required_attributes.normal,
             required_attributes.tangents,
             required_attributes.uv,

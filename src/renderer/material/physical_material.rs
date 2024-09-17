@@ -151,7 +151,7 @@ impl FromCpuMaterial for PhysicalMaterial {
 
 impl Material for PhysicalMaterial {
     fn id(&self) -> u16 {
-        EffectMaterialID::PhysicalMaterial(
+        EffectMaterialId::PhysicalMaterial(
             self.albedo_texture.is_some(),
             self.metallic_roughness_texture.is_some(),
             self.occlusion_texture.is_some(),

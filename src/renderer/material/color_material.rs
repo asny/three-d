@@ -99,7 +99,7 @@ impl FromCpuMaterial for ColorMaterial {
 
 impl Material for ColorMaterial {
     fn id(&self) -> u16 {
-        EffectMaterialID::ColorMaterial(self.texture.is_some()).0
+        EffectMaterialId::ColorMaterial(self.texture.is_some()).0
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

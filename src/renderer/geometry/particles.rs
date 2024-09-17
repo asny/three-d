@@ -188,7 +188,7 @@ impl<'a> IntoIterator for &'a ParticleSystem {
 
 impl Geometry for ParticleSystem {
     fn id(&self, required_attributes: FragmentAttributes) -> u16 {
-        GeometryID::ParticleSystem(
+        GeometryId::ParticleSystem(
             required_attributes.normal,
             required_attributes.tangents,
             required_attributes.uv,

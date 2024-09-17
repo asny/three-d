@@ -364,7 +364,7 @@ impl Geometry for TerrainPatch {
     }
 
     fn id(&self, required_attributes: FragmentAttributes) -> u16 {
-        GeometryID::TerrainPatch(required_attributes.normal || required_attributes.tangents).0
+        GeometryId::TerrainPatch(required_attributes.normal || required_attributes.tangents).0
     }
 
     fn render_with_material(

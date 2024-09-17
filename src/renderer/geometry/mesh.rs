@@ -190,7 +190,7 @@ impl Geometry for Mesh {
     }
 
     fn id(&self, required_attributes: FragmentAttributes) -> u16 {
-        GeometryID::Mesh(
+        GeometryId::Mesh(
             required_attributes.normal,
             required_attributes.tangents,
             required_attributes.uv,

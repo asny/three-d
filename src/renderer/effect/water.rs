@@ -60,7 +60,7 @@ impl Effect for WaterEffect {
     }
 
     fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
-        EffectMaterialID::WaterEffect(
+        EffectMaterialId::WaterEffect(
             color_texture.expect("Must supply a color texture to apply a water effect"),
             depth_texture.expect("Must supply a depth texture to apply a water effect"),
         )
