@@ -222,6 +222,18 @@ mod inner {
         pub fn swap_buffers(&self) -> Result<(), WindowError> {
             Ok(self.surface.swap_buffers(&self.glutin_context)?)
         }
+
+        /// Enables or disabled vsync.
+        pub fn set_vsync(&self, enabled: bool) -> Result<(), WindowError> {
+            let swap_interval = if enabled {
+                glutin::surface::SwapInterval::Wait(std::num::NonZeroU32::new(1).unwrap())
+            } else {
+                glutin::surface::SwapInterval::DontWait
+            };
+            Ok(self
+                .surface
+                .set_swap_interval(&self.glutin_context, swap_interval)?)
+        }
     }
 }
 
