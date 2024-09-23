@@ -84,7 +84,7 @@ impl Program {
                 if !log.is_empty() {
                     Err(CoreError::ShaderLink(log))?;
                 }
-                unreachable!();
+                Err(CoreError::ShaderCompilerError)?;
             }
 
             context.detach_shader(id, vert_shader);
