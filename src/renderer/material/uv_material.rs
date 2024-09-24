@@ -18,8 +18,8 @@ impl FromCpuMaterial for UVMaterial {
 }
 
 impl Material for UVMaterial {
-    fn id(&self) -> u16 {
-        EffectMaterialId::UVMaterial.0
+    fn id(&self) -> EffectMaterialId {
+        EffectMaterialId::UVMaterial
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

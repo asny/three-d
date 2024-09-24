@@ -18,8 +18,8 @@ impl FromCpuMaterial for PositionMaterial {
 }
 
 impl Material for PositionMaterial {
-    fn id(&self) -> u16 {
-        EffectMaterialId::PositionMaterial.0
+    fn id(&self) -> EffectMaterialId {
+        EffectMaterialId::PositionMaterial
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

@@ -169,7 +169,7 @@ impl Light for DirectionalLight {
         program.use_uniform(&format!("direction{}", i), self.direction.normalize());
     }
 
-    fn id(&self) -> u8 {
-        LightId::DirectionalLight(self.shadow_texture.is_some()).0
+    fn id(&self) -> LightId {
+        LightId::DirectionalLight(self.shadow_texture.is_some())
     }
 }

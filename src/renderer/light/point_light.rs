@@ -69,7 +69,7 @@ impl Light for PointLight {
         program.use_uniform(&format!("position{}", i), self.position);
     }
 
-    fn id(&self) -> u8 {
-        LightId::PointLight.0
+    fn id(&self) -> LightId {
+        LightId::PointLight
     }
 }

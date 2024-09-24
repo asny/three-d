@@ -150,7 +150,7 @@ impl FromCpuMaterial for PhysicalMaterial {
 }
 
 impl Material for PhysicalMaterial {
-    fn id(&self) -> u16 {
+    fn id(&self) -> EffectMaterialId {
         EffectMaterialId::PhysicalMaterial(
             self.albedo_texture.is_some(),
             self.metallic_roughness_texture.is_some(),
@@ -158,7 +158,6 @@ impl Material for PhysicalMaterial {
             self.normal_texture.is_some(),
             self.emissive_texture.is_some(),
         )
-        .0
     }
 
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {

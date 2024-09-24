@@ -49,8 +49,12 @@ impl Effect for CopyEffect {
         )
     }
 
-    fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
-        EffectMaterialId::CopyEffect(color_texture, depth_texture).0
+    fn id(
+        &self,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) -> EffectMaterialId {
+        EffectMaterialId::CopyEffect(color_texture, depth_texture)
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

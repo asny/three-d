@@ -53,8 +53,12 @@ impl Effect for ScreenEffect {
         )
     }
 
-    fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
-        EffectMaterialId::ScreenEffect(color_texture, depth_texture).0
+    fn id(
+        &self,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) -> EffectMaterialId {
+        EffectMaterialId::ScreenEffect(color_texture, depth_texture)
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

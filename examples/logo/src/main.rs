@@ -80,8 +80,8 @@ impl Material for LogoMaterial<'_> {
         include_str!("shader.frag").to_string()
     }
 
-    fn id(&self) -> u16 {
-        0b1u16
+    fn id(&self) -> EffectMaterialId {
+        EffectMaterialId(0b1u16)
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

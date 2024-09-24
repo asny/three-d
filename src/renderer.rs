@@ -32,7 +32,7 @@ pub enum RendererError {
 }
 
 mod shader_ids;
-pub(crate) use shader_ids::*;
+pub use shader_ids::*;
 
 mod camera;
 pub use camera::*;
@@ -379,6 +379,20 @@ impl_render_target_extensions!(ColorTargetMultisample<C: TextureDataType>);
 impl_render_target_extensions!(DepthTargetMultisample<D: DepthTextureDataType>);
 
 ///
+/// Combines shader ID components together into a single ID vector, to be used as a key in shader caching.
+///
+fn combine_ids(
+    geometry: GeometryId,
+    effect_material: EffectMaterialId,
+    lights: impl Iterator<Item = LightId>,
+) -> Vec<u8> {
+    let mut id = geometry.0.to_le_bytes().to_vec();
+    id.extend(effect_material.0.to_le_bytes());
+    id.extend(lights.map(|l| l.0));
+    return id;
+}
+
+///
 /// Render the given [Geometry] with the given [Material].
 /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
 /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
@@ -391,9 +405,11 @@ pub fn render_with_material(
     lights: &[&dyn Light],
 ) {
     let fragment_attributes = material.fragment_attributes();
-    let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
-    id.extend(material.id().to_le_bytes());
-    id.extend(lights.iter().map(|l| l.id()));
+    let id = combine_ids(
+        geometry.id(fragment_attributes),
+        material.id(),
+        lights.iter().map(|l| l.id()),
+    );
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
@@ -428,9 +444,11 @@ pub fn render_with_effect(
     depth_texture: Option<DepthTexture>,
 ) {
     let fragment_attributes = effect.fragment_attributes();
-    let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
-    id.extend(effect.id(color_texture, depth_texture).to_le_bytes());
-    id.extend(lights.iter().map(|l| l.id()));
+    let id = combine_ids(
+        geometry.id(fragment_attributes),
+        effect.id(color_texture, depth_texture),
+        lights.iter().map(|l| l.id()),
+    );
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
@@ -460,9 +478,11 @@ pub fn apply_screen_material(
     if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
         panic!("Not possible to use the given material to render full screen, the full screen geometry only provides uv coordinates and color");
     }
-    let mut id = GeometryId::Screen.0.to_le_bytes().to_vec();
-    id.extend(material.id().to_le_bytes());
-    id.extend(lights.iter().map(|l| l.id()));
+    let id = combine_ids(
+        GeometryId::Screen,
+        material.id(),
+        lights.iter().map(|l| l.id()),
+    );
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
@@ -499,9 +519,11 @@ pub fn apply_screen_effect(
     if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
         panic!("Not possible to use the given effect to render full screen, the full screen geometry only provides uv coordinates and color");
     }
-    let mut id = GeometryId::Screen.0.to_le_bytes().to_vec();
-    id.extend(effect.id(color_texture, depth_texture).to_le_bytes());
-    id.extend(lights.iter().map(|l| l.id()));
+    let id = combine_ids(
+        GeometryId::Screen,
+        effect.id(color_texture, depth_texture),
+        lights.iter().map(|l| l.id()),
+    );
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {

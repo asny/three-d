@@ -363,8 +363,8 @@ impl Geometry for TerrainPatch {
         program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u16 {
-        GeometryId::TerrainPatch(required_attributes.normal || required_attributes.tangents).0
+    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
+        GeometryId::TerrainPatch(required_attributes.normal || required_attributes.tangents)
     }
 
     fn render_with_material(

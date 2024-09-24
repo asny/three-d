@@ -178,7 +178,7 @@ impl FromCpuMaterial for DeferredPhysicalMaterial {
 }
 
 impl Material for DeferredPhysicalMaterial {
-    fn id(&self) -> u16 {
+    fn id(&self) -> EffectMaterialId {
         EffectMaterialId::DeferredPhysicalMaterial(
             self.albedo_texture.is_some(),
             self.metallic_roughness_texture.is_some(),
@@ -187,7 +187,6 @@ impl Material for DeferredPhysicalMaterial {
             self.emissive_texture.is_some(),
             self.alpha_cutout.is_some(),
         )
-        .0
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

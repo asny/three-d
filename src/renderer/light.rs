@@ -12,7 +12,7 @@ macro_rules! impl_light_body {
         fn use_uniforms(&self, program: &Program, i: u32) {
             self.$inner().use_uniforms(program, i)
         }
-        fn id(&self) -> u8 {
+        fn id(&self) -> LightId {
             self.$inner().id()
         }
     };
@@ -42,6 +42,7 @@ pub use environment::*;
 
 use crate::core::*;
 use crate::renderer::camera::*;
+use crate::renderer::LightId;
 
 ///
 /// Specifies how the intensity of a light fades over distance.
@@ -83,9 +84,9 @@ pub trait Light {
     /// Returns a unique ID for each variation of the shader source returned from `Light::shader_source`.
     ///
     /// **Note:** The last bit is reserved to internally implemented materials, so if implementing the `Light` trait
-    /// outside of this crate, always return an id that is smaller than `0b1u8 << 7`.
+    /// outside of this crate, always return an id in the public use range as defined by [LightId].
     ///
-    fn id(&self) -> u8;
+    fn id(&self) -> LightId;
 }
 
 impl<T: Light + ?Sized> Light for &T {
@@ -119,7 +120,7 @@ impl<T: Light> Light for std::sync::Arc<std::sync::RwLock<T>> {
     fn use_uniforms(&self, program: &Program, i: u32) {
         self.read().unwrap().use_uniforms(program, i)
     }
-    fn id(&self) -> u8 {
+    fn id(&self) -> LightId {
         self.read().unwrap().id()
     }
 }

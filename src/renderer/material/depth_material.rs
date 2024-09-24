@@ -22,8 +22,8 @@ impl FromCpuMaterial for DepthMaterial {
 }
 
 impl Material for DepthMaterial {
-    fn id(&self) -> u16 {
-        EffectMaterialId::DepthMaterial.0
+    fn id(&self) -> EffectMaterialId {
+        EffectMaterialId::DepthMaterial
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
