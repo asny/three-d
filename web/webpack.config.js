@@ -22,5 +22,11 @@ module.exports = {
     mode: 'development',
     experiments: {
         asyncWebAssembly: true
-   }
+    },
+    devServer: {
+        static: {
+            directory: path.resolve(__dirname, "../examples/assets"),
+            publicPath: "/examples/assets"
+        }
+    }
 };
