@@ -222,7 +222,7 @@ impl Light for SpotLight {
         program.use_uniform(&format!("cutoff{}", i), self.cutoff.0);
     }
 
-    fn id(&self) -> u8 {
-        LightId::SpotLight(self.shadow_texture.is_some()).0
+    fn id(&self) -> LightId {
+        LightId::SpotLight(self.shadow_texture.is_some())
     }
 }

@@ -7,8 +7,8 @@ pub struct SkyboxMaterial {
 }
 
 impl Material for SkyboxMaterial {
-    fn id(&self) -> u16 {
-        EffectMaterialId::SkyboxMaterial.0
+    fn id(&self) -> EffectMaterialId {
+        EffectMaterialId::SkyboxMaterial
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

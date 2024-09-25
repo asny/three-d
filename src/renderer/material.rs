@@ -22,7 +22,7 @@ macro_rules! impl_material_body {
         fn material_type(&self) -> MaterialType {
             self.$inner().material_type()
         }
-        fn id(&self) -> u16 {
+        fn id(&self) -> EffectMaterialId {
             self.$inner().id()
         }
     };
@@ -194,9 +194,9 @@ pub trait Material {
     /// Returns a unique ID for each variation of the shader source returned from [Material::fragment_shader_source].
     ///
     /// **Note:** The last bit is reserved to internally implemented materials, so if implementing the [Material] trait
-    /// outside of this crate, always return an id that is smaller than `0b1u16 << 15`.
+    /// outside of this crate, always return an id in the public use range as defined by [EffectMaterialId].
     ///
-    fn id(&self) -> u16;
+    fn id(&self) -> EffectMaterialId;
 
     ///
     /// Returns a [FragmentAttributes] struct that describes which fragment attributes,
@@ -280,7 +280,7 @@ impl<T: Material> Material for std::sync::RwLock<T> {
     fn material_type(&self) -> MaterialType {
         self.read().unwrap().material_type()
     }
-    fn id(&self) -> u16 {
+    fn id(&self) -> EffectMaterialId {
         self.read().unwrap().id()
     }
 }

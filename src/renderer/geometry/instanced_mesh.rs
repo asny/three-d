@@ -309,7 +309,7 @@ impl Geometry for InstancedMesh {
         )
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u16 {
+    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
         let instance_buffers = &self
             .instance_buffers
             .read()
@@ -324,7 +324,6 @@ impl Geometry for InstancedMesh {
             instance_buffers.contains_key("instance_translation"),
             required_attributes.uv && instance_buffers.contains_key("tex_transform_row1"),
         )
-        .0
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

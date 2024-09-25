@@ -189,14 +189,13 @@ impl Geometry for Mesh {
         )
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u16 {
+    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
         GeometryId::Mesh(
             required_attributes.normal,
             required_attributes.tangents,
             required_attributes.uv,
             required_attributes.color,
         )
-        .0
     }
 
     fn render_with_material(

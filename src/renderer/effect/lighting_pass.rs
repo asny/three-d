@@ -24,8 +24,12 @@ impl Effect for LightingPassEffect {
         fragment_shader
     }
 
-    fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
-        EffectMaterialId::LightingPassEffect(color_texture.unwrap(), depth_texture.unwrap()).0
+    fn id(
+        &self,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) -> EffectMaterialId {
+        EffectMaterialId::LightingPassEffect(color_texture.unwrap(), depth_texture.unwrap())
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {
