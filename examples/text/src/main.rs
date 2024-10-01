@@ -51,11 +51,13 @@ struct TextGenerator<'a> {
 
 impl<'a> TextGenerator<'a> {
     pub fn new(font: FontRef<'a>) -> Self {
-        use scale::*;
-        let mut context = ScaleContext::new();
-        let mut scaler = context.builder(font).build();
-        let mut map = HashMap::new();
+        let mut context = scale::ScaleContext::new();
+        let scaler = context.builder(font).build();
+        Self::new_with_scaler(font, scaler)
+    }
 
+    pub fn new_with_scaler(font: FontRef<'a>, mut scaler: scale::Scaler<'_>) -> Self {
+        let mut map = HashMap::new();
         font.charmap().enumerate(|_, id| {
             if let Some(outline) = scaler.scale_outline(id) {
                 use crate::zeno::{Command, PathData};
@@ -118,10 +120,7 @@ impl<'a> TextGenerator<'a> {
 
     pub fn generate(&self, text: &str) -> CpuMesh {
         let mut shape_context = shape::ShapeContext::new();
-        let shaper = shape_context
-            .builder(self.font)
-            .script(text::Script::Latin)
-            .build();
+        let shaper = shape_context.builder(self.font).build();
         self.generate_with_shaper(text, shaper)
     }
 
