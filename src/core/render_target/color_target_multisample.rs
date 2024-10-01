@@ -1,3 +1,5 @@
+use data_type::PrimitiveDataType;
+
 use crate::core::*;
 
 ///
@@ -8,7 +10,7 @@ use crate::core::*;
 ///
 /// Also see [RenderTargetMultisample] and [DepthTargetMultisample].
 ///
-pub struct ColorTargetMultisample<C: TextureDataType> {
+pub struct ColorTargetMultisample<C: BufferDataType> {
     pub(crate) context: Context,
     color: Texture2DMultisample,
     _c: std::marker::PhantomData<C>,
@@ -32,7 +34,7 @@ impl<C: TextureDataType> ColorTargetMultisample<C> {
     ///
     /// Clears the color of this target as defined by the given clear state.
     ///
-    pub fn clear(&self, clear_state: ClearState) -> &Self {
+    pub fn clear(&self, clear_state: ClearState<f32>) -> &Self {
         self.clear_partially(
             ScissorBox::new_at_origo(self.width(), self.height()),
             clear_state,
@@ -42,7 +44,7 @@ impl<C: TextureDataType> ColorTargetMultisample<C> {
     ///
     /// Clears the color of the part of this target that is inside the given scissor box.
     ///
-    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState) -> &Self {
+    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<f32>) -> &Self {
         self.as_render_target().clear_partially(
             scissor_box,
             ClearState {
@@ -50,6 +52,22 @@ impl<C: TextureDataType> ColorTargetMultisample<C> {
                 ..clear_state
             },
         );
+        self
+    }
+
+    ///
+    /// Clears the color of this target as defined by the given clear state and data type.
+    ///
+    pub fn clear_buffer(&self, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
+        self.clear_buffer_partially(self.scissor_box(), clear_state)
+    }
+
+    ///
+    /// Clears the color of the part of this target that is inside the given scissor box, in the given data type.
+    ///
+    pub fn clear_buffer_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
+        self.as_render_target()
+            .clear_buffer_partially(scissor_box, clear_state);
         self
     }
 

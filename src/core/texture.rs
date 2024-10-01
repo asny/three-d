@@ -42,8 +42,8 @@ pub use three_d_asset::texture::{
     Interpolation, Texture2D as CpuTexture, Texture3D as CpuTexture3D, TextureData, Wrapping,
 };
 
-/// The basic data type used for each channel of each pixel in a texture.
-pub trait TextureDataType: DataType {}
+/// The basic data type used for each channel of each pixel in a normalized texture.
+pub trait TextureDataType: BufferDataType {}
 impl TextureDataType for u8 {}
 impl TextureDataType for f16 {}
 impl TextureDataType for f32 {}
@@ -355,10 +355,8 @@ fn calculate_number_of_mip_maps<T: TextureDataType>(
     height: u32,
     depth: Option<u32>,
 ) -> u32 {
-    // Cannot generate mip maps for RGB16F or RGB32F textures on web (https://registry.khronos.org/webgl/extensions/EXT_color_buffer_float/)
-    if (T::data_type() == crate::context::FLOAT || T::data_type() == crate::context::HALF_FLOAT)
-        && T::size() == 3
-    {
+    // Cannot generate mip maps for RGB textures using non-normalized data formats on web (OpenGL ES3.0 Table 3.13, https://registry.khronos.org/webgl/extensions/EXT_color_buffer_float/)
+    if T::size() == 3 && T::data_type() != crate::context::UNSIGNED_BYTE {
         return 1;
     }
 

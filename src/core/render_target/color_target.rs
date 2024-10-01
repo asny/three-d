@@ -73,14 +73,14 @@ impl<'a> ColorTarget<'a> {
     ///
     /// Clears the color of this color target as defined by the given clear state.
     ///
-    pub fn clear(&self, clear_state: ClearState) -> &Self {
+    pub fn clear(&self, clear_state: ClearState<f32>) -> &Self {
         self.clear_partially(self.scissor_box(), clear_state)
     }
 
     ///
     /// Clears the color of the part of this color target that is inside the given scissor box.
     ///
-    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState) -> &Self {
+    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<f32>) -> &Self {
         self.as_render_target().clear_partially(
             scissor_box,
             ClearState {
@@ -88,6 +88,22 @@ impl<'a> ColorTarget<'a> {
                 ..clear_state
             },
         );
+        self
+    }
+
+    ///
+    /// Clears the color of this color target as defined by the given clear state and data type.
+    ///
+    pub fn clear_buffer(&self, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
+        self.clear_buffer_partially(self.scissor_box(), clear_state)
+    }
+
+    ///
+    /// Clears the color of the part of this color target that is inside the given scissor box, in the given data type.
+    ///
+    pub fn clear_buffer_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
+        self.as_render_target()
+            .clear_buffer_partially(scissor_box, clear_state);
         self
     }
 
@@ -144,6 +160,28 @@ impl<'a> ColorTarget<'a> {
     ///
     pub fn read_partially<T: TextureDataType>(&self, scissor_box: ScissorBox) -> Vec<T> {
         self.as_render_target().read_color_partially(scissor_box)
+    }
+
+    ///
+    /// Returns the underlying buffer data of this color target.
+    /// The number of channels per pixel and the data format for each channel returned from this function is specified by the generic parameter `T`.
+    ///
+    /// **Note:**
+    /// The base type of the generic parameter `T` must match the base type of the render target, for example if the render targets base type is `u8`, the base type of `T` must also be `u8`.
+    ///
+    pub fn read_buffer<T: BufferDataType>(&self) -> Vec<T> {
+        self.read_buffer_partially(self.scissor_box())
+    }
+
+    ///
+    /// Returns the underlying buffer data of this color target inside the given scissor box.
+    /// The number of channels per pixel and the data format for each channel returned from this function is specified by the generic parameter `T`.
+    ///
+    /// **Note:**
+    /// The base type of the generic parameter `T` must match the base type of the render target, for example if the render targets base type is `u8`, the base type of `T` must also be `u8`.
+    ///
+    pub fn read_buffer_partially<T: BufferDataType>(&self, scissor_box: ScissorBox) -> Vec<T> {
+        self.as_render_target().read_buffer_partially(scissor_box)
     }
 
     ///

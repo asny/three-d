@@ -29,6 +29,9 @@ pub use depth_target_multisample::*;
 use crate::core::*;
 
 use crate::context::Framebuffer;
+
+use crate::core::data_type::PrimitiveDataType;
+
 ///
 /// Adds additional functionality to clear, read from and write to the screen (see [RenderTarget::screen]) or a color texture and
 /// a depth texture at the same time (see [RenderTarget::new]).
@@ -89,17 +92,34 @@ impl<'a> RenderTarget<'a> {
     ///
     /// Clears the color and depth of this render target as defined by the given clear state.
     ///
-    pub fn clear(&self, clear_state: ClearState) -> &Self {
+    pub fn clear(&self, clear_state: ClearState<f32>) -> &Self {
         self.clear_partially(self.scissor_box(), clear_state)
     }
 
     ///
     /// Clears the color and depth of the part of this render target that is inside the given scissor box.
     ///
-    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState) -> &Self {
+    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<f32>) -> &Self {
         self.context.set_scissor(scissor_box);
         self.bind(crate::context::DRAW_FRAMEBUFFER);
         clear_state.apply(&self.context);
+        self
+    }
+
+    ///
+    /// Clears the color and depth of this render target as defined by the given clear state and data type.
+    ///
+    pub fn clear_buffer(&self, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
+        self.clear_buffer_partially(self.scissor_box(), clear_state)
+    }
+
+    ///
+    /// Clears the color and depth of the part of this render target that is inside the given scissor box, in the given data type.
+    ///
+    pub fn clear_buffer_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
+        self.context.set_scissor(scissor_box);
+        self.bind(crate::context::DRAW_FRAMEBUFFER);
+        clear_state.apply_buffer(&self.context);
         self
     }
 
@@ -159,20 +179,41 @@ impl<'a> RenderTarget<'a> {
     /// - 32-bit float RGBA (Specify `T` as either `Vec4<f32>` or `[f32; 4]`) which works with any render target using `f16` or `f32` as its base type.
     ///
     pub fn read_color_partially<T: TextureDataType>(&self, scissor_box: ScissorBox) -> Vec<T> {
+        let format = normalized_format_from_data_type::<T>();
+        self.read_formatted_buffer_partially(format, scissor_box)
+    }
+
+    ///
+    /// Returns the underlying buffer data of this render target.
+    /// The number of channels per pixel and the data format for each channel returned from this function is specified by the generic parameter `T`.
+    ///
+    /// **Note:**
+    /// The base type of the generic parameter `T` must match the base type of the render target, for example if the render targets base type is `u8`, the base type of `T` must also be `u8`.
+    ///
+    pub fn read_buffer<T: BufferDataType>(&self) -> Vec<T> {
+        self.read_buffer_partially(self.scissor_box())
+    }
+
+    ///
+    /// Returns the underlying buffer data of this render target inside the given scissor box.
+    /// The number of channels per pixel and the data format for each channel returned from this function is specified by the generic parameter `T`.
+    ///
+    /// **Note:**
+    /// The base type of the generic parameter `T` must match the base type of the render target, for example if the render targets base type is `u8`, the base type of `T` must also be `u8`.
+    ///
+    pub fn read_buffer_partially<T: BufferDataType>(&self, scissor_box: ScissorBox) -> Vec<T> {
+        let format = format_from_data_type::<T>();
+        self.read_formatted_buffer_partially(format, scissor_box)
+    }
+
+    ///
+    /// Common function used to implement read_color, read_buffer, and _partially variants
+    /// 
+    fn read_formatted_buffer_partially<T: BufferDataType>(&self, format: u32, scissor_box: ScissorBox) -> Vec<T> {
         if self.id.is_some() && self.color.is_none() {
             panic!("Cannot read color from a render target without a color target");
         }
-        let format = format_from_data_type::<T>();
         let data_type = T::data_type();
-
-        // On web, the read format needs to be RGBA and f16 is not supported (see https://webglfundamentals.org/webgl/lessons/webgl-readpixels.html).
-        #[cfg(target_arch = "wasm32")]
-        if format != crate::context::RGBA
-            || !(data_type == crate::context::UNSIGNED_BYTE || data_type == crate::context::FLOAT)
-        {
-            panic!("Only the texture data types `Vec4<T>` and `[T; 4]` where `T` is either `u8` or `f32` are supported when reading color from a render target on web.");
-        }
-
         self.bind(crate::context::DRAW_FRAMEBUFFER);
         self.bind(crate::context::READ_FRAMEBUFFER);
         let data_size = std::mem::size_of::<T>();

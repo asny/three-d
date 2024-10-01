@@ -60,14 +60,14 @@ impl<'a> DepthTarget<'a> {
     ///
     /// Clears the depth of this depth target as defined by the given clear state.
     ///
-    pub fn clear(&self, clear_state: ClearState) -> &Self {
+    pub fn clear(&self, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
         self.clear_partially(self.scissor_box(), clear_state)
     }
 
     ///
     /// Clears the depth of the part of this depth target that is inside the given scissor box.
     ///
-    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState) -> &Self {
+    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
         self.as_render_target().clear_partially(
             scissor_box,
             ClearState {

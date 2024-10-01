@@ -114,7 +114,7 @@ fn from_byte_slice<T: DataType>(data: &[u8]) -> &[T] {
     }
 }
 
-fn format_from_data_type<T: DataType>() -> u32 {
+fn normalized_format_from_data_type<T: DataType>() -> u32 {
     match T::size() {
         1 => crate::context::RED,
         2 => crate::context::RG,
@@ -124,7 +124,22 @@ fn format_from_data_type<T: DataType>() -> u32 {
     }
 }
 
-fn flip_y<T: TextureDataType>(pixels: &mut [T], width: usize, height: usize) {
+fn format_from_data_type<T: DataType>() -> u32 {
+    if T::data_type() == crate::context::FLOAT || T::data_type() == crate::context::HALF_FLOAT {
+        normalized_format_from_data_type::<T>()
+    }
+    else {
+        match T::size() {
+            1 => crate::context::RED_INTEGER,
+            2 => crate::context::RG_INTEGER,
+            3 => crate::context::RGB_INTEGER,
+            4 => crate::context::RGBA_INTEGER,
+            _ => unreachable!(),
+        }
+    }
+}
+
+fn flip_y<T: BufferDataType>(pixels: &mut [T], width: usize, height: usize) {
     for row in 0..height / 2 {
         for col in 0..width {
             let index0 = width * row + col;

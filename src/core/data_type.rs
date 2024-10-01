@@ -11,17 +11,31 @@ pub enum UniformType {
     Mat4,
 }
 
-pub trait PrimitiveDataType: DataType + Copy + Default {
+pub trait PrimitiveDataType: DataType + Copy + Default + Zero {
+    fn max() -> Self;
+
     fn send_uniform_with_type(
         context: &Context,
         location: &UniformLocation,
         data: &[Self],
         type_: UniformType,
     );
+
+    unsafe fn clear_buffer_with_type(
+        context: &Context,
+        target: u32,
+        buffer: u32,
+        values: &[Self],
+    );
+
     fn internal_format_with_size(size: u32) -> u32;
 }
 
 impl PrimitiveDataType for u8 {
+    fn max() -> Self {
+        Self::MAX
+    }
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R8,
@@ -41,8 +55,21 @@ impl PrimitiveDataType for u8 {
         let data = data.iter().map(|v| *v as u32).collect::<Vec<_>>();
         u32::send_uniform_with_type(context, location, &data, type_)
     }
+
+    unsafe fn clear_buffer_with_type(
+        context: &Context,
+        target: u32,
+        buffer: u32,
+        values: &[Self],
+    ) {
+        context.clear_buffer_u32_slice(target, buffer, &values.iter().map(|v| *v as u32).collect::<Vec<_>>());
+    }
 }
 impl PrimitiveDataType for u16 {
+    fn max() -> Self {
+        Self::MAX
+    }
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R16UI,
@@ -62,8 +89,21 @@ impl PrimitiveDataType for u16 {
         let data = data.iter().map(|v| *v as u32).collect::<Vec<_>>();
         u32::send_uniform_with_type(context, location, &data, type_)
     }
+
+    unsafe fn clear_buffer_with_type(
+        context: &Context,
+        target: u32,
+        buffer: u32,
+        values: &[Self],
+    ) {
+        context.clear_buffer_u32_slice(target, buffer, &values.iter().map(|v| *v as u32).collect::<Vec<_>>());
+    }
 }
 impl PrimitiveDataType for u32 {
+    fn max() -> Self {
+        Self::MAX
+    }
+    
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R32UI,
@@ -90,8 +130,21 @@ impl PrimitiveDataType for u32 {
             }
         }
     }
+
+    unsafe fn clear_buffer_with_type(
+        context: &Context,
+        target: u32,
+        buffer: u32,
+        values: &[Self],
+    ) {
+        context.clear_buffer_u32_slice(target, buffer, values);
+    }
 }
 impl PrimitiveDataType for i8 {
+    fn max() -> Self {
+        Self::MAX
+    }
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R8I,
@@ -111,8 +164,21 @@ impl PrimitiveDataType for i8 {
         let data = data.iter().map(|v| *v as i32).collect::<Vec<_>>();
         i32::send_uniform_with_type(context, location, &data, type_)
     }
+
+    unsafe fn clear_buffer_with_type(
+        context: &Context,
+        target: u32,
+        buffer: u32,
+        values: &[Self],
+    ) {
+        context.clear_buffer_i32_slice(target, buffer, &values.iter().map(|v| *v as i32).collect::<Vec<_>>());
+    }
 }
 impl PrimitiveDataType for i16 {
+    fn max() -> Self {
+        Self::MAX
+    }
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R16I,
@@ -132,8 +198,21 @@ impl PrimitiveDataType for i16 {
         let data = data.iter().map(|v| *v as i32).collect::<Vec<_>>();
         i32::send_uniform_with_type(context, location, &data, type_)
     }
+
+    unsafe fn clear_buffer_with_type(
+        context: &Context,
+        target: u32,
+        buffer: u32,
+        values: &[Self],
+    ) {
+        context.clear_buffer_i32_slice(target, buffer, &values.iter().map(|v| *v as i32).collect::<Vec<_>>());
+    }
 }
 impl PrimitiveDataType for i32 {
+    fn max() -> Self {
+        Self::MAX
+    }
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R32I,
@@ -160,8 +239,21 @@ impl PrimitiveDataType for i32 {
             }
         }
     }
+
+    unsafe fn clear_buffer_with_type(
+        context: &Context,
+        target: u32,
+        buffer: u32,
+        values: &[Self],
+    ) {
+        context.clear_buffer_i32_slice(target, buffer, values);
+    }
 }
 impl PrimitiveDataType for f16 {
+    fn max() -> Self {
+        Self::one()
+    }
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R16F,
@@ -181,8 +273,21 @@ impl PrimitiveDataType for f16 {
         let data = data.iter().map(|v| v.to_f32()).collect::<Vec<_>>();
         f32::send_uniform_with_type(context, location, &data, type_)
     }
+
+    unsafe fn clear_buffer_with_type(
+        context: &Context,
+        target: u32,
+        buffer: u32,
+        values: &[Self],
+    ) {
+        context.clear_buffer_f32_slice(target, buffer, &values.iter().map(|v| v.to_f32()).collect::<Vec<_>>());
+    }
 }
 impl PrimitiveDataType for f32 {
+    fn max() -> Self {
+        Self::one()
+    }
+
     fn internal_format_with_size(size: u32) -> u32 {
         match size {
             1 => crate::context::R32F,
@@ -216,6 +321,15 @@ impl PrimitiveDataType for f32 {
                 }
             }
         }
+    }
+
+    unsafe fn clear_buffer_with_type(
+        context: &Context,
+        target: u32,
+        buffer: u32,
+        values: &[Self],
+    ) {
+        context.clear_buffer_f32_slice(target, buffer, values);
     }
 }
 
