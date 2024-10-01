@@ -21,17 +21,20 @@ default = ["window"]
 window = ["glutin", "winit", "raw-window-handle", "wasm-bindgen", "serde", "serde-wasm-bindgen", "web-sys"] # Window module
 headless = ["glutin_029"] # Headless rendering
 egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features 
+text = ["swash", "lyon"] # Text mesh generation features
 
 [dependencies]
 glow = "0.13"
 cgmath = "0.18"
 three-d-asset = {version = "0.7"}
 thiserror = "1"
+open-enum = "0.5"
 winit = {version = "0.28", optional = true}
 egui = { version = "0.28", optional = true }
 egui_glow = { version = "0.28", optional = true }
 getrandom = { version = "0.2", features = ["js"], optional = true }
-open-enum = "0.5"
+swash = { version = "0.1", optional = true }
+lyon = { version = "1", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 glutin = { version = "0.30", optional = true }
@@ -51,8 +54,6 @@ rand = "0.7"
 three-d-asset = {version = "0.7", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
 noise = {version = "0.6", default-features = false}
 winit = "0.28"
-swash = "0.1"
-lyon = "1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
@@ -64,6 +65,7 @@ path = "examples/triangle/src/main.rs"
 [[example]]
 name = "text"
 path = "examples/text/src/main.rs"
+required-features = ["text"]
 
 [[example]]
 name = "triangle_core"

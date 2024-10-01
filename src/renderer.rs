@@ -55,6 +55,11 @@ pub use object::*;
 pub mod control;
 pub use control::*;
 
+#[cfg(feature = "text")]
+pub mod text;
+#[cfg(feature = "text")]
+pub use text::*;
+
 macro_rules! impl_render_target_extensions_body {
     () => {
         ///
