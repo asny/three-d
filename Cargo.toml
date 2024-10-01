@@ -120,6 +120,10 @@ name = "picking"
 path = "examples/picking/src/main.rs"
 
 [[example]]
+name = "picking_instances"
+path = "examples/picking_instances/src/main.rs"
+
+[[example]]
 name = "environment"
 path = "examples/environment/src/main.rs"
 required-features = ["egui-gui"]
