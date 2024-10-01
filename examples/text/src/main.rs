@@ -137,18 +137,19 @@ impl<'a> TextGenerator<'a> {
         shaper.add_str(&text);
         shaper.shape_with(|cluster| {
             for glyph in cluster.glyphs {
-                let x = cursor + glyph.x;
-                let y = glyph.y;
                 let mesh = self.map.get(&glyph.id).unwrap();
-                let position = vec3(x, y, 0.0);
-                indices.extend(
-                    mesh.indices
-                        .to_u32()
-                        .unwrap()
-                        .iter()
-                        .map(|i| i + positions.len() as u32),
-                );
-                positions.extend(mesh.positions.to_f32().iter().map(|p| p + position));
+
+                let index_offset = positions.len() as u32;
+                let Indices::U32(mesh_indices) = &mesh.indices else {
+                    unreachable!()
+                };
+                indices.extend(mesh_indices.iter().map(|i| i + index_offset));
+
+                let position = vec3(cursor + glyph.x, glyph.y, 0.0);
+                let Positions::F32(mesh_positions) = &mesh.positions else {
+                    unreachable!()
+                };
+                positions.extend(mesh_positions.iter().map(|p| p + position));
             }
             cursor += cluster.advance();
         });
