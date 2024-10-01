@@ -36,29 +36,28 @@ pub fn main() {
         .script(text::Script::Latin)
         .build();
 
-    let text_model = TextModel::new(&context, text, ColorMaterial::default(), &map, shaper);
+    let text_mesh = TextGenerator::new(text, &map, shaper);
+    let mut mesh = Gm::new(Mesh::new(&context, &text_mesh), ColorMaterial::default());
+    mesh.set_transformation(Mat4::from_scale(0.25));
+
     window.render_loop(move |frame_input| {
         camera.set_viewport(frame_input.viewport);
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            .render(&camera, &text_model.gm, &[]);
+            .render(&camera, &mesh, &[]);
         FrameOutput::default()
     });
 }
 
-struct TextModel<M: Material> {
-    gm: Gm<Mesh, M>,
-}
+struct TextGenerator {}
 
-impl<M: Material> TextModel<M> {
+impl TextGenerator {
     fn new(
-        context: &Context,
         text: &str,
-        material: M,
         map: &HashMap<GlyphId, CpuMesh>,
         mut shaper: swash::shape::Shaper<'_>,
-    ) -> Self {
+    ) -> CpuMesh {
         let mut cursor = 0.0;
         let mut positions = Vec::new();
         let mut indices = Vec::new();
@@ -82,21 +81,11 @@ impl<M: Material> TextModel<M> {
             cursor += cluster.advance();
         });
 
-        let mut gm = Gm::new(
-            Mesh::new(
-                context,
-                &CpuMesh {
-                    positions: Positions::F32(positions),
-                    indices: Indices::U32(indices),
-                    ..Default::default()
-                },
-            ),
-            material,
-        );
-
-        gm.set_transformation(Mat4::from_scale(0.25));
-
-        Self { gm }
+        CpuMesh {
+            positions: Positions::F32(positions),
+            indices: Indices::U32(indices),
+            ..Default::default()
+        }
     }
 }
 
