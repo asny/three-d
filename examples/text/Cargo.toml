@@ -9,7 +9,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 three-d = { path = "../../", features = ["text"] }
-swash = "0.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"

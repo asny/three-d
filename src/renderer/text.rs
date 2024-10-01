@@ -4,9 +4,7 @@ use lyon::path::Path;
 use lyon::tessellation::*;
 use std::collections::HashMap;
 use swash::zeno::{Command, PathData};
-use swash::{scale::ScaleContext, shape::ShapeContext, GlyphId};
-
-pub use swash::FontRef;
+use swash::{scale::ScaleContext, shape::ShapeContext, FontRef, GlyphId};
 
 ///
 /// A utility struct for generating a [CpuMesh] from a text string with a given font.
@@ -22,7 +20,8 @@ impl<'a> TextGenerator<'a> {
     ///
     /// Creates a new TextGenerator with the given font and size in pixels per em.
     ///
-    pub fn new(font: FontRef<'a>, size: f32) -> Self {
+    pub fn new(font_bytes: &'a [u8], size: f32) -> Self {
+        let font = FontRef::from_index(font_bytes, 0).expect("Failed to load font");
         let mut context = ScaleContext::new();
         let mut scaler = context.builder(font).size(size).build();
         let mut map = HashMap::new();
