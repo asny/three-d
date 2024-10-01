@@ -13,12 +13,13 @@ pub fn main() {
 
     let context = window.gl();
 
-    let mut camera = Camera::new_perspective(
+    let x = window.viewport().width as f32 * 0.5;
+    let mut camera = Camera::new_orthographic(
         window.viewport(),
-        vec3(0.0, 0.0, 2.0),
-        vec3(0.0, 0.0, 0.0),
+        vec3(x, 0.0, 2.0),
+        vec3(x, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
-        degrees(45.0),
+        window.viewport().height as f32,
         0.1,
         10.0,
     );
@@ -29,35 +30,83 @@ pub fn main() {
 
     let text = "Hello, World!";
 
-    let models = text
-        .char_indices()
-        .map(move |(i, c)| {
-            let mesh = map.get(&c.into()).unwrap();
-            let mut m = Gm::new(Mesh::new(&context, &mesh), ColorMaterial::default());
-            m.set_transformation(
-                Mat4::from_translation(vec3(-1.25 + 0.2 * i as f32, 0.0, 0.0))
-                    * Mat4::from_scale(0.0002),
-            );
-            m
-        })
-        .collect::<Vec<_>>();
+    let mut shape_context = shape::ShapeContext::new();
+    let shaper = shape_context
+        .builder(font)
+        .script(text::Script::Latin)
+        .build();
+
+    let text_model = TextModel::new(&context, text, ColorMaterial::default(), &map, shaper);
     window.render_loop(move |frame_input| {
         camera.set_viewport(frame_input.viewport);
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            .render(&camera, models.iter(), &[]);
+            .render(&camera, &text_model.gm, &[]);
         FrameOutput::default()
     });
 }
 
-fn new(font: FontRef) -> HashMap<u32, CpuMesh> {
+struct TextModel<M: Material> {
+    gm: Gm<Mesh, M>,
+}
+
+impl<M: Material> TextModel<M> {
+    fn new(
+        context: &Context,
+        text: &str,
+        material: M,
+        map: &HashMap<GlyphId, CpuMesh>,
+        mut shaper: swash::shape::Shaper<'_>,
+    ) -> Self {
+        let mut cursor = 0.0;
+        let mut positions = Vec::new();
+        let mut indices = Vec::new();
+
+        shaper.add_str(&text);
+        shaper.shape_with(|cluster| {
+            for glyph in cluster.glyphs {
+                let x = cursor + glyph.x;
+                let y = glyph.y;
+                let mesh = map.get(&glyph.id).unwrap();
+                let position = vec3(x, y, 0.0);
+                indices.extend(
+                    mesh.indices
+                        .to_u32()
+                        .unwrap()
+                        .iter()
+                        .map(|i| i + positions.len() as u32),
+                );
+                positions.extend(mesh.positions.to_f32().iter().map(|p| p + position));
+            }
+            cursor += cluster.advance();
+        });
+
+        let mut gm = Gm::new(
+            Mesh::new(
+                context,
+                &CpuMesh {
+                    positions: Positions::F32(positions),
+                    indices: Indices::U32(indices),
+                    ..Default::default()
+                },
+            ),
+            material,
+        );
+
+        gm.set_transformation(Mat4::from_scale(0.25));
+
+        Self { gm }
+    }
+}
+
+fn new(font: FontRef) -> HashMap<GlyphId, CpuMesh> {
     use scale::*;
     let mut context = ScaleContext::new();
     let mut scaler = context.builder(font).build();
     let mut map = HashMap::new();
 
-    font.charmap().enumerate(|c, id| {
+    font.charmap().enumerate(|_, id| {
         if let Some(outline) = scaler.scale_outline(id) {
             use crate::zeno::{Command, PathData};
             use lyon::math::Point;
@@ -102,7 +151,7 @@ fn new(font: FontRef) -> HashMap<u32, CpuMesh> {
                 .unwrap();
 
             map.insert(
-                c,
+                id,
                 CpuMesh {
                     positions: Positions::F32(geometry.vertices),
                     indices: Indices::U32(geometry.indices),
