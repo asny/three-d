@@ -35,6 +35,22 @@ pub fn main() {
 
     window.render_loop(move |frame_input| {
         camera.set_viewport(frame_input.viewport);
+
+        for event in frame_input.events.iter() {
+            match *event {
+                Event::MouseMotion { delta, button, .. } => {
+                    if button == Some(MouseButton::Left) {
+                        let speed = 1.3;
+                        let right = camera.right_direction();
+                        let up = right.cross(camera.view_direction());
+                        let delta = -right * speed * delta.0 + up * speed * delta.1;
+                        camera.translate(&delta);
+                    }
+                }
+                _ => {}
+            }
+        }
+
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
