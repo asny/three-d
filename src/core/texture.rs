@@ -349,13 +349,13 @@ fn set_parameters(
     }
 }
 
-fn calculate_number_of_mip_maps<T: TextureDataType>(
+fn calculate_number_of_mip_maps<T: DataType>(
     mip_map_filter: Option<Interpolation>,
     width: u32,
     height: u32,
     depth: Option<u32>,
 ) -> u32 {
-    // Cannot generate mip maps for RGB textures using non-normalized data formats on web (OpenGL ES3.0 Table 3.13, https://registry.khronos.org/webgl/extensions/EXT_color_buffer_float/)
+    // Cannot generate mip maps for RGB textures using non-byte data formats on web (OpenGL ES3.0 Table 3.13, https://registry.khronos.org/webgl/extensions/EXT_color_buffer_float/)
     if T::size() == 3 && T::data_type() != crate::context::UNSIGNED_BYTE {
         return 1;
     }
@@ -389,7 +389,7 @@ fn interpolation_from(interpolation: Interpolation) -> i32 {
     }) as i32
 }
 
-fn check_data_length<T: TextureDataType>(
+fn check_data_length<T: DataType>(
     width: u32,
     height: u32,
     depth: u32,

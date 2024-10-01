@@ -215,6 +215,19 @@ impl Texture2DArray {
     }
 
     ///
+    /// Fills the texture array with the given pixel data in the given format.
+    ///
+    /// # Panic
+    /// Will panic if the data does not correspond to the width, height, depth and format specified at construction.
+    /// It is therefore necessary to create a new texture if the texture size or format has changed.
+    ///
+    pub fn fill_buffer<T: BufferDataType>(&mut self, data: &[&[T]]) {
+        for (i, data) in data.iter().enumerate() {
+            self.fill_layer_buffer(i as u32, data);
+        }
+    }
+
+    ///
     /// Fills the given layer in the texture array with the given pixel data.
     ///
     /// # Panic
@@ -222,6 +235,21 @@ impl Texture2DArray {
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill_layer<T: TextureDataType>(&mut self, layer: u32, data: &[T]) {
+        self.fill_layer_format(layer, data, normalized_format_from_data_type::<T>());
+    }
+
+    ///
+    /// Fills the given layer in the texture array with the given pixel data in the given format.
+    ///
+    /// # Panic
+    /// Will panic if the layer number is bigger than the number of layers or if the data does not correspond to the width, height and format specified at construction.
+    /// It is therefore necessary to create a new texture if the texture size or format has changed.
+    ///
+    pub fn fill_layer_buffer<T: BufferDataType>(&mut self, layer: u32, data: &[T]) {
+        self.fill_layer_format(layer, data, format_from_data_type::<T>());
+    }
+
+    fn fill_layer_format<T: BufferDataType>(&mut self, layer: u32, data: &[T], format: u32) {
         if layer >= self.depth {
             panic!(
                 "cannot fill the layer {} with data, since there are only {} layers in the texture array",
@@ -242,7 +270,7 @@ impl Texture2DArray {
                 self.width as i32,
                 self.height as i32,
                 1,
-                normalized_format_from_data_type::<T>(),
+                format,
                 T::data_type(),
                 crate::context::PixelUnpackData::Slice(to_byte_slice(&data)),
             );

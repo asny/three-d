@@ -303,7 +303,7 @@ impl TextureCubeMap {
     ///
     /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
     ///
-    pub fn new_empty<T: TextureDataType>(
+    pub fn new_empty<T: BufferDataType>(
         context: &Context,
         width: u32,
         height: u32,
@@ -369,6 +369,38 @@ impl TextureCubeMap {
         front_data: &[T],
         back_data: &[T],
     ) {
+        self.fill_format(right_data, left_data, top_data, bottom_data, front_data, back_data, normalized_format_from_data_type::<T>());
+    }
+
+    ///
+    /// Fills the cube map texture with the given pixel data in the given format for the 6 images.
+    ///
+    /// # Panic
+    /// Will panic if the length of the data for all 6 images does not correspond to the width, height and format specified at construction.
+    /// It is therefore necessary to create a new texture if the texture size or format has changed.
+    ///
+    pub fn fill_buffer<T: BufferDataType>(
+        &mut self,
+        right_data: &[T],
+        left_data: &[T],
+        top_data: &[T],
+        bottom_data: &[T],
+        front_data: &[T],
+        back_data: &[T],
+    ) {
+        self.fill_format(right_data, left_data, top_data, bottom_data, front_data, back_data, format_from_data_type::<T>());
+    }
+    
+    fn fill_format<T: BufferDataType>(
+        &mut self,
+        right_data: &[T],
+        left_data: &[T],
+        top_data: &[T],
+        bottom_data: &[T],
+        front_data: &[T],
+        back_data: &[T],
+        format: u32,
+    ) {
         check_data_length::<T>(
             self.width,
             self.height,
@@ -430,7 +462,7 @@ impl TextureCubeMap {
                     0,
                     self.width as i32,
                     self.height as i32,
-                    normalized_format_from_data_type::<T>(),
+                    format,
                     T::data_type(),
                     crate::context::PixelUnpackData::Slice(to_byte_slice(data)),
                 );

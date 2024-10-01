@@ -9,7 +9,7 @@ pub struct Texture2DMultisample {
 }
 
 impl Texture2DMultisample {
-    pub fn new<T: TextureDataType>(
+    pub fn new<T: BufferDataType>(
         context: &Context,
         width: u32,
         height: u32,

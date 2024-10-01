@@ -61,7 +61,7 @@ impl Texture3D {
     ///
     /// **Note:** Mip maps will not be generated for RGB16F and RGB32F format, even if `mip_map_filter` is specified.
     ///
-    pub fn new_empty<T: TextureDataType>(
+    pub fn new_empty<T: BufferDataType>(
         context: &Context,
         width: u32,
         height: u32,
@@ -122,6 +122,21 @@ impl Texture3D {
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(&mut self, data: &[T]) {
+        self.fill_format(data, normalized_format_from_data_type::<T>());
+    }
+
+    ///
+    /// Fills this texture with the given data in the given data format.
+    ///
+    /// # Panic
+    /// Will panic if the length of the data does not correspond to the width, height, depth and format specified at construction.
+    /// It is therefore necessary to create a new texture if the texture size or format has changed.
+    ///
+    pub fn fill_buffer<T: TextureDataType>(&mut self, data: &[T]) {
+        self.fill_format(data, format_from_data_type::<T>());
+    }
+
+    fn fill_format<T: TextureDataType>(&mut self, data: &[T], format: u32) {
         check_data_length::<T>(
             self.width,
             self.height,
@@ -140,7 +155,7 @@ impl Texture3D {
                 self.width as i32,
                 self.height as i32,
                 self.depth as i32,
-                normalized_format_from_data_type::<T>(),
+                format,
                 T::data_type(),
                 crate::context::PixelUnpackData::Slice(to_byte_slice(data)),
             );
