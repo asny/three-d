@@ -26,17 +26,11 @@ pub fn main() {
 
     let font_data = include_bytes!("GrapeNuts-Regular.ttf");
     let font = FontRef::from_index(font_data, 0).expect("Failed to load font");
-    let map = new(font);
+    let mut text_generator = TextGenerator::new(font);
 
     let text = "Hello, World!";
 
-    let mut shape_context = shape::ShapeContext::new();
-    let shaper = shape_context
-        .builder(font)
-        .script(text::Script::Latin)
-        .build();
-
-    let text_mesh = TextGenerator::new(text, &map, shaper);
+    let text_mesh = text_generator.generate(text);
     let mut mesh = Gm::new(Mesh::new(&context, &text_mesh), ColorMaterial::default());
     mesh.set_transformation(Mat4::from_scale(0.25));
 
@@ -50,12 +44,90 @@ pub fn main() {
     });
 }
 
-struct TextGenerator {}
+struct TextGenerator<'a> {
+    map: HashMap<GlyphId, CpuMesh>,
+    font: FontRef<'a>,
+}
 
-impl TextGenerator {
-    fn new(
+impl<'a> TextGenerator<'a> {
+    pub fn new(font: FontRef<'a>) -> Self {
+        use scale::*;
+        let mut context = ScaleContext::new();
+        let mut scaler = context.builder(font).build();
+        let mut map = HashMap::new();
+
+        font.charmap().enumerate(|_, id| {
+            if let Some(outline) = scaler.scale_outline(id) {
+                use crate::zeno::{Command, PathData};
+                use lyon::math::Point;
+                use lyon::path::Path;
+                use lyon::tessellation::*;
+
+                let mut builder = Path::builder();
+                for command in outline.path().commands() {
+                    match command {
+                        Command::MoveTo(p) => {
+                            builder.begin(Point::new(p.x, p.y));
+                        }
+                        Command::LineTo(p) => {
+                            builder.line_to(Point::new(p.x, p.y));
+                        }
+                        Command::CurveTo(p1, p2, p3) => {
+                            builder.cubic_bezier_to(
+                                Point::new(p1.x, p1.y),
+                                Point::new(p2.x, p2.y),
+                                Point::new(p3.x, p3.y),
+                            );
+                        }
+                        Command::QuadTo(p1, p2) => {
+                            builder.quadratic_bezier_to(
+                                Point::new(p1.x, p1.y),
+                                Point::new(p2.x, p2.y),
+                            );
+                        }
+                        Command::Close => builder.close(),
+                    }
+                }
+                let path = builder.build();
+
+                let mut tessellator = FillTessellator::new();
+                let mut geometry: VertexBuffers<Vec3, u32> = VertexBuffers::new();
+                let options = FillOptions::default();
+                tessellator
+                    .tessellate_path(
+                        &path,
+                        &options,
+                        &mut BuffersBuilder::new(&mut geometry, |vertex: FillVertex| {
+                            vec3(vertex.position().x, vertex.position().y, 0.0)
+                        }),
+                    )
+                    .unwrap();
+
+                map.insert(
+                    id,
+                    CpuMesh {
+                        positions: Positions::F32(geometry.vertices),
+                        indices: Indices::U32(geometry.indices),
+                        ..Default::default()
+                    },
+                );
+            }
+        });
+        Self { map, font }
+    }
+
+    pub fn generate(&mut self, text: &str) -> CpuMesh {
+        let mut shape_context = shape::ShapeContext::new();
+        let shaper = shape_context
+            .builder(self.font)
+            .script(text::Script::Latin)
+            .build();
+        self.generate_with_shaper(text, shaper)
+    }
+
+    pub fn generate_with_shaper(
+        &mut self,
         text: &str,
-        map: &HashMap<GlyphId, CpuMesh>,
         mut shaper: swash::shape::Shaper<'_>,
     ) -> CpuMesh {
         let mut cursor = 0.0;
@@ -67,7 +139,7 @@ impl TextGenerator {
             for glyph in cluster.glyphs {
                 let x = cursor + glyph.x;
                 let y = glyph.y;
-                let mesh = map.get(&glyph.id).unwrap();
+                let mesh = self.map.get(&glyph.id).unwrap();
                 let position = vec3(x, y, 0.0);
                 indices.extend(
                     mesh.indices
@@ -87,68 +159,4 @@ impl TextGenerator {
             ..Default::default()
         }
     }
-}
-
-fn new(font: FontRef) -> HashMap<GlyphId, CpuMesh> {
-    use scale::*;
-    let mut context = ScaleContext::new();
-    let mut scaler = context.builder(font).build();
-    let mut map = HashMap::new();
-
-    font.charmap().enumerate(|_, id| {
-        if let Some(outline) = scaler.scale_outline(id) {
-            use crate::zeno::{Command, PathData};
-            use lyon::math::Point;
-            use lyon::path::Path;
-            use lyon::tessellation::*;
-
-            let mut builder = Path::builder();
-            for command in outline.path().commands() {
-                match command {
-                    Command::MoveTo(p) => {
-                        builder.begin(Point::new(p.x, p.y));
-                    }
-                    Command::LineTo(p) => {
-                        builder.line_to(Point::new(p.x, p.y));
-                    }
-                    Command::CurveTo(p1, p2, p3) => {
-                        builder.cubic_bezier_to(
-                            Point::new(p1.x, p1.y),
-                            Point::new(p2.x, p2.y),
-                            Point::new(p3.x, p3.y),
-                        );
-                    }
-                    Command::QuadTo(p1, p2) => {
-                        builder.quadratic_bezier_to(Point::new(p1.x, p1.y), Point::new(p2.x, p2.y));
-                    }
-                    Command::Close => builder.close(),
-                }
-            }
-            let path = builder.build();
-
-            let mut tessellator = FillTessellator::new();
-            let mut geometry: VertexBuffers<Vec3, u32> = VertexBuffers::new();
-            let options = FillOptions::default();
-            tessellator
-                .tessellate_path(
-                    &path,
-                    &options,
-                    &mut BuffersBuilder::new(&mut geometry, |vertex: FillVertex| {
-                        vec3(vertex.position().x, vertex.position().y, 0.0)
-                    }),
-                )
-                .unwrap();
-
-            map.insert(
-                id,
-                CpuMesh {
-                    positions: Positions::F32(geometry.vertices),
-                    indices: Indices::U32(geometry.indices),
-                    ..Default::default()
-                },
-            );
-        }
-    });
-
-    map
 }
