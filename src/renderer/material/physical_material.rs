@@ -202,6 +202,7 @@ impl Material for PhysicalMaterial {
                 || self.occlusion_texture.is_some()
                 || self.emissive_texture.is_some(),
             tangents: self.normal_texture.is_some(),
+            ..FragmentAttributes::NONE
         }
     }
 

@@ -195,12 +195,13 @@ impl Geometry for ParticleSystem {
             required_attributes.color && self.base_mesh.colors.is_some(),
             required_attributes.color && self.instance_buffers.contains_key("instance_color"),
             required_attributes.uv && self.instance_buffers.contains_key("tex_transform_row1"),
+            required_attributes.instance_id,
         )
     }
 
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
         format!(
-            "#define PARTICLES\n{}{}{}{}{}{}{}{}",
+            "#define PARTICLES\n{}{}{}{}{}{}{}{}{}",
             if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {
@@ -228,6 +229,11 @@ impl Geometry for ParticleSystem {
             },
             if required_attributes.uv && self.instance_buffers.contains_key("tex_transform_row1") {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
+            } else {
+                ""
+            },
+            if required_attributes.instance_id {
+                "#define USE_INSTANCE_ID"
             } else {
                 ""
             },

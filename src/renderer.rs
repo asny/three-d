@@ -665,3 +665,121 @@ pub fn ray_intersect(
         None
     }
 }
+
+///
+/// Representation of a specific geometry instance
+///
+pub struct GeometryInstance {
+    /// The index of the geometry in the input list
+    pub index: usize,
+    /// The instance id selected, if applicable
+    pub instance: Option<usize>,
+    /// The location of intersection between the cast ray and the geometry
+    pub intersection: Vec3,
+}
+
+///
+/// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
+/// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
+/// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
+/// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
+///
+pub fn pick_instance(
+    context: &Context,
+    camera: &Camera,
+    pixel: impl Into<PhysicalPoint> + Copy,
+    geometries: impl IntoIterator<Item = impl Geometry>,
+) -> Option<GeometryInstance> {
+    let pos = camera.position_at_pixel(pixel);
+    let dir = camera.view_direction_at_pixel(pixel);
+    ray_intersect_instance(
+        context,
+        pos + dir * camera.z_near(),
+        dir,
+        camera.z_far() - camera.z_near(),
+        geometries,
+    )
+}
+
+///
+/// Finds the geometry instance responsible for the closest intersection between a ray starting at the given position in the given direction and the given geometries.
+/// Returns ```None``` if no geometry was hit before the given maximum depth.
+///
+pub fn ray_intersect_instance(
+    context: &Context,
+    position: Vec3,
+    direction: Vec3,
+    max_depth: f32,
+    geometries: impl IntoIterator<Item = impl Geometry>,
+) -> Option<GeometryInstance> {
+    use crate::core::*;
+    let viewport = Viewport::new_at_origo(1, 1);
+    let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
+        direction.cross(vec3(0.0, 1.0, 0.0))
+    } else {
+        direction.cross(vec3(1.0, 0.0, 0.0))
+    };
+    let camera = Camera::new_orthographic(
+        viewport,
+        position,
+        position + direction * max_depth,
+        up,
+        0.01,
+        0.0,
+        max_depth,
+    );
+    let mut texture = Texture2D::new_empty::<[f32; 4]>(
+        context,
+        viewport.width,
+        viewport.height,
+        Interpolation::Nearest,
+        Interpolation::Nearest,
+        None,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+    );
+    let mut depth_texture = DepthTexture2D::new::<f32>(
+        context,
+        viewport.width,
+        viewport.height,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+    );
+    let mut id_material = GeometryInstanceMaterial {
+        id: 0,
+        ..Default::default()
+    };
+    let [depth, id, instance_id, _] = RenderTarget::new(
+        texture.as_color_target(None),
+        depth_texture.as_depth_target(),
+    )
+    .clear(ClearState::color_and_depth(-1.0, -1.0, -1.0, -1.0, 1.0))
+    .write::<RendererError>(|| {
+        for geometry in geometries {
+            render_with_material(context, &camera, &geometry, &id_material, &[]);
+            id_material.id += 1;
+        }
+        Ok(())
+    })
+    .unwrap()
+    .read_color::<[f32; 4]>()[0];
+
+    fn cast(val: f32) -> Option<usize> {
+        if val >= usize::MIN as f32 && val % 1.0 == 0.0 && val <= usize::MAX as f32 {
+            Some(val as usize)
+        } else {
+            None
+        }
+    }
+
+    if let Some(id) = cast(id) {
+        let intersection = position + direction * depth;
+        Some(GeometryInstance {
+            index: id,
+            instance: cast(instance_id),
+            intersection,
+        })
+    } else {
+        None
+    }
+}

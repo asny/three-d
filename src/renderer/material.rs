@@ -74,6 +74,10 @@ mod isosurface_material;
 #[doc(inline)]
 pub use isosurface_material::*;
 
+mod geometry_instance_material;
+#[doc(inline)]
+pub use geometry_instance_material::*;
+
 use std::{ops::Deref, sync::Arc};
 
 ///
@@ -158,6 +162,8 @@ pub struct FragmentAttributes {
     pub uv: bool,
     /// Color: `in vec4 col;`
     pub color: bool,
+    /// Instance ID: `in uint instanceID`
+    pub instance_id: bool,
 }
 
 impl FragmentAttributes {
@@ -168,6 +174,7 @@ impl FragmentAttributes {
         tangents: true,
         uv: true,
         color: true,
+        instance_id: true,
     };
     /// No attributes
     pub const NONE: Self = Self {
@@ -176,6 +183,7 @@ impl FragmentAttributes {
         tangents: false,
         uv: false,
         color: false,
+        instance_id: false,
     };
 }
 

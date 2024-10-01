@@ -98,8 +98,8 @@ pub enum GeometryId {
     Sprites = 0x8004,
     WaterPatch = 0x8005,
     MeshBase = 0x8010,           // To 0x801F
-    ParticleSystemBase = 0x8040, // To 0x807F
-    InstancedMeshBase = 0x8080,  // To 0x80FF
+    ParticleSystemBase = 0x8080, // To 0x80FF
+    InstancedMeshBase = 0x8100,  // To 0x81FF
 }
 
 impl GeometryId {
@@ -107,7 +107,15 @@ impl GeometryId {
     enum_bitfield!(MeshBase, Mesh(normal, tangents, uv, color));
     enum_bitfield!(
         ParticleSystemBase,
-        ParticleSystem(normal, tangents, uv, color, instance_color, instance_uv)
+        ParticleSystem(
+            normal,
+            tangents,
+            uv,
+            color,
+            instance_color,
+            instance_uv,
+            instance_id,
+        )
     );
     enum_bitfield!(
         InstancedMeshBase,
@@ -119,6 +127,7 @@ impl GeometryId {
             instance_color,
             instance_transformation,
             instance_uv,
+            instance_id,
         )
     );
 }
@@ -144,6 +153,7 @@ pub enum EffectMaterialId {
     SkyboxMaterial = 0x8004,
     UVMaterial = 0x8005,
     NormalMaterialBase = 0x8006, // To 0x8007
+    GeometryInstanceMaterial = 0x800B,
     IsosurfaceMaterial = 0x800C,
     ImpostersMaterial = 0x800D,
     BrdfMaterial = 0x800E,

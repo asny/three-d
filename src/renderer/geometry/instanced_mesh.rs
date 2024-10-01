@@ -268,7 +268,7 @@ impl Geometry for InstancedMesh {
     fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
         let instance_buffers = &self.instance_buffers.read().unwrap().0;
         format!(
-            "{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}{}",
             if required_attributes.normal {
                 "#define USE_NORMALS\n"
             } else {
@@ -304,6 +304,11 @@ impl Geometry for InstancedMesh {
             } else {
                 ""
             },
+            if required_attributes.instance_id {
+                "#define USE_INSTANCE_ID"
+            } else {
+                ""
+            },
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh.vert"),
         )
@@ -323,6 +328,7 @@ impl Geometry for InstancedMesh {
             required_attributes.color && instance_buffers.contains_key("instance_color"),
             instance_buffers.contains_key("instance_translation"),
             required_attributes.uv && instance_buffers.contains_key("tex_transform_row1"),
+            required_attributes.instance_id,
         )
     }
 

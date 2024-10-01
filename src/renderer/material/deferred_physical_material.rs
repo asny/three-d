@@ -240,6 +240,7 @@ impl Material for DeferredPhysicalMaterial {
                 || self.emissive_texture.is_some()
                 || self.alpha_cutout.is_some(),
             tangents: self.normal_texture.is_some(),
+            ..FragmentAttributes::NONE
         }
     }
 

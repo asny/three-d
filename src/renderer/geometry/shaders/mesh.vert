@@ -117,4 +117,9 @@ void main()
 #ifdef USE_INSTANCE_COLORS
     col *= instance_color;
 #endif
+
+    // *** IDs ***
+#ifdef USE_INSTANCE_ID
+    col.x = -float(gl_InstanceID);
+#endif
 }
