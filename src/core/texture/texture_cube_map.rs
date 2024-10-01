@@ -369,7 +369,15 @@ impl TextureCubeMap {
         front_data: &[T],
         back_data: &[T],
     ) {
-        self.fill_format(right_data, left_data, top_data, bottom_data, front_data, back_data, normalized_format_from_data_type::<T>());
+        self.fill_format(
+            right_data,
+            left_data,
+            top_data,
+            bottom_data,
+            front_data,
+            back_data,
+            normalized_format_from_data_type::<T>(),
+        );
     }
 
     ///
@@ -388,9 +396,17 @@ impl TextureCubeMap {
         front_data: &[T],
         back_data: &[T],
     ) {
-        self.fill_format(right_data, left_data, top_data, bottom_data, front_data, back_data, format_from_data_type::<T>());
+        self.fill_format(
+            right_data,
+            left_data,
+            top_data,
+            bottom_data,
+            front_data,
+            back_data,
+            format_from_data_type::<T>(),
+        );
     }
-    
+
     fn fill_format<T: BufferDataType>(
         &mut self,
         right_data: &[T],

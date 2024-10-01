@@ -61,7 +61,11 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
     ///
     /// Clears the color and depth of the part of this target that is inside the given scissor box, in the given data type.
     ///
-    pub fn clear_buffer_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
+    pub fn clear_buffer_partially(
+        &self,
+        scissor_box: ScissorBox,
+        clear_state: ClearState<impl PrimitiveDataType>,
+    ) -> &Self {
         self.as_render_target()
             .clear_buffer_partially(scissor_box, clear_state);
         self

@@ -127,8 +127,7 @@ fn normalized_format_from_data_type<T: DataType>() -> u32 {
 fn format_from_data_type<T: DataType>() -> u32 {
     if T::data_type() == crate::context::FLOAT || T::data_type() == crate::context::HALF_FLOAT {
         normalized_format_from_data_type::<T>()
-    }
-    else {
+    } else {
         match T::size() {
             1 => crate::context::RED_INTEGER,
             2 => crate::context::RG_INTEGER,

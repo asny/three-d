@@ -116,7 +116,11 @@ impl<'a> RenderTarget<'a> {
     ///
     /// Clears the color and depth of the part of this render target that is inside the given scissor box, in the given data type.
     ///
-    pub fn clear_buffer_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
+    pub fn clear_buffer_partially(
+        &self,
+        scissor_box: ScissorBox,
+        clear_state: ClearState<impl PrimitiveDataType>,
+    ) -> &Self {
         self.context.set_scissor(scissor_box);
         self.bind(crate::context::DRAW_FRAMEBUFFER);
         clear_state.apply_buffer(&self.context);
@@ -208,8 +212,12 @@ impl<'a> RenderTarget<'a> {
 
     ///
     /// Common function used to implement read_color, read_buffer, and _partially variants
-    /// 
-    fn read_formatted_buffer_partially<T: BufferDataType>(&self, format: u32, scissor_box: ScissorBox) -> Vec<T> {
+    ///
+    fn read_formatted_buffer_partially<T: BufferDataType>(
+        &self,
+        format: u32,
+        scissor_box: ScissorBox,
+    ) -> Vec<T> {
         if self.id.is_some() && self.color.is_none() {
             panic!("Cannot read color from a render target without a color target");
         }

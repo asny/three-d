@@ -109,8 +109,7 @@ impl<T: PrimitiveDataType> ClearState<T> {
         }
     }
 
-    pub(in crate::core) fn apply_buffer(&self, context: &Context)
-    {
+    pub(in crate::core) fn apply_buffer(&self, context: &Context) {
         context.set_write_mask(WriteMask {
             red: self.red.is_some(),
             green: self.green.is_some(),
@@ -124,7 +123,10 @@ impl<T: PrimitiveDataType> ClearState<T> {
                 || self.blue.is_some()
                 || self.alpha.is_some();
             if clear_color {
-                T::clear_buffer_with_type(context, crate::context::COLOR, 0, 
+                T::clear_buffer_with_type(
+                    context,
+                    crate::context::COLOR,
+                    0,
                     &[
                         self.red.unwrap_or_else(T::zero),
                         self.green.unwrap_or_else(T::zero),

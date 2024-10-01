@@ -40,7 +40,11 @@ impl<D: DepthTextureDataType> DepthTargetMultisample<D> {
     ///
     /// Clears the color and depth of the part of this target that is inside the given scissor box.
     ///
-    pub fn clear_partially(&self, scissor_box: ScissorBox, clear_state: ClearState<impl PrimitiveDataType>) -> &Self {
+    pub fn clear_partially(
+        &self,
+        scissor_box: ScissorBox,
+        clear_state: ClearState<impl PrimitiveDataType>,
+    ) -> &Self {
         self.as_render_target().clear_partially(
             scissor_box,
             ClearState {
