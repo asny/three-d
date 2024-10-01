@@ -3,24 +3,33 @@ use lyon::math::Point;
 use lyon::path::Path;
 use lyon::tessellation::*;
 use std::collections::HashMap;
-use swash::scale::{ScaleContext, Scaler};
-use swash::shape::{ShapeContext, Shaper};
 use swash::zeno::{Command, PathData};
-pub use swash::FontRef;
 use swash::GlyphId;
 
+pub use swash::{scale::ScaleContext, scale::Scaler, shape::ShapeContext, shape::Shaper, FontRef};
+
+///
+/// A utility struct for generating a [CpuMesh] from a text string with a given font.
+///
 pub struct TextGenerator<'a> {
     map: HashMap<GlyphId, CpuMesh>,
     font: FontRef<'a>,
 }
 
 impl<'a> TextGenerator<'a> {
+    ///
+    /// Creates a new TextGenerator with the given font.
+    /// If you need control over scaler settings, use [TextGenerator::new_with_scaler] instead.
+    ///
     pub fn new(font: FontRef<'a>) -> Self {
         let mut context = ScaleContext::new();
         let scaler = context.builder(font).build();
         Self::new_with_scaler(font, scaler)
     }
 
+    ///
+    /// Creates a new TextGenerator with the given font and [Scaler].
+    ///
     pub fn new_with_scaler(font: FontRef<'a>, mut scaler: Scaler<'_>) -> Self {
         let mut map = HashMap::new();
         font.charmap().enumerate(|_, id| {
@@ -78,12 +87,19 @@ impl<'a> TextGenerator<'a> {
         Self { map, font }
     }
 
+    ///
+    /// Generates a [CpuMesh] from the given text string.
+    /// If you need control over shaper settings, use [TextGenerator::generate_with_shaper] instead.
+    ///
     pub fn generate(&self, text: &str) -> CpuMesh {
         let mut shape_context = ShapeContext::new();
         let shaper = shape_context.builder(self.font).build();
         self.generate_with_shaper(text, shaper)
     }
 
+    ///
+    /// Generates a [CpuMesh] from the given text string using the given [Shaper].
+    ///
     pub fn generate_with_shaper(&self, text: &str, mut shaper: Shaper<'_>) -> CpuMesh {
         let mut cursor = 0.0;
         let mut positions = Vec::new();

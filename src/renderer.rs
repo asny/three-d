@@ -56,7 +56,7 @@ pub mod control;
 pub use control::*;
 
 #[cfg(feature = "text")]
-pub mod text;
+mod text;
 #[cfg(feature = "text")]
 pub use text::*;
 
