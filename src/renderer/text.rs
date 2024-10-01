@@ -8,16 +8,6 @@ use swash::{scale::ScaleContext, shape::ShapeContext, GlyphId};
 
 pub use swash::FontRef;
 
-pub struct TextOptions {
-    pub size: f32,
-}
-
-impl Default for TextOptions {
-    fn default() -> Self {
-        Self { size: 0.0 }
-    }
-}
-
 ///
 /// A utility struct for generating a [CpuMesh] from a text string with a given font.
 ///
@@ -25,16 +15,16 @@ pub struct TextGenerator<'a> {
     map: HashMap<GlyphId, CpuMesh>,
     font: FontRef<'a>,
     line_height: f32,
-    options: TextOptions,
+    size: f32,
 }
 
 impl<'a> TextGenerator<'a> {
     ///
-    /// Creates a new TextGenerator with the given font and options.
+    /// Creates a new TextGenerator with the given font and size in pixels per em.
     ///
-    pub fn new(font: FontRef<'a>, options: TextOptions) -> Self {
+    pub fn new(font: FontRef<'a>, size: f32) -> Self {
         let mut context = ScaleContext::new();
-        let mut scaler = context.builder(font).size(options.size).build();
+        let mut scaler = context.builder(font).size(size).build();
         let mut map = HashMap::new();
         let mut line_height: f32 = 0.0;
         font.charmap().enumerate(|_, id| {
@@ -92,7 +82,7 @@ impl<'a> TextGenerator<'a> {
             map,
             font,
             line_height,
-            options,
+            size,
         }
     }
 
@@ -101,10 +91,7 @@ impl<'a> TextGenerator<'a> {
     ///
     pub fn generate(&self, text: &str) -> CpuMesh {
         let mut shape_context = ShapeContext::new();
-        let mut shaper = shape_context
-            .builder(self.font)
-            .size(self.options.size)
-            .build();
+        let mut shaper = shape_context.builder(self.font).size(self.size).build();
         let mut positions = Vec::new();
         let mut indices = Vec::new();
         let mut y = 0.0;

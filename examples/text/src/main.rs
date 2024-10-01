@@ -24,7 +24,7 @@ pub fn main() {
     let font0 = FontRef::from_index(include_bytes!("font0.ttf"), 0).expect("Failed to load font");
     let font1 = FontRef::from_index(include_bytes!("font1.ttf"), 0).expect("Failed to load font");
 
-    let text_generator = TextGenerator::new(font0, TextOptions::default());
+    let text_generator = TextGenerator::new(font0, 30.0);
     let text_mesh0 = text_generator.generate("Hello, World!");
     let text_mesh1 = text_generator.generate("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vivamus rutrum, augue vitae interdum dapibus, risus velit interdum dui, sit amet condimentum wisi sem vel odio. Nam lorem. Sed et leo sed est vehicula suscipit. Nunc volutpat, sapien non laoreet cursus, ipsum ipsum varius velit, sit amet lacinia nulla enim quis erat. Curabitur sagittis. Donec quis nulla et wisi molestie consequat. Nulla vel neque. Proin dignissim volutpat leo. 
 	Suspendisse ac libero sit amet leo bibendum aliquam. Pellentesque nisl. Etiam sed sem et purus convallis mattis. Sed fringilla eros id risus. 
@@ -33,7 +33,7 @@ pub fn main() {
 	Morbi tincidunt semper tortor. Maecenas hendrerit. Vivamus fermentum ante ut wisi. Nunc mattis. Praesent nunc. Suspendisse potenti. Morbi sapien. 
 	Quisque sapien libero, ornare eget, tincidunt semper, convallis vel, sem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; ");
 
-    let text_generator = TextGenerator::new(font1, TextOptions { size: 100.0 });
+    let text_generator = TextGenerator::new(font1, 100.0);
     let text_mesh2 = text_generator.generate("Hi!\nHow are you?");
 
     // Create models
@@ -44,7 +44,7 @@ pub fn main() {
             ..Default::default()
         },
     );
-    text0.set_transformation(Mat4::from_scale(0.25));
+    text0.set_transformation(Mat4::from_scale(10.0));
 
     let mut text1 = Gm::new(
         Mesh::new(&context, &text_mesh1),
@@ -53,9 +53,7 @@ pub fn main() {
             ..Default::default()
         },
     );
-    text1.set_transformation(
-        Mat4::from_translation(vec3(50.0, 500.0, 0.0)) * Mat4::from_scale(0.03),
-    );
+    text1.set_transformation(Mat4::from_translation(vec3(50.0, 500.0, 0.0)));
 
     let mut text2 = Gm::new(
         Mesh::new(&context, &text_mesh2),
