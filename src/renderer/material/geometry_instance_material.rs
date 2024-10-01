@@ -30,13 +30,14 @@ impl Material for GeometryInstanceMaterial {
 
     fn fragment_attributes(&self) -> FragmentAttributes {
         FragmentAttributes {
+            position: true,
             instance_id: true,
             ..FragmentAttributes::NONE
         }
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
-        program.use_uniform("id", self.id as f32);
+        program.use_uniform("id", self.id as i32);
         program.use_uniform("eye", camera.position());
     }
 

@@ -162,7 +162,7 @@ pub struct FragmentAttributes {
     pub uv: bool,
     /// Color: `in vec4 col;`
     pub color: bool,
-    /// Instance ID: `in uint instanceID`
+    /// Instance ID: `in int instanceID`
     pub instance_id: bool,
 }
 

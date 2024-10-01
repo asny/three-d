@@ -22,12 +22,12 @@ in vec4 row3;
 
 out vec3 pos;
 
-#ifdef USE_NORMALS 
+#ifdef USE_NORMALS
 uniform mat4 normalMatrix;
 in vec3 normal;
 out vec3 nor;
 
-#ifdef USE_TANGENTS 
+#ifdef USE_TANGENTS
 in vec4 tangent;
 out vec3 tang;
 out vec3 bitang;
@@ -36,7 +36,7 @@ out vec3 bitang;
 #endif
 
 
-#ifdef USE_UVS 
+#ifdef USE_UVS
 #ifdef USE_INSTANCE_TEXTURE_TRANSFORMATION
 in vec3 tex_transform_row1;
 in vec3 tex_transform_row2;
@@ -45,7 +45,7 @@ in vec2 uv_coordinates;
 out vec2 uvs;
 #endif
 
-#ifdef USE_VERTEX_COLORS 
+#ifdef USE_VERTEX_COLORS
 in vec4 color;
 #endif
 #ifdef USE_INSTANCE_COLORS
@@ -53,6 +53,8 @@ in vec4 instance_color;
 #endif
 
 out vec4 col;
+
+flat out int instanceID;
 
 void main()
 {
@@ -73,7 +75,7 @@ void main()
 #ifdef PARTICLES
     worldPosition.xyz += start_position + start_velocity * time + 0.5 * acceleration * time * time;
 #endif
-#ifdef USE_INSTANCE_TRANSLATIONS 
+#ifdef USE_INSTANCE_TRANSLATIONS
     worldPosition.xyz += instance_translation;
 #endif
     gl_Position = viewProjection * worldPosition;
@@ -81,7 +83,7 @@ void main()
     pos = worldPosition.xyz;
 
     // *** NORMAL ***
-#ifdef USE_NORMALS 
+#ifdef USE_NORMALS
 #ifdef USE_INSTANCE_TRANSFORMS
     mat3 normalMat = mat3(transpose(inverse(local2World)));
 #else
@@ -89,7 +91,7 @@ void main()
 #endif
     nor = normalize(normalMat * normal);
 
-#ifdef USE_TANGENTS 
+#ifdef USE_TANGENTS
     tang = normalize(normalMat * tangent.xyz);
     bitang = normalize(cross(nor, tang) * tangent.w);
 #endif
@@ -97,7 +99,7 @@ void main()
 #endif
 
     // *** UV ***
-#ifdef USE_UVS 
+#ifdef USE_UVS
 #ifdef USE_INSTANCE_TEXTURE_TRANSFORMATION
     mat3 texTransform;
     texTransform[0] = vec3(tex_transform_row1.x, tex_transform_row2.x, 0.0);
@@ -111,7 +113,7 @@ void main()
 
     // *** COLOR ***
     col = vec4(1.0);
-#ifdef USE_VERTEX_COLORS 
+#ifdef USE_VERTEX_COLORS
     col *= color;
 #endif
 #ifdef USE_INSTANCE_COLORS
@@ -120,6 +122,8 @@ void main()
 
     // *** IDs ***
 #ifdef USE_INSTANCE_ID
-    col.x = -float(gl_InstanceID);
+    instanceID = gl_InstanceID;
+#else
+    instanceID = -1;
 #endif
 }
