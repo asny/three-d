@@ -8,8 +8,8 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+three-d = { path = "../../", features = ["text"] }
 swash = "0.1"
-three-d = { path = "../../" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"
