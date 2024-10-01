@@ -14,6 +14,7 @@ pub use swash::FontRef;
 pub struct TextGenerator<'a> {
     map: HashMap<GlyphId, CpuMesh>,
     font: FontRef<'a>,
+    line_height: f32,
 }
 
 impl<'a> TextGenerator<'a> {
@@ -32,6 +33,7 @@ impl<'a> TextGenerator<'a> {
     ///
     pub fn new_with_scaler(font: FontRef<'a>, mut scaler: Scaler<'_>) -> Self {
         let mut map = HashMap::new();
+        let mut line_height: f32 = 0.0;
         font.charmap().enumerate(|_, id| {
             if let Some(outline) = scaler.scale_outline(id) {
                 let mut builder = Path::builder();
@@ -74,17 +76,20 @@ impl<'a> TextGenerator<'a> {
                     )
                     .unwrap();
 
-                map.insert(
-                    id,
-                    CpuMesh {
-                        positions: Positions::F32(geometry.vertices),
-                        indices: Indices::U32(geometry.indices),
-                        ..Default::default()
-                    },
-                );
+                let mesh = CpuMesh {
+                    positions: Positions::F32(geometry.vertices),
+                    indices: Indices::U32(geometry.indices),
+                    ..Default::default()
+                };
+                line_height = line_height.max(mesh.compute_aabb().size().y);
+                map.insert(id, mesh);
             }
         });
-        Self { map, font }
+        Self {
+            map,
+            font,
+            line_height,
+        }
     }
 
     ///
@@ -101,12 +106,19 @@ impl<'a> TextGenerator<'a> {
     /// Generates a [CpuMesh] from the given text string using the given [Shaper].
     ///
     pub fn generate_with_shaper(&self, text: &str, mut shaper: Shaper<'_>) -> CpuMesh {
-        let mut cursor = 0.0;
         let mut positions = Vec::new();
         let mut indices = Vec::new();
+        let mut y = 0.0;
+        let mut x = 0.0;
 
-        shaper.add_str(&text);
+        shaper.add_str(text);
         shaper.shape_with(|cluster| {
+            let t = text.get(cluster.source.to_range());
+            if matches!(t, Some("\n")) {
+                // Move to the next line
+                y -= self.line_height * 1.2; // Add 20% extra space between lines
+                x = 0.0;
+            }
             for glyph in cluster.glyphs {
                 let mesh = self.map.get(&glyph.id).unwrap();
 
@@ -116,13 +128,13 @@ impl<'a> TextGenerator<'a> {
                 };
                 indices.extend(mesh_indices.iter().map(|i| i + index_offset));
 
-                let position = vec3(cursor + glyph.x, glyph.y, 0.0);
+                let position = vec3(x + glyph.x, y + glyph.y, 0.0);
                 let Positions::F32(mesh_positions) = &mesh.positions else {
                     unreachable!()
                 };
                 positions.extend(mesh_positions.iter().map(|p| p + position));
             }
-            cursor += cluster.advance();
+            x += cluster.advance();
         });
 
         CpuMesh {
