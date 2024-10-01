@@ -13,11 +13,10 @@ pub fn main() {
 
     let context = window.gl();
 
-    let x = window.viewport().width as f32 * 0.5;
     let mut camera = Camera::new_orthographic(
         window.viewport(),
-        vec3(x, 0.0, 2.0),
-        vec3(x, 0.0, 0.0),
+        vec3(window.viewport().width as f32 * 0.5, 0.0, 2.0),
+        vec3(window.viewport().width as f32 * 0.5, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         window.viewport().height as f32,
         0.1,
@@ -28,10 +27,13 @@ pub fn main() {
     let font = FontRef::from_index(font_data, 0).expect("Failed to load font");
     let text_generator = TextGenerator::new(font);
 
-    let text = "Hello, World!";
-
-    let text_mesh = text_generator.generate(text);
-    let mut mesh = Gm::new(Mesh::new(&context, &text_mesh), ColorMaterial::default());
+    let mut mesh = Gm::new(
+        Mesh::new(&context, &text_generator.generate("Hello, World!")),
+        ColorMaterial {
+            color: Srgba::RED,
+            ..Default::default()
+        },
+    );
     mesh.set_transformation(Mat4::from_scale(0.25));
 
     window.render_loop(move |frame_input| {
