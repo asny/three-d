@@ -4,9 +4,9 @@ use lyon::path::Path;
 use lyon::tessellation::*;
 use std::collections::HashMap;
 use swash::zeno::{Command, PathData};
-use swash::GlyphId;
+use swash::{scale::ScaleContext, scale::Scaler, shape::ShapeContext, shape::Shaper, GlyphId};
 
-pub use swash::{scale::ScaleContext, scale::Scaler, shape::ShapeContext, shape::Shaper, FontRef};
+pub use swash::FontRef;
 
 ///
 /// A utility struct for generating a [CpuMesh] from a text string with a given font.
