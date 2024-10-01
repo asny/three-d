@@ -19,9 +19,11 @@ pub struct TextGenerator<'a> {
 impl<'a> TextGenerator<'a> {
     ///
     /// Creates a new TextGenerator with the given font and size in pixels per em.
+    /// The index indicates the specific font in a font collection. Set to 0 if unsure.
     ///
-    pub fn new(font_bytes: &'a [u8], size: f32) -> Self {
-        let font = FontRef::from_index(font_bytes, 0).expect("Failed to load font");
+    pub fn new(font_bytes: &'a [u8], font_index: u32, size: f32) -> Result<Self, RendererError> {
+        let font = FontRef::from_index(font_bytes, font_index as usize)
+            .ok_or(RendererError::MissingFont(font_index))?;
         let mut context = ScaleContext::new();
         let mut scaler = context.builder(font).size(size).build();
         let mut map = HashMap::new();
@@ -58,7 +60,7 @@ impl<'a> TextGenerator<'a> {
                 let mut tessellator = FillTessellator::new();
                 let mut geometry: VertexBuffers<Vec3, u32> = VertexBuffers::new();
                 let options = FillOptions::default();
-                tessellator
+                if tessellator
                     .tessellate_path(
                         &path,
                         &options,
@@ -66,23 +68,24 @@ impl<'a> TextGenerator<'a> {
                             vec3(vertex.position().x, vertex.position().y, 0.0)
                         }),
                     )
-                    .unwrap();
-
-                let mesh = CpuMesh {
-                    positions: Positions::F32(geometry.vertices),
-                    indices: Indices::U32(geometry.indices),
-                    ..Default::default()
-                };
-                line_height = line_height.max(mesh.compute_aabb().size().y);
-                map.insert(id, mesh);
+                    .is_ok()
+                {
+                    let mesh = CpuMesh {
+                        positions: Positions::F32(geometry.vertices),
+                        indices: Indices::U32(geometry.indices),
+                        ..Default::default()
+                    };
+                    line_height = line_height.max(mesh.compute_aabb().size().y);
+                    map.insert(id, mesh);
+                }
             }
         });
-        Self {
+        Ok(Self {
             map,
             font,
             line_height,
             size,
-        }
+        })
     }
 
     ///
