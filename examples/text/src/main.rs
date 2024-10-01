@@ -20,27 +20,28 @@ pub fn main() {
         10.0,
     );
 
-    // Load font
-    let font_data = include_bytes!("GrapeNuts-Regular.ttf");
-    let font = FontRef::from_index(font_data, 0).expect("Failed to load font");
+    // Load fonts
+    let font0 = FontRef::from_index(include_bytes!("font0.ttf"), 0).expect("Failed to load font");
+    let font1 = FontRef::from_index(include_bytes!("font1.ttf"), 0).expect("Failed to load font");
 
-    // Simple generation of a text mesh
-    let text_generator = TextGenerator::new(font);
+    // Simple generation of a text meshes
+    let text_generator = TextGenerator::new(font0);
     let text_mesh0 = text_generator.generate("Hello, World!");
+    let text_mesh1 = text_generator.generate("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vivamus rutrum, augue vitae interdum dapibus, risus velit interdum dui, sit amet condimentum wisi sem vel odio. Nam lorem. Sed et leo sed est vehicula suscipit. Nunc volutpat, sapien non laoreet cursus, ipsum ipsum varius velit, sit amet lacinia nulla enim quis erat. Curabitur sagittis. Donec quis nulla et wisi molestie consequat. Nulla vel neque. Proin dignissim volutpat leo. 
+	Suspendisse ac libero sit amet leo bibendum aliquam. Pellentesque nisl. Etiam sed sem et purus convallis mattis. Sed fringilla eros id risus. 
+	Aliquam fermentum mattis lectus. Nunc luctus. Integer accumsan pede quis risus. Vestibulum et ante. 
+	Morbi dolor. In nisl. Curabitur malesuada. 
+	Morbi tincidunt semper tortor. Maecenas hendrerit. Vivamus fermentum ante ut wisi. Nunc mattis. Praesent nunc. Suspendisse potenti. Morbi sapien. 
+	Quisque sapien libero, ornare eget, tincidunt semper, convallis vel, sem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; ");
 
-    // Advanced generation of a text mesh
+    // Advanced generation of a text mesh - use the options when creating the Scaler and Shaper in the swash crate to get more control
     let size = 100.0;
     let mut scale_context = swash::scale::ScaleContext::new();
-    let scaler = scale_context.builder(font).size(size).build();
-    let text_generator = TextGenerator::new_with_scaler(font, scaler);
+    let scaler = scale_context.builder(font1).size(size).build();
+    let text_generator = TextGenerator::new_with_scaler(font1, scaler);
     let mut shape_context = swash::shape::ShapeContext::new();
-    let shaper = shape_context
-        .builder(font)
-        .script(swash::text::Script::Arabic)
-        .direction(swash::shape::Direction::RightToLeft)
-        .size(size)
-        .build();
-    let text_mesh1 = text_generator.generate_with_shaper("TEST!", shaper);
+    let shaper = shape_context.builder(font1).size(size).build();
+    let text_mesh2 = text_generator.generate_with_shaper("Hi!\nHow are you?", shaper);
 
     // Create models
     let mut text0 = Gm::new(
@@ -59,7 +60,18 @@ pub fn main() {
             ..Default::default()
         },
     );
-    text1.set_transformation(Mat4::from_translation(vec3(2000.0, 200.0, 0.0)));
+    text1.set_transformation(
+        Mat4::from_translation(vec3(50.0, 500.0, 0.0)) * Mat4::from_scale(0.03),
+    );
+
+    let mut text2 = Gm::new(
+        Mesh::new(&context, &text_mesh2),
+        ColorMaterial {
+            color: Srgba::BLACK,
+            ..Default::default()
+        },
+    );
+    text2.set_transformation(Mat4::from_translation(vec3(1000.0, -200.0, 0.0)));
 
     // Render loop
     window.render_loop(move |frame_input| {
@@ -83,7 +95,7 @@ pub fn main() {
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            .render(&camera, &[&text0, &text1], &[]);
+            .render(&camera, &[&text0, &text1, &text2], &[]);
         FrameOutput::default()
     });
 }
