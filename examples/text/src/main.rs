@@ -24,8 +24,7 @@ pub fn main() {
     let font0 = FontRef::from_index(include_bytes!("font0.ttf"), 0).expect("Failed to load font");
     let font1 = FontRef::from_index(include_bytes!("font1.ttf"), 0).expect("Failed to load font");
 
-    // Simple generation of a text meshes
-    let text_generator = TextGenerator::new(font0);
+    let text_generator = TextGenerator::new(font0, TextOptions::default());
     let text_mesh0 = text_generator.generate("Hello, World!");
     let text_mesh1 = text_generator.generate("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vivamus rutrum, augue vitae interdum dapibus, risus velit interdum dui, sit amet condimentum wisi sem vel odio. Nam lorem. Sed et leo sed est vehicula suscipit. Nunc volutpat, sapien non laoreet cursus, ipsum ipsum varius velit, sit amet lacinia nulla enim quis erat. Curabitur sagittis. Donec quis nulla et wisi molestie consequat. Nulla vel neque. Proin dignissim volutpat leo. 
 	Suspendisse ac libero sit amet leo bibendum aliquam. Pellentesque nisl. Etiam sed sem et purus convallis mattis. Sed fringilla eros id risus. 
@@ -34,14 +33,8 @@ pub fn main() {
 	Morbi tincidunt semper tortor. Maecenas hendrerit. Vivamus fermentum ante ut wisi. Nunc mattis. Praesent nunc. Suspendisse potenti. Morbi sapien. 
 	Quisque sapien libero, ornare eget, tincidunt semper, convallis vel, sem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; ");
 
-    // Advanced generation of a text mesh - use the options when creating the Scaler and Shaper in the swash crate to get more control
-    let size = 100.0;
-    let mut scale_context = swash::scale::ScaleContext::new();
-    let scaler = scale_context.builder(font1).size(size).build();
-    let text_generator = TextGenerator::new_with_scaler(font1, scaler);
-    let mut shape_context = swash::shape::ShapeContext::new();
-    let shaper = shape_context.builder(font1).size(size).build();
-    let text_mesh2 = text_generator.generate_with_shaper("Hi!\nHow are you?", shaper);
+    let text_generator = TextGenerator::new(font1, TextOptions { size: 100.0 });
+    let text_mesh2 = text_generator.generate("Hi!\nHow are you?");
 
     // Create models
     let mut text0 = Gm::new(

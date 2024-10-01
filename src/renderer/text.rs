@@ -4,9 +4,19 @@ use lyon::path::Path;
 use lyon::tessellation::*;
 use std::collections::HashMap;
 use swash::zeno::{Command, PathData};
-use swash::{scale::ScaleContext, scale::Scaler, shape::ShapeContext, shape::Shaper, GlyphId};
+use swash::{scale::ScaleContext, shape::ShapeContext, GlyphId};
 
 pub use swash::FontRef;
+
+pub struct TextOptions {
+    pub size: f32,
+}
+
+impl Default for TextOptions {
+    fn default() -> Self {
+        Self { size: 0.0 }
+    }
+}
 
 ///
 /// A utility struct for generating a [CpuMesh] from a text string with a given font.
@@ -15,23 +25,16 @@ pub struct TextGenerator<'a> {
     map: HashMap<GlyphId, CpuMesh>,
     font: FontRef<'a>,
     line_height: f32,
+    options: TextOptions,
 }
 
 impl<'a> TextGenerator<'a> {
     ///
-    /// Creates a new TextGenerator with the given font.
-    /// If you need control over scaler settings, use [TextGenerator::new_with_scaler] instead.
+    /// Creates a new TextGenerator with the given font and options.
     ///
-    pub fn new(font: FontRef<'a>) -> Self {
+    pub fn new(font: FontRef<'a>, options: TextOptions) -> Self {
         let mut context = ScaleContext::new();
-        let scaler = context.builder(font).build();
-        Self::new_with_scaler(font, scaler)
-    }
-
-    ///
-    /// Creates a new TextGenerator with the given font and [Scaler].
-    ///
-    pub fn new_with_scaler(font: FontRef<'a>, mut scaler: Scaler<'_>) -> Self {
+        let mut scaler = context.builder(font).size(options.size).build();
         let mut map = HashMap::new();
         let mut line_height: f32 = 0.0;
         font.charmap().enumerate(|_, id| {
@@ -89,23 +92,19 @@ impl<'a> TextGenerator<'a> {
             map,
             font,
             line_height,
+            options,
         }
     }
 
     ///
     /// Generates a [CpuMesh] from the given text string.
-    /// If you need control over shaper settings, use [TextGenerator::generate_with_shaper] instead.
     ///
     pub fn generate(&self, text: &str) -> CpuMesh {
         let mut shape_context = ShapeContext::new();
-        let shaper = shape_context.builder(self.font).build();
-        self.generate_with_shaper(text, shaper)
-    }
-
-    ///
-    /// Generates a [CpuMesh] from the given text string using the given [Shaper].
-    ///
-    pub fn generate_with_shaper(&self, text: &str, mut shaper: Shaper<'_>) -> CpuMesh {
+        let mut shaper = shape_context
+            .builder(self.font)
+            .size(self.options.size)
+            .build();
         let mut positions = Vec::new();
         let mut indices = Vec::new();
         let mut y = 0.0;
