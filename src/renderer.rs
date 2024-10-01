@@ -29,6 +29,9 @@ pub enum RendererError {
     InvalidBufferLength(String, usize, usize),
     #[error("the material {0} is required by the geometry {1} but could not be found")]
     MissingMaterial(String, String),
+    #[cfg(feature = "text")]
+    #[error("Failed to find font with index {0} in the given font collection")]
+    MissingFont(u32),
 }
 
 mod shader_ids;
@@ -54,6 +57,11 @@ pub use object::*;
 
 pub mod control;
 pub use control::*;
+
+#[cfg(feature = "text")]
+mod text;
+#[cfg(feature = "text")]
+pub use text::*;
 
 macro_rules! impl_render_target_extensions_body {
     () => {
