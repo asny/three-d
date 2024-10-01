@@ -5,10 +5,10 @@ flat in int instanceID;
 
 in vec3 pos;
 
-layout (location = 0) out vec4 outColor;
+layout (location = 0) out ivec4 outColor;
 
 void main()
 {
     float dist = distance(pos, eye);
-    outColor = vec4(dist, float(id), float(instanceID), 1.0);
+    outColor = ivec4(floatBitsToInt(dist), id, instanceID, -1);
 }

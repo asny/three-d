@@ -728,7 +728,8 @@ pub fn ray_intersect_instance(
         0.0,
         max_depth,
     );
-    let mut texture = Texture2D::new_empty::<[f32; 4]>(
+
+    let mut texture = Texture2D::new_empty::<[i32; 4]>(
         context,
         viewport.width,
         viewport.height,
@@ -749,11 +750,11 @@ pub fn ray_intersect_instance(
         id: 0,
         ..Default::default()
     };
-    let [depth, id, instance_id, _] = RenderTarget::new(
+    let [depth_bits, id, instance_id, _] = RenderTarget::new(
         texture.as_color_target(None),
         depth_texture.as_depth_target(),
     )
-    .clear(ClearState::color_and_depth(-1.0, -1.0, -1.0, -1.0, 1.0))
+    .clear_buffer(ClearState::color_and_depth(0, -1, -1, -1, 1.0))
     .write::<RendererError>(|| {
         for geometry in geometries {
             render_with_material(context, &camera, &geometry, &id_material, &[]);
@@ -762,21 +763,18 @@ pub fn ray_intersect_instance(
         Ok(())
     })
     .unwrap()
-    .read_color::<[f32; 4]>()[0];
+    .read_buffer::<[i32; 4]>()[0];
+    let depth = f32::from_bits(depth_bits as u32);
 
-    fn cast(val: f32) -> Option<usize> {
-        if val >= usize::MIN as f32 && val % 1.0 == 0.0 && val <= usize::MAX as f32 {
-            Some(val as usize)
-        } else {
-            None
-        }
-    }
-
-    if let Some(id) = cast(id) {
+    if id >= 0 {
         let intersection = position + direction * depth;
         Some(GeometryInstance {
-            index: id,
-            instance: cast(instance_id),
+            index: id as usize,
+            instance: if instance_id >= 0 {
+                Some(instance_id as usize)
+            } else {
+                None
+            },
             intersection,
         })
     } else {
