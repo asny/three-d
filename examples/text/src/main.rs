@@ -26,7 +26,7 @@ pub fn main() {
 
     let font_data = include_bytes!("GrapeNuts-Regular.ttf");
     let font = FontRef::from_index(font_data, 0).expect("Failed to load font");
-    let mut text_generator = TextGenerator::new(font);
+    let text_generator = TextGenerator::new(font);
 
     let text = "Hello, World!";
 
@@ -116,7 +116,7 @@ impl<'a> TextGenerator<'a> {
         Self { map, font }
     }
 
-    pub fn generate(&mut self, text: &str) -> CpuMesh {
+    pub fn generate(&self, text: &str) -> CpuMesh {
         let mut shape_context = shape::ShapeContext::new();
         let shaper = shape_context
             .builder(self.font)
@@ -126,7 +126,7 @@ impl<'a> TextGenerator<'a> {
     }
 
     pub fn generate_with_shaper(
-        &mut self,
+        &self,
         text: &str,
         mut shaper: swash::shape::Shaper<'_>,
     ) -> CpuMesh {
