@@ -97,14 +97,23 @@ pub async fn run() {
                         cube.into_iter().chain(&spheres).chain(&monkey),
                     ) {
                         if pick.index == 0 {
+                            #[cfg(not(target_arch = "wasm32"))]
                             println!("Clicked cube");
+                            #[cfg(target_arch = "wasm32")]
+                            log::info!("Clicked cube");
                             cube.material.albedo = Srgba::GREEN;
                         } else {
                             cube.material.albedo = Srgba::WHITE;
                         }
 
                         if pick.index == 1 {
+                            #[cfg(not(target_arch = "wasm32"))]
                             println!(
+                                "Clicked sphere {}",
+                                pick.instance.map_or("N/A".to_string(), |i| i.to_string())
+                            );
+                            #[cfg(target_arch = "wasm32")]
+                            log::info!(
                                 "Clicked sphere {}",
                                 pick.instance.map_or("N/A".to_string(), |i| i.to_string())
                             );
@@ -128,7 +137,10 @@ pub async fn run() {
                         spheres.set_instances(&sphere_instances);
 
                         if pick.index > 1 && pick.index <= 1 + monkey.len() {
+                            #[cfg(not(target_arch = "wasm32"))]
                             println!("Clicked monkey");
+                            #[cfg(target_arch = "wasm32")]
+                            log::info!("Clicked monkey");
                             monkey
                                 .iter_mut()
                                 .for_each(|m| m.material.albedo = monkey_color);
@@ -140,7 +152,10 @@ pub async fn run() {
 
                         change = true;
                     } else {
-                        println!("Nothing Clicked!")
+                        #[cfg(not(target_arch = "wasm32"))]
+                        println!("Nothing Clicked!");
+                        #[cfg(target_arch = "wasm32")]
+                        log::info!("Nothing Clicked!");
                     }
                 }
             }
