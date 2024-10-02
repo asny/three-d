@@ -7,6 +7,24 @@ use swash::zeno::{Command, PathData};
 use swash::{scale::ScaleContext, shape::ShapeContext, FontRef, GlyphId};
 
 ///
+/// Options for text layout.
+///
+#[derive(Debug, Clone, Copy)]
+pub struct LayoutOptions {
+    ///
+    /// The line height multiplier where 1.0 corresponds to the maximum height of the font.
+    /// Default is 1.2.
+    ///
+    pub line_height: f32,
+}
+
+impl Default for LayoutOptions {
+    fn default() -> Self {
+        Self { line_height: 1.2 }
+    }
+}
+
+///
 /// A utility struct for generating a [CpuMesh] from a text string with a given font.
 ///
 pub struct TextGenerator<'a> {
@@ -96,7 +114,7 @@ impl<'a> TextGenerator<'a> {
     ///
     /// Generates a [CpuMesh] from the given text string.
     ///
-    pub fn generate(&self, text: &str) -> CpuMesh {
+    pub fn generate(&self, text: &str, options: LayoutOptions) -> CpuMesh {
         let mut shape_context = ShapeContext::new();
         let mut shaper = shape_context.builder(self.font).size(self.size).build();
         let mut positions = Vec::new();
@@ -109,7 +127,7 @@ impl<'a> TextGenerator<'a> {
             let t = text.get(cluster.source.to_range());
             if matches!(t, Some("\n")) {
                 // Move to the next line
-                y -= self.max_height * 1.2; // Add 20% extra space between lines
+                y -= self.max_height * options.line_height;
                 x = 0.0;
             }
             for glyph in cluster.glyphs {
