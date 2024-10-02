@@ -12,7 +12,8 @@ use swash::{scale::ScaleContext, shape::ShapeContext, FontRef, GlyphId};
 pub struct TextGenerator<'a> {
     map: HashMap<GlyphId, CpuMesh>,
     font: FontRef<'a>,
-    line_height: f32,
+    max_width: f32,
+    max_height: f32,
     size: f32,
 }
 
@@ -27,7 +28,8 @@ impl<'a> TextGenerator<'a> {
         let mut context = ScaleContext::new();
         let mut scaler = context.builder(font).size(size).build();
         let mut map = HashMap::new();
-        let mut line_height: f32 = 0.0;
+        let mut max_height: f32 = 0.0;
+        let mut max_width: f32 = 0.0;
         font.charmap().enumerate(|_, id| {
             if let Some(outline) = scaler.scale_outline(id) {
                 let mut builder = Path::builder();
@@ -75,7 +77,9 @@ impl<'a> TextGenerator<'a> {
                         indices: Indices::U32(geometry.indices),
                         ..Default::default()
                     };
-                    line_height = line_height.max(mesh.compute_aabb().size().y);
+                    let size = mesh.compute_aabb().size();
+                    max_height = max_height.max(size.y);
+                    max_width = max_width.max(size.x);
                     map.insert(id, mesh);
                 }
             }
@@ -83,7 +87,8 @@ impl<'a> TextGenerator<'a> {
         Ok(Self {
             map,
             font,
-            line_height,
+            max_width,
+            max_height,
             size,
         })
     }
@@ -104,7 +109,7 @@ impl<'a> TextGenerator<'a> {
             let t = text.get(cluster.source.to_range());
             if matches!(t, Some("\n")) {
                 // Move to the next line
-                y -= self.line_height * 1.2; // Add 20% extra space between lines
+                y -= self.max_height * 1.2; // Add 20% extra space between lines
                 x = 0.0;
             }
             for glyph in cluster.glyphs {
