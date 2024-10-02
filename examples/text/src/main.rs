@@ -21,16 +21,16 @@ pub fn main() {
     );
 
     let text_generator = TextGenerator::new(include_bytes!("font0.ttf"), 0, 30.0).unwrap();
-    let text_mesh0 = text_generator.generate("Hello, World!", LayoutOptions::default());
+    let text_mesh0 = text_generator.generate("Hello, World!", TextLayoutOptions::default());
     let text_mesh1 = text_generator.generate("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vivamus rutrum, augue vitae interdum dapibus, risus velit interdum dui, sit amet condimentum wisi sem vel odio. Nam lorem. Sed et leo sed est vehicula suscipit. Nunc volutpat, sapien non laoreet cursus, ipsum ipsum varius velit, sit amet lacinia nulla enim quis erat. Curabitur sagittis. Donec quis nulla et wisi molestie consequat. Nulla vel neque. Proin dignissim volutpat leo. 
 	Suspendisse ac libero sit amet leo bibendum aliquam. Pellentesque nisl. Etiam sed sem et purus convallis mattis. Sed fringilla eros id risus. 
 	Aliquam fermentum mattis lectus. Nunc luctus. Integer accumsan pede quis risus. Vestibulum et ante. 
 	Morbi dolor. In nisl. Curabitur malesuada. 
 	Morbi tincidunt semper tortor. Maecenas hendrerit. Vivamus fermentum ante ut wisi. Nunc mattis. Praesent nunc. Suspendisse potenti. Morbi sapien. 
-	Quisque sapien libero, ornare eget, tincidunt semper, convallis vel, sem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; ", LayoutOptions { line_height: 1.1 });
+	Quisque sapien libero, ornare eget, tincidunt semper, convallis vel, sem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; ", TextLayoutOptions { line_height: 1.1 });
 
     let text_generator = TextGenerator::new(include_bytes!("font1.ttf"), 0, 100.0).unwrap();
-    let text_mesh2 = text_generator.generate("Hi!\nHow are you?", LayoutOptions::default());
+    let text_mesh2 = text_generator.generate("Hi!\nHow are you?", TextLayoutOptions::default());
 
     // Create models
     let mut text0 = Gm::new(
