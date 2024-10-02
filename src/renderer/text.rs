@@ -7,12 +7,30 @@ use swash::zeno::{Command, PathData};
 use swash::{scale::ScaleContext, shape::ShapeContext, FontRef, GlyphId};
 
 ///
+/// Options for text layout.
+///
+#[derive(Debug, Clone, Copy)]
+pub struct TextLayoutOptions {
+    ///
+    /// The line height multiplier where 1.0 corresponds to the maximum height of the font.
+    /// Default is 1.2.
+    ///
+    pub line_height: f32,
+}
+
+impl Default for TextLayoutOptions {
+    fn default() -> Self {
+        Self { line_height: 1.2 }
+    }
+}
+
+///
 /// A utility struct for generating a [CpuMesh] from a text string with a given font.
 ///
 pub struct TextGenerator<'a> {
     map: HashMap<GlyphId, CpuMesh>,
     font: FontRef<'a>,
-    line_height: f32,
+    max_height: f32,
     size: f32,
 }
 
@@ -27,7 +45,7 @@ impl<'a> TextGenerator<'a> {
         let mut context = ScaleContext::new();
         let mut scaler = context.builder(font).size(size).build();
         let mut map = HashMap::new();
-        let mut line_height: f32 = 0.0;
+        let mut max_height: f32 = 0.0;
         font.charmap().enumerate(|_, id| {
             if let Some(outline) = scaler.scale_outline(id) {
                 let mut builder = Path::builder();
@@ -75,7 +93,7 @@ impl<'a> TextGenerator<'a> {
                         indices: Indices::U32(geometry.indices),
                         ..Default::default()
                     };
-                    line_height = line_height.max(mesh.compute_aabb().size().y);
+                    max_height = max_height.max(mesh.compute_aabb().size().y);
                     map.insert(id, mesh);
                 }
             }
@@ -83,7 +101,7 @@ impl<'a> TextGenerator<'a> {
         Ok(Self {
             map,
             font,
-            line_height,
+            max_height,
             size,
         })
     }
@@ -91,21 +109,20 @@ impl<'a> TextGenerator<'a> {
     ///
     /// Generates a [CpuMesh] from the given text string.
     ///
-    pub fn generate(&self, text: &str) -> CpuMesh {
+    pub fn generate(&self, text: &str, options: TextLayoutOptions) -> CpuMesh {
         let mut shape_context = ShapeContext::new();
         let mut shaper = shape_context.builder(self.font).size(self.size).build();
         let mut positions = Vec::new();
         let mut indices = Vec::new();
-        let mut y = 0.0;
-        let mut x = 0.0;
+        let mut position = vec2(0.0, 0.0);
 
         shaper.add_str(text);
         shaper.shape_with(|cluster| {
             let t = text.get(cluster.source.to_range());
             if matches!(t, Some("\n")) {
                 // Move to the next line
-                y -= self.line_height * 1.2; // Add 20% extra space between lines
-                x = 0.0;
+                position.y -= self.max_height * options.line_height;
+                position.x = 0.0;
             }
             for glyph in cluster.glyphs {
                 let mesh = self.map.get(&glyph.id).unwrap();
@@ -116,13 +133,13 @@ impl<'a> TextGenerator<'a> {
                 };
                 indices.extend(mesh_indices.iter().map(|i| i + index_offset));
 
-                let position = vec3(x + glyph.x, y + glyph.y, 0.0);
+                let position_offset = (position + vec2(glyph.x, glyph.y)).extend(0.0);
                 let Positions::F32(mesh_positions) = &mesh.positions else {
                     unreachable!()
                 };
-                positions.extend(mesh_positions.iter().map(|p| p + position));
+                positions.extend(mesh_positions.iter().map(|p| p + position_offset));
             }
-            x += cluster.advance();
+            position.x += cluster.advance();
         });
 
         CpuMesh {
