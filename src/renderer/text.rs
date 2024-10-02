@@ -119,16 +119,22 @@ impl<'a> TextGenerator<'a> {
         let mut shaper = shape_context.builder(self.font).size(self.size).build();
         let mut positions = Vec::new();
         let mut indices = Vec::new();
-        let mut y = 0.0;
-        let mut x = 0.0;
+
+        let mut position = vec2(0.0, 0.0);
+        let letter_direction = vec2(1.0, 0.0);
+        let line_direction = vec2(0.0, -1.0);
 
         shaper.add_str(text);
         shaper.shape_with(|cluster| {
             let t = text.get(cluster.source.to_range());
             if matches!(t, Some("\n")) {
                 // Move to the next line
-                y -= self.max_height * options.line_height;
-                x = 0.0;
+                position += line_direction * self.max_height * options.line_height;
+                if letter_direction.x > 0.0 {
+                    position.x = 0.0;
+                } else {
+                    position.y = 0.0;
+                }
             }
             for glyph in cluster.glyphs {
                 let mesh = self.map.get(&glyph.id).unwrap();
@@ -139,13 +145,13 @@ impl<'a> TextGenerator<'a> {
                 };
                 indices.extend(mesh_indices.iter().map(|i| i + index_offset));
 
-                let position = vec3(x + glyph.x, y + glyph.y, 0.0);
+                let position_offset = (position + vec2(glyph.x, glyph.y)).extend(0.0);
                 let Positions::F32(mesh_positions) = &mesh.positions else {
                     unreachable!()
                 };
-                positions.extend(mesh_positions.iter().map(|p| p + position));
+                positions.extend(mesh_positions.iter().map(|p| p + position_offset));
             }
-            x += cluster.advance();
+            position += letter_direction * cluster.advance();
         });
 
         CpuMesh {
