@@ -114,9 +114,7 @@ impl<'a> TextGenerator<'a> {
         let mut shaper = shape_context.builder(self.font).size(self.size).build();
         let mut positions = Vec::new();
         let mut indices = Vec::new();
-
         let mut position = vec2(0.0, 0.0);
-        let direction = vec2(1.0, 0.0);
 
         shaper.add_str(text);
         shaper.shape_with(|cluster| {
@@ -141,7 +139,7 @@ impl<'a> TextGenerator<'a> {
                 };
                 positions.extend(mesh_positions.iter().map(|p| p + position_offset));
             }
-            position += direction * cluster.advance();
+            position.x += cluster.advance();
         });
 
         CpuMesh {
