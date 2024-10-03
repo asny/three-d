@@ -588,7 +588,7 @@ pub fn pick(
     camera: &Camera,
     pixel: impl Into<PhysicalPoint> + Copy,
     geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<Vec3> {
+) -> Option<IntersectionResult> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
     ray_intersect(
@@ -598,6 +598,17 @@ pub fn pick(
         camera.z_far() - camera.z_near(),
         geometries,
     )
+}
+
+/// Result from an intersection test
+#[derive(Debug, Clone, Copy)]
+pub struct IntersectionResult {
+    /// The position of the intersection
+    pub position: Vec3,
+    /// The index of the intersected geometry in the list of geometries
+    pub geometry_id: u32,
+    /// The index of the intersected instance in the list of instances or 0 if the intersection did not hit an instanced geometry
+    pub instance_id: u32,
 }
 
 ///
@@ -610,7 +621,7 @@ pub fn ray_intersect(
     direction: Vec3,
     max_depth: f32,
     geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<Vec3> {
+) -> Option<IntersectionResult> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
     let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
@@ -627,7 +638,7 @@ pub fn ray_intersect(
         0.0,
         max_depth,
     );
-    let mut texture = Texture2D::new_empty::<f32>(
+    let mut texture = Texture2D::new_empty::<[f32; 4]>(
         context,
         viewport.width,
         viewport.height,
@@ -644,31 +655,30 @@ pub fn ray_intersect(
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let depth_material = DepthMaterial {
-        render_states: RenderStates {
-            write_mask: WriteMask {
-                red: true,
-                ..WriteMask::DEPTH
-            },
-            ..Default::default()
-        },
+    let mut material = IntersectionMaterial {
         ..Default::default()
     };
-    let depth = RenderTarget::new(
+    let result = RenderTarget::new(
         texture.as_color_target(None),
         depth_texture.as_depth_target(),
     )
     .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
     .write::<RendererError>(|| {
-        for geometry in geometries {
-            render_with_material(context, &camera, &geometry, &depth_material, &[]);
+        for (id, geometry) in geometries.into_iter().enumerate() {
+            material.geometry_id = id as i32;
+            render_with_material(context, &camera, &geometry, &material, &[]);
         }
         Ok(())
     })
     .unwrap()
-    .read_color::<[f32; 4]>()[0][0];
+    .read_color::<[f32; 4]>()[0];
+    let depth = result[0];
     if depth < 1.0 {
-        Some(position + direction * depth * max_depth)
+        Some(IntersectionResult {
+            position: position + direction * depth * max_depth,
+            geometry_id: result[1] as u32,
+            instance_id: result[2] as u32,
+        })
     } else {
         None
     }

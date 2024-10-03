@@ -144,6 +144,7 @@ pub enum EffectMaterialId {
     SkyboxMaterial = 0x8004,
     UVMaterial = 0x8005,
     NormalMaterialBase = 0x8006, // To 0x8007
+    IntersectionMaterial = 0x800B,
     IsosurfaceMaterial = 0x800C,
     ImpostersMaterial = 0x800D,
     BrdfMaterial = 0x800E,
