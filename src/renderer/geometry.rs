@@ -106,6 +106,9 @@ pub use three_d_asset::{
 /// - uv coordinates: `out vec2 uvs;` (must be flipped in v compared to standard uv coordinates, ie. do `uvs = vec2(uvs.x, 1.0 - uvs.y);` in the vertex shader or do the flip before constructing the uv coordinates vertex buffer)
 /// - color: `out vec4 col;`
 ///
+/// In addition, for the geometry to be pickable using the [pick] or [ray_intersect] methods (ie. combined with the [IntersectionMaterial]),
+/// it needs to support `flat out int instance_id;`. Simply set it to the built-in glsl variable: `gl_InstanceID`.
+///
 pub trait Geometry {
     ///
     /// Draw this geometry.

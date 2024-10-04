@@ -8,6 +8,8 @@ use crate::renderer::*;
 /// Green channel: The [IntersectionMaterial::geometry_id]
 /// Blue channel: The instance ID or 0, if this is not an instanced geometry
 ///
+/// Note: The geometry needs to pass the instance ID to the fragment shader, see [Geometry] for more information.
+///
 #[derive(Default, Clone)]
 pub struct IntersectionMaterial {
     /// The minimum distance from the camera to any object. If None, then the near plane of the camera is used.
