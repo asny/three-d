@@ -3,6 +3,7 @@ pub use three_d_asset::Model as CpuModel;
 
 ///
 /// Part of a [Model] consisting of a [Mesh], some type of [material] and a set of possible animations.
+/// Can be converted to a [Gm] using [Into] if the animations are not needed.
 ///
 pub struct ModelPart<M: Material> {
     gm: Gm<Mesh, M>,
@@ -49,6 +50,12 @@ impl<M: Material> std::ops::DerefMut for ModelPart<M> {
     }
 }
 
+impl<M: Material> From<ModelPart<M>> for Gm<Mesh, M> {
+    fn from(value: ModelPart<M>) -> Self {
+        value.gm
+    }
+}
+
 impl<M: Material> Geometry for ModelPart<M> {
     impl_geometry_body!(deref);
 
@@ -71,7 +78,7 @@ impl<'a, M: Material> IntoIterator for &'a ModelPart<M> {
 }
 
 ///
-/// A 3D model consisting of a set of [Gm]s with [Mesh]es as the geometries and a [material] type specified by the generic parameter.
+/// A 3D model consisting of a set of [ModelPart]s.
 ///
 pub struct Model<M: Material>(Vec<ModelPart<M>>);
 
