@@ -4,9 +4,10 @@ use crate::renderer::*;
 ///
 /// Used for intersection tests, see [pick] and [ray_intersect].
 /// When rendering with this material, the output in each pixel is:
-/// Red channel: The depth (same as [DepthMaterial])
-/// Green channel: The [IntersectionMaterial::geometry_id]
-/// Blue channel: The instance ID or 0, if this is not an instanced geometry
+/// Red channel: The depth (same as [DepthMaterial]).
+/// Green channel: The [IntersectionMaterial::geometry_id].
+/// Blue channel: The [gl_InstanceID](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_InstanceID.xhtml).
+/// Alpha channel: The [gl_PrimitiveId](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_PrimitiveID.xhtml).
 ///
 /// Note: The geometry needs to pass the instance ID to the fragment shader, see [Geometry] for more information.
 ///
