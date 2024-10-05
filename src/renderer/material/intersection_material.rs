@@ -19,7 +19,7 @@ pub struct IntersectionMaterial {
     /// Render states.
     pub render_states: RenderStates,
     /// A geometry ID for the currently rendered geometry. The result is outputted in the green color channel.
-    pub geometry_id: i32,
+    pub geometry_id: u32,
 }
 
 impl FromCpuMaterial for IntersectionMaterial {

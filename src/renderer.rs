@@ -665,7 +665,7 @@ pub fn ray_intersect(
     .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
     .write::<RendererError>(|| {
         for (id, geometry) in geometries.into_iter().enumerate() {
-            material.geometry_id = id as i32;
+            material.geometry_id = id as u32;
             render_with_material(context, &camera, &geometry, &material, &[]);
         }
         Ok(())
@@ -676,8 +676,8 @@ pub fn ray_intersect(
     if depth < 1.0 {
         Some(IntersectionResult {
             position: position + direction * depth * max_depth,
-            geometry_id: result[1] as u32,
-            instance_id: result[2] as u32,
+            geometry_id: result[1].to_bits(),
+            instance_id: result[2].to_bits(),
         })
     } else {
         None
