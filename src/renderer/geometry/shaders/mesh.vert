@@ -53,6 +53,7 @@ in vec4 instance_color;
 #endif
 
 out vec4 col;
+flat out int instance_id;
 
 void main()
 {
@@ -117,4 +118,5 @@ void main()
 #ifdef USE_INSTANCE_COLORS
     col *= instance_color;
 #endif
+    instance_id = gl_InstanceID;
 }

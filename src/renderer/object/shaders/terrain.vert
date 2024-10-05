@@ -5,6 +5,7 @@ in vec3 position;
 out vec3 pos;
 out vec2 uvs;
 out vec4 col;
+flat out int instance_id;
 
 #ifdef USE_NORMALS
 
@@ -27,4 +28,5 @@ void main()
     bitang = cross(nor, tang);
 #endif
     gl_Position = viewProjectionMatrix * worldPos;
+    instance_id = gl_InstanceID;
 }

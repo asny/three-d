@@ -11,6 +11,7 @@ in vec2 uv_coordinate;
 out vec2 uvs;
 out vec4 col;
 out vec3 pos;
+flat out int instance_id;
 
 void main()
 {
@@ -38,4 +39,5 @@ void main()
     vec4 world_pos = instanced_transform * transformation * vec4(position, 1.);
     pos = world_pos.xyz / world_pos.w;
     gl_Position = viewProjection * world_pos;
+    instance_id = gl_InstanceID;
 }
