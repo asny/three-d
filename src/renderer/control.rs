@@ -85,8 +85,6 @@ pub enum Event {
         modifiers: Modifiers,
         /// Whether or not this event already have been handled.
         handled: bool,
-        /// Whether or not this event came from a gesture-capable input
-        gesture_capable: bool,
     },
     /// Fired continuously when a pinch input gesture is recognized, such as on a Mac trackpad
     PinchGesture {
