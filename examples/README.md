@@ -70,6 +70,10 @@ This example shows how depth ordering is currently working for `InstancedMesh` o
 
 ![Texture example](https://asny.github.io/three-d/0.18/texture.png)
 
+## Text [[code](https://github.com/asny/three-d/tree/master/examples/text/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/text.html)]
+
+![Text example](https://asny.github.io/three-d/0.18/text.png)
+
 ## Animation [[code](https://github.com/asny/three-d/tree/master/examples/animation/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/animation.html)]
 
 ![Animation example](https://asny.github.io/three-d/0.18/animation.png)

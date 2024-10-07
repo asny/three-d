@@ -63,13 +63,13 @@ name = "triangle"
 path = "examples/triangle/src/main.rs"
 
 [[example]]
+name = "triangle_core"
+path = "examples/triangle_core/src/main.rs"
+
+[[example]]
 name = "text"
 path = "examples/text/src/main.rs"
 required-features = ["text"]
-
-[[example]]
-name = "triangle_core"
-path = "examples/triangle_core/src/main.rs"
 
 [[example]]
 name = "screen"
