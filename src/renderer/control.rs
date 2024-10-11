@@ -99,7 +99,7 @@ pub enum Event {
     },
     /// Fired continuously when a rotation input gesture is recognized, such as on a Mac trackpad
     RotationGesture {
-        /// The relative rotation since the last [Event::RotationGesture] event (positive is zoom in).
+        /// The relative rotation since the last [Event::RotationGesture] event (positive is counterclockwise).
         delta: Radians,
         /// The screen position in physical pixels.
         position: PhysicalPoint,
