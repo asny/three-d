@@ -203,3 +203,7 @@ required-features = ["headless"]
 [[example]]
 name = "logo"
 path = "examples/logo/src/main.rs"
+
+[[example]]
+name = "camera_view"
+path = "examples/camera_view/src/main.rs"
