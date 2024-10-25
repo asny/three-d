@@ -38,6 +38,7 @@ impl DepthTexture2D {
             wrap_s,
             wrap_t,
             None,
+            None,
         );
         unsafe {
             context.tex_storage_2d(

@@ -47,8 +47,10 @@ impl Texture2D {
             cpu_texture.min_filter,
             cpu_texture.mag_filter,
             cpu_texture.mip_map_filter,
+            cpu_texture.mip_map_limit,
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
+            cpu_texture.anisotropic_filter,
         );
         texture.fill(data);
         texture
@@ -68,12 +70,14 @@ impl Texture2D {
         min_filter: Interpolation,
         mag_filter: Interpolation,
         mip_map_filter: Option<Interpolation>,
+        mip_map_limit: Option<u32>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
+        anisotropic_filter: Option<u32>,
     ) -> Self {
         let id = generate(context);
         let number_of_mip_maps =
-            calculate_number_of_mip_maps::<T>(mip_map_filter, width, height, None);
+            calculate_number_of_mip_maps::<T>(mip_map_filter, mip_map_limit, width, height, None);
         let texture = Self {
             context: context.clone(),
             id,
@@ -96,6 +100,7 @@ impl Texture2D {
             wrap_s,
             wrap_t,
             None,
+            anisotropic_filter,
         );
         unsafe {
             context.tex_storage_2d(
@@ -165,7 +170,8 @@ impl Texture2D {
         self.number_of_mip_maps
     }
 
-    pub(crate) fn generate_mip_maps(&self) {
+    /// Generate mip maps for this texture.
+    pub fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.bind();
             unsafe {

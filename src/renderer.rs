@@ -112,8 +112,10 @@ macro_rules! impl_render_target_extensions_body {
                     Interpolation::Nearest,
                     Interpolation::Nearest,
                     None,
+                    None,
                     Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge,
+                    None
                 );
                 let mut geometry_pass_depth_texture = DepthTexture2D::new::<f32>(
                     &self.context,
@@ -648,8 +650,10 @@ pub fn ray_intersect(
         Interpolation::Nearest,
         Interpolation::Nearest,
         None,
+        None,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
+        None
     );
     let mut depth_texture = DepthTexture2D::new::<f32>(
         context,

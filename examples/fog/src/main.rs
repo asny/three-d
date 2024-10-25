@@ -58,8 +58,10 @@ pub async fn run() {
         Interpolation::Nearest,
         Interpolation::Nearest,
         None,
+        None,
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
+        None,
     );
     let mut depth_texture = DepthTexture2D::new::<f32>(
         &context,
@@ -95,8 +97,10 @@ pub async fn run() {
                     Interpolation::Nearest,
                     Interpolation::Nearest,
                     None,
+                    None,
                     Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge,
+                    None,
                 );
                 depth_texture = DepthTexture2D::new::<f32>(
                     &context,

@@ -115,8 +115,10 @@ impl<C: TextureDataType> ColorTargetMultisample<C> {
             Interpolation::Linear,
             Interpolation::Linear,
             None,
+            None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
+            None,
         );
         self.resolve_to(&color_texture.as_color_target(None));
         color_texture
