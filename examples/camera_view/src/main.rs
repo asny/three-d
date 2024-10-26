@@ -146,6 +146,27 @@ pub fn main() {
         ),
     );
 
+    let mut view_position_marker = Gm::new(
+        Mesh::new(&context, &marker_sphere),
+        PhysicalMaterial::new_opaque(
+            &context,
+            &CpuMaterial {
+                albedo: Srgba::new_opaque(255, 127, 0),
+                ..Default::default()
+            },
+        ),
+    );
+    let mut view_direction_marker = Gm::new(
+        Mesh::new(&context, &marker_arrow),
+        PhysicalMaterial::new_opaque(
+            &context,
+            &CpuMaterial {
+                albedo: Srgba::BLUE,
+                ..Default::default()
+            },
+        ),
+    );
+
     let mut marker_vertex = CpuMesh::sphere(16);
     marker_vertex.transform(&Mat4::from_scale(0.05)).unwrap();
     let mut marker_edge = CpuMesh::cylinder(16);
@@ -196,6 +217,7 @@ pub fn main() {
     };
     let mut near_plane = camera.z_near();
     let mut far_plane = camera.z_far();
+    let mut show_click_info = false;
 
     let mut gui = three_d::GUI::new(&context);
     window.render_loop(move |mut frame_input| {
@@ -295,6 +317,17 @@ pub fn main() {
                          outline the camera's view frustum.",
                     ));
 
+                    ui.add(Checkbox::new(
+                        &mut show_click_info,
+                        "Enable position/view_direction debug visuals",
+                    ));
+
+                    ui.add(Label::new(
+                        "When enabled, clicking shows the camera base position \
+                         as an orange sphere and the view direction as a blue \
+                         arrow.",
+                    ));
+
                     ui.add(
                         Slider::new(&mut camera_ratio, 0.01..=0.99)
                             .text("Main camera to debug camera screen ratio"),
@@ -375,6 +408,32 @@ pub fn main() {
             ..Default::default()
         });
 
+        if show_click_info {
+            for event in &frame_input.events {
+                if let Event::MousePress {
+                    button: MouseButton::Left,
+                    handled: false,
+                    position,
+                    ..
+                } = event
+                {
+                    view_position_marker.set_transformation(Mat4::from_translation(
+                        camera.position_at_pixel(*position),
+                    ));
+                    let view_direction = camera.view_direction_at_pixel(*position);
+                    view_direction_marker.set_transformation(
+                        Mat4::from_translation(camera.position_at_pixel(*position))
+                            * Mat4::from_axis_angle(
+                                Vec3::unit_x().cross(view_direction),
+                                Vec3::unit_x().angle(view_direction),
+                            ),
+                    );
+
+                    break;
+                }
+            }
+        }
+
         let screen = frame_input.screen();
         screen.clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0));
         screen.render(
@@ -403,7 +462,19 @@ pub fn main() {
                 .chain(&target_marker)
                 .chain(&up_marker)
                 .chain(&frustum_vertex_marker)
-                .chain(&frustum_edge_marker),
+                .chain(&frustum_edge_marker)
+                .chain(
+                    show_click_info
+                        .then_some(&view_position_marker)
+                        .into_iter()
+                        .flatten(),
+                )
+                .chain(
+                    show_click_info
+                        .then_some(&view_direction_marker)
+                        .into_iter()
+                        .flatten(),
+                ),
             &[&light0, &light1],
         );
 
