@@ -369,10 +369,7 @@ pub fn main() {
         target_marker.set_transformation(Mat4::from_translation(*camera.target()));
         up_marker.set_transformation(
             Mat4::from_translation(*camera.position())
-                * Mat4::from_axis_angle(
-                    Vec3::unit_x().cross(*camera.up()),
-                    Vec3::unit_x().angle(*camera.up()),
-                ),
+                * rotation_matrix_from_dir_to_dir(Vec3::unit_x(), *camera.up()),
         );
 
         let frustum_vertices = cube_points.map(|point| {
@@ -398,10 +395,7 @@ pub fn main() {
             transformations: frustum_edges
                 .map(|points| {
                     Mat4::from_translation(points[0].to_vec())
-                        * Mat4::from_axis_angle(
-                            Vec3::unit_x().cross(points[1] - points[0]).normalize(),
-                            Vec3::unit_x().angle(points[1] - points[0]),
-                        )
+                        * rotation_matrix_from_dir_to_dir(Vec3::unit_x(), points[1] - points[0])
                         * Mat4::from_nonuniform_scale(points[1].distance(*points[0]), 1.0, 1.0)
                 })
                 .collect(),
@@ -420,12 +414,11 @@ pub fn main() {
                     view_position_marker.set_transformation(Mat4::from_translation(
                         camera.position_at_pixel(*position),
                     ));
-                    let view_direction = camera.view_direction_at_pixel(*position);
                     view_direction_marker.set_transformation(
                         Mat4::from_translation(camera.position_at_pixel(*position))
-                            * Mat4::from_axis_angle(
-                                Vec3::unit_x().cross(view_direction),
-                                Vec3::unit_x().angle(view_direction),
+                            * rotation_matrix_from_dir_to_dir(
+                                Vec3::unit_x(),
+                                camera.view_direction_at_pixel(*position),
                             ),
                     );
 
