@@ -328,10 +328,7 @@ pub fn main() {
                          arrow.",
                     ));
 
-                    ui.add(
-                        Slider::new(&mut camera_ratio, 0.01..=0.99)
-                            .text("Main camera to debug camera screen ratio"),
-                    );
+                    ui.add(Slider::new(&mut camera_ratio, 0.01..=0.99).text("Splitscreen ratio"));
                 });
                 panel_width = gui_context.used_rect().width();
             },
