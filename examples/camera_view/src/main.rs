@@ -20,14 +20,14 @@ pub fn main() {
         0.1,
         100.0,
     );
-    let mut control = OrbitControl::new(vec3(0.0, 0.0, 0.0), 1.0, 1000.0);
+    let mut control = OrbitControl::new(vec3(0.0, 0.0, 0.0), 0.2, 1000.0);
 
     let mut debug_camera = Camera::new_orthographic(
         window.viewport(),
         vec3(10.0, 4.0, 5.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
-        24.0,
+        2.0,
         -1000.0,
         1000.0,
     );
@@ -238,6 +238,7 @@ pub fn main() {
                         .selected_text(match camera.projection_type() {
                             ProjectionType::Perspective { .. } => "Perspective",
                             ProjectionType::Orthographic { .. } => "Orthographic",
+                            ProjectionType::Planar { .. } => "Planar",
                         })
                         .show_ui(ui, |ui| {
                             if ui
@@ -263,6 +264,18 @@ pub fn main() {
                                 .clicked()
                             {
                                 camera.set_perspective_projection(fov, near_plane, far_plane)
+                            }
+                            if ui
+                                .selectable_label(
+                                    matches!(
+                                        camera.projection_type(),
+                                        ProjectionType::Planar { .. }
+                                    ),
+                                    "Planar",
+                                )
+                                .clicked()
+                            {
+                                camera.set_planar_projection(fov, near_plane, far_plane)
                             }
                         });
                     camera_changed |= ui
@@ -304,6 +317,21 @@ pub fn main() {
                                     fov = degrees(1.0);
                                 }
                                 camera.set_perspective_projection(fov, near_plane, far_plane)
+                            }
+                            ProjectionType::Planar { .. } => {
+                                let focal_point = -Angle::cot(fov / 2.0);
+                                if focal_point < 0.0 && near_plane <= focal_point {
+                                    near_plane = focal_point + 0.001;
+                                    if near_plane > far_plane {
+                                        far_plane = near_plane + 0.1;
+                                    }
+                                } else if focal_point > 0.0 && far_plane >= focal_point {
+                                    far_plane = focal_point - 0.001;
+                                    if near_plane > far_plane {
+                                        near_plane = far_plane - 0.1;
+                                    }
+                                }
+                                camera.set_planar_projection(fov, near_plane, far_plane)
                             }
                         }
                     }
