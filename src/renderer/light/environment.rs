@@ -48,9 +48,11 @@ impl Environment {
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
+            None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
+            None,
         );
         {
             let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
@@ -78,9 +80,11 @@ impl Environment {
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
+            None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
+            None,
         );
         {
             let max_mip_levels = 5;
@@ -115,8 +119,10 @@ impl Environment {
             Interpolation::Linear,
             Interpolation::Linear,
             None,
+            None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
+            None,
         );
         let viewport = Viewport::new_at_origo(brdf_map.width(), brdf_map.height());
         brdf_map

@@ -39,6 +39,7 @@ impl DepthTextureCubeMap {
             wrap_s,
             wrap_t,
             Some(wrap_r),
+            None,
         );
         unsafe {
             context.tex_storage_2d(

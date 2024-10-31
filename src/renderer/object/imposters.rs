@@ -142,8 +142,10 @@ impl ImpostersMaterial {
                 Interpolation::Nearest,
                 Interpolation::Nearest,
                 None,
+                None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
+                None,
             ),
         };
         m.update(aabb, objects, lights, max_texture_size);
@@ -182,8 +184,10 @@ impl ImpostersMaterial {
                 Interpolation::Linear,
                 Interpolation::Linear,
                 None,
+                None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
+                None,
             );
             let mut depth_texture = DepthTexture2D::new::<f32>(
                 &self.context,

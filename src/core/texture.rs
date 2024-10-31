@@ -288,6 +288,7 @@ fn set_parameters(
     wrap_s: Wrapping,
     wrap_t: Wrapping,
     wrap_r: Option<Wrapping>,
+    anisotropic_filter: Option<u32>,
 ) {
     unsafe {
         match mip_map_filter {
@@ -346,11 +347,29 @@ fn set_parameters(
         if let Some(r) = wrap_r {
             context.tex_parameter_i32(target, crate::context::TEXTURE_WRAP_R, wrapping_from(r));
         }
+        if let Some(level) = anisotropic_filter {
+            let extensions = context.supported_extensions();
+            // Desktop
+            if extensions.contains("GL_ARB_texture_filter_anisotropic") ||
+                extensions.contains("GL_EXT_texture_filter_anisotropic") ||
+                // Web
+                extensions.contains("EXT_texture_filter_anisotropic")
+            {
+                let max_level =
+                    context.get_parameter_f32(crate::context::MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+                context.tex_parameter_f32(
+                    target,
+                    crate::context::TEXTURE_MAX_ANISOTROPY_EXT,
+                    max_level.min(level as f32),
+                );
+            }
+        }
     }
 }
 
 fn calculate_number_of_mip_maps<T: TextureDataType>(
     mip_map_filter: Option<Interpolation>,
+    mip_map_limit: Option<u32>,
     width: u32,
     height: u32,
     depth: Option<u32>,
@@ -368,7 +387,12 @@ fn calculate_number_of_mip_maps<T: TextureDataType>(
             1
         } else {
             let power_of_two = max_size.next_power_of_two();
-            (power_of_two as f64).log2() as u32
+            let levels = (power_of_two as f64).log2() as u32;
+            if let Some(limit) = mip_map_limit {
+                levels.min(limit).max(1)
+            } else {
+                levels
+            }
         }
     } else {
         1

@@ -136,8 +136,10 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
             Interpolation::Linear,
             Interpolation::Linear,
             None,
+            None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
+            None,
         );
         self.resolve_color_to(&color_texture.as_color_target(None));
         color_texture
@@ -171,8 +173,10 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
             Interpolation::Linear,
             Interpolation::Linear,
             None,
+            None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
+            None,
         );
         let mut depth_texture = DepthTexture2D::new::<D>(
             &self.context,

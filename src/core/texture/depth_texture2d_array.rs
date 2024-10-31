@@ -41,6 +41,7 @@ impl DepthTexture2DArray {
             wrap_s,
             wrap_t,
             None,
+            None,
         );
         unsafe {
             context.tex_storage_3d(
