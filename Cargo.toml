@@ -24,14 +24,14 @@ egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features
 text = ["swash", "lyon"] # Text mesh generation features
 
 [dependencies]
-glow = "0.13"
+glow = "0.14"
 cgmath = "0.18"
 three-d-asset = {version = "0.7"}
 thiserror = "1"
 open-enum = "0.5"
 winit = {version = "0.28", optional = true}
-egui = { version = "0.28", optional = true }
-egui_glow = { version = "0.28", optional = true }
+egui = { version = "0.29", optional = true }
+egui_glow = { version = "0.29", optional = true }
 getrandom = { version = "0.2", features = ["js"], optional = true }
 swash = { version = "0.1", optional = true }
 lyon = { version = "1", optional = true }
