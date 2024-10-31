@@ -421,12 +421,14 @@ pub fn render_with_material(
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
-        Program::from_source(
+        match Program::from_source(
             context,
             &geometry.vertex_shader_source(fragment_attributes),
             &material.fragment_shader_source(lights),
-        )
-        .expect("Failed compiling shader")
+        ) {
+            Ok(program) => program,
+            Err(err) => panic!("{}", err.to_string()),
+        }
     });
     material.use_uniforms(program, camera, lights);
     geometry.draw(
@@ -460,12 +462,14 @@ pub fn render_with_effect(
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
-        Program::from_source(
+        match Program::from_source(
             context,
             &geometry.vertex_shader_source(fragment_attributes),
             &effect.fragment_shader_source(lights, color_texture, depth_texture),
-        )
-        .expect("Failed compiling shader")
+        ) {
+            Ok(program) => program,
+            Err(err) => panic!("{}", err.to_string()),
+        }
     });
     effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
     geometry.draw(camera, program, effect.render_states(), fragment_attributes);
@@ -494,12 +498,14 @@ pub fn apply_screen_material(
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
-        Program::from_source(
+        match Program::from_source(
             context,
             full_screen_vertex_shader_source(),
             &material.fragment_shader_source(lights),
-        )
-        .expect("Failed compiling shader")
+        ) {
+            Ok(program) => program,
+            Err(err) => panic!("{}", err.to_string()),
+        }
     });
     material.use_uniforms(program, camera, lights);
     full_screen_draw(
@@ -535,12 +541,14 @@ pub fn apply_screen_effect(
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
-        Program::from_source(
+        match Program::from_source(
             context,
             full_screen_vertex_shader_source(),
             &effect.fragment_shader_source(lights, color_texture, depth_texture),
-        )
-        .expect("Failed compiling shader")
+        ) {
+            Ok(program) => program,
+            Err(err) => panic!("{}", err.to_string()),
+        }
     });
     effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
     full_screen_draw(context, program, effect.render_states(), camera.viewport());
