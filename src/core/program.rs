@@ -66,16 +66,16 @@ impl Program {
             if !context.get_program_link_status(id) {
                 let log = context.get_shader_info_log(vert_shader);
                 if !log.is_empty() {
-                    Err(CoreError::ShaderCompilation(
-                        "vertex".to_string(),
+                    Err(shader_compilation_error(
+                        "vertex",
                         log,
                         vertex_shader_source,
                     ))?;
                 }
                 let log = context.get_shader_info_log(frag_shader);
                 if !log.is_empty() {
-                    Err(CoreError::ShaderCompilation(
-                        "fragment".to_string(),
+                    Err(shader_compilation_error(
+                        "fragment",
                         log,
                         fragment_shader_source,
                     ))?;
@@ -644,4 +644,12 @@ impl Drop for Program {
             self.context.delete_program(self.id);
         }
     }
+}
+fn shader_compilation_error(typ: &str, log: String, source: String) -> CoreError {
+    let lines: Vec<String> = source
+        .lines()
+        .enumerate()
+        .map(|(index, l)| format!("{:0>3}: {}", index + 1, l))
+        .collect();
+    CoreError::ShaderCompilation(typ.to_string(), lines.join("\n"), log)
 }
