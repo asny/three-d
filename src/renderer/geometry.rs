@@ -22,7 +22,7 @@ macro_rules! impl_geometry_body {
             self.$inner().vertex_shader_source(required_attributes)
         }
 
-        fn id(&self, required_attributes: FragmentAttributes) -> u16 {
+        fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
             self.$inner().id(required_attributes)
         }
 
@@ -106,6 +106,9 @@ pub use three_d_asset::{
 /// - uv coordinates: `out vec2 uvs;` (must be flipped in v compared to standard uv coordinates, ie. do `uvs = vec2(uvs.x, 1.0 - uvs.y);` in the vertex shader or do the flip before constructing the uv coordinates vertex buffer)
 /// - color: `out vec4 col;`
 ///
+/// In addition, for the geometry to be pickable using the [pick] or [ray_intersect] methods (ie. combined with the [IntersectionMaterial]),
+/// it needs to support `flat out int instance_id;`. Simply set it to the built-in glsl variable: `gl_InstanceID`.
+///
 pub trait Geometry {
     ///
     /// Draw this geometry.
@@ -127,9 +130,9 @@ pub trait Geometry {
     /// Returns a unique ID for each variation of the shader source returned from `Geometry::vertex_shader_source`.
     ///
     /// **Note:** The last bit is reserved to internally implemented geometries, so if implementing the `Geometry` trait
-    /// outside of this crate, always return an id that is smaller than `0b1u16 << 15`.
+    /// outside of this crate, always return an id in the public use range as defined by [GeometryId].
     ///
-    fn id(&self, required_attributes: FragmentAttributes) -> u16;
+    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId;
 
     ///
     /// Render the geometry with the given [Material].
@@ -216,7 +219,7 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
             .vertex_shader_source(required_attributes)
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> u16 {
+    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
         self.read().unwrap().id(required_attributes)
     }
 

@@ -155,8 +155,8 @@ impl Material for PrefilterMaterial<'_> {
         )
     }
 
-    fn id(&self) -> u16 {
-        0b1u16 << 15 | 0b1u16 << 7
+    fn id(&self) -> EffectMaterialId {
+        EffectMaterialId::PrefilterMaterial
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {
@@ -201,8 +201,8 @@ impl Material for BrdfMaterial {
         )
     }
 
-    fn id(&self) -> u16 {
-        0b1u16 << 15 | 0b1110u16
+    fn id(&self) -> EffectMaterialId {
+        EffectMaterialId::BrdfMaterial
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {
@@ -237,8 +237,8 @@ impl Material for IrradianceMaterial<'_> {
         )
     }
 
-    fn id(&self) -> u16 {
-        0b1u16 << 15 | 0b1111u16
+    fn id(&self) -> EffectMaterialId {
+        EffectMaterialId::IrradianceMaterial
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

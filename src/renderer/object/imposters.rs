@@ -212,8 +212,8 @@ impl ImpostersMaterial {
 }
 
 impl Material for ImpostersMaterial {
-    fn id(&self) -> u16 {
-        0b1u16 << 15 | 0b1101u16
+    fn id(&self) -> EffectMaterialId {
+        EffectMaterialId::ImpostersMaterial
     }
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {

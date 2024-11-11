@@ -166,8 +166,8 @@ impl Geometry for Skybox {
         include_str!("shaders/skybox.vert").to_owned()
     }
 
-    fn id(&self, _required_attributes: FragmentAttributes) -> u16 {
-        0b1u16 << 15 | 0b1u16
+    fn id(&self, _required_attributes: FragmentAttributes) -> GeometryId {
+        GeometryId::Skybox
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

@@ -48,16 +48,15 @@ impl Effect for FogEffect {
         )
     }
 
-    fn id(&self, color_texture: Option<ColorTexture>, depth_texture: Option<DepthTexture>) -> u16 {
-        0b1u16 << 14
-            | 0b1u16 << 13
-            | 0b1u16 << 12
-            | color_texture
-                .expect("Must supply a color texture to apply a fog effect")
-                .id()
-            | depth_texture
-                .expect("Must supply a depth texture to apply a fog effect")
-                .id()
+    fn id(
+        &self,
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
+    ) -> EffectMaterialId {
+        EffectMaterialId::FogEffect(
+            color_texture.expect("Must supply a color texture to apply a fog effect"),
+            depth_texture.expect("Must supply a depth texture to apply a fog effect"),
+        )
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {

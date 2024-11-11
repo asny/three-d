@@ -59,6 +59,10 @@ pub enum CoreError {
     ShaderCompilation(String, String, String),
     #[error("failed to link shader program: {0}")]
     ShaderLink(String),
+    #[error(
+        "failed to compile a shader program, probably due to performance or memory constraints"
+    )]
+    ShaderCompilerError,
 }
 
 pub(crate) fn full_screen_draw(

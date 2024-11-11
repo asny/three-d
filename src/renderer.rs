@@ -29,7 +29,13 @@ pub enum RendererError {
     InvalidBufferLength(String, usize, usize),
     #[error("the material {0} is required by the geometry {1} but could not be found")]
     MissingMaterial(String, String),
+    #[cfg(feature = "text")]
+    #[error("Failed to find font with index {0} in the given font collection")]
+    MissingFont(u32),
 }
+
+mod shader_ids;
+pub use shader_ids::*;
 
 mod camera;
 pub use camera::*;
@@ -51,6 +57,11 @@ pub use object::*;
 
 pub mod control;
 pub use control::*;
+
+#[cfg(feature = "text")]
+mod text;
+#[cfg(feature = "text")]
+pub use text::*;
 
 macro_rules! impl_render_target_extensions_body {
     () => {
@@ -376,6 +387,20 @@ impl_render_target_extensions!(ColorTargetMultisample<C: TextureDataType>);
 impl_render_target_extensions!(DepthTargetMultisample<D: DepthTextureDataType>);
 
 ///
+/// Combines shader ID components together into a single ID vector, to be used as a key in shader caching.
+///
+fn combine_ids(
+    geometry: GeometryId,
+    effect_material: EffectMaterialId,
+    lights: impl Iterator<Item = LightId>,
+) -> Vec<u8> {
+    let mut id = geometry.0.to_le_bytes().to_vec();
+    id.extend(effect_material.0.to_le_bytes());
+    id.extend(lights.map(|l| l.0));
+    return id;
+}
+
+///
 /// Render the given [Geometry] with the given [Material].
 /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
 /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
@@ -388,9 +413,11 @@ pub fn render_with_material(
     lights: &[&dyn Light],
 ) {
     let fragment_attributes = material.fragment_attributes();
-    let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
-    id.extend(material.id().to_le_bytes());
-    id.extend(lights.iter().map(|l| l.id()));
+    let id = combine_ids(
+        geometry.id(fragment_attributes),
+        material.id(),
+        lights.iter().map(|l| l.id()),
+    );
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
@@ -425,9 +452,11 @@ pub fn render_with_effect(
     depth_texture: Option<DepthTexture>,
 ) {
     let fragment_attributes = effect.fragment_attributes();
-    let mut id = geometry.id(fragment_attributes).to_le_bytes().to_vec();
-    id.extend(effect.id(color_texture, depth_texture).to_le_bytes());
-    id.extend(lights.iter().map(|l| l.id()));
+    let id = combine_ids(
+        geometry.id(fragment_attributes),
+        effect.id(color_texture, depth_texture),
+        lights.iter().map(|l| l.id()),
+    );
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
@@ -457,9 +486,11 @@ pub fn apply_screen_material(
     if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
         panic!("Not possible to use the given material to render full screen, the full screen geometry only provides uv coordinates and color");
     }
-    let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
-    id.extend(material.id().to_le_bytes());
-    id.extend(lights.iter().map(|l| l.id()));
+    let id = combine_ids(
+        GeometryId::Screen,
+        material.id(),
+        lights.iter().map(|l| l.id()),
+    );
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
@@ -496,9 +527,11 @@ pub fn apply_screen_effect(
     if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
         panic!("Not possible to use the given effect to render full screen, the full screen geometry only provides uv coordinates and color");
     }
-    let mut id = (0b1u16 << 15).to_le_bytes().to_vec();
-    id.extend(effect.id(color_texture, depth_texture).to_le_bytes());
-    id.extend(lights.iter().map(|l| l.id()));
+    let id = combine_ids(
+        GeometryId::Screen,
+        effect.id(color_texture, depth_texture),
+        lights.iter().map(|l| l.id()),
+    );
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
@@ -555,7 +588,7 @@ pub fn pick(
     camera: &Camera,
     pixel: impl Into<PhysicalPoint> + Copy,
     geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<Vec3> {
+) -> Option<IntersectionResult> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
     ray_intersect(
@@ -565,6 +598,20 @@ pub fn pick(
         camera.z_far() - camera.z_near(),
         geometries,
     )
+}
+
+/// Result from an intersection test
+#[derive(Debug, Clone, Copy)]
+pub struct IntersectionResult {
+    /// The position of the intersection.
+    pub position: Vec3,
+    /// The index of the intersected geometry in the list of geometries.
+    pub geometry_id: u32,
+    /// The index of the intersected instance in the list of instances, ie. [gl_InstanceID](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_InstanceID.xhtml).
+    /// This is 0 if the intersection did not hit an instanced geometry.
+    pub instance_id: u32,
+    /// The id of the primitive in the intersected geometry, ie. [gl_PrimitiveId](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_PrimitiveID.xhtml).
+    pub primitive_id: u32,
 }
 
 ///
@@ -577,7 +624,7 @@ pub fn ray_intersect(
     direction: Vec3,
     max_depth: f32,
     geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<Vec3> {
+) -> Option<IntersectionResult> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
     let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
@@ -594,7 +641,7 @@ pub fn ray_intersect(
         0.0,
         max_depth,
     );
-    let mut texture = Texture2D::new_empty::<f32>(
+    let mut texture = Texture2D::new_empty::<[f32; 4]>(
         context,
         viewport.width,
         viewport.height,
@@ -611,31 +658,31 @@ pub fn ray_intersect(
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let depth_material = DepthMaterial {
-        render_states: RenderStates {
-            write_mask: WriteMask {
-                red: true,
-                ..WriteMask::DEPTH
-            },
-            ..Default::default()
-        },
+    let mut material = IntersectionMaterial {
         ..Default::default()
     };
-    let depth = RenderTarget::new(
+    let result = RenderTarget::new(
         texture.as_color_target(None),
         depth_texture.as_depth_target(),
     )
     .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
     .write::<RendererError>(|| {
-        for geometry in geometries {
-            render_with_material(context, &camera, &geometry, &depth_material, &[]);
+        for (id, geometry) in geometries.into_iter().enumerate() {
+            material.geometry_id = id as u32;
+            render_with_material(context, &camera, &geometry, &material, &[]);
         }
         Ok(())
     })
     .unwrap()
-    .read_color::<[f32; 4]>()[0][0];
+    .read_color::<[f32; 4]>()[0];
+    let depth = result[0];
     if depth < 1.0 {
-        Some(position + direction * depth * max_depth)
+        Some(IntersectionResult {
+            position: position + direction * depth * max_depth,
+            geometry_id: result[1].to_bits(),
+            instance_id: result[2].to_bits(),
+            primitive_id: result[3].to_bits(),
+        })
     } else {
         None
     }

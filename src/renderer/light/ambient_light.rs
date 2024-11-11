@@ -100,12 +100,8 @@ impl Light for AmbientLight {
         );
     }
 
-    fn id(&self) -> u8 {
-        if self.environment.is_some() {
-            0b1u8 << 7
-        } else {
-            0b1u8 << 7 | 0b1u8
-        }
+    fn id(&self) -> LightId {
+        LightId::AmbientLight(self.environment.is_some())
     }
 }
 

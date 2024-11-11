@@ -253,8 +253,8 @@ impl Geometry for WaterPatch {
         include_str!("shaders/water.vert").to_owned()
     }
 
-    fn id(&self, _required_attributes: FragmentAttributes) -> u16 {
-        0b1u16 << 15 | 0b101u16
+    fn id(&self, _required_attributes: FragmentAttributes) -> GeometryId {
+        GeometryId::WaterPatch
     }
 
     fn render_with_material(
