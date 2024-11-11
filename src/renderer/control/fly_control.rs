@@ -5,6 +5,7 @@ use crate::renderer::*;
 ///
 #[derive(Clone, Copy, Debug)]
 pub struct FlyControl {
+    /// The speed of movements.
     pub speed: f32,
 }
 

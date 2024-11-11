@@ -5,8 +5,11 @@ use crate::renderer::*;
 ///
 #[derive(Clone, Copy, Debug)]
 pub struct OrbitControl {
+    /// The target point to orbit around.
     pub target: Vec3,
+    /// The minimum distance to the target point.
     pub min_distance: f32,
+    /// The maximum distance to the target point.
     pub max_distance: f32,
 }
 
