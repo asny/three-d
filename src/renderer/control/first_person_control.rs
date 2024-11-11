@@ -5,7 +5,7 @@ use crate::renderer::*;
 ///
 #[derive(Clone, Copy, Debug)]
 pub struct FirstPersonControl {
-    speed: f32,
+    pub speed: f32,
 }
 
 impl FirstPersonControl {

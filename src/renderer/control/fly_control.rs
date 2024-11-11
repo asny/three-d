@@ -3,8 +3,9 @@ use crate::renderer::*;
 ///
 /// A control that makes the camera fly through the 3D scene.
 ///
+#[derive(Clone, Copy, Debug)]
 pub struct FlyControl {
-    speed: f32,
+    pub speed: f32,
 }
 
 impl FlyControl {
@@ -24,7 +25,7 @@ impl FlyControl {
                     handled,
                     ..
                 } => {
-                    if !*handled && button.is_some() {
+                    if !*handled {
                         if Some(MouseButton::Left) == *button {
                             camera.yaw(radians(delta.0 * std::f32::consts::PI / 1800.0));
                             camera.pitch(radians(delta.1 * std::f32::consts::PI / 1800.0));
