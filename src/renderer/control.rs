@@ -2,10 +2,6 @@
 //! A collection of controls for example to control the camera.
 //!
 
-mod camera_control;
-#[doc(inline)]
-pub use camera_control::*;
-
 mod orbit_control;
 #[doc(inline)]
 pub use orbit_control::*;
