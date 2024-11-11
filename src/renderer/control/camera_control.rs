@@ -168,6 +168,10 @@ pub struct CameraControl {
     pub scroll_horizontal: CameraAction,
     /// Specifies what happens when scrolling vertically.
     pub scroll_vertical: CameraAction,
+    /// Specifies what happens when pinching on a gesture-capable device
+    pub pinch: CameraAction,
+    /// Specifies what happens when rotating on a gesture-capable device
+    pub rotate: CameraAction,
 }
 
 impl CameraControl {
@@ -213,6 +217,20 @@ impl CameraControl {
                         self.scroll_vertical.apply(camera, delta.1);
                         *handled =
                             self.scroll_horizontal.is_some() || self.scroll_vertical.is_some();
+                        change |= *handled;
+                    }
+                }
+                Event::PinchGesture { delta, handled, .. } => {
+                    if !*handled {
+                        self.pinch.apply(camera, *delta);
+                        *handled = self.pinch.is_some();
+                        change |= *handled;
+                    }
+                }
+                Event::RotationGesture { delta, handled, .. } => {
+                    if !*handled {
+                        self.rotate.apply(camera, delta.0);
+                        *handled = self.rotate.is_some();
                         change |= *handled;
                     }
                 }
