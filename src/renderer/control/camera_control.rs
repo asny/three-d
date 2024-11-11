@@ -84,81 +84,20 @@ impl std::default::Default for CameraAction {
     }
 }
 
-///
-/// A customizable controller for the camera.
-/// It is possible to specify a [CameraAction] for each of the input events.
-///
-#[derive(Clone, Copy, Debug, Default)]
-pub struct CameraControl {
-    /// Specifies what happens when dragging horizontally with the left mouse button.
-    pub left_drag_horizontal: CameraAction,
-    /// Specifies what happens when dragging vertically with the left mouse button.
-    pub left_drag_vertical: CameraAction,
-    /// Specifies what happens when dragging horizontally with the middle mouse button.
-    pub middle_drag_horizontal: CameraAction,
-    /// Specifies what happens when dragging vertically with the middle mouse button.
-    pub middle_drag_vertical: CameraAction,
-    /// Specifies what happens when dragging horizontally with the right mouse button.
-    pub right_drag_horizontal: CameraAction,
-    /// Specifies what happens when dragging vertically with the right mouse button.
-    pub right_drag_vertical: CameraAction,
-    /// Specifies what happens when scrolling horizontally.
-    pub scroll_horizontal: CameraAction,
-    /// Specifies what happens when scrolling vertically.
-    pub scroll_vertical: CameraAction,
-}
-
-impl CameraControl {
-    /// Creates a new default CameraControl.
-    pub fn new() -> Self {
-        Self::default()
+impl CameraAction {
+    /// Returns true if the action is `CameraAction::None`.
+    pub fn is_none(self) -> bool {
+        self == CameraAction::None
     }
 
-    /// Handles the events. Must be called each frame.
-    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> bool {
-        let mut change = false;
-        for event in events.iter_mut() {
-            match event {
-                Event::MouseMotion {
-                    delta,
-                    button,
-                    handled,
-                    ..
-                } => {
-                    if !*handled && button.is_some() {
-                        if let Some(b) = button {
-                            let (control_horizontal, control_vertical) = match b {
-                                MouseButton::Left => {
-                                    (self.left_drag_horizontal, self.left_drag_vertical)
-                                }
-                                MouseButton::Middle => {
-                                    (self.middle_drag_horizontal, self.middle_drag_vertical)
-                                }
-                                MouseButton::Right => {
-                                    (self.right_drag_horizontal, self.right_drag_vertical)
-                                }
-                            };
-                            *handled = self.handle_action(camera, control_horizontal, delta.0);
-                            *handled |= self.handle_action(camera, control_vertical, delta.1);
-                            change |= *handled;
-                        }
-                    }
-                }
-                Event::MouseWheel { delta, handled, .. } => {
-                    if !*handled {
-                        *handled = self.handle_action(camera, self.scroll_horizontal, delta.0);
-                        *handled |= self.handle_action(camera, self.scroll_vertical, delta.1);
-                        change |= *handled;
-                    }
-                }
-                _ => {}
-            }
-        }
-        change
+    /// Returns true if the action is not `CameraAction::None`.
+    pub fn is_some(self) -> bool {
+        self != CameraAction::None
     }
 
-    fn handle_action(&mut self, camera: &mut Camera, control_type: CameraAction, x: f32) -> bool {
-        match control_type {
+    /// Applies the effects of this action to the camera. Can be used to implement additional camera control events.
+    pub fn apply(self, camera: &mut Camera, x: f32) {
+        match self {
             CameraAction::Pitch { speed } => {
                 camera.pitch(radians(speed * x));
             }
@@ -204,6 +143,82 @@ impl CameraControl {
             }
             CameraAction::None => {}
         }
-        control_type != CameraAction::None
+    }
+}
+
+///
+/// A customizable controller for the camera.
+/// It is possible to specify a [CameraAction] for each of the input events.
+///
+#[derive(Clone, Copy, Debug, Default)]
+pub struct CameraControl {
+    /// Specifies what happens when dragging horizontally with the left mouse button.
+    pub left_drag_horizontal: CameraAction,
+    /// Specifies what happens when dragging vertically with the left mouse button.
+    pub left_drag_vertical: CameraAction,
+    /// Specifies what happens when dragging horizontally with the middle mouse button.
+    pub middle_drag_horizontal: CameraAction,
+    /// Specifies what happens when dragging vertically with the middle mouse button.
+    pub middle_drag_vertical: CameraAction,
+    /// Specifies what happens when dragging horizontally with the right mouse button.
+    pub right_drag_horizontal: CameraAction,
+    /// Specifies what happens when dragging vertically with the right mouse button.
+    pub right_drag_vertical: CameraAction,
+    /// Specifies what happens when scrolling horizontally.
+    pub scroll_horizontal: CameraAction,
+    /// Specifies what happens when scrolling vertically.
+    pub scroll_vertical: CameraAction,
+}
+
+impl CameraControl {
+    /// Creates a new default CameraControl.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Handles the events. Must be called each frame.
+    pub fn handle_events(&self, camera: &mut Camera, events: &mut [Event]) -> bool {
+        let mut change = false;
+        for event in events.iter_mut() {
+            match event {
+                Event::MouseMotion {
+                    delta,
+                    button,
+                    handled,
+                    ..
+                } => {
+                    if !*handled && button.is_some() {
+                        if let Some(b) = button {
+                            let (control_horizontal, control_vertical) = match b {
+                                MouseButton::Left => {
+                                    (self.left_drag_horizontal, self.left_drag_vertical)
+                                }
+                                MouseButton::Middle => {
+                                    (self.middle_drag_horizontal, self.middle_drag_vertical)
+                                }
+                                MouseButton::Right => {
+                                    (self.right_drag_horizontal, self.right_drag_vertical)
+                                }
+                            };
+                            control_horizontal.apply(camera, delta.0);
+                            control_vertical.apply(camera, delta.1);
+                            *handled = control_horizontal.is_some() || control_vertical.is_some();
+                            change |= *handled;
+                        }
+                    }
+                }
+                Event::MouseWheel { delta, handled, .. } => {
+                    if !*handled {
+                        self.scroll_horizontal.apply(camera, delta.0);
+                        self.scroll_vertical.apply(camera, delta.1);
+                        *handled =
+                            self.scroll_horizontal.is_some() || self.scroll_vertical.is_some();
+                        change |= *handled;
+                    }
+                }
+                _ => {}
+            }
+        }
+        change
     }
 }
