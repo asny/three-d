@@ -222,7 +222,7 @@ impl CameraControl {
                 }
                 Event::PinchGesture { delta, handled, .. } => {
                     if !*handled {
-                        self.pinch.apply(camera, *delta * 100.0);
+                        self.pinch.apply(camera, *delta);
                         *handled = self.pinch.is_some();
                         change |= *handled;
                     }
