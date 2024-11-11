@@ -85,8 +85,18 @@ impl std::default::Default for CameraAction {
 }
 
 impl CameraAction {
+    /// Returns true if the action is `CameraAction::None`.
+    pub fn is_none(self) -> bool {
+        self == CameraAction::None
+    }
+
+    /// Returns true if the action is not `CameraAction::None`.
+    pub fn is_some(self) -> bool {
+        self != CameraAction::None
+    }
+
     /// Applies the effects of this action to the camera. Can be used to implement additional camera control events.
-    pub fn apply_action(self, camera: &mut Camera, x: f32) -> bool {
+    pub fn apply(self, camera: &mut Camera, x: f32) {
         match self {
             CameraAction::Pitch { speed } => {
                 camera.pitch(radians(speed * x));
@@ -133,7 +143,6 @@ impl CameraAction {
             }
             CameraAction::None => {}
         }
-        self != CameraAction::None
     }
 }
 
@@ -191,16 +200,19 @@ impl CameraControl {
                                     (self.right_drag_horizontal, self.right_drag_vertical)
                                 }
                             };
-                            *handled = control_horizontal.apply_action(camera, delta.0);
-                            *handled |= control_vertical.apply_action(camera, delta.1);
+                            control_horizontal.apply(camera, delta.0);
+                            control_vertical.apply(camera, delta.1);
+                            *handled = control_horizontal.is_some() || control_vertical.is_some();
                             change |= *handled;
                         }
                     }
                 }
                 Event::MouseWheel { delta, handled, .. } => {
                     if !*handled {
-                        *handled = self.scroll_horizontal.apply_action(camera, delta.0);
-                        *handled |= self.scroll_vertical.apply_action(camera, delta.1);
+                        self.scroll_horizontal.apply(camera, delta.0);
+                        self.scroll_vertical.apply(camera, delta.1);
+                        *handled =
+                            self.scroll_horizontal.is_some() || self.scroll_vertical.is_some();
                         change |= *handled;
                     }
                 }
