@@ -646,9 +646,8 @@ impl Drop for Program {
     }
 }
 fn shader_compilation_error(typ: &str, log: String, source: String) -> CoreError {
-    let lines: Vec<&str> = source.split('\n').collect();
-    let lines: Vec<String> = lines
-        .into_iter()
+    let lines: Vec<String> = source
+        .lines()
         .enumerate()
         .map(|(index, l)| format!("{:0>3}: {}", index + 1, l))
         .collect();
