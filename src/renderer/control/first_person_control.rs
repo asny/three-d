@@ -38,7 +38,7 @@ impl FirstPersonControl {
                 Event::MouseWheel { delta, handled, .. } => {
                     if !*handled {
                         let v = camera.view_direction() * self.speed * delta.1;
-                        camera.translate(&v);
+                        camera.translate(v);
                         *handled = true;
                         change = true;
                     }

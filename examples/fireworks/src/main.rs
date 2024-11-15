@@ -88,7 +88,7 @@ pub fn run() {
         Srgba::new_opaque(40, 178, 222),
     ];
     let mut square = CpuMesh::square();
-    square.transform(&Mat4::from_scale(0.6)).unwrap();
+    square.transform(Mat4::from_scale(0.6)).unwrap();
 
     // A particle system is created with an acceleration of -9.82 in the y direction to simulate gravity.
     let particles = ParticleSystem::new(

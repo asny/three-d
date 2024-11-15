@@ -36,9 +36,9 @@ impl OrbitControl {
                 } => {
                     if !*handled {
                         if Some(MouseButton::Left) == *button {
-                            let speed = 0.01 * self.target.distance(*camera.position()) + 0.001;
+                            let speed = 0.01 * self.target.distance(camera.position()) + 0.001;
                             camera.rotate_around_with_fixed_up(
-                                &self.target,
+                                self.target,
                                 speed * delta.0,
                                 speed * delta.1,
                             );
@@ -49,9 +49,9 @@ impl OrbitControl {
                 }
                 Event::MouseWheel { delta, handled, .. } => {
                     if !*handled {
-                        let speed = 0.01 * self.target.distance(*camera.position()) + 0.001;
+                        let speed = 0.01 * self.target.distance(camera.position()) + 0.001;
                         camera.zoom_towards(
-                            &self.target,
+                            self.target,
                             speed * delta.1,
                             self.min_distance,
                             self.max_distance,
@@ -62,9 +62,9 @@ impl OrbitControl {
                 }
                 Event::PinchGesture { delta, handled, .. } => {
                     if !*handled {
-                        let speed = self.target.distance(*camera.position()) + 0.1;
+                        let speed = self.target.distance(camera.position()) + 0.1;
                         camera.zoom_towards(
-                            &self.target,
+                            self.target,
                             speed * *delta,
                             self.min_distance,
                             self.max_distance,

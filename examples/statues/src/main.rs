@@ -42,9 +42,9 @@ pub async fn run() {
         10000.0,
     );
     let mut control = OrbitControl::new(
-        *primary_camera.target(),
-        0.5 * primary_camera.target().distance(*primary_camera.position()),
-        5.0 * primary_camera.target().distance(*primary_camera.position()),
+        primary_camera.target(),
+        0.5 * primary_camera.target().distance(primary_camera.position()),
+        5.0 * primary_camera.target().distance(primary_camera.position()),
     );
 
     // Models from http://texturedmesh.isti.cnr.it/
@@ -95,7 +95,7 @@ pub async fn run() {
         &context,
         10.0,
         Srgba::new_opaque(204, 178, 127),
-        &vec3(0.0, -1.0, -1.0),
+        vec3(0.0, -1.0, -1.0),
     );
     directional.generate_shadow_map(
         1024,
@@ -112,7 +112,7 @@ pub async fn run() {
                 ..Default::default()
             },
         ));
-        aabb.expand_with_aabb(&geometry.aabb());
+        aabb.expand_with_aabb(geometry.aabb());
     }
     bounding_boxes.push(Gm::new(
         BoundingBox::new_with_thickness(&context, aabb, 3.0),
@@ -169,7 +169,7 @@ pub async fn run() {
                     .iter()
                     .flatten()
                     .chain(&fountain)
-                    .filter(|o| primary_camera.in_frustum(&o.aabb()))
+                    .filter(|o| primary_camera.in_frustum(o.aabb()))
                 {
                     object.render(camera, &[&ambient, &directional]);
                 }

@@ -24,7 +24,7 @@ impl DirectionalLight {
         context: &Context,
         intensity: f32,
         color: Srgba,
-        direction: &Vec3,
+        direction: Vec3,
     ) -> DirectionalLight {
         DirectionalLight {
             context: context.clone(),
@@ -32,7 +32,7 @@ impl DirectionalLight {
             shadow_texture: None,
             intensity,
             color,
-            direction: *direction,
+            direction,
         }
     }
 
@@ -61,15 +61,15 @@ impl DirectionalLight {
         let viewport = Viewport::new_at_origo(texture_size, texture_size);
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         for geometry in geometries.clone() {
-            aabb.expand_with_aabb(&geometry.aabb());
+            aabb.expand_with_aabb(geometry.aabb());
         }
         if aabb.is_empty() {
             return;
         }
         let target = aabb.center();
         let position = target - aabb.max().distance(aabb.min()) * self.direction;
-        let z_far = aabb.distance_max(&position);
-        let z_near = aabb.distance(&position);
+        let z_far = aabb.distance_max(position);
+        let z_near = aabb.distance(position);
         let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
         let shadow_camera = Camera::new_orthographic(
             viewport,
@@ -100,7 +100,7 @@ impl DirectionalLight {
             .write::<RendererError>(|| {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|g| shadow_camera.in_frustum(&g.aabb()))
+                    .filter(|g| shadow_camera.in_frustum(g.aabb()))
                 {
                     render_with_material(
                         &self.context,

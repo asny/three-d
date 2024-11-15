@@ -72,7 +72,7 @@ pub fn main() {
                         let right = camera.right_direction();
                         let up = right.cross(camera.view_direction());
                         let delta = -right * speed * delta.0 + up * speed * delta.1;
-                        camera.translate(&delta);
+                        camera.translate(delta);
                     }
                 }
                 _ => {}

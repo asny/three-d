@@ -44,7 +44,7 @@ pub async fn run() {
 
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     for m in model.iter() {
-        aabb.expand_with_aabb(&m.aabb());
+        aabb.expand_with_aabb(m.aabb());
     }
 
     let size = aabb.size();
@@ -154,7 +154,7 @@ impl Glow {
         );
         Self {
             aabb,
-            light: PointLight::new(&context, 1.0, Srgba::WHITE, &pos, Attenuation::default()),
+            light: PointLight::new(&context, 1.0, Srgba::WHITE, pos, Attenuation::default()),
             velocity: vec3(
                 rng.gen::<f32>() * 2.0 - 1.0,
                 rng.gen::<f32>() * 2.0 - 1.0,

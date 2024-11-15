@@ -25,7 +25,7 @@ pub async fn run() {
         0.1,
         1000.0,
     );
-    let mut control = OrbitControl::new(*camera.target(), 1.0, 1000.0);
+    let mut control = OrbitControl::new(camera.target(), 1.0, 1000.0);
 
     // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
     let mut loaded = if let Ok(loaded) =
@@ -47,8 +47,8 @@ pub async fn run() {
         .for_each(|part| part.compute_normals());
     let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
 
-    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
-    let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
+    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, -0.5, -0.5));
+    let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, 0.5, 0.5));
 
     // main loop
     window.render_loop(move |mut frame_input| {

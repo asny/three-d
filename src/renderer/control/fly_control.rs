@@ -37,7 +37,7 @@ impl FlyControl {
                             let right = camera.right_direction();
                             let up = right.cross(camera.view_direction());
                             camera.translate(
-                                &(-right * delta.0 * self.speed + up * delta.1 * self.speed),
+                                -right * delta.0 * self.speed + up * delta.1 * self.speed,
                             );
                             *handled = true;
                             change = true;
@@ -47,7 +47,7 @@ impl FlyControl {
                 Event::MouseWheel { delta, handled, .. } => {
                     if !*handled {
                         let v = camera.view_direction() * self.speed * delta.1;
-                        camera.translate(&v);
+                        camera.translate(v);
                         *handled = true;
                         change = true;
                     }

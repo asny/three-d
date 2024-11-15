@@ -25,7 +25,7 @@ pub async fn run() {
         0.01,
         100.0,
     );
-    let mut control = OrbitControl::new(*camera.target(), 0.1, 3.0);
+    let mut control = OrbitControl::new(camera.target(), 0.1, 3.0);
 
     // Load point cloud
     let mut loaded = three_d_asset::io::load_async(&["examples/assets/hand.pcd"])
@@ -34,7 +34,7 @@ pub async fn run() {
     let cpu_point_cloud: PointCloud = loaded.deserialize("hand.pcd").unwrap();
 
     let mut point_mesh = CpuMesh::sphere(4);
-    point_mesh.transform(&Mat4::from_scale(0.001)).unwrap();
+    point_mesh.transform(Mat4::from_scale(0.001)).unwrap();
 
     let mut point_cloud = Gm {
         geometry: InstancedMesh::new(&context, &cpu_point_cloud.into(), &point_mesh),

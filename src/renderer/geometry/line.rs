@@ -21,7 +21,7 @@ impl Line {
         thickness: f32,
     ) -> Self {
         let mut mesh = CpuMesh::square();
-        mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))))
+        mesh.transform(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0)))
             .unwrap();
         let mut line = Self {
             mesh: Mesh::new(context, &mesh),

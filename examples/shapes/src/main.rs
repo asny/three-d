@@ -18,7 +18,7 @@ pub fn main() {
         0.1,
         1000.0,
     );
-    let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
+    let mut control = OrbitControl::new(camera.target(), 1.0, 100.0);
 
     let mut sphere = Gm::new(
         Mesh::new(&context, &CpuMesh::sphere(16)),
@@ -92,8 +92,8 @@ pub fn main() {
         },
     );
 
-    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
-    let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
+    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, -0.5, -0.5));
+    let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, 0.5, 0.5));
 
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);

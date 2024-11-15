@@ -20,8 +20,8 @@ pub fn main() {
     );
     let mut control = OrbitControl::new(vec3(0.0, 0.0, 0.0), 1.0, 1000.0);
 
-    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
-    let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
+    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, -0.5, -0.5));
+    let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, 0.5, 0.5));
 
     // Container for non instanced meshes.
     let mut non_instanced_meshes = Vec::new();
