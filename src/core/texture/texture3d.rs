@@ -47,7 +47,7 @@ impl Texture3D {
             cpu_texture.depth,
             cpu_texture.min_filter,
             cpu_texture.mag_filter,
-            cpu_texture.mip_map_filter,
+            cpu_texture.mipmap,
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
             cpu_texture.wrap_r,
@@ -68,14 +68,14 @@ impl Texture3D {
         depth: u32,
         min_filter: Interpolation,
         mag_filter: Interpolation,
-        mip_map_filter: Option<Interpolation>,
+        mipmap: Option<Mipmap>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         wrap_r: Wrapping,
     ) -> Self {
         let id = generate(context);
         let number_of_mip_maps =
-            calculate_number_of_mip_maps::<T>(mip_map_filter, width, height, Some(depth));
+            calculate_number_of_mip_maps::<T>(mipmap, width, height, Some(depth));
         let texture = Self {
             context: context.clone(),
             id,
@@ -94,7 +94,7 @@ impl Texture3D {
             if number_of_mip_maps == 1 {
                 None
             } else {
-                mip_map_filter
+                mipmap
             },
             wrap_s,
             wrap_t,
