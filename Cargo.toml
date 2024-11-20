@@ -118,6 +118,7 @@ path = "examples/sprites/src/main.rs"
 [[example]]
 name = "texture"
 path = "examples/texture/src/main.rs"
+required-features = ["egui-gui"]
 
 [[example]]
 name = "volume"
