@@ -25,10 +25,10 @@ pub async fn run() {
         0.1,
         1000.0,
     );
-    let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
+    let mut control = OrbitControl::new(camera.target(), 1.0, 100.0);
 
     let mut sphere = CpuMesh::sphere(8);
-    sphere.transform(&Mat4::from_scale(0.1)).unwrap();
+    sphere.transform(Mat4::from_scale(0.1)).unwrap();
     let mut pick_mesh = Gm::new(
         Mesh::new(&context, &sphere),
         PhysicalMaterial::new_opaque(
@@ -41,7 +41,7 @@ pub async fn run() {
     );
 
     let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
-    let directional = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(-1.0, -1.0, -1.0));
+    let directional = DirectionalLight::new(&context, 2.0, Srgba::WHITE, vec3(-1.0, -1.0, -1.0));
 
     let mut loaded = three_d_asset::io::load_async(&["examples/assets/suzanne.obj"])
         .await

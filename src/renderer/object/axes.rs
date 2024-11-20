@@ -15,7 +15,7 @@ impl Axes {
     pub fn new(context: &Context, radius: f32, length: f32) -> Self {
         let mut cpu_mesh = CpuMesh::arrow(0.9, 0.6, 16);
         cpu_mesh
-            .transform(&Mat4::from_nonuniform_scale(length, radius, radius))
+            .transform(Mat4::from_nonuniform_scale(length, radius, radius))
             .unwrap();
         let model = Gm::new(
             InstancedMesh::new(

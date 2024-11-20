@@ -21,13 +21,13 @@ impl PointLight {
         _context: &Context,
         intensity: f32,
         color: Srgba,
-        position: &Vec3,
+        position: Vec3,
         attenuation: Attenuation,
     ) -> PointLight {
         PointLight {
             intensity,
             color,
-            position: *position,
+            position,
             attenuation,
         }
     }

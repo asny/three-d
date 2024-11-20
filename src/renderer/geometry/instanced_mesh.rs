@@ -88,9 +88,10 @@ impl InstancedMesh {
     fn update_aabb(&mut self) {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         for transformation in self.instances.transformations.iter() {
-            let mut aabb2 = self.aabb_local;
-            aabb2.transform(&(transformation * self.transformation));
-            aabb.expand_with_aabb(&aabb2);
+            aabb.expand_with_aabb(
+                self.aabb_local
+                    .transformed(transformation * self.transformation),
+            );
         }
         self.aabb = aabb;
     }
@@ -100,7 +101,7 @@ impl InstancedMesh {
     ///
     fn update_instance_buffers(&self, camera: Option<&Camera>) {
         let mut s = self.instance_buffers.write().unwrap();
-        let indices = if let Some(position) = camera.map(|c| *c.position()) {
+        let indices = if let Some(position) = camera.map(|c| c.position()) {
             s.1 = position;
             // Need to order by using the position.
             let distances = self
@@ -222,7 +223,7 @@ impl Geometry for InstancedMesh {
     ) {
         // Check if we need a reorder, this only applies to transparent materials.
         if render_states.blend != Blend::Disabled
-            && *camera.position() != self.instance_buffers.read().unwrap().1
+            && camera.position() != self.instance_buffers.read().unwrap().1
         {
             self.update_instance_buffers(Some(camera));
         }
@@ -328,7 +329,7 @@ impl Geometry for InstancedMesh {
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
         let mut aabb = self.aabb;
-        aabb.transform(&self.current_transformation);
+        aabb.transform(self.current_transformation);
         aabb
     }
 

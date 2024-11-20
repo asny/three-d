@@ -232,7 +232,7 @@ pub async fn run() {
             camera.target().y + y_new - camera.position().y,
             camera.target().z,
         );
-        let up = *camera.up();
+        let up = camera.up();
         camera.set_view(vec3(p.x, y_new, p.y), target, up);
 
         terrain.set_center(p);

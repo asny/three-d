@@ -25,7 +25,7 @@ pub async fn run() {
         0.1,
         1000.0,
     );
-    let mut control = OrbitControl::new(*camera.target(), 0.25, 100.0);
+    let mut control = OrbitControl::new(camera.target(), 0.25, 100.0);
 
     // Source: https://web.cs.ucdavis.edu/~okreylos/PhDStudies/Spring2000/ECS277/DataSets.html
     let cpu_voxel_grid = three_d_asset::io::load_async(&["examples/assets/Skull.vol"])
@@ -36,8 +36,8 @@ pub async fn run() {
     let mut voxel_grid = VoxelGrid::<IsosurfaceMaterial>::new(&context, &cpu_voxel_grid);
 
     let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
-    let directional1 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(-1.0, -1.0, -1.0));
-    let directional2 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(1.0, 1.0, 1.0));
+    let directional1 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, vec3(-1.0, -1.0, -1.0));
+    let directional2 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, vec3(1.0, 1.0, 1.0));
 
     // main loop
     let mut gui = three_d::GUI::new(&context);

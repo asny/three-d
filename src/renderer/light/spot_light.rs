@@ -30,8 +30,8 @@ impl SpotLight {
         context: &Context,
         intensity: f32,
         color: Srgba,
-        position: &Vec3,
-        direction: &Vec3,
+        position: Vec3,
+        direction: Vec3,
         cutoff: impl Into<Radians>,
         attenuation: Attenuation,
     ) -> SpotLight {
@@ -40,8 +40,8 @@ impl SpotLight {
             shadow_texture: None,
             intensity,
             color,
-            position: *position,
-            direction: *direction,
+            position,
+            direction,
             cutoff: cutoff.into(),
             attenuation,
             shadow_matrix: Mat4::identity(),
@@ -78,8 +78,8 @@ impl SpotLight {
         for geometry in geometries.clone() {
             let aabb = geometry.aabb();
             if !aabb.is_empty() {
-                z_far = z_far.max(aabb.distance_max(&self.position));
-                z_near = z_near.min(aabb.distance(&self.position));
+                z_far = z_far.max(aabb.distance_max(self.position));
+                z_near = z_near.min(aabb.distance(self.position));
             }
         }
 
@@ -114,7 +114,7 @@ impl SpotLight {
             .write::<RendererError>(|| {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|g| shadow_camera.in_frustum(&g.aabb()))
+                    .filter(|g| shadow_camera.in_frustum(g.aabb()))
                 {
                     render_with_material(
                         &self.context,

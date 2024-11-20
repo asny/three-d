@@ -93,7 +93,7 @@ macro_rules! impl_render_target_extensions_body {
         ) -> &Self {
             let (mut deferred_objects, mut forward_objects): (Vec<_>, Vec<_>) = objects
                 .into_iter()
-                .filter(|o| camera.in_frustum(&o.aabb()))
+                .filter(|o| camera.in_frustum(o.aabb()))
                 .partition(|o| o.material_type() == MaterialType::Deferred);
 
             // Deferred
@@ -197,7 +197,7 @@ macro_rules! impl_render_target_extensions_body {
             self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|o| camera.in_frustum(&o.aabb()))
+                    .filter(|o| camera.in_frustum(o.aabb()))
                 {
                     render_with_material(&self.context, camera, geometry, material, lights);
                 }
@@ -248,7 +248,7 @@ macro_rules! impl_render_target_extensions_body {
             self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|o| camera.in_frustum(&o.aabb()))
+                    .filter(|o| camera.in_frustum(o.aabb()))
                 {
                     render_with_effect(
                         &self.context,

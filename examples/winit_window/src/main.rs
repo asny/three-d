@@ -40,7 +40,7 @@ pub fn main() {
         0.1,
         10.0,
     );
-    let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
+    let mut control = OrbitControl::new(camera.target(), 1.0, 100.0);
 
     // Create model
     let mut model = Gm::new(

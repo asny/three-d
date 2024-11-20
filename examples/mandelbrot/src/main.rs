@@ -82,9 +82,8 @@ pub fn main() {
                     if button == Some(MouseButton::Left) {
                         let speed = 0.003 * camera.position().z.abs();
                         let right = camera.right_direction();
-                        let up = right.cross(camera.view_direction());
-                        let delta = -right * speed * delta.0 + up * speed * delta.1;
-                        camera.translate(&delta);
+                        let up = camera.up_orthogonal();
+                        camera.translate(-right * speed * delta.0 + up * speed * delta.1);
                         redraw = true;
                     }
                 }
@@ -94,7 +93,7 @@ pub fn main() {
                     let distance = camera.position().z.abs();
                     let mut target = camera.position_at_pixel(position);
                     target.z = 0.0;
-                    camera.zoom_towards(&target, distance * 0.05 * delta.1, 0.00001, 10.0);
+                    camera.zoom_towards(target, distance * 0.05 * delta.1, 0.00001, 10.0);
                     redraw = true;
                 }
                 _ => {}

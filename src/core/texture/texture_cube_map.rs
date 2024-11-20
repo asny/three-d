@@ -282,7 +282,7 @@ impl TextureCubeMap {
             cpu_texture.height,
             cpu_texture.min_filter,
             cpu_texture.mag_filter,
-            cpu_texture.mip_map_filter,
+            cpu_texture.mipmap,
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
             wrap_r,
@@ -309,14 +309,13 @@ impl TextureCubeMap {
         height: u32,
         min_filter: Interpolation,
         mag_filter: Interpolation,
-        mip_map_filter: Option<Interpolation>,
+        mipmap: Option<Mipmap>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         wrap_r: Wrapping,
     ) -> Self {
         let id = generate(context);
-        let number_of_mip_maps =
-            calculate_number_of_mip_maps::<T>(mip_map_filter, width, height, None);
+        let number_of_mip_maps = calculate_number_of_mip_maps::<T>(mipmap, width, height, None);
         let texture = Self {
             context: context.clone(),
             id,
@@ -334,7 +333,7 @@ impl TextureCubeMap {
             if number_of_mip_maps == 1 {
                 None
             } else {
-                mip_map_filter
+                mipmap
             },
             wrap_s,
             wrap_t,
@@ -453,7 +452,7 @@ impl TextureCubeMap {
             texture_size,
             Interpolation::Linear,
             Interpolation::Linear,
-            Some(Interpolation::Linear),
+            Some(Mipmap::default()),
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
