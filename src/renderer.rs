@@ -93,7 +93,7 @@ macro_rules! impl_render_target_extensions_body {
         ) -> &Self {
             let (mut deferred_objects, mut forward_objects): (Vec<_>, Vec<_>) = objects
                 .into_iter()
-                .filter(|o| camera.in_frustum(&o.aabb()))
+                .filter(|o| camera.in_frustum(o.aabb()))
                 .partition(|o| o.material_type() == MaterialType::Deferred);
 
             // Deferred
@@ -197,7 +197,7 @@ macro_rules! impl_render_target_extensions_body {
             self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|o| camera.in_frustum(&o.aabb()))
+                    .filter(|o| camera.in_frustum(o.aabb()))
                 {
                     render_with_material(&self.context, camera, geometry, material, lights);
                 }
@@ -248,7 +248,7 @@ macro_rules! impl_render_target_extensions_body {
             self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|o| camera.in_frustum(&o.aabb()))
+                    .filter(|o| camera.in_frustum(o.aabb()))
                 {
                     render_with_effect(
                         &self.context,
@@ -421,12 +421,14 @@ pub fn render_with_material(
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
-        Program::from_source(
+        match Program::from_source(
             context,
             &geometry.vertex_shader_source(fragment_attributes),
             &material.fragment_shader_source(lights),
-        )
-        .expect("Failed compiling shader")
+        ) {
+            Ok(program) => program,
+            Err(err) => panic!("{}", err.to_string()),
+        }
     });
     material.use_uniforms(program, camera, lights);
     geometry.draw(
@@ -460,12 +462,14 @@ pub fn render_with_effect(
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
-        Program::from_source(
+        match Program::from_source(
             context,
             &geometry.vertex_shader_source(fragment_attributes),
             &effect.fragment_shader_source(lights, color_texture, depth_texture),
-        )
-        .expect("Failed compiling shader")
+        ) {
+            Ok(program) => program,
+            Err(err) => panic!("{}", err.to_string()),
+        }
     });
     effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
     geometry.draw(camera, program, effect.render_states(), fragment_attributes);
@@ -494,12 +498,14 @@ pub fn apply_screen_material(
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
-        Program::from_source(
+        match Program::from_source(
             context,
             full_screen_vertex_shader_source(),
             &material.fragment_shader_source(lights),
-        )
-        .expect("Failed compiling shader")
+        ) {
+            Ok(program) => program,
+            Err(err) => panic!("{}", err.to_string()),
+        }
     });
     material.use_uniforms(program, camera, lights);
     full_screen_draw(
@@ -535,12 +541,14 @@ pub fn apply_screen_effect(
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
-        Program::from_source(
+        match Program::from_source(
             context,
             full_screen_vertex_shader_source(),
             &effect.fragment_shader_source(lights, color_texture, depth_texture),
-        )
-        .expect("Failed compiling shader")
+        ) {
+            Ok(program) => program,
+            Err(err) => panic!("{}", err.to_string()),
+        }
     });
     effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
     full_screen_draw(context, program, effect.render_states(), camera.viewport());

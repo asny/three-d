@@ -23,7 +23,7 @@ impl Rectangle {
         height: f32,
     ) -> Self {
         let mut mesh = CpuMesh::square();
-        mesh.transform(&(Mat4::from_scale(0.5))).unwrap();
+        mesh.transform(Mat4::from_scale(0.5)).unwrap();
         let mut rectangle = Self {
             mesh: Mesh::new(context, &mesh),
             width,

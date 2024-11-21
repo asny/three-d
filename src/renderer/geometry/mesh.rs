@@ -127,9 +127,7 @@ impl<'a> IntoIterator for &'a Mesh {
 
 impl Geometry for Mesh {
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        let mut aabb = self.aabb;
-        aabb.transform(&self.current_transformation);
-        aabb
+        self.aabb.transformed(self.current_transformation)
     }
 
     fn animate(&mut self, time: f32) {

@@ -39,7 +39,8 @@ pub(in crate::core) use depth_texture2d_multisample::*;
 
 use data_type::*;
 pub use three_d_asset::texture::{
-    Interpolation, Texture2D as CpuTexture, Texture3D as CpuTexture3D, TextureData, Wrapping,
+    Interpolation, Mipmap, Texture2D as CpuTexture, Texture3D as CpuTexture3D, TextureData,
+    Wrapping,
 };
 
 /// The basic data type used for each channel of each pixel in a texture.
@@ -56,8 +57,6 @@ impl<T: TextureDataType + PrimitiveDataType> TextureDataType for [T; 3] {}
 impl<T: TextureDataType + PrimitiveDataType> TextureDataType for [T; 4] {}
 
 impl TextureDataType for Quat {}
-
-impl<T: TextureDataType + ?Sized> TextureDataType for &T {}
 
 /// The basic data type used for each pixel in a depth texture.
 pub trait DepthTextureDataType: DepthDataType {}
@@ -284,19 +283,22 @@ fn set_parameters(
     target: u32,
     min_filter: Interpolation,
     mag_filter: Interpolation,
-    mip_map_filter: Option<Interpolation>,
+    mipmap: Option<Mipmap>,
     wrap_s: Wrapping,
     wrap_t: Wrapping,
     wrap_r: Option<Wrapping>,
 ) {
     unsafe {
-        match mip_map_filter {
+        match mipmap {
             None => context.tex_parameter_i32(
                 target,
                 crate::context::TEXTURE_MIN_FILTER,
                 interpolation_from(min_filter),
             ),
-            Some(Interpolation::Nearest) => {
+            Some(Mipmap {
+                filter: Interpolation::Nearest,
+                ..
+            }) => {
                 if min_filter == Interpolation::Nearest {
                     context.tex_parameter_i32(
                         target,
@@ -311,7 +313,10 @@ fn set_parameters(
                     )
                 }
             }
-            Some(Interpolation::Linear) => {
+            Some(Mipmap {
+                filter: Interpolation::Linear,
+                ..
+            }) => {
                 if min_filter == Interpolation::Nearest {
                     context.tex_parameter_i32(
                         target,
@@ -327,6 +332,25 @@ fn set_parameters(
                 }
             }
             _ => panic!("Can only sample textures using 'NEAREST' or 'LINEAR' interpolation"),
+        }
+        if let Some(Mipmap { max_ratio, .. }) = mipmap {
+            let extensions = context.supported_extensions();
+            // Desktop
+            if extensions.contains("GL_ARB_texture_filter_anisotropic") ||
+                extensions.contains("GL_EXT_texture_filter_anisotropic") ||
+                // Web
+                extensions.contains("EXT_texture_filter_anisotropic")
+            {
+                let max_ratio = max_ratio.min(
+                    context.get_parameter_i32(crate::context::MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+                        as u32,
+                );
+                context.tex_parameter_i32(
+                    target,
+                    crate::context::TEXTURE_MAX_ANISOTROPY_EXT,
+                    max_ratio as i32,
+                );
+            }
         }
         context.tex_parameter_i32(
             target,
@@ -350,7 +374,7 @@ fn set_parameters(
 }
 
 fn calculate_number_of_mip_maps<T: TextureDataType>(
-    mip_map_filter: Option<Interpolation>,
+    mipmap: Option<Mipmap>,
     width: u32,
     height: u32,
     depth: Option<u32>,
@@ -362,13 +386,13 @@ fn calculate_number_of_mip_maps<T: TextureDataType>(
         return 1;
     }
 
-    if mip_map_filter.is_some() {
+    if let Some(Mipmap { max_levels, .. }) = mipmap {
         let max_size = width.max(height).max(depth.unwrap_or(0));
         if max_size < 2 {
             1
         } else {
             let power_of_two = max_size.next_power_of_two();
-            (power_of_two as f64).log2() as u32
+            ((power_of_two as f64).log2() as u32).min(max_levels.max(1))
         }
     } else {
         1

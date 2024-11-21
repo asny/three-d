@@ -32,7 +32,7 @@ impl GUI {
     pub fn from_gl_context(context: std::sync::Arc<crate::context::Context>) -> Self {
         GUI {
             egui_context: egui::Context::default(),
-            painter: RefCell::new(Painter::new(context, "", None).unwrap()),
+            painter: RefCell::new(Painter::new(context, "", None, true).unwrap()),
             output: RefCell::new(None),
             viewport: Viewport::new_at_origo(1, 1),
             modifiers: Modifiers::default(),
@@ -187,15 +187,22 @@ impl GUI {
                             None
                         }
                     }
+                    Event::PinchGesture { delta, handled, .. } => {
+                        if !handled {
+                            Some(egui::Event::Zoom(delta.exp()))
+                        } else {
+                            None
+                        }
+                    }
                     _ => None,
                 })
                 .collect::<Vec<_>>(),
             ..Default::default()
         };
 
-        self.egui_context.begin_frame(egui_input);
+        self.egui_context.begin_pass(egui_input);
         callback(&self.egui_context);
-        *self.output.borrow_mut() = Some(self.egui_context.end_frame());
+        *self.output.borrow_mut() = Some(self.egui_context.end_pass());
 
         for event in events.iter_mut() {
             if let Event::ModifiersChange { modifiers } = event {
@@ -219,6 +226,16 @@ impl GUI {
                         *handled = true;
                     }
                     Event::MouseMotion {
+                        ref mut handled, ..
+                    } => {
+                        *handled = true;
+                    }
+                    Event::PinchGesture {
+                        ref mut handled, ..
+                    } => {
+                        *handled = true;
+                    }
+                    Event::RotationGesture {
                         ref mut handled, ..
                     } => {
                         *handled = true;

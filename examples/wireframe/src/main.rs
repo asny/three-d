@@ -27,7 +27,7 @@ pub async fn run() {
         0.1,
         1000.0,
     );
-    let mut control = OrbitControl::new(*camera.target(), 0.1 * scene_radius, 100.0 * scene_radius);
+    let mut control = OrbitControl::new(camera.target(), 0.1 * scene_radius, 100.0 * scene_radius);
 
     let mut loaded = three_d_asset::io::load_async(&["examples/assets/suzanne.obj"])
         .await
@@ -35,7 +35,7 @@ pub async fn run() {
 
     let mut cpu_mesh: CpuMesh = loaded.deserialize("suzanne.obj").unwrap();
     cpu_mesh
-        .transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)))
+        .transform(Mat4::from_translation(vec3(0.0, 2.0, 0.0)))
         .unwrap();
     let mut model_material = PhysicalMaterial::new_opaque(
         &context,
@@ -60,7 +60,7 @@ pub async fn run() {
     wireframe_material.render_states.cull = Cull::Back;
     let mut cylinder = CpuMesh::cylinder(10);
     cylinder
-        .transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007))
+        .transform(Mat4::from_nonuniform_scale(1.0, 0.007, 0.007))
         .unwrap();
     let edges = Gm::new(
         InstancedMesh::new(&context, &edge_transformations(&cpu_mesh), &cylinder),
@@ -68,15 +68,15 @@ pub async fn run() {
     );
 
     let mut sphere = CpuMesh::sphere(8);
-    sphere.transform(&Mat4::from_scale(0.015)).unwrap();
+    sphere.transform(Mat4::from_scale(0.015)).unwrap();
     let vertices = Gm::new(
         InstancedMesh::new(&context, &vertex_transformations(&cpu_mesh), &sphere),
         wireframe_material,
     );
 
     let ambient = AmbientLight::new(&context, 0.7, Srgba::WHITE);
-    let directional0 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(-1.0, -1.0, -1.0));
-    let directional1 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(1.0, 1.0, 1.0));
+    let directional0 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, vec3(-1.0, -1.0, -1.0));
+    let directional1 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, vec3(1.0, 1.0, 1.0));
 
     // main loop
     window.render_loop(move |mut frame_input| {

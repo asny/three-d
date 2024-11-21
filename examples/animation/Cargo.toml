@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 three-d = { path = "../../" }
-three-d-asset = {version = "0.7", features = ["gltf", "png", "jpeg", "http", "data-url"] }
+three-d-asset = {version = "0.8", features = ["gltf", "png", "jpeg", "http", "data-url"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

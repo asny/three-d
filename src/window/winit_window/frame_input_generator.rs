@@ -211,6 +211,30 @@ impl FrameInputGenerator {
                     }
                 }
             }
+            WindowEvent::TouchpadMagnify { delta, .. } => {
+                // Renamed to PinchGesture in winit 0.30.0
+                if let Some(position) = self.cursor_pos {
+                    let d = *delta as f32;
+                    self.events.push(crate::Event::PinchGesture {
+                        delta: d,
+                        position: position.into(),
+                        modifiers: self.modifiers,
+                        handled: false,
+                    });
+                }
+            }
+            WindowEvent::TouchpadRotate { delta, .. } => {
+                // Renamed to RotationGesture in winit 0.30.0
+                if let Some(position) = self.cursor_pos {
+                    let d = radians(*delta);
+                    self.events.push(crate::Event::RotationGesture {
+                        delta: d,
+                        position: position.into(),
+                        modifiers: self.modifiers,
+                        handled: false,
+                    });
+                }
+            }
             WindowEvent::MouseInput { state, button, .. } => {
                 if let Some(position) = self.cursor_pos {
                     let button = match button {

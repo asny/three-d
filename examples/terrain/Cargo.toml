@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 three-d = { path = "../../", features=["egui-gui"] }
-three-d-asset = {version = "0.7",features = ["gltf", "jpeg", "png", "hdr", "http"] }
+three-d-asset = {version = "0.8",features = ["gltf", "jpeg", "png", "hdr", "http"] }
 noise = {version = "0.6", default-features = false}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

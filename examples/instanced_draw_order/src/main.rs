@@ -58,7 +58,7 @@ pub fn main() {
 
     let mut thin_cube = CpuMesh::cube();
     thin_cube
-        .transform(&Mat4::from_nonuniform_scale(1.0, 1.0, 0.04))
+        .transform(Mat4::from_nonuniform_scale(1.0, 1.0, 0.04))
         .unwrap();
 
     let transparent_models = Gm::new(
@@ -116,7 +116,7 @@ pub fn main() {
     );
     opaque_model.set_transformation(Mat4::from_translation(vec3(0.0, -0.4, -3.0)));
 
-    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
+    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, -0.5, -0.5));
     let ambient_light = three_d::renderer::light::AmbientLight::new(&context, 0.8, Srgba::WHITE);
 
     window.render_loop(move |mut frame_input| {

@@ -2,10 +2,6 @@
 //! A collection of controls for example to control the camera.
 //!
 
-mod camera_control;
-#[doc(inline)]
-pub use camera_control::*;
-
 mod orbit_control;
 #[doc(inline)]
 pub use orbit_control::*;
@@ -23,6 +19,8 @@ mod fly_control;
 pub use fly_control::*;
 
 pub use three_d_asset::PixelPoint as PhysicalPoint;
+
+use three_d_asset::Radians;
 
 /// Type of mouse button.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
@@ -77,6 +75,28 @@ pub enum Event {
     MouseWheel {
         /// The relative scrolling since the last [Event::MouseWheel] event.
         delta: (f32, f32),
+        /// The screen position in physical pixels.
+        position: PhysicalPoint,
+        /// The state of modifiers.
+        modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
+        handled: bool,
+    },
+    /// Fired continuously when a pinch input gesture is recognized, such as on a Mac trackpad
+    PinchGesture {
+        /// The relative pinching since the last [Event::PinchGesture] event (positive is zoom in).
+        delta: f32,
+        /// The screen position in physical pixels.
+        position: PhysicalPoint,
+        /// The state of modifiers.
+        modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
+        handled: bool,
+    },
+    /// Fired continuously when a rotation input gesture is recognized, such as on a Mac trackpad
+    RotationGesture {
+        /// The relative rotation since the last [Event::RotationGesture] event (positive is counterclockwise).
+        delta: Radians,
         /// The screen position in physical pixels.
         position: PhysicalPoint,
         /// The state of modifiers.

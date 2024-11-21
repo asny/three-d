@@ -36,7 +36,7 @@ pub async fn run() {
         0.1,
         30.0,
     );
-    let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
+    let mut control = OrbitControl::new(camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context);
 
     // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
@@ -60,9 +60,9 @@ pub async fn run() {
     let mut cpu_plane = CpuMesh::square();
     cpu_plane
         .transform(
-            &(Mat4::from_translation(vec3(0.0, -1.0, 0.0))
+            Mat4::from_translation(vec3(0.0, -1.0, 0.0))
                 * Mat4::from_scale(10.0)
-                * Mat4::from_angle_x(degrees(-90.0))),
+                * Mat4::from_angle_x(degrees(-90.0)),
         )
         .unwrap();
     let mut plane = Gm::new(
@@ -81,15 +81,14 @@ pub async fn run() {
     );
 
     let mut ambient = AmbientLight::new(&context, 0.2, Srgba::WHITE);
-    let mut directional0 = DirectionalLight::new(&context, 1.0, Srgba::RED, &vec3(0.0, -1.0, 0.0));
-    let mut directional1 =
-        DirectionalLight::new(&context, 1.0, Srgba::GREEN, &vec3(0.0, -1.0, 0.0));
+    let mut directional0 = DirectionalLight::new(&context, 1.0, Srgba::RED, vec3(0.0, -1.0, 0.0));
+    let mut directional1 = DirectionalLight::new(&context, 1.0, Srgba::GREEN, vec3(0.0, -1.0, 0.0));
     let mut spot0 = SpotLight::new(
         &context,
         2.0,
         Srgba::BLUE,
-        &vec3(0.0, 0.0, 0.0),
-        &vec3(0.0, -1.0, 0.0),
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, -1.0, 0.0),
         degrees(25.0),
         Attenuation {
             constant: 0.1,
@@ -101,7 +100,7 @@ pub async fn run() {
         &context,
         1.0,
         Srgba::GREEN,
-        &vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 0.0),
         Attenuation {
             constant: 0.5,
             linear: 0.05,
@@ -112,7 +111,7 @@ pub async fn run() {
         &context,
         1.0,
         Srgba::RED,
-        &vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 0.0),
         Attenuation {
             constant: 0.5,
             linear: 0.05,

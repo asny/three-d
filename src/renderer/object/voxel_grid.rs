@@ -14,7 +14,7 @@ impl<M: Material + FromCpuVoxelGrid> VoxelGrid<M> {
     ///
     pub fn new(context: &Context, cpu_voxel_grid: &CpuVoxelGrid) -> Self {
         let mut cube = CpuMesh::cube();
-        cube.transform(&Mat4::from_nonuniform_scale(
+        cube.transform(Mat4::from_nonuniform_scale(
             0.5 * cpu_voxel_grid.size.x,
             0.5 * cpu_voxel_grid.size.y,
             0.5 * cpu_voxel_grid.size.z,

@@ -32,7 +32,7 @@ impl Imposters {
         objects
             .clone()
             .into_iter()
-            .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
+            .for_each(|o| aabb.expand_with_aabb(o.aabb()));
         let mut sprites = Sprites::new(context, positions, Some(vec3(0.0, 1.0, 0.0)));
         sprites.set_transformation(get_sprite_transform(aabb));
         Imposters {
@@ -63,7 +63,7 @@ impl Imposters {
         objects
             .clone()
             .into_iter()
-            .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
+            .for_each(|o| aabb.expand_with_aabb(o.aabb()));
         self.sprites.set_transformation(get_sprite_transform(aabb));
         self.material
             .update(aabb, objects, lights, max_texture_size);
