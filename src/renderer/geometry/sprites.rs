@@ -10,9 +10,9 @@ use crate::renderer::*;
 ///
 pub struct Sprites {
     context: Context,
-    position_buffer: VertexBuffer,
-    uv_buffer: VertexBuffer,
-    center_buffer: InstanceBuffer,
+    position_buffer: VertexBuffer<Vec3>,
+    uv_buffer: VertexBuffer<Vec2>,
+    center_buffer: InstanceBuffer<Vec3>,
     transformation: Mat4,
     direction: Option<Vec3>,
 }

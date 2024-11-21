@@ -152,7 +152,7 @@ impl<M: Material> Water<M> {
         Arc::new(ElementBuffer::new_with_data(context, &indices))
     }
 
-    fn positions(context: &Context, vertex_distance: f32) -> Arc<VertexBuffer> {
+    fn positions(context: &Context, vertex_distance: f32) -> Arc<VertexBuffer<Vec3>> {
         let mut data = vec![vec3(0.0, 0.0, 0.0); VERTICES_PER_SIDE * VERTICES_PER_SIDE];
         for r in 0..VERTICES_PER_SIDE {
             for c in 0..VERTICES_PER_SIDE {
@@ -186,7 +186,7 @@ struct WaterPatch {
     parameters: [WaveParameters; MAX_WAVE_COUNT],
     offset: Vec2,
     size: Vec2,
-    position_buffer: Arc<VertexBuffer>,
+    position_buffer: Arc<VertexBuffer<Vec3>>,
     index_buffer: Arc<ElementBuffer>,
 }
 
@@ -195,7 +195,7 @@ impl WaterPatch {
         context: &Context,
         offset: Vec2,
         size: Vec2,
-        position_buffer: Arc<VertexBuffer>,
+        position_buffer: Arc<VertexBuffer<Vec3>>,
         index_buffer: Arc<ElementBuffer>,
     ) -> Self {
         Self {

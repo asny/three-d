@@ -235,8 +235,8 @@ fn pos2patch(vertex_distance: f32, position: Vec2) -> (i32, i32) {
 struct TerrainPatch {
     context: Context,
     index: (i32, i32),
-    positions_buffer: VertexBuffer,
-    normals_buffer: VertexBuffer,
+    positions_buffer: VertexBuffer<Vec3>,
+    normals_buffer: VertexBuffer<Vec3>,
     center: Vec2,
     aabb: AxisAlignedBoundingBox,
     pub index_buffer: Arc<ElementBuffer>,

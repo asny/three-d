@@ -331,34 +331,34 @@ impl Program {
     /// Will panic if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_vertex_attribute(&self, name: &str, buffer: &VertexBuffer) {
+    pub fn use_vertex_attribute<T: BufferDataType>(&self, name: &str, buffer: &VertexBuffer<T>) {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name);
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
-                if !buffer.normalized()
-                    && (buffer.data_type() == crate::context::UNSIGNED_BYTE
-                        || buffer.data_type() == crate::context::BYTE
-                        || buffer.data_type() == crate::context::UNSIGNED_SHORT
-                        || buffer.data_type() == crate::context::SHORT
-                        || buffer.data_type() == crate::context::UNSIGNED_INT
-                        || buffer.data_type() == crate::context::INT)
+                if !T::normalized()
+                    && (T::data_type() == crate::context::UNSIGNED_BYTE
+                        || T::data_type() == crate::context::BYTE
+                        || T::data_type() == crate::context::UNSIGNED_SHORT
+                        || T::data_type() == crate::context::SHORT
+                        || T::data_type() == crate::context::UNSIGNED_INT
+                        || T::data_type() == crate::context::INT)
                 {
                     self.context.vertex_attrib_pointer_i32(
                         loc,
-                        buffer.data_size() as i32,
-                        buffer.data_type(),
+                        T::size() as i32,
+                        T::data_type(),
                         0,
                         0,
                     );
                 } else {
                     self.context.vertex_attrib_pointer_f32(
                         loc,
-                        buffer.data_size() as i32,
-                        buffer.data_type(),
-                        buffer.normalized(),
+                        T::size() as i32,
+                        T::data_type(),
+                        T::normalized(),
                         0,
                         0,
                     );
@@ -379,34 +379,38 @@ impl Program {
     /// Will panic if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_instance_attribute(&self, name: &str, buffer: &InstanceBuffer) {
+    pub fn use_instance_attribute<T: BufferDataType>(
+        &self,
+        name: &str,
+        buffer: &InstanceBuffer<T>,
+    ) {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name);
             unsafe {
                 self.context.bind_vertex_array(Some(self.context.vao));
                 self.context.enable_vertex_attrib_array(loc);
-                if !buffer.normalized()
-                    && (buffer.data_type() == crate::context::UNSIGNED_BYTE
-                        || buffer.data_type() == crate::context::BYTE
-                        || buffer.data_type() == crate::context::UNSIGNED_SHORT
-                        || buffer.data_type() == crate::context::SHORT
-                        || buffer.data_type() == crate::context::UNSIGNED_INT
-                        || buffer.data_type() == crate::context::INT)
+                if !T::normalized()
+                    && (T::data_type() == crate::context::UNSIGNED_BYTE
+                        || T::data_type() == crate::context::BYTE
+                        || T::data_type() == crate::context::UNSIGNED_SHORT
+                        || T::data_type() == crate::context::SHORT
+                        || T::data_type() == crate::context::UNSIGNED_INT
+                        || T::data_type() == crate::context::INT)
                 {
                     self.context.vertex_attrib_pointer_i32(
                         loc,
-                        buffer.data_size() as i32,
-                        buffer.data_type(),
+                        T::size() as i32,
+                        T::data_type(),
                         0,
                         0,
                     );
                 } else {
                     self.context.vertex_attrib_pointer_f32(
                         loc,
-                        buffer.data_size() as i32,
-                        buffer.data_type(),
-                        buffer.normalized(),
+                        T::size() as i32,
+                        T::data_type(),
+                        T::normalized(),
                         0,
                         0,
                     );

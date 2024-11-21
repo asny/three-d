@@ -262,11 +262,11 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
 
 struct BaseMesh {
     indices: Option<ElementBuffer>,
-    positions: VertexBuffer,
-    normals: Option<VertexBuffer>,
-    tangents: Option<VertexBuffer>,
-    uvs: Option<VertexBuffer>,
-    colors: Option<VertexBuffer>,
+    positions: VertexBuffer<Vec3>,
+    normals: Option<VertexBuffer<Vec3>>,
+    tangents: Option<VertexBuffer<Vec4>>,
+    uvs: Option<VertexBuffer<Vec2>>,
+    colors: Option<VertexBuffer<Vec4>>,
 }
 
 impl BaseMesh {
