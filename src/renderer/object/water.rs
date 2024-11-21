@@ -135,7 +135,7 @@ impl<M: Material> Water<M> {
         self.patches.iter_mut().for_each(|m| m.animate(time));
     }
 
-    fn indices(context: &Context) -> Arc<ElementBuffer> {
+    fn indices(context: &Context) -> Arc<ElementBuffer<u32>> {
         let mut indices: Vec<u32> = Vec::new();
         let stride = VERTICES_PER_SIDE as u32;
         let max = stride - 1;
@@ -187,7 +187,7 @@ struct WaterPatch {
     offset: Vec2,
     size: Vec2,
     position_buffer: Arc<VertexBuffer<Vec3>>,
-    index_buffer: Arc<ElementBuffer>,
+    index_buffer: Arc<ElementBuffer<u32>>,
 }
 
 impl WaterPatch {
@@ -196,7 +196,7 @@ impl WaterPatch {
         offset: Vec2,
         size: Vec2,
         position_buffer: Arc<VertexBuffer<Vec3>>,
-        index_buffer: Arc<ElementBuffer>,
+        index_buffer: Arc<ElementBuffer<u32>>,
     ) -> Self {
         Self {
             context: context.clone(),

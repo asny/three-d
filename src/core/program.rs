@@ -489,11 +489,11 @@ impl Program {
     /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
     /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays]. If you only want to draw a subset of the triangles in the given [ElementBuffer], see [Program::draw_subset_of_elements].
     ///
-    pub fn draw_elements(
+    pub fn draw_elements<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        element_buffer: &ElementBuffer<T>,
     ) {
         self.draw_subset_of_elements(
             render_states,
@@ -509,11 +509,11 @@ impl Program {
     /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
     /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays].
     ///
-    pub fn draw_subset_of_elements(
+    pub fn draw_subset_of_elements<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        element_buffer: &ElementBuffer<T>,
         first: u32,
         count: u32,
     ) {
@@ -525,7 +525,7 @@ impl Program {
             self.context.draw_elements(
                 crate::context::TRIANGLES,
                 count as i32,
-                element_buffer.data_type(),
+                T::data_type(),
                 first as i32,
             );
             self.context
@@ -548,11 +548,11 @@ impl Program {
     /// Same as [Program::draw_elements] except it renders 'instance_count' instances of the same set of triangles.
     /// Use the [Program::use_instance_attribute] method to send unique data for each instance to the shader.
     ///
-    pub fn draw_elements_instanced(
+    pub fn draw_elements_instanced<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        element_buffer: &ElementBuffer<T>,
         instance_count: u32,
     ) {
         self.draw_subset_of_elements_instanced(
@@ -569,11 +569,11 @@ impl Program {
     /// Same as [Program::draw_subset_of_elements] except it renders 'instance_count' instances of the same set of triangles.
     /// Use the [Program::use_instance_attribute] method to send unique data for each instance to the shader.
     ///
-    pub fn draw_subset_of_elements_instanced(
+    pub fn draw_subset_of_elements_instanced<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        element_buffer: &ElementBuffer<T>,
         first: u32,
         count: u32,
         instance_count: u32,
@@ -586,7 +586,7 @@ impl Program {
             self.context.draw_elements_instanced(
                 crate::context::TRIANGLES,
                 count as i32,
-                element_buffer.data_type(),
+                T::data_type(),
                 first as i32,
                 instance_count as i32,
             );
