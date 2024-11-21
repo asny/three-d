@@ -7,7 +7,7 @@ use std::sync::Arc;
 ///
 pub struct Skybox {
     context: Context,
-    vertex_buffer: VertexBuffer,
+    vertex_buffer: VertexBuffer<Vec3>,
     material: SkyboxMaterial,
 }
 

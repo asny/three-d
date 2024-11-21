@@ -21,9 +21,9 @@ pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
     patches: Vec<Gm<TerrainPatch, M>>,
-    index_buffer1: Arc<ElementBuffer>,
-    index_buffer4: Arc<ElementBuffer>,
-    index_buffer16: Arc<ElementBuffer>,
+    index_buffer1: Arc<ElementBuffer<u32>>,
+    index_buffer4: Arc<ElementBuffer<u32>>,
+    index_buffer16: Arc<ElementBuffer<u32>>,
     material: M,
     lod: Arc<dyn Fn(f32) -> Lod + Send + Sync>,
     height_map: Arc<dyn Fn(f32, f32) -> f32 + Send + Sync>,
@@ -183,7 +183,7 @@ impl<M: Material + Clone> Terrain<M> {
         })
     }
 
-    fn indices(context: &Context, resolution: u32) -> Arc<ElementBuffer> {
+    fn indices(context: &Context, resolution: u32) -> Arc<ElementBuffer<u32>> {
         let mut indices: Vec<u32> = Vec::new();
         let stride = VERTICES_PER_SIDE as u32;
         let max = (stride - 1) / resolution;
@@ -235,11 +235,11 @@ fn pos2patch(vertex_distance: f32, position: Vec2) -> (i32, i32) {
 struct TerrainPatch {
     context: Context,
     index: (i32, i32),
-    positions_buffer: VertexBuffer,
-    normals_buffer: VertexBuffer,
+    positions_buffer: VertexBuffer<Vec3>,
+    normals_buffer: VertexBuffer<Vec3>,
     center: Vec2,
     aabb: AxisAlignedBoundingBox,
-    pub index_buffer: Arc<ElementBuffer>,
+    pub index_buffer: Arc<ElementBuffer<u32>>,
 }
 
 impl TerrainPatch {
@@ -247,7 +247,7 @@ impl TerrainPatch {
         context: &Context,
         height_map: impl Fn(f32, f32) -> f32 + Clone,
         index: (i32, i32),
-        index_buffer: Arc<ElementBuffer>,
+        index_buffer: Arc<ElementBuffer<u32>>,
         vertex_distance: f32,
     ) -> Self {
         let patch_size = patch_size(vertex_distance);

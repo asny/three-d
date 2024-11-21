@@ -10,10 +10,6 @@ uniform vec3 acceleration;
 uniform float time;
 #endif
 
-#ifdef USE_INSTANCE_TRANSLATIONS
-in vec3 instance_translation;
-#endif
-
 #ifdef USE_INSTANCE_TRANSFORMS
 in vec4 row1;
 in vec4 row2;
@@ -66,16 +62,13 @@ void main()
     transform[1] = vec4(row1.y, row2.y, row3.y, 0.0);
     transform[2] = vec4(row1.z, row2.z, row3.z, 0.0);
     transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
-    local2World *= transform;
+    local2World = transform * local2World;
 #endif
 
     vec4 worldPosition = local2World * vec4(position, 1.);
     worldPosition /= worldPosition.w;
 #ifdef PARTICLES
     worldPosition.xyz += start_position + start_velocity * time + 0.5 * acceleration * time * time;
-#endif
-#ifdef USE_INSTANCE_TRANSLATIONS 
-    worldPosition.xyz += instance_translation;
 #endif
     gl_Position = viewProjection * worldPosition;
 

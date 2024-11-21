@@ -111,15 +111,7 @@ impl GeometryId {
     );
     enum_bitfield!(
         InstancedMeshBase,
-        InstancedMesh(
-            normal,
-            tangents,
-            uv,
-            color,
-            instance_color,
-            instance_transformation,
-            instance_uv,
-        )
+        InstancedMesh(normal, tangents, uv, color, instance_color, instance_uv)
     );
 }
 

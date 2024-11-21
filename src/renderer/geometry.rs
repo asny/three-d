@@ -260,13 +260,20 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     }
 }
 
+enum IndexBuffer {
+    None,
+    U8(ElementBuffer<u8>),
+    U16(ElementBuffer<u16>),
+    U32(ElementBuffer<u32>),
+}
+
 struct BaseMesh {
-    indices: Option<ElementBuffer>,
-    positions: VertexBuffer,
-    normals: Option<VertexBuffer>,
-    tangents: Option<VertexBuffer>,
-    uvs: Option<VertexBuffer>,
-    colors: Option<VertexBuffer>,
+    indices: IndexBuffer,
+    positions: VertexBuffer<Vec3>,
+    normals: Option<VertexBuffer<Vec3>>,
+    tangents: Option<VertexBuffer<Vec4>>,
+    uvs: Option<VertexBuffer<Vec2>>,
+    colors: Option<VertexBuffer<Vec4>>,
 }
 
 impl BaseMesh {
@@ -276,10 +283,10 @@ impl BaseMesh {
 
         Self {
             indices: match &cpu_mesh.indices {
-                Indices::U8(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-                Indices::U16(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-                Indices::U32(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-                Indices::None => None,
+                Indices::U8(ind) => IndexBuffer::U8(ElementBuffer::new_with_data(context, ind)),
+                Indices::U16(ind) => IndexBuffer::U16(ElementBuffer::new_with_data(context, ind)),
+                Indices::U32(ind) => IndexBuffer::U32(ElementBuffer::new_with_data(context, ind)),
+                Indices::None => IndexBuffer::None,
             },
             positions: VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
             normals: cpu_mesh
@@ -316,14 +323,22 @@ impl BaseMesh {
         attributes: FragmentAttributes,
     ) {
         self.use_attributes(program, attributes);
-        if let Some(index_buffer) = &self.indices {
-            program.draw_elements(render_states, camera.viewport(), index_buffer)
-        } else {
-            program.draw_arrays(
+
+        match &self.indices {
+            IndexBuffer::None => program.draw_arrays(
                 render_states,
                 camera.viewport(),
                 self.positions.vertex_count(),
-            )
+            ),
+            IndexBuffer::U8(element_buffer) => {
+                program.draw_elements(render_states, camera.viewport(), element_buffer)
+            }
+            IndexBuffer::U16(element_buffer) => {
+                program.draw_elements(render_states, camera.viewport(), element_buffer)
+            }
+            IndexBuffer::U32(element_buffer) => {
+                program.draw_elements(render_states, camera.viewport(), element_buffer)
+            }
         }
     }
 
@@ -337,20 +352,31 @@ impl BaseMesh {
     ) {
         self.use_attributes(program, attributes);
 
-        if let Some(index_buffer) = &self.indices {
-            program.draw_elements_instanced(
-                render_states,
-                camera.viewport(),
-                index_buffer,
-                instance_count,
-            )
-        } else {
-            program.draw_arrays_instanced(
+        match &self.indices {
+            IndexBuffer::None => program.draw_arrays_instanced(
                 render_states,
                 camera.viewport(),
                 self.positions.vertex_count(),
                 instance_count,
-            )
+            ),
+            IndexBuffer::U8(element_buffer) => program.draw_elements_instanced(
+                render_states,
+                camera.viewport(),
+                element_buffer,
+                instance_count,
+            ),
+            IndexBuffer::U16(element_buffer) => program.draw_elements_instanced(
+                render_states,
+                camera.viewport(),
+                element_buffer,
+                instance_count,
+            ),
+            IndexBuffer::U32(element_buffer) => program.draw_elements_instanced(
+                render_states,
+                camera.viewport(),
+                element_buffer,
+                instance_count,
+            ),
         }
     }
 
