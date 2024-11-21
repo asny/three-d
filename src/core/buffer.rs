@@ -84,6 +84,19 @@ impl<T: BufferDataType> Buffer<T> {
         self.attribute_count = data.len() as u32;
     }
 
+    pub fn fill_subset(&mut self, offset: u32, data: &[T]) {
+        self.bind();
+        unsafe {
+            self.context.buffer_sub_data_u8_slice(
+                crate::context::ARRAY_BUFFER,
+                offset as i32,
+                to_byte_slice(data),
+            );
+            self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
+        }
+        self.attribute_count = (offset as u32 + data.len() as u32).max(self.attribute_count);
+    }
+
     pub fn attribute_count(&self) -> u32 {
         self.attribute_count
     }
