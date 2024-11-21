@@ -104,15 +104,15 @@ pub fn main() {
         },
     );
 
-    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
-    let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
+    let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, -0.5, -0.5));
+    let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, 0.5, 0.5));
 
     // Shapes to represent the main camera view through the debug camera
     let mut marker_sphere = CpuMesh::sphere(16);
-    marker_sphere.transform(&Mat4::from_scale(0.15)).unwrap();
+    marker_sphere.transform(Mat4::from_scale(0.15)).unwrap();
     let mut marker_arrow = CpuMesh::arrow(0.8, 0.6, 16);
     marker_arrow
-        .transform(&Mat4::from_nonuniform_scale(1.0, 0.15, 0.15))
+        .transform(Mat4::from_nonuniform_scale(1.0, 0.15, 0.15))
         .unwrap();
 
     let mut position_marker = Gm::new(
@@ -168,10 +168,10 @@ pub fn main() {
     );
 
     let mut marker_vertex = CpuMesh::sphere(16);
-    marker_vertex.transform(&Mat4::from_scale(0.05)).unwrap();
+    marker_vertex.transform(Mat4::from_scale(0.05)).unwrap();
     let mut marker_edge = CpuMesh::cylinder(16);
     marker_edge
-        .transform(&Mat4::from_nonuniform_scale(1.0, 0.05, 0.05))
+        .transform(Mat4::from_nonuniform_scale(1.0, 0.05, 0.05))
         .unwrap();
 
     let cube_points = [
@@ -362,11 +362,11 @@ pub fn main() {
         control.handle_events(&mut camera, &mut frame_input.events);
 
         // Update camera debug shapes
-        position_marker.set_transformation(Mat4::from_translation(*camera.position()));
-        target_marker.set_transformation(Mat4::from_translation(*camera.target()));
+        position_marker.set_transformation(Mat4::from_translation(camera.position()));
+        target_marker.set_transformation(Mat4::from_translation(camera.target()));
         up_marker.set_transformation(
-            Mat4::from_translation(*camera.position())
-                * rotation_matrix_from_dir_to_dir(Vec3::unit_x(), *camera.up()),
+            Mat4::from_translation(camera.position())
+                * rotation_matrix_from_dir_to_dir(Vec3::unit_x(), camera.up()),
         );
 
         let frustum_vertices = cube_points.map(|point| {
