@@ -37,7 +37,7 @@ pub fn main() {
     let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, -0.5, -0.5));
     let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, vec3(0.0, 0.5, 0.5));
 
-    // Shapes to represent the main camera view through the debug camera
+    // Shapes to represent the main camera view input through the debug camera
     let mut marker_sphere = CpuMesh::sphere(16);
     marker_sphere.transform(Mat4::from_scale(0.15)).unwrap();
     let mut marker_arrow = CpuMesh::arrow(0.8, 0.6, 16);
@@ -97,6 +97,7 @@ pub fn main() {
         ),
     );
 
+    // Shapes to view the main camera view frustum (projection output) through the debug camera
     let mut marker_vertex = CpuMesh::sphere(16);
     marker_vertex.transform(Mat4::from_scale(0.05)).unwrap();
     let mut marker_edge = CpuMesh::cylinder(16);
@@ -151,7 +152,7 @@ pub fn main() {
 
     let mut gui = three_d::GUI::new(&context);
     window.render_loop(move |mut frame_input| {
-        // Gui panel to control the number of cubes and whether or not instancing is turned on.
+        // Gui panel to control the projection used for the main camera and enable picking debug features
         let mut panel_width = 0.0;
         let mut camera_changed = false;
         gui.update(
@@ -302,7 +303,7 @@ pub fn main() {
         };
         camera.set_viewport(viewport);
 
-        let meta_viewport = Viewport {
+        let debug_viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32
                 + ((frame_input.viewport.width
                     - (panel_width * frame_input.device_pixel_ratio) as u32)
@@ -314,7 +315,7 @@ pub fn main() {
                 * (1.0 - camera_ratio)) as u32,
             height: frame_input.viewport.height,
         };
-        debug_camera.set_viewport(meta_viewport);
+        debug_camera.set_viewport(debug_viewport);
 
         // Camera control must be after the gui update.
         control.handle_events(&mut camera, &mut frame_input.events);
@@ -394,14 +395,12 @@ pub fn main() {
                 .chain(&frustum_vertex_marker)
                 .chain(&frustum_edge_marker)
                 .chain(
-                    show_click_info
-                        .then_some(&view_position_marker)
-                        .into_iter()
-                        .flatten(),
-                )
-                .chain(
-                    show_click_info
-                        .then_some(&view_direction_marker)
+                    show_click_info // only include the view position/direction markers if enabled
+                        .then_some(
+                            view_position_marker
+                                .into_iter()
+                                .chain(&view_direction_marker),
+                        )
                         .into_iter()
                         .flatten(),
                 ),
