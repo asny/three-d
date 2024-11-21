@@ -33,7 +33,7 @@ impl ElementBufferDataType for u32 {
 pub struct ElementBuffer<T: ElementBufferDataType> {
     context: Context,
     id: crate::context::Buffer,
-    count: usize,
+    count: u32,
     _d: PhantomData<T>,
 }
 
@@ -64,32 +64,51 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
 
     ///
     /// Fills the buffer with the given indices which must be divisable by 3.
+    /// This function will resize the buffer to have the same size as the indices array, if that is not desired, use [fill_subset](Self::fill_subset) instead.
     ///
-    pub fn fill(&mut self, data: &[T]) {
+    pub fn fill(&mut self, indices: &[T]) {
         self.bind();
         unsafe {
             self.context.buffer_data_u8_slice(
                 crate::context::ELEMENT_ARRAY_BUFFER,
-                to_byte_slice(data),
+                to_byte_slice(indices),
                 crate::context::STATIC_DRAW,
             );
             self.context
                 .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
         }
-        self.count = data.len();
+        self.count = indices.len() as u32;
+    }
+
+    ///
+    /// Fills the buffer with the given indices starting at the given offset.
+    /// This will increase the size of the buffer if there's not enough room. Otherwise, the size will remain unchanged.
+    ///
+    pub fn fill_subset(&mut self, offset: u32, indices: &[T]) {
+        self.bind();
+        unsafe {
+            self.context.buffer_sub_data_u8_slice(
+                crate::context::ELEMENT_ARRAY_BUFFER,
+                offset as i32,
+                to_byte_slice(indices),
+            );
+            self.context
+                .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
+        }
+        self.count = (offset as u32 + indices.len() as u32).max(self.count);
     }
 
     ///
     /// The number of values in the buffer.
     ///
-    pub fn count(&self) -> usize {
+    pub fn count(&self) -> u32 {
         self.count
     }
 
     ///
     /// The number of triangles in the buffer.
     ///
-    pub fn triangle_count(&self) -> usize {
+    pub fn triangle_count(&self) -> u32 {
         self.count / 3
     }
 

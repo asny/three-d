@@ -40,7 +40,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
 
     ///
     /// Fills the vertex buffer with the given data starting at the given offset.
-    /// This will increase the size of the buffer if there's not enough room. Otherwise, the size will be unchanged.
+    /// This will increase the size of the buffer if there's not enough room. Otherwise, the size will remain unchanged.
     ///
     pub fn fill_subset(&mut self, offset: u32, data: &[T]) {
         self.buffer.fill_subset(offset, data);
