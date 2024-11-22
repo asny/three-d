@@ -85,7 +85,7 @@ pub async fn run() {
     let mut directional1 = DirectionalLight::new(&context, 1.0, Srgba::GREEN, vec3(0.0, -1.0, 0.0));
     let mut spot0 = SpotLight::new(
         &context,
-        2.0,
+        5.0,
         Srgba::BLUE,
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, -1.0, 0.0),
@@ -165,7 +165,7 @@ pub async fn run() {
                         Slider::new(&mut directional1.intensity, 0.0..=1.0)
                             .text("Directional 1 intensity"),
                     );
-                    ui.add(Slider::new(&mut spot0.intensity, 0.0..=1.0).text("Spot intensity"));
+                    ui.add(Slider::new(&mut spot0.intensity, 0.0..=10.0).text("Spot intensity"));
                     ui.add(Slider::new(&mut point0.intensity, 0.0..=1.0).text("Point 0 intensity"));
                     ui.add(Slider::new(&mut point1.intensity, 0.0..=1.0).text("Point 1 intensity"));
                     if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
