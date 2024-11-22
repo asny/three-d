@@ -260,10 +260,19 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     }
 }
 
-enum IndexBuffer {
+///
+/// The index buffer used to determine the three vertices for each triangle in a mesh.
+/// A triangle is defined by three consequitive indices in the index buffer.
+/// Each index points to a position in the vertex buffers.
+///
+pub enum IndexBuffer {
+    /// No index buffer is used, ie. every triangle consist of three consequitive vertices.
     None,
+    /// Use an index buffer with indices defined in `u8` format.
     U8(ElementBuffer<u8>),
+    /// Use an index buffer with indices defined in `u16` format.
     U16(ElementBuffer<u16>),
+    /// Use an index buffer with indices defined in `u32` format.
     U32(ElementBuffer<u32>),
 }
 
