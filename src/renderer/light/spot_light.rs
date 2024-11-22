@@ -68,7 +68,7 @@ impl SpotLight {
         geometries: impl IntoIterator<Item = impl Geometry> + Clone,
     ) {
         let position = self.position;
-        let direction = self.direction;
+        let target = position + self.direction.normalize();
         let up = compute_up_direction(self.direction);
 
         let viewport = Viewport::new_at_origo(texture_size, texture_size);
@@ -86,7 +86,7 @@ impl SpotLight {
         let shadow_camera = Camera::new_perspective(
             viewport,
             position,
-            position + direction,
+            target,
             up,
             self.cutoff,
             z_near.max(0.01),
