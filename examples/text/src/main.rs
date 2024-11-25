@@ -9,16 +9,7 @@ pub fn main() {
     .unwrap();
 
     let context = window.gl();
-
-    let mut camera = Camera::new_orthographic(
-        window.viewport(),
-        vec3(window.viewport().width as f32 * 0.5, 0.0, 2.0),
-        vec3(window.viewport().width as f32 * 0.5, 0.0, 0.0),
-        vec3(0.0, 1.0, 0.0),
-        window.viewport().height as f32,
-        0.1,
-        10.0,
-    );
+    let mut camera = Camera::new_2d(window.viewport());
 
     let text_generator = TextGenerator::new(include_bytes!("font0.ttf"), 0, 30.0).unwrap();
     let text_mesh0 = text_generator.generate("Hello, World!", TextLayoutOptions::default());
@@ -40,7 +31,13 @@ pub fn main() {
             ..Default::default()
         },
     );
-    text0.set_transformation(Mat4::from_scale(10.0));
+    text0.set_transformation(
+        Mat4::from_translation(vec3(
+            camera.viewport().width as f32 * 0.5,
+            camera.viewport().height as f32 * 0.5,
+            0.0,
+        )) * Mat4::from_scale(10.0),
+    );
 
     let mut text1 = Gm::new(
         Mesh::new(&context, &text_mesh1),
@@ -49,7 +46,11 @@ pub fn main() {
             ..Default::default()
         },
     );
-    text1.set_transformation(Mat4::from_translation(vec3(50.0, 500.0, 0.0)));
+    text1.set_transformation(Mat4::from_translation(vec3(
+        50.0,
+        camera.viewport().height as f32 - 50.0,
+        0.0,
+    )));
 
     let mut text2 = Gm::new(
         Mesh::new(&context, &text_mesh2),
@@ -58,7 +59,11 @@ pub fn main() {
             ..Default::default()
         },
     );
-    text2.set_transformation(Mat4::from_translation(vec3(1000.0, -200.0, 0.0)));
+    text2.set_transformation(Mat4::from_translation(vec3(
+        50.0,
+        camera.viewport().height as f32 - 450.0,
+        0.0,
+    )));
 
     // Render loop
     window.render_loop(move |frame_input| {
@@ -74,6 +79,16 @@ pub fn main() {
                         let delta = -right * speed * delta.0 + up * speed * delta.1;
                         camera.translate(delta);
                     }
+                }
+                Event::MouseWheel {
+                    delta, position, ..
+                } => {
+                    let distance = camera.position().z.abs();
+                    let mut target = camera.position_at_pixel(position);
+                    target.z = 0.0;
+                    dbg!(&target);
+                    dbg!(&camera.target());
+                    camera.zoom_towards(target, distance * 0.05 * delta.1, 0.1, 10.0);
                 }
                 _ => {}
             }
