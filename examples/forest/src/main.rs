@@ -16,10 +16,11 @@ pub async fn run() {
     .unwrap();
     let context = window.gl();
 
+    let position = vec3(2800.0, 240.0, 1700.0);
     let mut camera = Camera::new_perspective(
         window.viewport(),
-        vec3(2800.0, 240.0, 1700.0),
-        vec3(0.0, 0.0, 0.0),
+        position,
+        position - position.normalize(),
         vec3(0.0, 1.0, 0.0),
         degrees(60.0),
         0.1,
