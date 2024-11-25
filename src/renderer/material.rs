@@ -150,11 +150,13 @@ pub enum MaterialType {
 ///
 /// An implementation of the [Geometry] trait should provide a set of attributes which can be used in the fragment shader.
 /// The following attributes might be available:
-/// - Position in world space: `in vec3 pos;`
-/// - Normal: `in vec3 nor;`,
-/// - Tangent and bitangent: `in vec3 tang; in vec3 bitang;`
-/// - UV coordinates: `in vec2 uvs;`
-/// - Color: `in vec4 col;`
+/// - position: `in vec3 pos;` (in world space)
+/// - normal: `in vec3 nor;`
+/// - tangent: `in vec3 tang;`
+/// - bitangent: `in vec3 bitang;`
+/// - uv coordinates: `in vec2 uvs;` (flipped in v compared to standard uv coordinates)
+/// - color: `in vec4 col;`
+///
 pub trait Material {
     ///
     /// Returns the fragment shader source for this material.
