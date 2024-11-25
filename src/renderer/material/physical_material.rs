@@ -191,20 +191,6 @@ impl Material for PhysicalMaterial {
         output
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            position: true,
-            normal: true,
-            color: true,
-            uv: self.albedo_texture.is_some()
-                || self.metallic_roughness_texture.is_some()
-                || self.normal_texture.is_some()
-                || self.occlusion_texture.is_some()
-                || self.emissive_texture.is_some(),
-            tangents: self.normal_texture.is_some(),
-        }
-    }
-
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         camera.tone_mapping.use_uniforms(program);
         camera.color_mapping.use_uniforms(program);

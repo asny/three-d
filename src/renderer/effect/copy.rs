@@ -57,13 +57,6 @@ impl Effect for CopyEffect {
         EffectMaterialId::CopyEffect(color_texture, depth_texture)
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(
         &self,
         program: &Program,

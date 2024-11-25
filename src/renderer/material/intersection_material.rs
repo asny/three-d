@@ -38,13 +38,6 @@ impl Material for IntersectionMaterial {
         include_str!("shaders/intersection_material.frag").to_string()
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            position: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform(
             "minDistance",

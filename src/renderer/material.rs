@@ -10,9 +10,6 @@ macro_rules! impl_material_body {
         fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
             self.$inner().fragment_shader_source(lights)
         }
-        fn fragment_attributes(&self) -> FragmentAttributes {
-            self.$inner().fragment_attributes()
-        }
         fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
             self.$inner().use_uniforms(program, camera, lights)
         }
@@ -147,47 +144,17 @@ pub enum MaterialType {
 }
 
 ///
-/// Describes the set of attributes provided by a [geometry] and consumed by a [Material], ie. calculated in the vertex shader and then sent to the fragment shader.
-/// To use an attribute for a material, add the relevant shader code to the fragment shader source (documented for each attribute) and return this struct from [Material::fragment_attributes] with the relevant attribute set to true.
-///
-#[derive(Clone, Copy, Debug)]
-pub struct FragmentAttributes {
-    /// Position in world space: `in vec3 pos;`
-    pub position: bool,
-    /// Normal: `in vec3 nor;`,
-    pub normal: bool,
-    /// Tangent and bitangent: `in vec3 tang; in vec3 bitang;`
-    pub tangents: bool,
-    /// UV coordinates: `in vec2 uvs;`
-    pub uv: bool,
-    /// Color: `in vec4 col;`
-    pub color: bool,
-}
-
-impl FragmentAttributes {
-    /// All attributes
-    pub const ALL: Self = Self {
-        position: true,
-        normal: true,
-        tangents: true,
-        uv: true,
-        color: true,
-    };
-    /// No attributes
-    pub const NONE: Self = Self {
-        position: false,
-        normal: false,
-        tangents: false,
-        uv: false,
-        color: false,
-    };
-}
-
-///
 /// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].
 /// Alternatively, a geometry and a material can be combined in a [Gm],
 /// thereby creating an [Object] which can be used in a render call, for example [RenderTarget::render].
 ///
+/// An implementation of the [Geometry] trait should provide a set of attributes which can be used in the fragment shader.
+/// The following attributes might be available:
+/// - Position in world space: `in vec3 pos;`
+/// - Normal: `in vec3 nor;`,
+/// - Tangent and bitangent: `in vec3 tang; in vec3 bitang;`
+/// - UV coordinates: `in vec2 uvs;`
+/// - Color: `in vec4 col;`
 pub trait Material {
     ///
     /// Returns the fragment shader source for this material.
@@ -201,12 +168,6 @@ pub trait Material {
     /// outside of this crate, always return an id in the public use range as defined by [EffectMaterialId].
     ///
     fn id(&self) -> EffectMaterialId;
-
-    ///
-    /// Returns a [FragmentAttributes] struct that describes which fragment attributes,
-    /// ie. the input from the vertex shader, are required for rendering with this material.
-    ///
-    fn fragment_attributes(&self) -> FragmentAttributes;
 
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -271,9 +232,6 @@ impl<T: Material> Material for std::cell::RefCell<T> {
 impl<T: Material> Material for std::sync::RwLock<T> {
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         self.read().unwrap().fragment_shader_source(lights)
-    }
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        self.read().unwrap().fragment_attributes()
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         self.read().unwrap().use_uniforms(program, camera, lights)

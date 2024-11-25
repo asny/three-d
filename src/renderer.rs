@@ -475,10 +475,6 @@ pub fn apply_screen_material(
     camera: &Camera,
     lights: &[&dyn Light],
 ) {
-    let fragment_attributes = material.fragment_attributes();
-    if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
-        panic!("Not possible to use the given material to render full screen, the full screen geometry only provides uv coordinates and color");
-    }
     let id = combine_ids(
         GeometryId::Screen,
         material.id(),
@@ -518,10 +514,6 @@ pub fn apply_screen_effect(
     color_texture: Option<ColorTexture>,
     depth_texture: Option<DepthTexture>,
 ) {
-    let fragment_attributes = effect.fragment_attributes();
-    if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
-        panic!("Not possible to use the given effect to render full screen, the full screen geometry only provides uv coordinates and color");
-    }
     let id = combine_ids(
         GeometryId::Screen,
         effect.id(color_texture, depth_texture),
