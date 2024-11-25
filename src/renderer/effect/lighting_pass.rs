@@ -32,13 +32,6 @@ impl Effect for LightingPassEffect {
         EffectMaterialId::LightingPassEffect(color_texture.unwrap(), depth_texture.unwrap())
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(
         &self,
         program: &Program,

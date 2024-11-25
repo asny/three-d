@@ -13,13 +13,6 @@ impl Material for FireworksMaterial {
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         include_str!("particles.frag").to_string()
     }
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            color: true,
-            ..FragmentAttributes::NONE
-        }
-    }
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("color", self.color.to_linear_srgb());
         program.use_uniform("fade", self.fade);

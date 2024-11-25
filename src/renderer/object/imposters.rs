@@ -226,13 +226,6 @@ impl Material for ImpostersMaterial {
         )
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
         camera.tone_mapping.use_uniforms(program);
         camera.color_mapping.use_uniforms(program);

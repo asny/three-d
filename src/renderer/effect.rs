@@ -22,10 +22,6 @@ macro_rules! impl_effect_body {
             self.$inner().id(color_texture, depth_texture)
         }
 
-        fn fragment_attributes(&self) -> FragmentAttributes {
-            self.$inner().fragment_attributes()
-        }
-
         fn use_uniforms(
             &self,
             program: &Program,
@@ -97,12 +93,6 @@ pub trait Effect {
     ) -> EffectMaterialId;
 
     ///
-    /// Returns a [FragmentAttributes] struct that describes which fragment attributes,
-    /// ie. the input from the vertex shader, are required for rendering with this effect.
-    ///
-    fn fragment_attributes(&self) -> FragmentAttributes;
-
-    ///
     /// Sends the uniform data needed for this effect to the fragment shader.
     ///
     fn use_uniforms(
@@ -162,10 +152,6 @@ impl<T: Effect> Effect for std::sync::RwLock<T> {
         depth_texture: Option<DepthTexture>,
     ) -> EffectMaterialId {
         self.read().unwrap().id(color_texture, depth_texture)
-    }
-
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        self.read().unwrap().fragment_attributes()
     }
 
     fn use_uniforms(

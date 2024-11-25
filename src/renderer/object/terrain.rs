@@ -337,34 +337,21 @@ impl TerrainPatch {
 }
 
 impl Geometry for TerrainPatch {
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        if required_attributes.normal || required_attributes.tangents {
-            format!(
-                "#define USE_NORMALS\n{}",
-                include_str!("shaders/terrain.vert")
-            )
-        } else {
-            include_str!("shaders/terrain.vert").to_owned()
-        }
+    fn vertex_shader_source(&self) -> String {
+        include_str!("shaders/terrain.vert").to_owned()
     }
 
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
+    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
         program.use_uniform("viewProjectionMatrix", camera.projection() * camera.view());
         program.use_vertex_attribute("position", &self.positions_buffer);
-        if attributes.normal || attributes.tangents {
+        if program.requires_attribute("normal") {
             program.use_vertex_attribute("normal", &self.normals_buffer);
         }
         program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
-        GeometryId::TerrainPatch(required_attributes.normal || required_attributes.tangents)
+    fn id(&self) -> GeometryId {
+        GeometryId::TerrainPatch
     }
 
     fn render_with_material(

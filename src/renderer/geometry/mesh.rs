@@ -186,63 +186,30 @@ impl Geometry for Mesh {
         }
     }
 
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        if attributes.normal {
-            if let Some(inverse) = self.current_transformation.invert() {
-                program.use_uniform_if_required("normalMatrix", inverse.transpose());
-            } else {
-                // determinant is float zero
-                return;
-            }
+    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
+        if let Some(inverse) = self.current_transformation.invert() {
+            program.use_uniform_if_required("normalMatrix", inverse.transpose());
+        } else {
+            // determinant is float zero
+            return;
         }
 
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", self.current_transformation);
 
-        self.base_mesh
-            .draw(program, render_states, camera, attributes);
+        self.base_mesh.draw(program, render_states, camera);
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        format!(
-            "{}{}{}{}{}{}",
-            if required_attributes.normal {
-                "#define USE_NORMALS\n"
-            } else {
-                ""
-            },
-            if required_attributes.tangents {
-                "#define USE_TANGENTS\n"
-            } else {
-                ""
-            },
-            if required_attributes.uv {
-                "#define USE_UVS\n"
-            } else {
-                ""
-            },
-            if required_attributes.color && self.base_mesh.colors.is_some() {
-                "#define USE_VERTEX_COLORS\n"
-            } else {
-                ""
-            },
-            include_str!("../../core/shared.frag"),
-            include_str!("shaders/mesh.vert"),
-        )
+    fn vertex_shader_source(&self) -> String {
+        self.base_mesh.vertex_shader_source()
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
+    fn id(&self) -> GeometryId {
         GeometryId::Mesh(
-            required_attributes.normal,
-            required_attributes.tangents,
-            required_attributes.uv,
-            required_attributes.color,
+            self.base_mesh.normals.is_some(),
+            self.base_mesh.tangents.is_some(),
+            self.base_mesh.uvs.is_some(),
+            self.base_mesh.colors.is_some(),
         )
     }
 

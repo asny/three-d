@@ -228,21 +228,6 @@ impl Material for DeferredPhysicalMaterial {
         output
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            position: true,
-            normal: true,
-            color: true,
-            uv: self.albedo_texture.is_some()
-                || self.metallic_roughness_texture.is_some()
-                || self.normal_texture.is_some()
-                || self.occlusion_texture.is_some()
-                || self.emissive_texture.is_some()
-                || self.alpha_cutout.is_some(),
-            tangents: self.normal_texture.is_some(),
-        }
-    }
-
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);

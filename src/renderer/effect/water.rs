@@ -70,15 +70,6 @@ impl Effect for WaterEffect {
         )
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            position: true,
-            normal: true,
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn render_states(&self) -> RenderStates {
         RenderStates {
             blend: Blend::TRANSPARENCY,

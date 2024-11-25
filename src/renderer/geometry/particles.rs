@@ -182,69 +182,40 @@ impl<'a> IntoIterator for &'a ParticleSystem {
 }
 
 impl Geometry for ParticleSystem {
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
+    fn id(&self) -> GeometryId {
         GeometryId::ParticleSystem(
-            required_attributes.normal,
-            required_attributes.tangents,
-            required_attributes.uv,
-            required_attributes.color && self.base_mesh.colors.is_some(),
-            required_attributes.color && self.instance_color.is_some(),
-            required_attributes.uv && self.tex_transform.is_some(),
+            self.base_mesh.normals.is_some(),
+            self.base_mesh.tangents.is_some(),
+            self.base_mesh.uvs.is_some(),
+            self.base_mesh.colors.is_some(),
+            self.instance_color.is_some(),
+            self.tex_transform.is_some(),
         )
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+    fn vertex_shader_source(&self) -> String {
         format!(
-            "#define PARTICLES\n{}{}{}{}{}{}{}{}",
-            if required_attributes.normal {
-                "#define USE_NORMALS\n"
-            } else {
-                ""
-            },
-            if required_attributes.tangents {
-                "#define USE_TANGENTS\n"
-            } else {
-                ""
-            },
-            if required_attributes.uv {
-                "#define USE_UVS\n"
-            } else {
-                ""
-            },
-            if required_attributes.color && self.base_mesh.colors.is_some() {
-                "#define USE_VERTEX_COLORS\n"
-            } else {
-                ""
-            },
-            if required_attributes.color && self.instance_color.is_some() {
+            "#define PARTICLES\n{}{}{}",
+            if self.instance_color.is_some() {
                 "#define USE_INSTANCE_COLORS\n"
             } else {
                 ""
             },
-            if required_attributes.uv && self.tex_transform.is_some() {
+            if self.tex_transform.is_some() {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
             } else {
                 ""
             },
-            include_str!("../../core/shared.frag"),
-            include_str!("shaders/mesh.vert"),
+            self.base_mesh.vertex_shader_source()
         )
     }
 
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        if attributes.normal {
-            if let Some(inverse) = self.transformation.invert() {
-                program.use_uniform_if_required("normalMatrix", inverse.transpose());
-            } else {
-                // determinant is float zero
-                return;
-            }
+    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
+        if let Some(inverse) = self.transformation.invert() {
+            program.use_uniform_if_required("normalMatrix", inverse.transpose());
+        } else {
+            // determinant is float zero
+            return;
         }
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("modelMatrix", self.transformation);
@@ -254,26 +225,21 @@ impl Geometry for ParticleSystem {
         program.use_instance_attribute("start_position", &self.start_position);
         program.use_instance_attribute("start_velocity", &self.start_velocity);
 
-        if attributes.uv {
+        if program.requires_attribute("tex_transform_row1") {
             if let Some((row1, row2)) = &self.tex_transform {
                 program.use_instance_attribute("tex_transform_row1", row1);
                 program.use_instance_attribute("tex_transform_row2", row2);
             }
         }
 
-        if attributes.color {
+        if program.requires_attribute("instance_color") {
             if let Some(color) = &self.instance_color {
                 program.use_instance_attribute("instance_color", color);
             }
         }
 
-        self.base_mesh.draw_instanced(
-            program,
-            render_states,
-            camera,
-            attributes,
-            self.instance_count,
-        );
+        self.base_mesh
+            .draw_instanced(program, render_states, camera, self.instance_count);
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

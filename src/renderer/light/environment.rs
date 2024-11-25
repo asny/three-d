@@ -159,13 +159,6 @@ impl Material for PrefilterMaterial<'_> {
         EffectMaterialId::PrefilterMaterial
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_texture_cube("environmentMap", self.environment_map);
         program.use_uniform(
@@ -205,13 +198,6 @@ impl Material for BrdfMaterial {
         EffectMaterialId::BrdfMaterial
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
 
     fn render_states(&self) -> RenderStates {
@@ -239,13 +225,6 @@ impl Material for IrradianceMaterial<'_> {
 
     fn id(&self) -> EffectMaterialId {
         EffectMaterialId::IrradianceMaterial
-    }
-
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
     }
 
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {

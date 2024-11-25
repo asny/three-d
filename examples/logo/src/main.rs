@@ -84,13 +84,6 @@ impl Material for LogoMaterial<'_> {
         EffectMaterialId(0b1u16)
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_texture("image", &self.image);
     }

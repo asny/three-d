@@ -7,23 +7,16 @@
 
 macro_rules! impl_geometry_body {
     ($inner:ident) => {
-        fn draw(
-            &self,
-            camera: &Camera,
-            program: &Program,
-            render_states: RenderStates,
-            attributes: FragmentAttributes,
-        ) {
-            self.$inner()
-                .draw(camera, program, render_states, attributes)
+        fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
+            self.$inner().draw(camera, program, render_states)
         }
 
-        fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-            self.$inner().vertex_shader_source(required_attributes)
+        fn vertex_shader_source(&self) -> String {
+            self.$inner().vertex_shader_source()
         }
 
-        fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
-            self.$inner().id(required_attributes)
+        fn id(&self) -> GeometryId {
+            self.$inner().id()
         }
 
         fn render_with_material(
@@ -113,18 +106,12 @@ pub trait Geometry {
     ///
     /// Draw this geometry.
     ///
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    );
+    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates);
 
     ///
     /// Returns the vertex shader source for this geometry given that the fragment shader needs the given vertex attributes.
     ///
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String;
+    fn vertex_shader_source(&self) -> String;
 
     ///
     /// Returns a unique ID for each variation of the shader source returned from `Geometry::vertex_shader_source`.
@@ -132,7 +119,7 @@ pub trait Geometry {
     /// **Note:** The last bit is reserved to internally implemented geometries, so if implementing the `Geometry` trait
     /// outside of this crate, always return an id in the public use range as defined by [GeometryId].
     ///
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId;
+    fn id(&self) -> GeometryId;
 
     ///
     /// Render the geometry with the given [Material].
@@ -201,26 +188,16 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
 }
 
 impl<T: Geometry> Geometry for std::sync::RwLock<T> {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        self.read()
-            .unwrap()
-            .draw(camera, program, render_states, attributes)
+    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
+        self.read().unwrap().draw(camera, program, render_states)
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        self.read()
-            .unwrap()
-            .vertex_shader_source(required_attributes)
+    fn vertex_shader_source(&self) -> String {
+        self.read().unwrap().vertex_shader_source()
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
-        self.read().unwrap().id(required_attributes)
+    fn id(&self) -> GeometryId {
+        self.read().unwrap().id()
     }
 
     fn render_with_material(
@@ -324,14 +301,8 @@ impl BaseMesh {
         }
     }
 
-    pub fn draw(
-        &self,
-        program: &Program,
-        render_states: RenderStates,
-        camera: &Camera,
-        attributes: FragmentAttributes,
-    ) {
-        self.use_attributes(program, attributes);
+    pub fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+        self.use_attributes(program);
 
         match &self.indices {
             IndexBuffer::None => program.draw_arrays(
@@ -356,10 +327,9 @@ impl BaseMesh {
         program: &Program,
         render_states: RenderStates,
         camera: &Camera,
-        attributes: FragmentAttributes,
         instance_count: u32,
     ) {
-        self.use_attributes(program, attributes);
+        self.use_attributes(program);
 
         match &self.indices {
             IndexBuffer::None => program.draw_arrays_instanced(
@@ -389,46 +359,59 @@ impl BaseMesh {
         }
     }
 
-    fn use_attributes(&self, program: &Program, attributes: FragmentAttributes) {
+    fn use_attributes(&self, program: &Program) {
         program.use_vertex_attribute("position", &self.positions);
 
-        if attributes.normal {
-            program.use_vertex_attribute(
-                "normal",
-                self.normals.as_ref().unwrap_or_else(|| {
-                    panic!(
-                        "the material requires normal attributes but the geometry did not provide it"
-                    )
-                }),
-            );
+        if program.requires_attribute("normal") {
+            if let Some(normals) = &self.normals {
+                program.use_vertex_attribute("normal", normals);
+            }
         }
 
-        if attributes.tangents {
-            program.use_vertex_attribute(
-                "tangent",
-                self.tangents.as_ref().unwrap_or_else(|| {
-                    panic!(
-                        "the material requires tangent attributes but the geometry did not provide it"
-                    )
-                }),
-            );
+        if program.requires_attribute("tangent") {
+            if let Some(tangents) = &self.tangents {
+                program.use_vertex_attribute("tangent", tangents);
+            }
         }
 
-        if attributes.uv {
-            program.use_vertex_attribute(
-                "uv_coordinates",
-                self.uvs.as_ref().unwrap_or_else(|| {
-                    panic!(
-                        "the material requires uv coordinate attributes but the geometry did not provide it"
-                    )
-                }),
-            );
+        if program.requires_attribute("uv_coordinates") {
+            if let Some(uvs) = &self.uvs {
+                program.use_vertex_attribute("uv_coordinates", uvs);
+            }
         }
 
-        if attributes.color {
+        if program.requires_attribute("color") {
             if let Some(colors) = &self.colors {
                 program.use_vertex_attribute("color", colors);
             }
         }
+    }
+
+    fn vertex_shader_source(&self) -> String {
+        format!(
+            "{}{}{}{}{}{}",
+            if self.normals.is_some() {
+                "#define USE_NORMALS\n"
+            } else {
+                ""
+            },
+            if self.tangents.is_some() {
+                "#define USE_TANGENTS\n"
+            } else {
+                ""
+            },
+            if self.uvs.is_some() {
+                "#define USE_UVS\n"
+            } else {
+                ""
+            },
+            if self.colors.is_some() {
+                "#define USE_VERTEX_COLORS\n"
+            } else {
+                ""
+            },
+            include_str!("../core/shared.frag"),
+            include_str!("geometry/shaders/mesh.vert"),
+        )
     }
 }
