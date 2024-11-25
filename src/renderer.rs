@@ -412,18 +412,13 @@ pub fn render_with_material(
     material: impl Material,
     lights: &[&dyn Light],
 ) {
-    let fragment_attributes = material.fragment_attributes();
-    let id = combine_ids(
-        geometry.id(fragment_attributes),
-        material.id(),
-        lights.iter().map(|l| l.id()),
-    );
+    let id = combine_ids(geometry.id(), material.id(), lights.iter().map(|l| l.id()));
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
         match Program::from_source(
             context,
-            &geometry.vertex_shader_source(fragment_attributes),
+            &geometry.vertex_shader_source(),
             &material.fragment_shader_source(lights),
         ) {
             Ok(program) => program,
@@ -431,12 +426,7 @@ pub fn render_with_material(
         }
     });
     material.use_uniforms(program, camera, lights);
-    geometry.draw(
-        camera,
-        program,
-        material.render_states(),
-        fragment_attributes,
-    );
+    geometry.draw(camera, program, material.render_states());
 }
 
 ///
@@ -453,9 +443,8 @@ pub fn render_with_effect(
     color_texture: Option<ColorTexture>,
     depth_texture: Option<DepthTexture>,
 ) {
-    let fragment_attributes = effect.fragment_attributes();
     let id = combine_ids(
-        geometry.id(fragment_attributes),
+        geometry.id(),
         effect.id(color_texture, depth_texture),
         lights.iter().map(|l| l.id()),
     );
@@ -464,7 +453,7 @@ pub fn render_with_effect(
     let program = programs.entry(id).or_insert_with(|| {
         match Program::from_source(
             context,
-            &geometry.vertex_shader_source(fragment_attributes),
+            &geometry.vertex_shader_source(),
             &effect.fragment_shader_source(lights, color_texture, depth_texture),
         ) {
             Ok(program) => program,
@@ -472,7 +461,7 @@ pub fn render_with_effect(
         }
     });
     effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
-    geometry.draw(camera, program, effect.render_states(), fragment_attributes);
+    geometry.draw(camera, program, effect.render_states());
 }
 
 ///

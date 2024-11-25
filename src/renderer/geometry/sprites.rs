@@ -88,7 +88,9 @@ impl Sprites {
         program.use_uniform("viewProjection", camera.projection() * camera.view());
         program.use_uniform("transformation", self.transformation);
         program.use_vertex_attribute("position", &self.position_buffer);
-        program.use_vertex_attribute("uv_coordinate", &self.uv_buffer);
+        if program.requires_attribute("uv_coordinate") {
+            program.use_vertex_attribute("uv_coordinate", &self.uv_buffer);
+        }
         program.use_instance_attribute("center", &self.center_buffer);
         program.use_uniform("direction", self.direction.unwrap_or(vec3(0.0, 0.0, 0.0)));
         program.draw_arrays_instanced(
@@ -110,27 +112,15 @@ impl<'a> IntoIterator for &'a Sprites {
 }
 
 impl Geometry for Sprites {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        if !attributes.uv {
-            todo!()
-        }
-        if attributes.normal || attributes.tangents {
-            todo!()
-        }
+    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
         self.draw(program, render_states, camera);
     }
 
-    fn vertex_shader_source(&self, _required_attributes: FragmentAttributes) -> String {
+    fn vertex_shader_source(&self) -> String {
         include_str!("shaders/sprites.vert").to_owned()
     }
 
-    fn id(&self, _required_attributes: FragmentAttributes) -> GeometryId {
+    fn id(&self) -> GeometryId {
         GeometryId::Sprites
     }
 

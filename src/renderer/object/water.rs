@@ -212,16 +212,7 @@ impl WaterPatch {
 }
 
 impl Geometry for WaterPatch {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        if attributes.tangents {
-            todo!() // Water should be able to provide tangents
-        }
+    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
         program.use_uniform(
             "offset",
             self.center + vec3(self.offset.x, 0.0, self.offset.y),
@@ -249,11 +240,11 @@ impl Geometry for WaterPatch {
         program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
     }
 
-    fn vertex_shader_source(&self, _required_attributes: FragmentAttributes) -> String {
+    fn vertex_shader_source(&self) -> String {
         include_str!("shaders/water.vert").to_owned()
     }
 
-    fn id(&self, _required_attributes: FragmentAttributes) -> GeometryId {
+    fn id(&self) -> GeometryId {
         GeometryId::WaterPatch
     }
 

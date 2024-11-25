@@ -195,13 +195,7 @@ impl<'a> IntoIterator for &'a InstancedMesh {
 }
 
 impl Geometry for InstancedMesh {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
+    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
         // Check if we need a reorder, this only applies to transparent materials.
         if render_states.blend != Blend::Disabled
             && camera.position() != *self.last_camera_position.read().unwrap()
@@ -217,74 +211,48 @@ impl Geometry for InstancedMesh {
         program.use_instance_attribute("row2", row2);
         program.use_instance_attribute("row3", row3);
 
-        if attributes.uv {
+        if program.requires_attribute("tex_transform_row1") {
             if let Some((row1, row2)) = &*self.tex_transform.read().unwrap() {
                 program.use_instance_attribute("tex_transform_row1", row1);
                 program.use_instance_attribute("tex_transform_row2", row2);
             }
         }
 
-        if attributes.color {
+        if program.requires_attribute("instance_color") {
             if let Some(color) = &*self.instance_color.read().unwrap() {
                 program.use_instance_attribute("instance_color", color);
             }
         }
 
-        self.base_mesh.draw_instanced(
-            program,
-            render_states,
-            camera,
-            attributes,
-            self.instance_count(),
-        );
+        self.base_mesh
+            .draw_instanced(program, render_states, camera, self.instance_count());
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+    fn vertex_shader_source(&self) -> String {
         format!(
-            "#define USE_INSTANCE_TRANSFORMS\n{}{}{}{}{}{}{}{}",
-            if required_attributes.normal {
-                "#define USE_NORMALS\n"
-            } else {
-                ""
-            },
-            if required_attributes.tangents {
-                "#define USE_TANGENTS\n"
-            } else {
-                ""
-            },
-            if required_attributes.uv {
-                "#define USE_UVS\n"
-            } else {
-                ""
-            },
-            if required_attributes.color && self.base_mesh.colors.is_some() {
-                "#define USE_VERTEX_COLORS\n"
-            } else {
-                ""
-            },
-            if required_attributes.color && self.instance_color.read().unwrap().is_some() {
+            "#define USE_INSTANCE_TRANSFORMS\n{}{}{}",
+            if self.instance_color.read().unwrap().is_some() {
                 "#define USE_INSTANCE_COLORS\n"
             } else {
                 ""
             },
-            if required_attributes.uv && self.tex_transform.read().unwrap().is_some() {
+            if self.tex_transform.read().unwrap().is_some() {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
             } else {
                 ""
             },
-            include_str!("../../core/shared.frag"),
-            include_str!("shaders/mesh.vert"),
+            self.base_mesh.vertex_shader_source()
         )
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
+    fn id(&self) -> GeometryId {
         GeometryId::InstancedMesh(
-            required_attributes.normal,
-            required_attributes.tangents,
-            required_attributes.uv,
-            required_attributes.color && self.base_mesh.colors.is_some(),
-            required_attributes.color && self.instance_color.read().unwrap().is_some(),
-            required_attributes.uv && self.tex_transform.read().unwrap().is_some(),
+            self.base_mesh.normals.is_some(),
+            self.base_mesh.tangents.is_some(),
+            self.base_mesh.uvs.is_some(),
+            self.base_mesh.colors.is_some(),
+            self.instance_color.read().unwrap().is_some(),
+            self.tex_transform.read().unwrap().is_some(),
         )
     }
 

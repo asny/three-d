@@ -208,40 +208,39 @@ impl Material for PhysicalMaterial {
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
         camera.tone_mapping.use_uniforms(program);
         camera.color_mapping.use_uniforms(program);
-        if !lights.is_empty() {
-            program.use_uniform_if_required("cameraPosition", camera.position());
-            for (i, light) in lights.iter().enumerate() {
-                light.use_uniforms(program, i as u32);
-            }
-            program.use_uniform("metallic", self.metallic);
-            program.use_uniform_if_required("roughness", self.roughness);
-            if program.requires_uniform("albedoTexture") {
-                if let Some(ref texture) = self.albedo_texture {
-                    program.use_uniform("albedoTexTransform", texture.transformation);
-                    program.use_texture("albedoTexture", texture);
-                }
-            }
-            if program.requires_uniform("metallicRoughnessTexture") {
-                if let Some(ref texture) = self.metallic_roughness_texture {
-                    program.use_uniform("metallicRoughnessTexTransform", texture.transformation);
-                    program.use_texture("metallicRoughnessTexture", texture);
-                }
-            }
-            if program.requires_uniform("occlusionTexture") {
-                if let Some(ref texture) = self.occlusion_texture {
-                    program.use_uniform("occlusionTexTransform", texture.transformation);
-                    program.use_uniform("occlusionStrength", self.occlusion_strength);
-                    program.use_texture("occlusionTexture", texture);
-                }
-            }
-            if program.requires_uniform("normalTexture") {
-                if let Some(ref texture) = self.normal_texture {
-                    program.use_uniform("normalTexTransform", texture.transformation);
-                    program.use_uniform("normalScale", self.normal_scale);
-                    program.use_texture("normalTexture", texture);
-                }
+        program.use_uniform_if_required("cameraPosition", camera.position());
+        for (i, light) in lights.iter().enumerate() {
+            light.use_uniforms(program, i as u32);
+        }
+        program.use_uniform_if_required("metallic", self.metallic);
+        program.use_uniform_if_required("roughness", self.roughness);
+        if program.requires_uniform("albedoTexture") {
+            if let Some(ref texture) = self.albedo_texture {
+                program.use_uniform("albedoTexTransform", texture.transformation);
+                program.use_texture("albedoTexture", texture);
             }
         }
+        if program.requires_uniform("metallicRoughnessTexture") {
+            if let Some(ref texture) = self.metallic_roughness_texture {
+                program.use_uniform("metallicRoughnessTexTransform", texture.transformation);
+                program.use_texture("metallicRoughnessTexture", texture);
+            }
+        }
+        if program.requires_uniform("occlusionTexture") {
+            if let Some(ref texture) = self.occlusion_texture {
+                program.use_uniform("occlusionTexTransform", texture.transformation);
+                program.use_uniform("occlusionStrength", self.occlusion_strength);
+                program.use_texture("occlusionTexture", texture);
+            }
+        }
+        if program.requires_uniform("normalTexture") {
+            if let Some(ref texture) = self.normal_texture {
+                program.use_uniform("normalTexTransform", texture.transformation);
+                program.use_uniform("normalScale", self.normal_scale);
+                program.use_texture("normalTexture", texture);
+            }
+        }
+
         program.use_uniform("albedo", self.albedo.to_linear_srgb());
         program.use_uniform("emissive", self.emissive.to_linear_srgb());
         if program.requires_uniform("emissiveTexture") {

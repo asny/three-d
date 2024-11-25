@@ -149,24 +149,18 @@ impl<'a> IntoIterator for &'a Skybox {
 }
 
 impl Geometry for Skybox {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        _attributes: FragmentAttributes,
-    ) {
+    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
         program.use_uniform("view", camera.view());
         program.use_uniform("projection", camera.projection());
         program.use_vertex_attribute("position", &self.vertex_buffer);
         program.draw_arrays(render_states, camera.viewport(), 36);
     }
 
-    fn vertex_shader_source(&self, _required_attributes: FragmentAttributes) -> String {
+    fn vertex_shader_source(&self) -> String {
         include_str!("shaders/skybox.vert").to_owned()
     }
 
-    fn id(&self, _required_attributes: FragmentAttributes) -> GeometryId {
+    fn id(&self) -> GeometryId {
         GeometryId::Skybox
     }
 
