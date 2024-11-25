@@ -27,7 +27,7 @@ pub fn main() {
         0.1,
         1000.0,
     );
-    let mut control = OrbitControl::new(vec3(0.0, 0.0, -0.5), 0.1, 10.0);
+    let mut control = OrbitControl::new(vec3(0.0, 0.0, -0.5), 0.1, 20.0);
 
     // Shorthand for a 90 degree rotation about z.
     let rot_z90 = Mat4::from_angle_z(Deg(90.0));
@@ -74,7 +74,11 @@ pub fn main() {
 
     // For opaque meshes, the draw order does not matter.
     let opaque_instances = three_d::renderer::geometry::Instances {
-        transformations: transparent_instances.transformations,
+        transformations: transparent_instances
+            .transformations
+            .iter()
+            .map(|t| Mat4::from_translation(vec3(-6.0, 0.0, 0.0)) * t)
+            .collect(),
         colors: Some(
             transparent_instances
                 .colors
@@ -92,7 +96,7 @@ pub fn main() {
         ..Default::default()
     };
 
-    let mut opaque_models = Gm::new(
+    let opaque_models = Gm::new(
         InstancedMesh::new(&context, &opaque_instances, &thin_cube),
         PhysicalMaterial::new_opaque(
             &context,
@@ -102,7 +106,6 @@ pub fn main() {
             },
         ),
     );
-    opaque_models.set_transformation(Mat4::from_translation(vec3(-6.0, 0.0, 0.0)));
 
     let mut opaque_model = Gm::new(
         Mesh::new(&context, &thin_cube),
