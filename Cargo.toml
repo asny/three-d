@@ -1,6 +1,6 @@
 [package]
 name = "three-d"
-version = "0.17.0" # Remember to update example links
+version = "0.17.1" # Remember to update example links
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2021"
 description = "2D/3D renderer - makes it simple to draw stuff across platforms (including web)"
