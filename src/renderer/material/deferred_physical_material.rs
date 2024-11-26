@@ -155,7 +155,7 @@ impl DeferredPhysicalMaterial {
     ///
     pub fn lighting_pass(
         context: &Context,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         geometry_pass_color_texture: ColorTexture,
         geometry_pass_depth_texture: DepthTexture,
         lights: &[&dyn Light],
@@ -163,7 +163,7 @@ impl DeferredPhysicalMaterial {
         apply_screen_effect(
             context,
             lighting_pass::LightingPassEffect {},
-            camera,
+            viewer,
             lights,
             Some(geometry_pass_color_texture),
             Some(geometry_pass_depth_texture),
@@ -228,7 +228,7 @@ impl Material for DeferredPhysicalMaterial {
         output
     }
 
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
+    fn use_uniforms(&self, program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);
         program.use_uniform("albedo", self.albedo.to_linear_srgb());

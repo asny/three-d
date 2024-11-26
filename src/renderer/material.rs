@@ -10,8 +10,8 @@ macro_rules! impl_material_body {
         fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
             self.$inner().fragment_shader_source(lights)
         }
-        fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-            self.$inner().use_uniforms(program, camera, lights)
+        fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+            self.$inner().use_uniforms(program, viewer, lights)
         }
         fn render_states(&self) -> RenderStates {
             self.$inner().render_states()
@@ -174,7 +174,7 @@ pub trait Material {
     ///
     /// Sends the uniform data needed for this material to the fragment shader.
     ///
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]);
+    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, lights: &[&dyn Light]);
 
     ///
     /// Returns the render states needed to render with this material.
@@ -235,8 +235,8 @@ impl<T: Material> Material for std::sync::RwLock<T> {
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         self.read().unwrap().fragment_shader_source(lights)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-        self.read().unwrap().use_uniforms(program, camera, lights)
+    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+        self.read().unwrap().use_uniforms(program, viewer, lights)
     }
     fn render_states(&self) -> RenderStates {
         self.read().unwrap().render_states()

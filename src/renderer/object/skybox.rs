@@ -149,11 +149,11 @@ impl<'a> IntoIterator for &'a Skybox {
 }
 
 impl Geometry for Skybox {
-    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
-        program.use_uniform("view", camera.view());
-        program.use_uniform("projection", camera.projection());
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
+        program.use_uniform("view", viewer.view());
+        program.use_uniform("projection", viewer.projection());
         program.use_vertex_attribute("position", &self.vertex_buffer);
-        program.draw_arrays(render_states, camera.viewport(), 36);
+        program.draw_arrays(render_states, viewer.viewport(), 36);
     }
 
     fn vertex_shader_source(&self) -> String {
@@ -171,23 +171,23 @@ impl Geometry for Skybox {
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, &self, material, lights)
+        render_with_material(&self.context, viewer, &self, material, lights)
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,
@@ -198,8 +198,8 @@ impl Geometry for Skybox {
 }
 
 impl Object for Skybox {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        render_with_material(&self.context, camera, self, &self.material, lights)
+    fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+        render_with_material(&self.context, viewer, self, &self.material, lights)
     }
 
     fn material_type(&self) -> MaterialType {

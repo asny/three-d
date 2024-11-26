@@ -113,8 +113,8 @@ impl Material for ColorMaterial {
         shader
     }
 
-    fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
-        camera.color_mapping.use_uniforms(program);
+    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, _lights: &[&dyn Light]) {
+        viewer.color_mapping().use_uniforms(program);
         program.use_uniform("surfaceColor", self.color.to_linear_srgb());
         if let Some(ref tex) = self.texture {
             program.use_uniform("textureTransformation", tex.transformation);

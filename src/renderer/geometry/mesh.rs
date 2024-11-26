@@ -186,7 +186,7 @@ impl Geometry for Mesh {
         }
     }
 
-    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
         if let Some(inverse) = self.current_transformation.invert() {
             program.use_uniform_if_required("normalMatrix", inverse.transpose());
         } else {
@@ -194,10 +194,10 @@ impl Geometry for Mesh {
             return;
         }
 
-        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("viewProjection", viewer.projection() * viewer.view());
         program.use_uniform("modelMatrix", self.current_transformation);
 
-        self.base_mesh.draw(program, render_states, camera);
+        self.base_mesh.draw(program, render_states, viewer);
     }
 
     fn vertex_shader_source(&self) -> String {
@@ -216,23 +216,23 @@ impl Geometry for Mesh {
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, &self, material, lights);
+        render_with_material(&self.context, viewer, &self, material, lights);
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,

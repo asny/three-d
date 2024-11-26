@@ -60,7 +60,7 @@ impl Effect for CopyEffect {
     fn use_uniforms(
         &self,
         program: &Program,
-        _camera: &Camera,
+        _viewer: &dyn Viewer,
         _lights: &[&dyn crate::Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,

@@ -99,7 +99,7 @@ impl Material for ORMMaterial {
         source
     }
 
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
+    fn use_uniforms(&self, program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {
         program.use_uniform("metallic", self.metallic);
         program.use_uniform("roughness", self.roughness);
         if let Some(ref texture) = self.metallic_roughness_texture {

@@ -8,8 +8,8 @@
 
 macro_rules! impl_object_body {
     ($inner:ident) => {
-        fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-            self.$inner().render(camera, lights)
+        fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+            self.$inner().render(viewer, lights)
         }
 
         fn material_type(&self) -> MaterialType {
@@ -66,7 +66,7 @@ pub trait Object: Geometry {
     /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     ///
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]);
+    fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]);
 
     ///
     /// Returns the type of material applied to this object.
@@ -100,8 +100,8 @@ impl<T: Object> Object for std::cell::RefCell<T> {
 }
 
 impl<T: Object> Object for std::sync::RwLock<T> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.read().unwrap().render(camera, lights)
+    fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+        self.read().unwrap().render(viewer, lights)
     }
 
     fn material_type(&self) -> MaterialType {

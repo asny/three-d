@@ -210,14 +210,14 @@ impl Geometry for ParticleSystem {
         )
     }
 
-    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
         if let Some(inverse) = self.transformation.invert() {
             program.use_uniform_if_required("normalMatrix", inverse.transpose());
         } else {
             // determinant is float zero
             return;
         }
-        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("viewProjection", viewer.projection() * viewer.view());
         program.use_uniform("modelMatrix", self.transformation);
         program.use_uniform("acceleration", self.acceleration);
         program.use_uniform("time", self.time);
@@ -239,7 +239,7 @@ impl Geometry for ParticleSystem {
         }
 
         self.base_mesh
-            .draw_instanced(program, render_states, camera, self.instance_count);
+            .draw_instanced(program, render_states, viewer, self.instance_count);
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -249,23 +249,23 @@ impl Geometry for ParticleSystem {
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, &self, material, lights)
+        render_with_material(&self.context, viewer, &self, material, lights)
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,

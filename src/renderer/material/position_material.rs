@@ -26,7 +26,7 @@ impl Material for PositionMaterial {
         include_str!("shaders/position_material.frag").to_string()
     }
 
-    fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
+    fn use_uniforms(&self, _program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {}
 
     fn render_states(&self) -> RenderStates {
         self.render_states

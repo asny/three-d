@@ -64,14 +64,14 @@ impl Effect for ScreenEffect {
     fn use_uniforms(
         &self,
         program: &Program,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         _lights: &[&dyn crate::Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         if let Some(color_texture) = color_texture {
-            camera.tone_mapping.use_uniforms(program);
-            camera.color_mapping.use_uniforms(program);
+            viewer.tone_mapping().use_uniforms(program);
+            viewer.color_mapping().use_uniforms(program);
             color_texture.use_uniforms(program);
         }
         if let Some(depth_texture) = depth_texture {

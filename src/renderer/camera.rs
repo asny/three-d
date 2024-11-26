@@ -6,6 +6,182 @@ pub use color_space::*;
 
 use crate::core::*;
 
+macro_rules! impl_viewer_body {
+    ($inner:ident) => {
+        fn position(&self) -> Vec3 {
+            self.$inner().position()
+        }
+
+        fn view(&self) -> Mat4 {
+            self.$inner().view()
+        }
+
+        fn projection(&self) -> Mat4 {
+            self.$inner().projection()
+        }
+
+        fn viewport(&self) -> Viewport {
+            self.$inner().viewport()
+        }
+
+        fn z_near(&self) -> f32 {
+            self.$inner().z_near()
+        }
+
+        fn z_far(&self) -> f32 {
+            self.$inner().z_far()
+        }
+
+        fn color_mapping(&self) -> ColorMapping {
+            self.$inner().color_mapping()
+        }
+
+        fn tone_mapping(&self) -> ToneMapping {
+            self.$inner().tone_mapping()
+        }
+    };
+}
+
+pub trait Viewer {
+    fn position(&self) -> Vec3;
+
+    fn view(&self) -> Mat4;
+
+    fn projection(&self) -> Mat4;
+
+    fn viewport(&self) -> Viewport;
+
+    fn z_near(&self) -> f32;
+
+    fn z_far(&self) -> f32;
+
+    fn color_mapping(&self) -> ColorMapping;
+
+    fn tone_mapping(&self) -> ToneMapping;
+}
+
+use std::ops::Deref;
+impl<T: Viewer + ?Sized> Viewer for &T {
+    impl_viewer_body!(deref);
+}
+
+impl<T: Viewer + ?Sized> Viewer for &mut T {
+    impl_viewer_body!(deref);
+}
+
+impl<T: Viewer> Viewer for Box<T> {
+    impl_viewer_body!(as_ref);
+}
+
+impl<T: Viewer> Viewer for std::rc::Rc<T> {
+    impl_viewer_body!(as_ref);
+}
+
+impl<T: Viewer> Viewer for std::sync::Arc<T> {
+    impl_viewer_body!(as_ref);
+}
+
+impl<T: Viewer> Viewer for std::cell::RefCell<T> {
+    impl_viewer_body!(borrow);
+}
+
+impl<T: Viewer> Viewer for std::sync::RwLock<T> {
+    fn position(&self) -> Vec3 {
+        self.read().unwrap().position()
+    }
+
+    fn view(&self) -> Mat4 {
+        self.read().unwrap().view()
+    }
+
+    fn projection(&self) -> Mat4 {
+        self.read().unwrap().projection()
+    }
+
+    fn viewport(&self) -> Viewport {
+        self.read().unwrap().viewport()
+    }
+
+    fn z_near(&self) -> f32 {
+        self.read().unwrap().z_near()
+    }
+
+    fn z_far(&self) -> f32 {
+        self.read().unwrap().z_far()
+    }
+
+    fn color_mapping(&self) -> ColorMapping {
+        self.read().unwrap().color_mapping()
+    }
+
+    fn tone_mapping(&self) -> ToneMapping {
+        self.read().unwrap().tone_mapping()
+    }
+}
+
+pub struct Frustum {
+    frustum: [Vec4; 6],
+}
+
+impl Frustum {
+    pub fn new(viewer: impl Viewer) -> Self {
+        let m = viewer.projection() * viewer.view();
+        Self {
+            frustum: [
+                vec4(m.x.w + m.x.x, m.y.w + m.y.x, m.z.w + m.z.x, m.w.w + m.w.x),
+                vec4(m.x.w - m.x.x, m.y.w - m.y.x, m.z.w - m.z.x, m.w.w - m.w.x),
+                vec4(m.x.w + m.x.y, m.y.w + m.y.y, m.z.w + m.z.y, m.w.w + m.w.y),
+                vec4(m.x.w - m.x.y, m.y.w - m.y.y, m.z.w - m.z.y, m.w.w - m.w.y),
+                vec4(m.x.w + m.x.z, m.y.w + m.y.z, m.z.w + m.z.z, m.w.w + m.w.z),
+                vec4(m.x.w - m.x.z, m.y.w - m.y.z, m.z.w - m.z.z, m.w.w - m.w.z),
+            ],
+        }
+    }
+
+    pub fn contains(&self, aabb: AxisAlignedBoundingBox) -> bool {
+        if aabb.is_infinite() {
+            return true;
+        }
+        if aabb.is_empty() {
+            return false;
+        }
+        // check box outside/inside of frustum
+        for i in 0..6 {
+            let mut out = 0;
+            if self.frustum[i].dot(vec4(aabb.min().x, aabb.min().y, aabb.min().z, 1.0)) < 0.0 {
+                out += 1
+            };
+            if self.frustum[i].dot(vec4(aabb.max().x, aabb.min().y, aabb.min().z, 1.0)) < 0.0 {
+                out += 1
+            };
+            if self.frustum[i].dot(vec4(aabb.min().x, aabb.max().y, aabb.min().z, 1.0)) < 0.0 {
+                out += 1
+            };
+            if self.frustum[i].dot(vec4(aabb.max().x, aabb.max().y, aabb.min().z, 1.0)) < 0.0 {
+                out += 1
+            };
+            if self.frustum[i].dot(vec4(aabb.min().x, aabb.min().y, aabb.max().z, 1.0)) < 0.0 {
+                out += 1
+            };
+            if self.frustum[i].dot(vec4(aabb.max().x, aabb.min().y, aabb.max().z, 1.0)) < 0.0 {
+                out += 1
+            };
+            if self.frustum[i].dot(vec4(aabb.min().x, aabb.max().y, aabb.max().z, 1.0)) < 0.0 {
+                out += 1
+            };
+            if self.frustum[i].dot(vec4(aabb.max().x, aabb.max().y, aabb.max().z, 1.0)) < 0.0 {
+                out += 1
+            };
+            if out == 8 {
+                return false;
+            }
+        }
+        // TODO: Test the frustum corners against the box planes (http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm)
+
+        true
+    }
+}
+
 ///
 /// Represents a camera used for viewing 2D and 3D objects.
 ///
@@ -16,6 +192,40 @@ pub struct Camera {
     pub tone_mapping: ToneMapping,
     /// This color mapping is applied to the final color of renders using this camera.
     pub color_mapping: ColorMapping,
+}
+
+impl Viewer for Camera {
+    fn position(&self) -> Vec3 {
+        self.camera.position()
+    }
+
+    fn view(&self) -> Mat4 {
+        self.camera.view()
+    }
+
+    fn projection(&self) -> Mat4 {
+        self.camera.projection()
+    }
+
+    fn viewport(&self) -> Viewport {
+        self.camera.viewport()
+    }
+
+    fn z_near(&self) -> f32 {
+        self.camera.z_near()
+    }
+
+    fn z_far(&self) -> f32 {
+        self.camera.z_far()
+    }
+
+    fn color_mapping(&self) -> ColorMapping {
+        self.color_mapping
+    }
+
+    fn tone_mapping(&self) -> ToneMapping {
+        self.tone_mapping
+    }
 }
 
 impl Camera {
@@ -137,7 +347,6 @@ impl Camera {
     }
 }
 
-use std::ops::Deref;
 impl Deref for Camera {
     type Target = three_d_asset::Camera;
     fn deref(&self) -> &Self::Target {

@@ -80,13 +80,13 @@ impl Effect for WaterEffect {
     fn use_uniforms(
         &self,
         program: &Program,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        camera.tone_mapping.use_uniforms(program);
-        camera.color_mapping.use_uniforms(program);
+        viewer.tone_mapping().use_uniforms(program);
+        viewer.color_mapping().use_uniforms(program);
         color_texture
             .expect("Must supply a color texture to apply a water effect")
             .use_uniforms(program);
@@ -96,17 +96,17 @@ impl Effect for WaterEffect {
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);
         }
-        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("viewProjection", viewer.projection() * viewer.view());
         program.use_uniform(
             "viewProjectionInverse",
-            (camera.projection() * camera.view()).invert().unwrap(),
+            (viewer.projection() * viewer.view()).invert().unwrap(),
         );
-        program.use_uniform("cameraPosition", camera.position());
+        program.use_uniform("cameraPosition", viewer.position());
         program.use_uniform(
             "screenSize",
             vec2(
-                camera.viewport().width as f32,
-                camera.viewport().height as f32,
+                viewer.viewport().width as f32,
+                viewer.viewport().height as f32,
             ),
         );
         program.use_uniform("metallic", self.metallic);
