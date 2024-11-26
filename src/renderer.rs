@@ -100,7 +100,7 @@ macro_rules! impl_render_target_extensions_body {
             // Deferred
             if deferred_objects.len() > 0 {
                 // Geometry pass
-                let mut geometry_pass_camera = camera.clone();
+                let mut geometry_pass_camera = viewer.clone();
                 let viewport =
                     Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
                 geometry_pass_camera.set_viewport(viewport);
@@ -567,29 +567,6 @@ pub fn cmp_render_order(
             distance_a.partial_cmp(&distance_b).unwrap()
         }
     }
-}
-
-///
-/// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
-/// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
-/// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
-/// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
-///
-pub fn pick(
-    context: &Context,
-    camera: &Camera,
-    pixel: impl Into<PhysicalPoint> + Copy,
-    geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<IntersectionResult> {
-    let pos = camera.position_at_pixel(pixel);
-    let dir = camera.view_direction_at_pixel(pixel);
-    ray_intersect(
-        context,
-        pos + dir * camera.z_near(),
-        dir,
-        camera.z_far() - camera.z_near(),
-        geometries,
-    )
 }
 
 /// Result from an intersection test

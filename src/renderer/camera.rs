@@ -4,7 +4,7 @@ pub use tone_mapping::*;
 mod color_space;
 pub use color_space::*;
 
-use crate::core::*;
+use crate::*;
 
 macro_rules! impl_viewer_body {
     ($inner:ident) => {
@@ -344,6 +344,29 @@ impl Camera {
     pub fn set_default_tone_and_color_mapping(&mut self) {
         self.tone_mapping = ToneMapping::default();
         self.color_mapping = ColorMapping::default();
+    }
+
+    ///
+    /// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
+    /// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
+    ///
+    pub fn pick(
+        &self,
+        context: &Context,
+        pixel: impl Into<PhysicalPoint> + Copy,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+    ) -> Option<IntersectionResult> {
+        let pos = self.position_at_pixel(pixel);
+        let dir = self.view_direction_at_pixel(pixel);
+        ray_intersect(
+            context,
+            pos + dir * self.z_near(),
+            dir,
+            self.z_far() - self.z_near(),
+            geometries,
+        )
     }
 }
 
