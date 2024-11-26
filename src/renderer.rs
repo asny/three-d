@@ -100,10 +100,8 @@ macro_rules! impl_render_target_extensions_body {
             // Deferred
             if deferred_objects.len() > 0 {
                 // Geometry pass
-                let mut geometry_pass_camera = viewer.clone();
-                let viewport =
-                    Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
-                geometry_pass_camera.set_viewport(viewport);
+                let geometry_pass_camera = GeometryPassCamera(&viewer);
+                let viewport = geometry_pass_camera.viewport();
                 deferred_objects.sort_by(|a, b| cmp_render_order(&geometry_pass_camera, a, b));
                 let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
                     &self.context,
@@ -654,5 +652,41 @@ pub fn ray_intersect(
         })
     } else {
         None
+    }
+}
+
+struct GeometryPassCamera<T>(T);
+
+impl<T: Viewer> Viewer for GeometryPassCamera<T> {
+    fn position(&self) -> Vec3 {
+        self.0.position()
+    }
+
+    fn view(&self) -> Mat4 {
+        self.0.view()
+    }
+
+    fn projection(&self) -> Mat4 {
+        self.0.projection()
+    }
+
+    fn viewport(&self) -> Viewport {
+        Viewport::new_at_origo(self.0.viewport().width, self.0.viewport().height)
+    }
+
+    fn z_near(&self) -> f32 {
+        self.0.z_near()
+    }
+
+    fn z_far(&self) -> f32 {
+        self.0.z_far()
+    }
+
+    fn color_mapping(&self) -> ColorMapping {
+        self.0.color_mapping()
+    }
+
+    fn tone_mapping(&self) -> ToneMapping {
+        self.0.tone_mapping()
     }
 }
