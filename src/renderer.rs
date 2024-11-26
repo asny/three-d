@@ -91,7 +91,7 @@ macro_rules! impl_render_target_extensions_body {
             objects: impl IntoIterator<Item = impl Object>,
             lights: &[&dyn Light],
         ) -> &Self {
-            let frustum = Frustum::new(viewer);
+            let frustum = Frustum::new(&viewer);
             let (mut deferred_objects, mut forward_objects): (Vec<_>, Vec<_>) = objects
                 .into_iter()
                 .filter(|o| frustum.contains(o.aabb()))
@@ -141,7 +141,7 @@ macro_rules! impl_render_target_extensions_body {
                 self.apply_screen_effect_partially(
                     scissor_box,
                     &lighting_pass::LightingPassEffect {},
-                    viewer,
+                    &viewer,
                     lights,
                     Some(ColorTexture::Array {
                         texture: &geometry_pass_texture,
@@ -152,7 +152,7 @@ macro_rules! impl_render_target_extensions_body {
             }
 
             // Forward
-            forward_objects.sort_by(|a, b| cmp_render_order(viewer, a, b));
+            forward_objects.sort_by(|a, b| cmp_render_order(&viewer, a, b));
             self.write_partially::<RendererError>(scissor_box, || {
                 for object in forward_objects {
                     object.render(&viewer, lights);
