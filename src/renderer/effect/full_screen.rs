@@ -2,7 +2,7 @@ use crate::renderer::*;
 
 ///
 /// Renders a full screen quad with the content of the color and/or depth textures.
-/// The difference from [CopyEffect] is that this effect also applies any mapping set in the [Camera].
+/// The difference from [CopyEffect] is that this effect also applies any tone and color mapping specified in the [Viewer].
 ///
 #[derive(Clone, Debug, Default)]
 pub struct ScreenEffect {
