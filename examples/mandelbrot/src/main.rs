@@ -89,6 +89,19 @@ pub fn main() {
                     camera.zoom_towards(target, distance * 0.05 * delta.1, 0.00001, 10.0);
                     redraw = true;
                 }
+                Event::KeyPress { kind, .. } => {
+                    let zoom = match kind {
+                        Key::Num1 => Some(1.0),
+                        Key::Num2 => Some(2.0),
+                        Key::Num3 => Some(3.0),
+                        Key::Num4 => Some(4.0),
+                        _ => None,
+                    };
+                    if let Some(zoom) = zoom {
+                        camera.set_zoom_factor(zoom);
+                        redraw = true;
+                    }
+                }
                 _ => {}
             }
         }
