@@ -36,7 +36,7 @@ impl OrbitControl {
                 } => {
                     if !*handled {
                         if Some(MouseButton::Left) == *button {
-                            let speed = 0.01 * self.target.distance(camera.position()) + 0.001;
+                            let speed = 0.01;
                             camera.rotate_around_with_fixed_up(
                                 self.target,
                                 speed * delta.0,
