@@ -88,6 +88,18 @@ pub fn main() {
                     target.z = 0.0;
                     camera.zoom_towards(target, distance * 0.05 * delta.1, 0.1, 10.0);
                 }
+                Event::KeyPress { kind, .. } => {
+                    let zoom = match kind {
+                        Key::Num1 => Some(1.0),
+                        Key::Num2 => Some(2.0),
+                        Key::Num3 => Some(3.0),
+                        Key::Num4 => Some(4.0),
+                        _ => None,
+                    };
+                    if let Some(zoom) = zoom {
+                        camera.set_zoom_factor(zoom);
+                    }
+                }
                 _ => {}
             }
         }
