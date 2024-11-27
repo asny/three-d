@@ -124,8 +124,8 @@ pub struct Frustum {
 }
 
 impl Frustum {
-    pub fn new(viewer: impl Viewer) -> Self {
-        let m = viewer.projection() * viewer.view();
+    pub fn new(viewProjection: Mat4) -> Self {
+        let m = viewProjection;
         Self {
             frustum: [
                 vec4(m.x.w + m.x.x, m.y.w + m.y.x, m.z.w + m.z.x, m.w.w + m.w.x),

@@ -91,7 +91,7 @@ macro_rules! impl_render_target_extensions_body {
             objects: impl IntoIterator<Item = impl Object>,
             lights: &[&dyn Light],
         ) -> &Self {
-            let frustum = Frustum::new(&viewer);
+            let frustum = Frustum::new(viewer.projection() * viewer.view());
             let (mut deferred_objects, mut forward_objects): (Vec<_>, Vec<_>) = objects
                 .into_iter()
                 .filter(|o| frustum.contains(o.aabb()))
@@ -193,7 +193,7 @@ macro_rules! impl_render_target_extensions_body {
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
         ) -> &Self {
-            let frustum = Frustum::new(&viewer);
+            let frustum = Frustum::new(viewer.projection() * viewer.view());
             self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
@@ -245,7 +245,7 @@ macro_rules! impl_render_target_extensions_body {
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
-            let frustum = Frustum::new(&viewer);
+            let frustum = Frustum::new(viewer.projection() * viewer.view());
             self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
