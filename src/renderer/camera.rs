@@ -42,21 +42,33 @@ macro_rules! impl_viewer_body {
     };
 }
 
+///
+/// Represents a viewer, usually some kind of camera.
+/// The default implementation of this trait is the [Camera] which should be adequate for most use cases.
+///
 pub trait Viewer {
+    /// The position of the viewer.
     fn position(&self) -> Vec3;
 
+    /// The view matrix which transforms from world space to view space.
     fn view(&self) -> Mat4;
 
+    /// The projection matrix which transforms from view space to clip space (2D position on the screen).
     fn projection(&self) -> Mat4;
 
+    /// The 2D [Viewport] of the viewer.
     fn viewport(&self) -> Viewport;
 
+    /// Defines the minimum depth in world space.
     fn z_near(&self) -> f32;
 
+    /// Defines the maximum depth in world space.
     fn z_far(&self) -> f32;
 
+    /// Defines the [ColorMapping] applied to the final rendered image.
     fn color_mapping(&self) -> ColorMapping;
 
+    /// Defines the [ToneMapping] applied to the final rendered image.
     fn tone_mapping(&self) -> ToneMapping;
 }
 
