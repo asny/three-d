@@ -368,6 +368,11 @@ impl Camera {
             geometries,
         )
     }
+
+    /// Returns the [Frustum] for this camera.
+    pub fn frustum(&self) -> Frustum {
+        Frustum::new(self.projection() * self.view())
+    }
 }
 
 impl Deref for Camera {
