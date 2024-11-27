@@ -96,33 +96,6 @@ impl Camera {
     }
 
     ///
-    /// New camera which projects the world with a planar projection.
-    ///
-    pub fn new_planar(
-        viewport: Viewport,
-        position: Vec3,
-        target: Vec3,
-        up: Vec3,
-        field_of_view_y: impl Into<Radians>,
-        z_near: f32,
-        z_far: f32,
-    ) -> Self {
-        Self {
-            camera: three_d_asset::Camera::new_planar(
-                viewport,
-                position,
-                target,
-                up,
-                field_of_view_y,
-                z_near,
-                z_far,
-            ),
-            tone_mapping: ToneMapping::default(),
-            color_mapping: ColorMapping::default(),
-        }
-    }
-
-    ///
     /// Returns an orthographic camera for viewing 2D content.
     /// The camera is placed at the center of the given viewport.
     /// The (0, 0) position is at the bottom left corner and the
