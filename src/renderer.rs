@@ -37,8 +37,8 @@ pub enum RendererError {
 mod shader_ids;
 pub use shader_ids::*;
 
-mod camera;
-pub use camera::*;
+mod viewer;
+pub use viewer::*;
 
 pub mod material;
 pub use material::*;
