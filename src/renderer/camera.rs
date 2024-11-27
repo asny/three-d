@@ -119,25 +119,26 @@ impl<T: Viewer> Viewer for std::sync::RwLock<T> {
     }
 }
 
-pub struct Frustum {
-    frustum: [Vec4; 6],
-}
+///
+/// The view frustum which can be used for frustum culling.
+///
+pub struct Frustum([Vec4; 6]);
 
 impl Frustum {
-    pub fn new(viewProjection: Mat4) -> Self {
-        let m = viewProjection;
-        Self {
-            frustum: [
-                vec4(m.x.w + m.x.x, m.y.w + m.y.x, m.z.w + m.z.x, m.w.w + m.w.x),
-                vec4(m.x.w - m.x.x, m.y.w - m.y.x, m.z.w - m.z.x, m.w.w - m.w.x),
-                vec4(m.x.w + m.x.y, m.y.w + m.y.y, m.z.w + m.z.y, m.w.w + m.w.y),
-                vec4(m.x.w - m.x.y, m.y.w - m.y.y, m.z.w - m.z.y, m.w.w - m.w.y),
-                vec4(m.x.w + m.x.z, m.y.w + m.y.z, m.z.w + m.z.z, m.w.w + m.w.z),
-                vec4(m.x.w - m.x.z, m.y.w - m.y.z, m.z.w - m.z.z, m.w.w - m.w.z),
-            ],
-        }
+    /// Computes the frustum for the given view-projection matrix.
+    pub fn new(view_projection: Mat4) -> Self {
+        let m = view_projection;
+        Self([
+            vec4(m.x.w + m.x.x, m.y.w + m.y.x, m.z.w + m.z.x, m.w.w + m.w.x),
+            vec4(m.x.w - m.x.x, m.y.w - m.y.x, m.z.w - m.z.x, m.w.w - m.w.x),
+            vec4(m.x.w + m.x.y, m.y.w + m.y.y, m.z.w + m.z.y, m.w.w + m.w.y),
+            vec4(m.x.w - m.x.y, m.y.w - m.y.y, m.z.w - m.z.y, m.w.w - m.w.y),
+            vec4(m.x.w + m.x.z, m.y.w + m.y.z, m.z.w + m.z.z, m.w.w + m.w.z),
+            vec4(m.x.w - m.x.z, m.y.w - m.y.z, m.z.w - m.z.z, m.w.w - m.w.z),
+        ])
     }
 
+    /// Used for frustum culling. Returns false if the entire bounding box is outside of the frustum.
     pub fn contains(&self, aabb: AxisAlignedBoundingBox) -> bool {
         if aabb.is_infinite() {
             return true;
@@ -148,28 +149,28 @@ impl Frustum {
         // check box outside/inside of frustum
         for i in 0..6 {
             let mut out = 0;
-            if self.frustum[i].dot(vec4(aabb.min().x, aabb.min().y, aabb.min().z, 1.0)) < 0.0 {
+            if self.0[i].dot(vec4(aabb.min().x, aabb.min().y, aabb.min().z, 1.0)) < 0.0 {
                 out += 1
             };
-            if self.frustum[i].dot(vec4(aabb.max().x, aabb.min().y, aabb.min().z, 1.0)) < 0.0 {
+            if self.0[i].dot(vec4(aabb.max().x, aabb.min().y, aabb.min().z, 1.0)) < 0.0 {
                 out += 1
             };
-            if self.frustum[i].dot(vec4(aabb.min().x, aabb.max().y, aabb.min().z, 1.0)) < 0.0 {
+            if self.0[i].dot(vec4(aabb.min().x, aabb.max().y, aabb.min().z, 1.0)) < 0.0 {
                 out += 1
             };
-            if self.frustum[i].dot(vec4(aabb.max().x, aabb.max().y, aabb.min().z, 1.0)) < 0.0 {
+            if self.0[i].dot(vec4(aabb.max().x, aabb.max().y, aabb.min().z, 1.0)) < 0.0 {
                 out += 1
             };
-            if self.frustum[i].dot(vec4(aabb.min().x, aabb.min().y, aabb.max().z, 1.0)) < 0.0 {
+            if self.0[i].dot(vec4(aabb.min().x, aabb.min().y, aabb.max().z, 1.0)) < 0.0 {
                 out += 1
             };
-            if self.frustum[i].dot(vec4(aabb.max().x, aabb.min().y, aabb.max().z, 1.0)) < 0.0 {
+            if self.0[i].dot(vec4(aabb.max().x, aabb.min().y, aabb.max().z, 1.0)) < 0.0 {
                 out += 1
             };
-            if self.frustum[i].dot(vec4(aabb.min().x, aabb.max().y, aabb.max().z, 1.0)) < 0.0 {
+            if self.0[i].dot(vec4(aabb.min().x, aabb.max().y, aabb.max().z, 1.0)) < 0.0 {
                 out += 1
             };
-            if self.frustum[i].dot(vec4(aabb.max().x, aabb.max().y, aabb.max().z, 1.0)) < 0.0 {
+            if self.0[i].dot(vec4(aabb.max().x, aabb.max().y, aabb.max().z, 1.0)) < 0.0 {
                 out += 1
             };
             if out == 8 {
