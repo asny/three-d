@@ -25,13 +25,13 @@ macro_rules! impl_effect_body {
         fn use_uniforms(
             &self,
             program: &Program,
-            camera: &Camera,
+            viewer: &dyn Viewer,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) {
             self.$inner()
-                .use_uniforms(program, camera, lights, color_texture, depth_texture)
+                .use_uniforms(program, viewer, lights, color_texture, depth_texture)
         }
 
         fn render_states(&self) -> RenderStates {
@@ -98,7 +98,7 @@ pub trait Effect {
     fn use_uniforms(
         &self,
         program: &Program,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
@@ -157,14 +157,14 @@ impl<T: Effect> Effect for std::sync::RwLock<T> {
     fn use_uniforms(
         &self,
         program: &Program,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         self.read()
             .unwrap()
-            .use_uniforms(program, camera, lights, color_texture, depth_texture)
+            .use_uniforms(program, viewer, lights, color_texture, depth_texture)
     }
 
     fn render_states(&self) -> RenderStates {

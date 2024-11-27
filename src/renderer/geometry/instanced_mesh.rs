@@ -112,8 +112,8 @@ impl InstancedMesh {
     ///
     /// This function creates the instance buffers, ordering them by distance to the camera
     ///
-    fn update_instance_buffers(&self, camera: Option<&Camera>) {
-        let indices = if let Some(position) = camera.map(|c| c.position()) {
+    fn update_instance_buffers(&self, viewer: Option<&dyn Viewer>) {
+        let indices = if let Some(position) = viewer.map(|c| c.position()) {
             *self.last_camera_position.write().unwrap() = position;
             // Need to order by using the position.
             let distances = self
@@ -195,15 +195,15 @@ impl<'a> IntoIterator for &'a InstancedMesh {
 }
 
 impl Geometry for InstancedMesh {
-    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
         // Check if we need a reorder, this only applies to transparent materials.
         if render_states.blend != Blend::Disabled
-            && camera.position() != *self.last_camera_position.read().unwrap()
+            && viewer.position() != *self.last_camera_position.read().unwrap()
         {
-            self.update_instance_buffers(Some(camera));
+            self.update_instance_buffers(Some(viewer));
         }
 
-        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("viewProjection", viewer.projection() * viewer.view());
         program.use_uniform("modelMatrix", self.current_transformation);
 
         let (row1, row2, row3) = &*self.transform.read().unwrap();
@@ -225,7 +225,7 @@ impl Geometry for InstancedMesh {
         }
 
         self.base_mesh
-            .draw_instanced(program, render_states, camera, self.instance_count());
+            .draw_instanced(program, render_states, viewer, self.instance_count());
     }
 
     fn vertex_shader_source(&self) -> String {
@@ -271,23 +271,23 @@ impl Geometry for InstancedMesh {
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, self, material, lights)
+        render_with_material(&self.context, viewer, self, material, lights)
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,

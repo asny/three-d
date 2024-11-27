@@ -159,7 +159,7 @@ impl Material for PrefilterMaterial<'_> {
         EffectMaterialId::PrefilterMaterial
     }
 
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
+    fn use_uniforms(&self, program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {
         program.use_texture_cube("environmentMap", self.environment_map);
         program.use_uniform(
             "roughness",
@@ -198,7 +198,7 @@ impl Material for BrdfMaterial {
         EffectMaterialId::BrdfMaterial
     }
 
-    fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
+    fn use_uniforms(&self, _program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {}
 
     fn render_states(&self) -> RenderStates {
         RenderStates::default()
@@ -227,7 +227,7 @@ impl Material for IrradianceMaterial<'_> {
         EffectMaterialId::IrradianceMaterial
     }
 
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
+    fn use_uniforms(&self, program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {
         program.use_texture_cube("environmentMap", self.environment_map);
         program.use_uniform("direction", self.side.direction());
         program.use_uniform("up", self.side.up());

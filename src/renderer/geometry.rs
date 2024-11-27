@@ -7,8 +7,8 @@
 
 macro_rules! impl_geometry_body {
     ($inner:ident) => {
-        fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
-            self.$inner().draw(camera, program, render_states)
+        fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
+            self.$inner().draw(viewer, program, render_states)
         }
 
         fn vertex_shader_source(&self) -> String {
@@ -22,22 +22,22 @@ macro_rules! impl_geometry_body {
         fn render_with_material(
             &self,
             material: &dyn Material,
-            camera: &Camera,
+            viewer: &dyn Viewer,
             lights: &[&dyn Light],
         ) {
-            self.$inner().render_with_material(material, camera, lights)
+            self.$inner().render_with_material(material, viewer, lights)
         }
 
         fn render_with_effect(
             &self,
             material: &dyn Effect,
-            camera: &Camera,
+            viewer: &dyn Viewer,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) {
             self.$inner()
-                .render_with_effect(material, camera, lights, color_texture, depth_texture)
+                .render_with_effect(material, viewer, lights, color_texture, depth_texture)
         }
 
         fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -106,7 +106,7 @@ pub trait Geometry {
     ///
     /// Draw this geometry.
     ///
-    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates);
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates);
 
     ///
     /// Returns the vertex shader source for this geometry given that the fragment shader needs the given vertex attributes.
@@ -126,7 +126,12 @@ pub trait Geometry {
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     ///
-    fn render_with_material(&self, material: &dyn Material, camera: &Camera, lights: &[&dyn Light]);
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        viewer: &dyn Viewer,
+        lights: &[&dyn Light],
+    );
 
     ///
     /// Render the geometry with the given [Effect].
@@ -136,7 +141,7 @@ pub trait Geometry {
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
@@ -188,8 +193,8 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
 }
 
 impl<T: Geometry> Geometry for std::sync::RwLock<T> {
-    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
-        self.read().unwrap().draw(camera, program, render_states)
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
+        self.read().unwrap().draw(viewer, program, render_states)
     }
 
     fn vertex_shader_source(&self) -> String {
@@ -203,25 +208,25 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
         self.read()
             .unwrap()
-            .render_with_material(material, camera, lights)
+            .render_with_material(material, viewer, lights)
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         self.read().unwrap().render_with_effect(
             material,
-            camera,
+            viewer,
             lights,
             color_texture,
             depth_texture,
@@ -301,23 +306,23 @@ impl BaseMesh {
         }
     }
 
-    pub fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
+    pub fn draw(&self, program: &Program, render_states: RenderStates, viewer: &dyn Viewer) {
         self.use_attributes(program);
 
         match &self.indices {
             IndexBuffer::None => program.draw_arrays(
                 render_states,
-                camera.viewport(),
+                viewer.viewport(),
                 self.positions.vertex_count(),
             ),
             IndexBuffer::U8(element_buffer) => {
-                program.draw_elements(render_states, camera.viewport(), element_buffer)
+                program.draw_elements(render_states, viewer.viewport(), element_buffer)
             }
             IndexBuffer::U16(element_buffer) => {
-                program.draw_elements(render_states, camera.viewport(), element_buffer)
+                program.draw_elements(render_states, viewer.viewport(), element_buffer)
             }
             IndexBuffer::U32(element_buffer) => {
-                program.draw_elements(render_states, camera.viewport(), element_buffer)
+                program.draw_elements(render_states, viewer.viewport(), element_buffer)
             }
         }
     }
@@ -326,7 +331,7 @@ impl BaseMesh {
         &self,
         program: &Program,
         render_states: RenderStates,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         instance_count: u32,
     ) {
         self.use_attributes(program);
@@ -334,25 +339,25 @@ impl BaseMesh {
         match &self.indices {
             IndexBuffer::None => program.draw_arrays_instanced(
                 render_states,
-                camera.viewport(),
+                viewer.viewport(),
                 self.positions.vertex_count(),
                 instance_count,
             ),
             IndexBuffer::U8(element_buffer) => program.draw_elements_instanced(
                 render_states,
-                camera.viewport(),
+                viewer.viewport(),
                 element_buffer,
                 instance_count,
             ),
             IndexBuffer::U16(element_buffer) => program.draw_elements_instanced(
                 render_states,
-                camera.viewport(),
+                viewer.viewport(),
                 element_buffer,
                 instance_count,
             ),
             IndexBuffer::U32(element_buffer) => program.draw_elements_instanced(
                 render_states,
-                camera.viewport(),
+                viewer.viewport(),
                 element_buffer,
                 instance_count,
             ),

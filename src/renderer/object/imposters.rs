@@ -110,8 +110,8 @@ impl Geometry for Imposters {
 }
 
 impl Object for Imposters {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        render_with_material(&self.context, camera, &self, &self.material, lights)
+    fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+        render_with_material(&self.context, viewer, &self, &self.material, lights)
     }
 
     fn material_type(&self) -> MaterialType {
@@ -226,11 +226,11 @@ impl Material for ImpostersMaterial {
         )
     }
 
-    fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
-        camera.tone_mapping.use_uniforms(program);
-        camera.color_mapping.use_uniforms(program);
+    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, _lights: &[&dyn Light]) {
+        viewer.tone_mapping().use_uniforms(program);
+        viewer.color_mapping().use_uniforms(program);
         program.use_uniform("no_views", NO_VIEW_ANGLES as i32);
-        program.use_uniform("view", camera.view());
+        program.use_uniform("view", viewer.view());
         program.use_texture_array("tex", &self.texture);
     }
 

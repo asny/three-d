@@ -38,16 +38,16 @@ impl Material for IntersectionMaterial {
         include_str!("shaders/intersection_material.frag").to_string()
     }
 
-    fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
+    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, _lights: &[&dyn Light]) {
         program.use_uniform(
             "minDistance",
-            self.min_distance.unwrap_or_else(|| camera.z_near()),
+            self.min_distance.unwrap_or_else(|| viewer.z_near()),
         );
         program.use_uniform(
             "maxDistance",
-            self.max_distance.unwrap_or_else(|| camera.z_far()),
+            self.max_distance.unwrap_or_else(|| viewer.z_far()),
         );
-        program.use_uniform("eye", camera.position());
+        program.use_uniform("eye", viewer.position());
         program.use_uniform("geometryId", self.geometry_id);
     }
 

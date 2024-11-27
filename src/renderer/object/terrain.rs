@@ -341,13 +341,13 @@ impl Geometry for TerrainPatch {
         include_str!("shaders/terrain.vert").to_owned()
     }
 
-    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
-        program.use_uniform("viewProjectionMatrix", camera.projection() * camera.view());
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
+        program.use_uniform("viewProjectionMatrix", viewer.projection() * viewer.view());
         program.use_vertex_attribute("position", &self.positions_buffer);
         if program.requires_attribute("normal") {
             program.use_vertex_attribute("normal", &self.normals_buffer);
         }
-        program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
+        program.draw_elements(render_states, viewer.viewport(), &self.index_buffer);
     }
 
     fn id(&self) -> GeometryId {
@@ -357,23 +357,23 @@ impl Geometry for TerrainPatch {
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, &self, material, lights);
+        render_with_material(&self.context, viewer, &self, material, lights);
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,

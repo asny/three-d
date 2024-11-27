@@ -2,7 +2,7 @@ use crate::renderer::*;
 
 ///
 /// Copies the content of the color and/or depth texture by rendering a quad with those textures applied.
-/// The difference from [ScreenEffect] is that this effect does not apply any mapping set in the [Camera].
+/// The difference from [ScreenEffect] is that this effect does not apply any tone and color mapping specified in the [Viewer].
 ///
 #[derive(Clone, Debug, Default)]
 pub struct CopyEffect {
@@ -60,7 +60,7 @@ impl Effect for CopyEffect {
     fn use_uniforms(
         &self,
         program: &Program,
-        _camera: &Camera,
+        _viewer: &dyn Viewer,
         _lights: &[&dyn crate::Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,

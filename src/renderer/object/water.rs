@@ -212,12 +212,12 @@ impl WaterPatch {
 }
 
 impl Geometry for WaterPatch {
-    fn draw(&self, camera: &Camera, program: &Program, render_states: RenderStates) {
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
         program.use_uniform(
             "offset",
             self.center + vec3(self.offset.x, 0.0, self.offset.y),
         );
-        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("viewProjection", viewer.projection() * viewer.view());
         program.use_uniform("time", self.time * 0.001);
         program.use_uniform_array(
             "waveParameters",
@@ -237,7 +237,7 @@ impl Geometry for WaterPatch {
         );
 
         program.use_vertex_attribute("position", &self.position_buffer);
-        program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
+        program.draw_elements(render_states, viewer.viewport(), &self.index_buffer);
     }
 
     fn vertex_shader_source(&self) -> String {
@@ -251,23 +251,23 @@ impl Geometry for WaterPatch {
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, &self, material, lights)
+        render_with_material(&self.context, viewer, &self, material, lights)
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,

@@ -21,9 +21,9 @@ impl Material for SkyboxMaterial {
         )
     }
 
-    fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
-        camera.tone_mapping.use_uniforms(program);
-        camera.color_mapping.use_uniforms(program);
+    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, _lights: &[&dyn Light]) {
+        viewer.tone_mapping().use_uniforms(program);
+        viewer.color_mapping().use_uniforms(program);
         program.use_texture_cube("texture0", &self.texture);
     }
 

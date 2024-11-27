@@ -157,6 +157,7 @@ pub async fn run() {
         control.handle_events(&mut primary_camera, &mut frame_input.events);
 
         // draw
+        let frustum = primary_camera.frustum();
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0))
@@ -169,7 +170,7 @@ pub async fn run() {
                     .iter()
                     .flatten()
                     .chain(&fountain)
-                    .filter(|o| primary_camera.in_frustum(o.aabb()))
+                    .filter(|o| frustum.contains(o.aabb()))
                 {
                     object.render(camera, &[&ambient, &directional]);
                 }

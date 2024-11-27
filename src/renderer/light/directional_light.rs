@@ -94,13 +94,14 @@ impl DirectionalLight {
             },
             ..Default::default()
         };
+        let frustum = shadow_camera.frustum();
         shadow_texture
             .as_depth_target()
             .clear(ClearState::default())
             .write::<RendererError>(|| {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|g| shadow_camera.in_frustum(g.aabb()))
+                    .filter(|g| frustum.contains(g.aabb()))
                 {
                     render_with_material(
                         &self.context,
