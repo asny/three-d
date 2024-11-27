@@ -86,8 +86,6 @@ pub fn main() {
                     let distance = camera.position().z.abs();
                     let mut target = camera.position_at_pixel(position);
                     target.z = 0.0;
-                    dbg!(&target);
-                    dbg!(&camera.target());
                     camera.zoom_towards(target, distance * 0.05 * delta.1, 0.1, 10.0);
                 }
                 _ => {}
