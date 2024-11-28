@@ -121,7 +121,6 @@ pub async fn run() {
 
     // main loop
     let mut shadows_enabled = true;
-    let mut lighting_model = LightingModel::Blinn;
     let mut material_type = MaterialType::Forward;
 
     window.render_loop(move |mut frame_input| {
@@ -177,10 +176,18 @@ pub async fn run() {
                     }
 
                     ui.label("Lighting model");
-                    ui.radio_value(&mut lighting_model, LightingModel::Phong, "Phong");
-                    ui.radio_value(&mut lighting_model, LightingModel::Blinn, "Blinn");
                     ui.radio_value(
-                        &mut lighting_model,
+                        &mut model.material.lighting_model,
+                        LightingModel::Phong,
+                        "Phong",
+                    );
+                    ui.radio_value(
+                        &mut model.material.lighting_model,
+                        LightingModel::Blinn,
+                        "Blinn",
+                    );
+                    ui.radio_value(
+                        &mut model.material.lighting_model,
                         LightingModel::Cook(
                             NormalDistributionFunction::Blinn,
                             GeometryFunction::SmithSchlickGGX,
@@ -188,7 +195,7 @@ pub async fn run() {
                         "Cook (Blinn)",
                     );
                     ui.radio_value(
-                        &mut lighting_model,
+                        &mut model.material.lighting_model,
                         LightingModel::Cook(
                             NormalDistributionFunction::Beckmann,
                             GeometryFunction::SmithSchlickGGX,
@@ -196,7 +203,7 @@ pub async fn run() {
                         "Cook (Beckmann)",
                     );
                     ui.radio_value(
-                        &mut lighting_model,
+                        &mut model.material.lighting_model,
                         LightingModel::Cook(
                             NormalDistributionFunction::TrowbridgeReitzGGX,
                             GeometryFunction::SmithSchlickGGX,
@@ -243,8 +250,6 @@ pub async fn run() {
         spot0.direction = -vec3(3.0 + c, 5.0 + s, 3.0 - s);
         point0.position = vec3(-5.0 * c, 5.0, -5.0 * s);
         point1.position = vec3(5.0 * c, 5.0, 5.0 * s);
-
-        model.material.lighting_model = lighting_model;
 
         // Draw
         if shadows_enabled {
