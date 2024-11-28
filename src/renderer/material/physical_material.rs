@@ -161,7 +161,7 @@ impl Material for PhysicalMaterial {
     }
 
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        let mut output = lights_shader_source(lights, self.lighting_model);
+        let mut output = lights_shader_source(lights);
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
@@ -192,6 +192,7 @@ impl Material for PhysicalMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+        program.use_uniform("lightingModel", lighting_model_to_id(self.lighting_model));
         viewer.tone_mapping().use_uniforms(program);
         viewer.color_mapping().use_uniforms(program);
         program.use_uniform_if_required("cameraPosition", viewer.position());

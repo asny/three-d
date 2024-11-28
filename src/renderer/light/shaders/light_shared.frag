@@ -1,3 +1,5 @@
+uniform uint lightingModel;
+
 struct BaseLight
 {
     vec3 color;
@@ -47,17 +49,13 @@ float D_GGX(in float roughness, in float NdH)
 
 float calculate_D(float roughness, float NdH) {
     float D = 0.0;
-#ifdef COOK_BLINN
-    D = D_blinn(roughness, NdH);
-#endif
-
-#ifdef COOK_BECKMANN
-    D = D_beckmann(roughness, NdH);
-#endif
-
-#ifdef COOK_GGX
-    D = D_GGX(roughness, NdH);
-#endif
+    if(lightingModel == 3u) {
+        D = D_blinn(roughness, NdH);
+    } else if(lightingModel == 4u) {
+        D = D_beckmann(roughness, NdH);
+    } else if(lightingModel == 5u) {
+        D = D_GGX(roughness, NdH);
+    }
     return D;
 }
 
@@ -108,26 +106,28 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 V, vec3 
     // constant base specular factor of 0.04 grey is used
     vec3 F0 = mix(vec3(0.04), surface_color, metallic);
 
-#ifdef PHONG
-    // specular reflectance with PHONG
-    vec3 specular_fresnel = fresnel_schlick_roughness(F0, NdV, roughness);
-    vec3 specular = phong_specular(V, L, N, specular_fresnel, roughness);
-#else
-    vec3 H = normalize(L + V);
-    float NdH = max(0.001, dot(N, H));
-    float HdV = max(0.001, dot(H, V));
-    vec3 specular_fresnel = fresnel_schlick_roughness(F0, HdV, roughness);
-#endif
+    vec3 specular;
+    vec3 specular_fresnel;
+    if(lightingModel == 1u) {
+        // specular reflectance with PHONG
+        specular_fresnel = fresnel_schlick_roughness(F0, NdV, roughness);
+        specular = phong_specular(V, L, N, specular_fresnel, roughness);
+    }
+    else {
+        vec3 H = normalize(L + V);
+        float NdH = max(0.001, dot(N, H));
+        float HdV = max(0.001, dot(H, V));
+        specular_fresnel = fresnel_schlick_roughness(F0, HdV, roughness);
 
-#ifdef BLINN
-    // specular reflectance with BLINN
-    vec3 specular = blinn_specular(NdH, specular_fresnel, roughness);
-#endif
-
-#ifdef COOK
-    // specular reflectance with COOK-TORRANCE
-    vec3 specular = cooktorrance_specular(NdL, NdV, NdH, specular_fresnel, roughness);
-#endif
+        if(lightingModel == 2u) {
+            // specular reflectance with BLINN
+            specular = blinn_specular(NdH, specular_fresnel, roughness);
+        }
+        else if(lightingModel > 2u) {
+            // specular reflectance with COOK-TORRANCE
+            specular = cooktorrance_specular(NdL, NdV, NdH, specular_fresnel, roughness);
+        }
+    }
 
     // diffuse is common for any model
     vec3 diffuse_fresnel = 1.0 - specular_fresnel;

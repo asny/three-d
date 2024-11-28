@@ -9,13 +9,7 @@ impl Effect for LightingPassEffect {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) -> String {
-        let mut fragment_shader = lights_shader_source(
-            lights,
-            LightingModel::Cook(
-                NormalDistributionFunction::TrowbridgeReitzGGX,
-                GeometryFunction::SmithSchlickGGX,
-            ),
-        );
+        let mut fragment_shader = lights_shader_source(lights);
         fragment_shader.push_str(&color_texture.unwrap().fragment_shader_source());
         fragment_shader.push_str(&depth_texture.unwrap().fragment_shader_source());
         fragment_shader.push_str(ToneMapping::fragment_shader_source());
@@ -40,6 +34,13 @@ impl Effect for LightingPassEffect {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
+        program.use_uniform(
+            "lightingModel",
+            lighting_model_to_id(LightingModel::Cook(
+                NormalDistributionFunction::TrowbridgeReitzGGX,
+                GeometryFunction::SmithSchlickGGX,
+            )),
+        );
         viewer.tone_mapping().use_uniforms(program);
         viewer.color_mapping().use_uniforms(program);
         color_texture.unwrap().use_uniforms(program);

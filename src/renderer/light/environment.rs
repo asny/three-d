@@ -147,8 +147,7 @@ struct PrefilterMaterial<'a> {
 impl Material for PrefilterMaterial<'_> {
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         format!(
-            "{}{}{}{}",
-            super::lighting_model_shader(self.lighting_model),
+            "{}{}{}",
             include_str!("../../core/shared.frag"),
             include_str!("shaders/light_shared.frag"),
             include_str!("shaders/prefilter.frag")
@@ -160,6 +159,7 @@ impl Material for PrefilterMaterial<'_> {
     }
 
     fn use_uniforms(&self, program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {
+        program.use_uniform("lightingModel", lighting_model_to_id(self.lighting_model));
         program.use_texture_cube("environmentMap", self.environment_map);
         program.use_uniform(
             "roughness",
@@ -186,8 +186,7 @@ struct BrdfMaterial {
 impl Material for BrdfMaterial {
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         format!(
-            "{}{}{}{}",
-            super::lighting_model_shader(self.lighting_model),
+            "{}{}{}",
             include_str!("../../core/shared.frag"),
             include_str!("shaders/light_shared.frag"),
             include_str!("shaders/brdf.frag")
@@ -198,7 +197,9 @@ impl Material for BrdfMaterial {
         EffectMaterialId::BrdfMaterial
     }
 
-    fn use_uniforms(&self, _program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {}
+    fn use_uniforms(&self, program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {
+        program.use_uniform("lightingModel", lighting_model_to_id(self.lighting_model));
+    }
 
     fn render_states(&self) -> RenderStates {
         RenderStates::default()

@@ -30,7 +30,7 @@ impl Material for IsosurfaceMaterial {
     }
 
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        let mut source = lights_shader_source(lights, self.lighting_model);
+        let mut source = lights_shader_source(lights);
         source.push_str(ToneMapping::fragment_shader_source());
         source.push_str(ColorMapping::fragment_shader_source());
         source.push_str(include_str!("shaders/isosurface_material.frag"));
@@ -38,6 +38,7 @@ impl Material for IsosurfaceMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+        program.use_uniform("lightingModel", lighting_model_to_id(self.lighting_model));
         viewer.tone_mapping().use_uniforms(program);
         viewer.color_mapping().use_uniforms(program);
         for (i, light) in lights.iter().enumerate() {
