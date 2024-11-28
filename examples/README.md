@@ -124,9 +124,9 @@ This is the same as the `Triangle` example, except it only uses the core module 
 
 ![Wireframe example](https://asny.github.io/three-d/0.18/wireframe.png)
 
-## Forest [[code](https://github.com/asny/three-d/tree/master/examples/forest/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/forest.html)]
+## Imposters [[code](https://github.com/asny/three-d/tree/master/examples/imposters/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/imposters.html)]
 
-![Forest example](https://asny.github.io/three-d/0.18/forest.png)
+![Imposters example](https://asny.github.io/three-d/0.18/imposters.png)
 
 ## Instanced Draw Order [[code](https://github.com/asny/three-d/tree/master/examples/instanced_draw_order/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/instanced_draw_order.html)]
 

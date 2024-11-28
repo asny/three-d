@@ -176,8 +176,8 @@ name = "wireframe"
 path = "examples/wireframe/src/main.rs"
 
 [[example]]
-name = "forest"
-path = "examples/forest/src/main.rs"
+name = "imposters"
+path = "examples/imposters/src/main.rs"
 
 [[example]]
 name = "normals"
