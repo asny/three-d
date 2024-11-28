@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="50%" src="https://asny.github.io/three-d/0.18/logo.png" alt="three-d logo">
+  <img width="50%" src="https://asny.github.io/three-d/0.19/logo.png" alt="three-d logo">
 </div>
 
 # `three-d`
@@ -77,7 +77,7 @@ In addition, the [three-d-asset](https://github.com/asny/three-d-asset) crate en
 
 ### [Examples](https://github.com/asny/three-d/tree/master/examples)
 
-![PBR example](https://asny.github.io/three-d/0.18/pbr.png)
+![PBR example](https://asny.github.io/three-d/0.19/pbr.png)
 
 Several examples covering most features can be found in the [examples folder](https://github.com/asny/three-d/tree/master/examples).
 
