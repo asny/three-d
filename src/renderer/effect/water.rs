@@ -52,7 +52,7 @@ impl Effect for WaterEffect {
             depth_texture
                 .expect("Must supply a depth texture to apply a water effect")
                 .fragment_shader_source(),
-            lights_shader_source(lights, self.lighting_model),
+            lights_shader_source(lights),
             ToneMapping::fragment_shader_source(),
             ColorMapping::fragment_shader_source(),
             include_str!("shaders/water_effect.frag")
@@ -85,6 +85,7 @@ impl Effect for WaterEffect {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
+        program.use_uniform("lightingModel", lighting_model_to_id(self.lighting_model));
         viewer.tone_mapping().use_uniforms(program);
         viewer.color_mapping().use_uniforms(program);
         color_texture
