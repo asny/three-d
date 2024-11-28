@@ -34,7 +34,7 @@ impl Effect for LightingPassEffect {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        program.use_uniform(
+        program.use_uniform_if_required(
             "lightingModel",
             lighting_model_to_id(LightingModel::Cook(
                 NormalDistributionFunction::TrowbridgeReitzGGX,
