@@ -250,18 +250,6 @@ pub fn main() {
                                 camera.set_perspective_projection(fov, near_plane, far_plane)
                             }
                             ProjectionType::Planar { .. } => {
-                                let focal_point = -Angle::cot(fov / 2.0);
-                                if focal_point < 0.0 && near_plane <= focal_point {
-                                    near_plane = focal_point + 0.001;
-                                    if near_plane > far_plane {
-                                        far_plane = near_plane + 0.1;
-                                    }
-                                } else if focal_point > 0.0 && far_plane >= focal_point {
-                                    far_plane = focal_point - 0.001;
-                                    if near_plane > far_plane {
-                                        near_plane = far_plane - 0.1;
-                                    }
-                                }
                                 camera.set_planar_projection(fov, near_plane, far_plane)
                             }
                         }
