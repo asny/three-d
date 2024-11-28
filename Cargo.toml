@@ -154,8 +154,8 @@ path = "examples/image/src/main.rs"
 required-features = ["egui-gui"]
 
 [[example]]
-name = "fog"
-path = "examples/fog/src/main.rs"
+name = "effect"
+path = "examples/effect/src/main.rs"
 
 [[example]]
 name = "particles"

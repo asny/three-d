@@ -112,9 +112,9 @@ This is the same as the `Triangle` example, except it only uses the core module 
 
 ![Point cloud example](https://asny.github.io/three-d/0.18/point_cloud.png)
 
-## Fog [[code](https://github.com/asny/three-d/tree/master/examples/fog/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/fog.html)]
+## Effect [[code](https://github.com/asny/three-d/tree/master/examples/effect/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/effect.html)]
 
-![Fog example](https://asny.github.io/three-d/0.18/fog.png)
+![Effect example](https://asny.github.io/three-d/0.18/effect.png)
 
 ## Particles [[code](https://github.com/asny/three-d/tree/master/examples/particles/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/particles.html)]
 
