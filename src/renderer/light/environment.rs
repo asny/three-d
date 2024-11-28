@@ -159,7 +159,7 @@ impl Material for PrefilterMaterial<'_> {
     }
 
     fn use_uniforms(&self, program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {
-        program.use_uniform("lightingModel", lighting_model_to_id(self.lighting_model));
+        program.use_uniform_if_required("lightingModel", lighting_model_to_id(self.lighting_model));
         program.use_texture_cube("environmentMap", self.environment_map);
         program.use_uniform(
             "roughness",
@@ -198,7 +198,7 @@ impl Material for BrdfMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {
-        program.use_uniform("lightingModel", lighting_model_to_id(self.lighting_model));
+        program.use_uniform_if_required("lightingModel", lighting_model_to_id(self.lighting_model));
     }
 
     fn render_states(&self) -> RenderStates {

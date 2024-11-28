@@ -38,7 +38,7 @@ impl Material for IsosurfaceMaterial {
     }
 
     fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, lights: &[&dyn Light]) {
-        program.use_uniform("lightingModel", lighting_model_to_id(self.lighting_model));
+        program.use_uniform_if_required("lightingModel", lighting_model_to_id(self.lighting_model));
         viewer.tone_mapping().use_uniforms(program);
         viewer.color_mapping().use_uniforms(program);
         for (i, light) in lights.iter().enumerate() {
