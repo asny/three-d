@@ -42,7 +42,7 @@ pub fn main() {
         vec3(0.0, 1.0, 0.0),
         2.5,
         0.0,
-        10.0,
+        20.0,
     );
 
     let mut mesh = Gm::new(
@@ -73,7 +73,7 @@ pub fn main() {
             match *event {
                 Event::MouseMotion { delta, button, .. } => {
                     if button == Some(MouseButton::Left) {
-                        let speed = 0.003 * camera.position().z.abs();
+                        let speed = 0.003 / camera.zoom_factor();
                         let right = camera.right_direction();
                         let up = camera.up_orthogonal();
                         camera.translate(-right * speed * delta.0 + up * speed * delta.1);
@@ -83,10 +83,10 @@ pub fn main() {
                 Event::MouseWheel {
                     delta, position, ..
                 } => {
-                    let distance = camera.position().z.abs();
+                    let speed = 0.05 / camera.zoom_factor();
                     let mut target = camera.position_at_pixel(position);
                     target.z = 0.0;
-                    camera.zoom_towards(target, distance * 0.05 * delta.1, 0.00001, 10.0);
+                    camera.zoom_towards(target, speed * delta.1, 0.00001, 10.0);
                     redraw = true;
                 }
                 Event::KeyPress { kind, .. } => {
