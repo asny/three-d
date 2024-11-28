@@ -7,7 +7,6 @@ use crate::renderer::*;
 /// - Red channel: The depth (same as [DepthMaterial]).
 /// - Green channel: The [IntersectionMaterial::geometry_id].
 /// - Blue channel: The [gl_InstanceID](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_InstanceID.xhtml).
-/// - Alpha channel: The [gl_PrimitiveId](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_PrimitiveID.xhtml).
 ///
 /// Note: The geometry needs to pass the instance ID to the fragment shader, see [Geometry] for more information.
 ///
