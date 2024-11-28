@@ -132,38 +132,6 @@ impl Mesh {
     pub fn colors_mut(&mut self) -> &mut Option<VertexBuffer<Vec4>> {
         &mut self.base_mesh.colors
     }
-
-    /// Updates the vertex positions of the mesh.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the number of positions does not match the number of vertices in the mesh.
-    #[deprecated = "use positions_mut instead"]
-    pub fn update_positions(&mut self, positions: &[Vector3<f32>]) {
-        if positions.len() as u32 != self.vertex_count() {
-            panic!("Failed updating positions: The number of positions {} does not match the number of vertices {} in the mesh.", positions.len(), self.vertex_count())
-        }
-        self.positions_mut().fill(positions);
-    }
-
-    ///
-    /// Updates the vertex normals of the mesh.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the number of normals does not match the number of vertices in the mesh.
-    #[deprecated = "use normals_mut instead"]
-    pub fn update_normals(&mut self, normals: &[Vector3<f32>]) {
-        if normals.len() as u32 != self.vertex_count() {
-            panic!("Failed updating normals: The number of normals {} does not match the number of vertices {} in the mesh.", normals.len(), self.vertex_count())
-        }
-
-        if let Some(normal_buffer) = self.normals_mut() {
-            normal_buffer.fill(normals);
-        } else {
-            *self.normals_mut() = Some(VertexBuffer::new_with_data(&self.context, normals));
-        }
-    }
 }
 
 impl<'a> IntoIterator for &'a Mesh {
