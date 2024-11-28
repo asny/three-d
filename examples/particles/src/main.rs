@@ -48,7 +48,7 @@ fn main() {
 
 pub fn run() {
     let window = Window::new(WindowSettings {
-        title: "Fireworks!".to_string(),
+        title: "Particles!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
     })

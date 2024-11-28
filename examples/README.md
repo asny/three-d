@@ -116,9 +116,9 @@ This is the same as the `Triangle` example, except it only uses the core module 
 
 ![Fog example](https://asny.github.io/three-d/0.18/fog.png)
 
-## Fireworks [[code](https://github.com/asny/three-d/tree/master/examples/fireworks/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/fireworks.html)]
+## Particles [[code](https://github.com/asny/three-d/tree/master/examples/particles/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/particles.html)]
 
-![Fireworks example](https://asny.github.io/three-d/0.18/fireworks.png)
+![Particles example](https://asny.github.io/three-d/0.18/particles.png)
 
 ## Wireframe [[code](https://github.com/asny/three-d/tree/master/examples/wireframe/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/wireframe.html)]
 

@@ -158,8 +158,8 @@ name = "fog"
 path = "examples/fog/src/main.rs"
 
 [[example]]
-name = "fireworks"
-path = "examples/fireworks/src/main.rs"
+name = "particles"
+path = "examples/particles/src/main.rs"
 
 [[example]]
 name = "terrain"
