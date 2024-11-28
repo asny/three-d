@@ -32,10 +32,6 @@ This is the same as the `Triangle` example, except it only uses the core module 
 
 ![Triangle core example](https://asny.github.io/three-d/0.18/triangle_core.png)
 
-## Mandelbrot [[code](https://github.com/asny/three-d/tree/master/examples/mandelbrot/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/mandelbrot.html)]
-
-![Mandelbrot example](https://asny.github.io/three-d/0.18/mandelbrot.png)
-
 ## Shapes2D [[code](https://github.com/asny/three-d/tree/master/examples/shapes2d/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/shapes2d.html)]
 
 ![Shapes2d example](https://asny.github.io/three-d/0.18/shapes2d.png)
@@ -44,43 +40,17 @@ This is the same as the `Triangle` example, except it only uses the core module 
 
 ![Shapes example](https://asny.github.io/three-d/0.18/shapes.png)
 
-## Instanced Draw Order [[code](https://github.com/asny/three-d/tree/master/examples/instanced_draw_order/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/instanced_draw_order.html)]
+## Mandelbrot [[code](https://github.com/asny/three-d/tree/master/examples/mandelbrot/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/mandelbrot.html)]
 
-This example shows how depth ordering is currently working for `InstancedMesh` objects with transparency.
+![Mandelbrot example](https://asny.github.io/three-d/0.18/mandelbrot.png)
 
-![Instanced Draw Order](https://asny.github.io/three-d/0.18/instanced_draw_order.png)
+## Lights [[code](https://github.com/asny/three-d/tree/master/examples/lights/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/lights.html)]
 
-## Instanced Shapes [[code](https://github.com/asny/three-d/tree/master/examples/instanced_shapes/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/instanced_shapes.html)]
+![Lights example](https://asny.github.io/three-d/0.18/lights.png)
 
-![Instanced Shapes example](https://asny.github.io/three-d/0.18/instanced_shapes.png)
+## Terrain [[code](https://github.com/asny/three-d/tree/master/examples/terrain/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/terrain.html)]
 
-## Screen [[code](https://github.com/asny/three-d/tree/master/examples/screen/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/screen.html)]
-
-![Screen example](https://asny.github.io/three-d/0.18/screen.png)
-
-## Multisample [[code](https://github.com/asny/three-d/tree/master/examples/multisample/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/multisample.html)]
-
-![Screen example](https://asny.github.io/three-d/0.18/multisample.png)
-
-## Sprites [[code](https://github.com/asny/three-d/tree/master/examples/sprites/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/sprites.html)]
-
-![Sprites example](https://asny.github.io/three-d/0.18/sprites.png)
-
-## Texture [[code](https://github.com/asny/three-d/tree/master/examples/texture/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/texture.html)]
-
-![Texture example](https://asny.github.io/three-d/0.18/texture.png)
-
-## Text [[code](https://github.com/asny/three-d/tree/master/examples/text/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/text.html)]
-
-![Text example](https://asny.github.io/three-d/0.18/text.png)
-
-## Animation [[code](https://github.com/asny/three-d/tree/master/examples/animation/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/animation.html)]
-
-![Animation example](https://asny.github.io/three-d/0.18/animation.png)
-
-## Picking [[code](https://github.com/asny/three-d/tree/master/examples/picking/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/picking.html)]
-
-![Picking example](https://asny.github.io/three-d/0.18/picking.png)
+![Terrain example](https://asny.github.io/three-d/0.18/terrain.png)
 
 ## Environment [[code](https://github.com/asny/three-d/tree/master/examples/environment/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/environment.html)]
 
@@ -90,17 +60,53 @@ This example shows how depth ordering is currently working for `InstancedMesh` o
 
 ![PBR example](https://asny.github.io/three-d/0.18/pbr.png)
 
-## Lighting [[code](https://github.com/asny/three-d/tree/master/examples/lighting/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/lighting.html)]
+## Statues [[code](https://github.com/asny/three-d/tree/master/examples/statues/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/statues.html)]
 
-![Lighting example](https://asny.github.io/three-d/0.18/lighting.png)
+![Statues example](https://asny.github.io/three-d/0.18/statues.png)
 
-## Lights [[code](https://github.com/asny/three-d/tree/master/examples/lights/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/lights.html)]
+## Screen [[code](https://github.com/asny/three-d/tree/master/examples/screen/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/screen.html)]
 
-![Lights example](https://asny.github.io/three-d/0.18/lights.png)
+![Screen example](https://asny.github.io/three-d/0.18/screen.png)
+
+## Text [[code](https://github.com/asny/three-d/tree/master/examples/text/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/text.html)]
+
+![Text example](https://asny.github.io/three-d/0.18/text.png)
 
 ## Image [[code](https://github.com/asny/three-d/tree/master/examples/image/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/image.html)]
 
 ![Image example](https://asny.github.io/three-d/0.18/image.png)
+
+## Lighting [[code](https://github.com/asny/three-d/tree/master/examples/lighting/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/lighting.html)]
+
+![Lighting example](https://asny.github.io/three-d/0.18/lighting.png)
+
+## Sprites [[code](https://github.com/asny/three-d/tree/master/examples/sprites/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/sprites.html)]
+
+![Sprites example](https://asny.github.io/three-d/0.18/sprites.png)
+
+## Texture [[code](https://github.com/asny/three-d/tree/master/examples/texture/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/texture.html)]
+
+![Texture example](https://asny.github.io/three-d/0.18/texture.png)
+
+## Instanced Shapes [[code](https://github.com/asny/three-d/tree/master/examples/instanced_shapes/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/instanced_shapes.html)]
+
+![Instanced Shapes example](https://asny.github.io/three-d/0.18/instanced_shapes.png)
+
+## Multisample [[code](https://github.com/asny/three-d/tree/master/examples/multisample/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/multisample.html)]
+
+![Screen example](https://asny.github.io/three-d/0.18/multisample.png)
+
+## Picking [[code](https://github.com/asny/three-d/tree/master/examples/picking/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/picking.html)]
+
+![Picking example](https://asny.github.io/three-d/0.18/picking.png)
+
+## Animation [[code](https://github.com/asny/three-d/tree/master/examples/animation/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/animation.html)]
+
+![Animation example](https://asny.github.io/three-d/0.18/animation.png)
+
+## Volume [[code](https://github.com/asny/three-d/tree/master/examples/volume/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/volume.html)]
+
+![Volume example](https://asny.github.io/three-d/0.18/volume.png)
 
 ## Point cloud [[code](https://github.com/asny/three-d/tree/master/examples/point_cloud/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/point_cloud.html)]
 
@@ -110,17 +116,9 @@ This example shows how depth ordering is currently working for `InstancedMesh` o
 
 ![Fog example](https://asny.github.io/three-d/0.18/fog.png)
 
-## Terrain [[code](https://github.com/asny/three-d/tree/master/examples/terrain/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/terrain.html)]
-
-![Terrain example](https://asny.github.io/three-d/0.18/terrain.png)
-
 ## Fireworks [[code](https://github.com/asny/three-d/tree/master/examples/fireworks/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/fireworks.html)]
 
 ![Fireworks example](https://asny.github.io/three-d/0.18/fireworks.png)
-
-## Statues [[code](https://github.com/asny/three-d/tree/master/examples/statues/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/statues.html)]
-
-![Statues example](https://asny.github.io/three-d/0.18/statues.png)
 
 ## Wireframe [[code](https://github.com/asny/three-d/tree/master/examples/wireframe/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/wireframe.html)]
 
@@ -130,9 +128,11 @@ This example shows how depth ordering is currently working for `InstancedMesh` o
 
 ![Forest example](https://asny.github.io/three-d/0.18/forest.png)
 
-## Volume [[code](https://github.com/asny/three-d/tree/master/examples/volume/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/volume.html)]
+## Instanced Draw Order [[code](https://github.com/asny/three-d/tree/master/examples/instanced_draw_order/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/instanced_draw_order.html)]
 
-![Volume example](https://asny.github.io/three-d/0.18/volume.png)
+This example shows how depth ordering is currently working for `InstancedMesh` objects with transparency.
+
+![Instanced Draw Order](https://asny.github.io/three-d/0.18/instanced_draw_order.png)
 
 ## Normals [[code](https://github.com/asny/three-d/tree/master/examples/normals/src/main.rs)] [[demo](https://asny.github.io/three-d/0.18/normals.html)]
 
