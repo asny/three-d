@@ -30,23 +30,16 @@ impl Material for DepthMaterial {
         include_str!("shaders/depth_material.frag").to_string()
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            position: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
-    fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
+    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, _lights: &[&dyn Light]) {
         program.use_uniform(
             "minDistance",
-            self.min_distance.unwrap_or_else(|| camera.z_near()),
+            self.min_distance.unwrap_or_else(|| viewer.z_near()),
         );
         program.use_uniform(
             "maxDistance",
-            self.max_distance.unwrap_or_else(|| camera.z_far()),
+            self.max_distance.unwrap_or_else(|| viewer.z_far()),
         );
-        program.use_uniform("eye", camera.position());
+        program.use_uniform("eye", viewer.position());
     }
 
     fn render_states(&self) -> RenderStates {

@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::core::*;
 
 /// The basic data type used for each index in an element buffer.
@@ -28,14 +30,14 @@ impl ElementBufferDataType for u32 {
 /// The three indices refer to three places in a set of [VertexBuffer] where the data (position, normal etc.) is found for the three vertices of the triangle.
 /// See for example [Program::draw_elements] to use this for drawing.
 ///
-pub struct ElementBuffer {
+pub struct ElementBuffer<T: ElementBufferDataType> {
     context: Context,
     id: crate::context::Buffer,
-    count: usize,
-    data_type: u32,
+    count: u32,
+    _d: PhantomData<T>,
 }
 
-impl ElementBuffer {
+impl<T: ElementBufferDataType> ElementBuffer<T> {
     ///
     /// Creates a new empty element buffer.
     ///
@@ -45,14 +47,14 @@ impl ElementBuffer {
             context: context.clone(),
             id,
             count: 0,
-            data_type: 0,
+            _d: PhantomData,
         }
     }
 
     ///
     /// Creates a new element buffer and fills it with the given indices which must be divisable by 3.
     ///
-    pub fn new_with_data<T: ElementBufferDataType>(context: &Context, data: &[T]) -> Self {
+    pub fn new_with_data(context: &Context, data: &[T]) -> Self {
         let mut buffer = Self::new(context);
         if !data.is_empty() {
             buffer.fill(data);
@@ -62,33 +64,51 @@ impl ElementBuffer {
 
     ///
     /// Fills the buffer with the given indices which must be divisable by 3.
+    /// This function will resize the buffer to have the same size as the indices array, if that is not desired, use [fill_subset](Self::fill_subset) instead.
     ///
-    pub fn fill<T: ElementBufferDataType>(&mut self, data: &[T]) {
+    pub fn fill(&mut self, indices: &[T]) {
         self.bind();
         unsafe {
             self.context.buffer_data_u8_slice(
                 crate::context::ELEMENT_ARRAY_BUFFER,
-                to_byte_slice(data),
+                to_byte_slice(indices),
                 crate::context::STATIC_DRAW,
             );
             self.context
                 .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
         }
-        self.count = data.len();
-        self.data_type = T::data_type();
+        self.count = indices.len() as u32;
+    }
+
+    ///
+    /// Fills the buffer with the given indices starting at the given offset.
+    /// This will increase the size of the buffer if there's not enough room. Otherwise, the size will remain unchanged.
+    ///
+    pub fn fill_subset(&mut self, offset: u32, indices: &[T]) {
+        self.bind();
+        unsafe {
+            self.context.buffer_sub_data_u8_slice(
+                crate::context::ELEMENT_ARRAY_BUFFER,
+                offset as i32,
+                to_byte_slice(indices),
+            );
+            self.context
+                .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
+        }
+        self.count = (offset as u32 + indices.len() as u32).max(self.count);
     }
 
     ///
     /// The number of values in the buffer.
     ///
-    pub fn count(&self) -> usize {
+    pub fn count(&self) -> u32 {
         self.count
     }
 
     ///
     /// The number of triangles in the buffer.
     ///
-    pub fn triangle_count(&self) -> usize {
+    pub fn triangle_count(&self) -> u32 {
         self.count / 3
     }
 
@@ -98,13 +118,9 @@ impl ElementBuffer {
                 .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, Some(self.id));
         }
     }
-
-    pub(crate) fn data_type(&self) -> u32 {
-        self.data_type
-    }
 }
 
-impl Drop for ElementBuffer {
+impl<T: ElementBufferDataType> Drop for ElementBuffer<T> {
     fn drop(&mut self) {
         unsafe {
             self.context.delete_buffer(self.id);

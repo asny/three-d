@@ -33,17 +33,10 @@ impl Effect for FxaaEffect {
         )
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(
         &self,
         program: &Program,
-        _camera: &Camera,
+        _viewer: &dyn Viewer,
         _lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         _depth_texture: Option<DepthTexture>,

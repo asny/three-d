@@ -10,9 +10,9 @@ use crate::renderer::*;
 ///
 pub struct Sprites {
     context: Context,
-    position_buffer: VertexBuffer,
-    uv_buffer: VertexBuffer,
-    center_buffer: InstanceBuffer,
+    position_buffer: VertexBuffer<Vec3>,
+    uv_buffer: VertexBuffer<Vec2>,
+    center_buffer: InstanceBuffer<Vec3>,
     transformation: Mat4,
     direction: Option<Vec3>,
 }
@@ -83,17 +83,19 @@ impl Sprites {
         self.center_buffer.fill(centers);
     }
 
-    fn draw(&self, program: &Program, render_states: RenderStates, camera: &Camera) {
-        program.use_uniform("eye", camera.position());
-        program.use_uniform("viewProjection", camera.projection() * camera.view());
+    fn draw(&self, program: &Program, render_states: RenderStates, viewer: &dyn Viewer) {
+        program.use_uniform("eye", viewer.position());
+        program.use_uniform("viewProjection", viewer.projection() * viewer.view());
         program.use_uniform("transformation", self.transformation);
         program.use_vertex_attribute("position", &self.position_buffer);
-        program.use_vertex_attribute("uv_coordinate", &self.uv_buffer);
+        if program.requires_attribute("uv_coordinate") {
+            program.use_vertex_attribute("uv_coordinate", &self.uv_buffer);
+        }
         program.use_instance_attribute("center", &self.center_buffer);
         program.use_uniform("direction", self.direction.unwrap_or(vec3(0.0, 0.0, 0.0)));
         program.draw_arrays_instanced(
             render_states,
-            camera.viewport(),
+            viewer.viewport(),
             6,
             self.center_buffer.instance_count(),
         )
@@ -110,50 +112,38 @@ impl<'a> IntoIterator for &'a Sprites {
 }
 
 impl Geometry for Sprites {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        if !attributes.uv {
-            todo!()
-        }
-        if attributes.normal || attributes.tangents {
-            todo!()
-        }
-        self.draw(program, render_states, camera);
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
+        self.draw(program, render_states, viewer);
     }
 
-    fn vertex_shader_source(&self, _required_attributes: FragmentAttributes) -> String {
+    fn vertex_shader_source(&self) -> String {
         include_str!("shaders/sprites.vert").to_owned()
     }
 
-    fn id(&self, _required_attributes: FragmentAttributes) -> GeometryId {
+    fn id(&self) -> GeometryId {
         GeometryId::Sprites
     }
 
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, &self, material, lights);
+        render_with_material(&self.context, viewer, &self, material, lights);
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,

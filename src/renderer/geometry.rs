@@ -7,44 +7,37 @@
 
 macro_rules! impl_geometry_body {
     ($inner:ident) => {
-        fn draw(
-            &self,
-            camera: &Camera,
-            program: &Program,
-            render_states: RenderStates,
-            attributes: FragmentAttributes,
-        ) {
-            self.$inner()
-                .draw(camera, program, render_states, attributes)
+        fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
+            self.$inner().draw(viewer, program, render_states)
         }
 
-        fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-            self.$inner().vertex_shader_source(required_attributes)
+        fn vertex_shader_source(&self) -> String {
+            self.$inner().vertex_shader_source()
         }
 
-        fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
-            self.$inner().id(required_attributes)
+        fn id(&self) -> GeometryId {
+            self.$inner().id()
         }
 
         fn render_with_material(
             &self,
             material: &dyn Material,
-            camera: &Camera,
+            viewer: &dyn Viewer,
             lights: &[&dyn Light],
         ) {
-            self.$inner().render_with_material(material, camera, lights)
+            self.$inner().render_with_material(material, viewer, lights)
         }
 
         fn render_with_effect(
             &self,
             material: &dyn Effect,
-            camera: &Camera,
+            viewer: &dyn Viewer,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) {
             self.$inner()
-                .render_with_effect(material, camera, lights, color_texture, depth_texture)
+                .render_with_effect(material, viewer, lights, color_texture, depth_texture)
         }
 
         fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -113,18 +106,12 @@ pub trait Geometry {
     ///
     /// Draw this geometry.
     ///
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    );
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates);
 
     ///
     /// Returns the vertex shader source for this geometry given that the fragment shader needs the given vertex attributes.
     ///
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String;
+    fn vertex_shader_source(&self) -> String;
 
     ///
     /// Returns a unique ID for each variation of the shader source returned from `Geometry::vertex_shader_source`.
@@ -132,14 +119,19 @@ pub trait Geometry {
     /// **Note:** The last bit is reserved to internally implemented geometries, so if implementing the `Geometry` trait
     /// outside of this crate, always return an id in the public use range as defined by [GeometryId].
     ///
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId;
+    fn id(&self) -> GeometryId;
 
     ///
     /// Render the geometry with the given [Material].
     /// Must be called in the callback given as input to a [RenderTarget], [ColorTarget] or [DepthTarget] write method.
     /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
     ///
-    fn render_with_material(&self, material: &dyn Material, camera: &Camera, lights: &[&dyn Light]);
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        viewer: &dyn Viewer,
+        lights: &[&dyn Light],
+    );
 
     ///
     /// Render the geometry with the given [Effect].
@@ -149,7 +141,7 @@ pub trait Geometry {
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
@@ -201,50 +193,40 @@ impl<T: Geometry> Geometry for std::cell::RefCell<T> {
 }
 
 impl<T: Geometry> Geometry for std::sync::RwLock<T> {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        self.read()
-            .unwrap()
-            .draw(camera, program, render_states, attributes)
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
+        self.read().unwrap().draw(viewer, program, render_states)
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        self.read()
-            .unwrap()
-            .vertex_shader_source(required_attributes)
+    fn vertex_shader_source(&self) -> String {
+        self.read().unwrap().vertex_shader_source()
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
-        self.read().unwrap().id(required_attributes)
+    fn id(&self) -> GeometryId {
+        self.read().unwrap().id()
     }
 
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
         self.read()
             .unwrap()
-            .render_with_material(material, camera, lights)
+            .render_with_material(material, viewer, lights)
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         self.read().unwrap().render_with_effect(
             material,
-            camera,
+            viewer,
             lights,
             color_texture,
             depth_texture,
@@ -260,13 +242,29 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
     }
 }
 
+///
+/// The index buffer used to determine the three vertices for each triangle in a mesh.
+/// A triangle is defined by three consequitive indices in the index buffer.
+/// Each index points to a position in the vertex buffers.
+///
+pub enum IndexBuffer {
+    /// No index buffer is used, ie. every triangle consist of three consequitive vertices.
+    None,
+    /// Use an index buffer with indices defined in `u8` format.
+    U8(ElementBuffer<u8>),
+    /// Use an index buffer with indices defined in `u16` format.
+    U16(ElementBuffer<u16>),
+    /// Use an index buffer with indices defined in `u32` format.
+    U32(ElementBuffer<u32>),
+}
+
 struct BaseMesh {
-    indices: Option<ElementBuffer>,
-    positions: VertexBuffer,
-    normals: Option<VertexBuffer>,
-    tangents: Option<VertexBuffer>,
-    uvs: Option<VertexBuffer>,
-    colors: Option<VertexBuffer>,
+    indices: IndexBuffer,
+    positions: VertexBuffer<Vec3>,
+    normals: Option<VertexBuffer<Vec3>>,
+    tangents: Option<VertexBuffer<Vec4>>,
+    uvs: Option<VertexBuffer<Vec2>>,
+    colors: Option<VertexBuffer<Vec4>>,
 }
 
 impl BaseMesh {
@@ -276,10 +274,10 @@ impl BaseMesh {
 
         Self {
             indices: match &cpu_mesh.indices {
-                Indices::U8(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-                Indices::U16(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-                Indices::U32(ind) => Some(ElementBuffer::new_with_data(context, ind)),
-                Indices::None => None,
+                Indices::U8(ind) => IndexBuffer::U8(ElementBuffer::new_with_data(context, ind)),
+                Indices::U16(ind) => IndexBuffer::U16(ElementBuffer::new_with_data(context, ind)),
+                Indices::U32(ind) => IndexBuffer::U32(ElementBuffer::new_with_data(context, ind)),
+                Indices::None => IndexBuffer::None,
             },
             positions: VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
             normals: cpu_mesh
@@ -308,22 +306,24 @@ impl BaseMesh {
         }
     }
 
-    pub fn draw(
-        &self,
-        program: &Program,
-        render_states: RenderStates,
-        camera: &Camera,
-        attributes: FragmentAttributes,
-    ) {
-        self.use_attributes(program, attributes);
-        if let Some(index_buffer) = &self.indices {
-            program.draw_elements(render_states, camera.viewport(), index_buffer)
-        } else {
-            program.draw_arrays(
+    pub fn draw(&self, program: &Program, render_states: RenderStates, viewer: &dyn Viewer) {
+        self.use_attributes(program);
+
+        match &self.indices {
+            IndexBuffer::None => program.draw_arrays(
                 render_states,
-                camera.viewport(),
+                viewer.viewport(),
                 self.positions.vertex_count(),
-            )
+            ),
+            IndexBuffer::U8(element_buffer) => {
+                program.draw_elements(render_states, viewer.viewport(), element_buffer)
+            }
+            IndexBuffer::U16(element_buffer) => {
+                program.draw_elements(render_states, viewer.viewport(), element_buffer)
+            }
+            IndexBuffer::U32(element_buffer) => {
+                program.draw_elements(render_states, viewer.viewport(), element_buffer)
+            }
         }
     }
 
@@ -331,69 +331,92 @@ impl BaseMesh {
         &self,
         program: &Program,
         render_states: RenderStates,
-        camera: &Camera,
-        attributes: FragmentAttributes,
+        viewer: &dyn Viewer,
         instance_count: u32,
     ) {
-        self.use_attributes(program, attributes);
+        self.use_attributes(program);
 
-        if let Some(index_buffer) = &self.indices {
-            program.draw_elements_instanced(
+        match &self.indices {
+            IndexBuffer::None => program.draw_arrays_instanced(
                 render_states,
-                camera.viewport(),
-                index_buffer,
-                instance_count,
-            )
-        } else {
-            program.draw_arrays_instanced(
-                render_states,
-                camera.viewport(),
+                viewer.viewport(),
                 self.positions.vertex_count(),
                 instance_count,
-            )
+            ),
+            IndexBuffer::U8(element_buffer) => program.draw_elements_instanced(
+                render_states,
+                viewer.viewport(),
+                element_buffer,
+                instance_count,
+            ),
+            IndexBuffer::U16(element_buffer) => program.draw_elements_instanced(
+                render_states,
+                viewer.viewport(),
+                element_buffer,
+                instance_count,
+            ),
+            IndexBuffer::U32(element_buffer) => program.draw_elements_instanced(
+                render_states,
+                viewer.viewport(),
+                element_buffer,
+                instance_count,
+            ),
         }
     }
 
-    fn use_attributes(&self, program: &Program, attributes: FragmentAttributes) {
+    fn use_attributes(&self, program: &Program) {
         program.use_vertex_attribute("position", &self.positions);
 
-        if attributes.normal {
-            program.use_vertex_attribute(
-                "normal",
-                self.normals.as_ref().unwrap_or_else(|| {
-                    panic!(
-                        "the material requires normal attributes but the geometry did not provide it"
-                    )
-                }),
-            );
+        if program.requires_attribute("normal") {
+            if let Some(normals) = &self.normals {
+                program.use_vertex_attribute("normal", normals);
+            }
         }
 
-        if attributes.tangents {
-            program.use_vertex_attribute(
-                "tangent",
-                self.tangents.as_ref().unwrap_or_else(|| {
-                    panic!(
-                        "the material requires tangent attributes but the geometry did not provide it"
-                    )
-                }),
-            );
+        if program.requires_attribute("tangent") {
+            if let Some(tangents) = &self.tangents {
+                program.use_vertex_attribute("tangent", tangents);
+            }
         }
 
-        if attributes.uv {
-            program.use_vertex_attribute(
-                "uv_coordinates",
-                self.uvs.as_ref().unwrap_or_else(|| {
-                    panic!(
-                        "the material requires uv coordinate attributes but the geometry did not provide it"
-                    )
-                }),
-            );
+        if program.requires_attribute("uv_coordinates") {
+            if let Some(uvs) = &self.uvs {
+                program.use_vertex_attribute("uv_coordinates", uvs);
+            }
         }
 
-        if attributes.color {
+        if program.requires_attribute("color") {
             if let Some(colors) = &self.colors {
                 program.use_vertex_attribute("color", colors);
             }
         }
+    }
+
+    fn vertex_shader_source(&self) -> String {
+        format!(
+            "{}{}{}{}{}{}",
+            if self.normals.is_some() {
+                "#define USE_NORMALS\n"
+            } else {
+                ""
+            },
+            if self.tangents.is_some() {
+                "#define USE_TANGENTS\n"
+            } else {
+                ""
+            },
+            if self.uvs.is_some() {
+                "#define USE_UVS\n"
+            } else {
+                ""
+            },
+            if self.colors.is_some() {
+                "#define USE_VERTEX_COLORS\n"
+            } else {
+                ""
+            },
+            include_str!("../core/shared.frag"),
+            include_str!("geometry/shaders/mesh.vert"),
+        )
     }
 }

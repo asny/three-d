@@ -66,10 +66,10 @@ impl DirectionalLight {
         if aabb.is_empty() {
             return;
         }
-        let target = aabb.center();
-        let position = target - aabb.max().distance(aabb.min()) * self.direction;
+        let position = aabb.center();
+        let target = position + self.direction.normalize();
         let z_far = aabb.distance_max(position);
-        let z_near = aabb.distance(position);
+        let z_near = -z_far;
         let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
         let shadow_camera = Camera::new_orthographic(
             viewport,
@@ -94,13 +94,14 @@ impl DirectionalLight {
             },
             ..Default::default()
         };
+        let frustum = shadow_camera.frustum();
         shadow_texture
             .as_depth_target()
             .clear(ClearState::default())
             .write::<RendererError>(|| {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|g| shadow_camera.in_frustum(g.aabb()))
+                    .filter(|g| frustum.contains(g.aabb()))
                 {
                     render_with_material(
                         &self.context,

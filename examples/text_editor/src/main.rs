@@ -9,18 +9,7 @@ pub fn main() {
     .unwrap();
 
     let context = window.gl();
-
-    let w = window.viewport().width as f32;
-    let h = window.viewport().height as f32;
-    let mut camera = Camera::new_orthographic(
-        window.viewport(),
-        vec3(w * 0.45, -h * 0.45, 2.0),
-        vec3(w * 0.45, -h * 0.45, 0.0),
-        vec3(0.0, 1.0, 0.0),
-        h,
-        0.1,
-        10.0,
-    );
+    let mut camera = Camera::new_2d(window.viewport());
 
     let text_generator = TextGenerator::new(include_bytes!("Roboto-Regular.ttf"), 0, 30.0).unwrap();
     let mut text_string = "Write something here:\n".to_string();
@@ -35,6 +24,11 @@ pub fn main() {
             ..Default::default()
         },
     );
+    text.set_transformation(Mat4::from_translation(vec3(
+        50.0,
+        camera.viewport().height as f32 - 50.0,
+        0.0,
+    )));
 
     // Render loop
     window.render_loop(move |frame_input| {
@@ -66,6 +60,11 @@ pub fn main() {
         if text_changed {
             let text_mesh = text_generator.generate(&text_string, TextLayoutOptions::default());
             text.geometry = Mesh::new(&context, &text_mesh);
+            text.set_transformation(Mat4::from_translation(vec3(
+                50.0,
+                camera.viewport().height as f32 - 50.0,
+                0.0,
+            )));
         }
         change |= text_changed;
 

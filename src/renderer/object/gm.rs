@@ -62,8 +62,8 @@ impl<G: Geometry, M: Material> Geometry for Gm<G, M> {
 }
 
 impl<G: Geometry, M: Material> Object for Gm<G, M> {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        self.render_with_material(&self.material, camera, lights)
+    fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+        self.render_with_material(&self.material, viewer, lights)
     }
 
     fn material_type(&self) -> MaterialType {

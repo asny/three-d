@@ -108,9 +108,8 @@ pub async fn run() {
                     pick_mesh.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 0.0)));
 
                     // Pick
-                    if let Some(pick) = pick(
+                    if let Some(pick) = camera.pick(
                         &context,
-                        &camera,
                         position,
                         monkey.into_iter().chain(&cone).chain(&instanced_mesh),
                     ) {

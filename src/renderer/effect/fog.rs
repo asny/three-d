@@ -59,23 +59,16 @@ impl Effect for FogEffect {
         )
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(
         &self,
         program: &Program,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         _lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        camera.tone_mapping.use_uniforms(program);
-        camera.color_mapping.use_uniforms(program);
+        viewer.tone_mapping().use_uniforms(program);
+        viewer.color_mapping().use_uniforms(program);
         color_texture
             .expect("Must supply a color texture to apply a fog effect")
             .use_uniforms(program);
@@ -84,13 +77,13 @@ impl Effect for FogEffect {
             .use_uniforms(program);
         program.use_uniform(
             "viewProjectionInverse",
-            (camera.projection() * camera.view()).invert().unwrap(),
+            (viewer.projection() * viewer.view()).invert().unwrap(),
         );
         program.use_uniform("fogColor", Vec4::from(self.color));
         program.use_uniform("fogDensity", self.density);
         program.use_uniform("animation", self.animation);
         program.use_uniform("time", 0.001 * self.time);
-        program.use_uniform("eyePosition", camera.position());
+        program.use_uniform("eyePosition", viewer.position());
     }
 
     fn render_states(&self) -> RenderStates {

@@ -94,7 +94,7 @@ macro_rules! enum_effectfield {
 pub enum GeometryId {
     Screen = 0x8000,
     Skybox = 0x8001,
-    TerrainPatchBase = 0x8002, // To 0x8003
+    TerrainPatch = 0x8002,
     Sprites = 0x8004,
     WaterPatch = 0x8005,
     MeshBase = 0x8010,           // To 0x801F
@@ -103,7 +103,6 @@ pub enum GeometryId {
 }
 
 impl GeometryId {
-    enum_bitfield!(TerrainPatchBase, TerrainPatch(normal_tangent));
     enum_bitfield!(MeshBase, Mesh(normal, tangents, uv, color));
     enum_bitfield!(
         ParticleSystemBase,
@@ -111,15 +110,7 @@ impl GeometryId {
     );
     enum_bitfield!(
         InstancedMeshBase,
-        InstancedMesh(
-            normal,
-            tangents,
-            uv,
-            color,
-            instance_color,
-            instance_transformation,
-            instance_uv,
-        )
+        InstancedMesh(normal, tangents, uv, color, instance_color, instance_uv)
     );
 }
 

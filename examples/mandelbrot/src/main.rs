@@ -7,14 +7,7 @@ impl Material for MandelbrotMaterial {
         include_str!("mandelbrot.frag").to_string()
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            position: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
-    fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {}
+    fn use_uniforms(&self, _program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {}
     fn render_states(&self) -> RenderStates {
         RenderStates {
             depth_test: DepthTest::Always,

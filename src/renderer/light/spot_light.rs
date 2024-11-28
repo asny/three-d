@@ -68,7 +68,7 @@ impl SpotLight {
         geometries: impl IntoIterator<Item = impl Geometry> + Clone,
     ) {
         let position = self.position;
-        let direction = self.direction;
+        let target = position + self.direction.normalize();
         let up = compute_up_direction(self.direction);
 
         let viewport = Viewport::new_at_origo(texture_size, texture_size);
@@ -86,7 +86,7 @@ impl SpotLight {
         let shadow_camera = Camera::new_perspective(
             viewport,
             position,
-            position + direction,
+            target,
             up,
             self.cutoff,
             z_near.max(0.01),
@@ -108,13 +108,14 @@ impl SpotLight {
             },
             ..Default::default()
         };
+        let frustum = shadow_camera.frustum();
         shadow_texture
             .as_depth_target()
             .clear(ClearState::default())
             .write::<RendererError>(|| {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|g| shadow_camera.in_frustum(g.aabb()))
+                    .filter(|g| frustum.contains(g.aabb()))
                 {
                     render_with_material(
                         &self.context,

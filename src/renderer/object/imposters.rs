@@ -110,8 +110,8 @@ impl Geometry for Imposters {
 }
 
 impl Object for Imposters {
-    fn render(&self, camera: &Camera, lights: &[&dyn Light]) {
-        render_with_material(&self.context, camera, &self, &self.material, lights)
+    fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+        render_with_material(&self.context, viewer, &self, &self.material, lights)
     }
 
     fn material_type(&self) -> MaterialType {
@@ -170,8 +170,8 @@ impl ImpostersMaterial {
                 center,
                 vec3(0.0, 1.0, 0.0),
                 height,
-                0.0,
-                4.0 * (width + height),
+                -2.0 * (width + height),
+                2.0 * (width + height),
             );
             camera.disable_tone_and_color_mapping();
             self.texture = Texture2DArray::new_empty::<[f16; 4]>(
@@ -196,7 +196,7 @@ impl ImpostersMaterial {
                 let layers = [i];
                 let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
                 camera.set_view(
-                    center + width * vec3(f32::cos(angle), 0.0, f32::sin(angle)),
+                    center + vec3(f32::cos(angle), 0.0, f32::sin(angle)),
                     center,
                     vec3(0.0, 1.0, 0.0),
                 );
@@ -226,18 +226,11 @@ impl Material for ImpostersMaterial {
         )
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
-    fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
-        camera.tone_mapping.use_uniforms(program);
-        camera.color_mapping.use_uniforms(program);
+    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, _lights: &[&dyn Light]) {
+        viewer.tone_mapping().use_uniforms(program);
+        viewer.color_mapping().use_uniforms(program);
         program.use_uniform("no_views", NO_VIEW_ANGLES as i32);
-        program.use_uniform("view", camera.view());
+        program.use_uniform("view", viewer.view());
         program.use_texture_array("tex", &self.texture);
     }
 

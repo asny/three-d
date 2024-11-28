@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::collections::HashMap;
 use std::sync::RwLock;
 
 use super::BaseMesh;
@@ -11,7 +10,14 @@ use super::BaseMesh;
 pub struct InstancedMesh {
     context: Context,
     base_mesh: BaseMesh,
-    instance_buffers: RwLock<(HashMap<String, InstanceBuffer>, Vec3)>,
+    transform: RwLock<(
+        InstanceBuffer<Vec4>,
+        InstanceBuffer<Vec4>,
+        InstanceBuffer<Vec4>,
+    )>,
+    tex_transform: RwLock<Option<(InstanceBuffer<Vec3>, InstanceBuffer<Vec3>)>>,
+    instance_color: RwLock<Option<InstanceBuffer<Vec4>>>,
+    last_camera_position: RwLock<Vec3>,
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -31,7 +37,14 @@ impl InstancedMesh {
         let mut instanced_mesh = Self {
             context: context.clone(),
             base_mesh: BaseMesh::new(context, cpu_mesh),
-            instance_buffers: RwLock::new((Default::default(), vec3(0.0, 0.0, 0.0))),
+            transform: RwLock::new((
+                InstanceBuffer::<Vec4>::new(context),
+                InstanceBuffer::<Vec4>::new(context),
+                InstanceBuffer::<Vec4>::new(context),
+            )),
+            tex_transform: RwLock::new(None),
+            instance_color: RwLock::new(None),
+            last_camera_position: RwLock::new(vec3(0.0, 0.0, 0.0)),
             aabb,
             aabb_local: aabb,
             transformation: Mat4::identity(),
@@ -99,10 +112,9 @@ impl InstancedMesh {
     ///
     /// This function creates the instance buffers, ordering them by distance to the camera
     ///
-    fn update_instance_buffers(&self, camera: Option<&Camera>) {
-        let mut s = self.instance_buffers.write().unwrap();
-        let indices = if let Some(position) = camera.map(|c| c.position()) {
-            s.1 = position;
+    fn update_instance_buffers(&self, viewer: Option<&dyn Viewer>) {
+        let indices = if let Some(position) = viewer.map(|c| c.position()) {
+            *self.last_camera_position.write().unwrap() = position;
             // Need to order by using the position.
             let distances = self
                 .instances
@@ -123,84 +135,53 @@ impl InstancedMesh {
         };
 
         // Next, we can compute the instance buffers with that ordering.
-        let instance_buffers = &mut s.0;
-        instance_buffers.clear();
-
-        if indices
-            .iter()
-            .map(|i| self.instances.transformations[*i])
-            .all(|t| Mat3::from_cols(t.x.truncate(), t.y.truncate(), t.z.truncate()).is_identity())
-        {
-            instance_buffers.insert(
-                "instance_translation".to_string(),
-                InstanceBuffer::new_with_data(
-                    &self.context,
-                    &indices
-                        .iter()
-                        .map(|i| self.instances.transformations[*i])
-                        .map(|t| t.w.truncate())
-                        .collect::<Vec<_>>(),
-                ),
-            );
-        } else {
-            let mut row1 = Vec::new();
-            let mut row2 = Vec::new();
-            let mut row3 = Vec::new();
-            for transformation in indices.iter().map(|i| self.instances.transformations[*i]) {
-                row1.push(transformation.row(0));
-                row2.push(transformation.row(1));
-                row3.push(transformation.row(2));
-            }
-
-            instance_buffers.insert(
-                "row1".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &row1),
-            );
-            instance_buffers.insert(
-                "row2".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &row2),
-            );
-            instance_buffers.insert(
-                "row3".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &row3),
-            );
+        let mut row1 = Vec::new();
+        let mut row2 = Vec::new();
+        let mut row3 = Vec::new();
+        for transformation in indices.iter().map(|i| self.instances.transformations[*i]) {
+            row1.push(transformation.row(0));
+            row2.push(transformation.row(1));
+            row3.push(transformation.row(2));
         }
 
-        if let Some(texture_transforms) = &self.instances.texture_transformations {
-            let mut instance_tex_transform1 = Vec::new();
-            let mut instance_tex_transform2 = Vec::new();
-            for texture_transform in indices.iter().map(|i| texture_transforms[*i]) {
-                instance_tex_transform1.push(vec3(
-                    texture_transform.x.x,
-                    texture_transform.y.x,
-                    texture_transform.z.x,
-                ));
-                instance_tex_transform2.push(vec3(
-                    texture_transform.x.y,
-                    texture_transform.y.y,
-                    texture_transform.z.y,
-                ));
-            }
-            instance_buffers.insert(
-                "tex_transform_row1".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1),
-            );
-            instance_buffers.insert(
-                "tex_transform_row2".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2),
-            );
-        }
-        if let Some(instance_colors) = &self.instances.colors {
-            // Create the re-ordered color buffer by depth.
-            let ordered_instance_colors = indices
-                .iter()
-                .map(|i| instance_colors[*i].to_linear_srgb())
-                .collect::<Vec<_>>();
-            instance_buffers.insert(
-                "instance_color".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &ordered_instance_colors),
-            );
-        }
+        *self.transform.write().unwrap() = (
+            InstanceBuffer::new_with_data(&self.context, &row1),
+            InstanceBuffer::new_with_data(&self.context, &row2),
+            InstanceBuffer::new_with_data(&self.context, &row3),
+        );
+
+        *self.tex_transform.write().unwrap() =
+            self.instances
+                .texture_transformations
+                .as_ref()
+                .map(|texture_transforms| {
+                    let mut instance_tex_transform1 = Vec::new();
+                    let mut instance_tex_transform2 = Vec::new();
+                    for texture_transform in indices.iter().map(|i| texture_transforms[*i]) {
+                        instance_tex_transform1.push(vec3(
+                            texture_transform.x.x,
+                            texture_transform.y.x,
+                            texture_transform.z.x,
+                        ));
+                        instance_tex_transform2.push(vec3(
+                            texture_transform.x.y,
+                            texture_transform.y.y,
+                            texture_transform.z.y,
+                        ));
+                    }
+                    (
+                        InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1),
+                        InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2),
+                    )
+                });
+        *self.instance_color.write().unwrap() =
+            self.instances.colors.as_ref().map(|instance_colors| {
+                let ordered_instance_colors = indices
+                    .iter()
+                    .map(|i| instance_colors[*i].to_linear_srgb())
+                    .collect::<Vec<_>>();
+                InstanceBuffer::new_with_data(&self.context, &ordered_instance_colors)
+            });
     }
 }
 
@@ -214,116 +195,64 @@ impl<'a> IntoIterator for &'a InstancedMesh {
 }
 
 impl Geometry for InstancedMesh {
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
         // Check if we need a reorder, this only applies to transparent materials.
         if render_states.blend != Blend::Disabled
-            && camera.position() != self.instance_buffers.read().unwrap().1
+            && viewer.position() != *self.last_camera_position.read().unwrap()
         {
-            self.update_instance_buffers(Some(camera));
+            self.update_instance_buffers(Some(viewer));
         }
 
-        let instance_buffers = &self.instance_buffers.read().unwrap().0;
-        if attributes.normal && instance_buffers.contains_key("instance_translation") {
-            if let Some(inverse) = self.current_transformation.invert() {
-                program.use_uniform_if_required("normalMatrix", inverse.transpose());
-            } else {
-                // determinant is float zero
-                return;
-            }
-        }
-        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("viewProjection", viewer.projection() * viewer.view());
         program.use_uniform("modelMatrix", self.current_transformation);
 
-        for attribute_name in [
-            "instance_translation",
-            "row1",
-            "row2",
-            "row3",
-            "tex_transform_row1",
-            "tex_transform_row2",
-            "instance_color",
-        ] {
-            if program.requires_attribute(attribute_name) {
-                program.use_instance_attribute(
-                    attribute_name,
-                    instance_buffers
-                    .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
-                );
+        let (row1, row2, row3) = &*self.transform.read().unwrap();
+        program.use_instance_attribute("row1", row1);
+        program.use_instance_attribute("row2", row2);
+        program.use_instance_attribute("row3", row3);
+
+        if program.requires_attribute("tex_transform_row1") {
+            if let Some((row1, row2)) = &*self.tex_transform.read().unwrap() {
+                program.use_instance_attribute("tex_transform_row1", row1);
+                program.use_instance_attribute("tex_transform_row2", row2);
             }
         }
-        self.base_mesh.draw_instanced(
-            program,
-            render_states,
-            camera,
-            attributes,
-            self.instance_count(),
-        );
+
+        if program.requires_attribute("instance_color") {
+            if let Some(color) = &*self.instance_color.read().unwrap() {
+                program.use_instance_attribute("instance_color", color);
+            }
+        }
+
+        self.base_mesh
+            .draw_instanced(program, render_states, viewer, self.instance_count());
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        let instance_buffers = &self.instance_buffers.read().unwrap().0;
+    fn vertex_shader_source(&self) -> String {
         format!(
-            "{}{}{}{}{}{}{}{}{}",
-            if required_attributes.normal {
-                "#define USE_NORMALS\n"
-            } else {
-                ""
-            },
-            if required_attributes.tangents {
-                "#define USE_TANGENTS\n"
-            } else {
-                ""
-            },
-            if required_attributes.uv {
-                "#define USE_UVS\n"
-            } else {
-                ""
-            },
-            if required_attributes.color && self.base_mesh.colors.is_some() {
-                "#define USE_VERTEX_COLORS\n"
-            } else {
-                ""
-            },
-            if required_attributes.color && instance_buffers.contains_key("instance_color") {
+            "#define USE_INSTANCE_TRANSFORMS\n{}{}{}",
+            if self.instance_color.read().unwrap().is_some() {
                 "#define USE_INSTANCE_COLORS\n"
             } else {
                 ""
             },
-            if instance_buffers.contains_key("instance_translation") {
-                "#define USE_INSTANCE_TRANSLATIONS\n"
-            } else {
-                "#define USE_INSTANCE_TRANSFORMS\n"
-            },
-            if required_attributes.uv && instance_buffers.contains_key("tex_transform_row1") {
+            if self.tex_transform.read().unwrap().is_some() {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
             } else {
                 ""
             },
-            include_str!("../../core/shared.frag"),
-            include_str!("shaders/mesh.vert"),
+            self.base_mesh.vertex_shader_source()
         )
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
-        let instance_buffers = &self
-            .instance_buffers
-            .read()
-            .expect("failed to acquire read access")
-            .0;
+    fn id(&self) -> GeometryId {
         GeometryId::InstancedMesh(
-            required_attributes.normal,
-            required_attributes.tangents,
-            required_attributes.uv,
-            required_attributes.color && self.base_mesh.colors.is_some(),
-            required_attributes.color && instance_buffers.contains_key("instance_color"),
-            instance_buffers.contains_key("instance_translation"),
-            required_attributes.uv && instance_buffers.contains_key("tex_transform_row1"),
+            self.base_mesh.normals.is_some(),
+            self.base_mesh.tangents.is_some(),
+            self.base_mesh.uvs.is_some(),
+            self.base_mesh.colors.is_some(),
+            self.instance_color.read().unwrap().is_some(),
+            self.tex_transform.read().unwrap().is_some(),
         )
     }
 
@@ -342,23 +271,23 @@ impl Geometry for InstancedMesh {
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, self, material, lights)
+        render_with_material(&self.context, viewer, self, material, lights)
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,

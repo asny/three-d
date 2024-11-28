@@ -21,9 +21,9 @@ pub struct Terrain<M: Material> {
     context: Context,
     center: (i32, i32),
     patches: Vec<Gm<TerrainPatch, M>>,
-    index_buffer1: Arc<ElementBuffer>,
-    index_buffer4: Arc<ElementBuffer>,
-    index_buffer16: Arc<ElementBuffer>,
+    index_buffer1: Arc<ElementBuffer<u32>>,
+    index_buffer4: Arc<ElementBuffer<u32>>,
+    index_buffer16: Arc<ElementBuffer<u32>>,
     material: M,
     lod: Arc<dyn Fn(f32) -> Lod + Send + Sync>,
     height_map: Arc<dyn Fn(f32, f32) -> f32 + Send + Sync>,
@@ -183,7 +183,7 @@ impl<M: Material + Clone> Terrain<M> {
         })
     }
 
-    fn indices(context: &Context, resolution: u32) -> Arc<ElementBuffer> {
+    fn indices(context: &Context, resolution: u32) -> Arc<ElementBuffer<u32>> {
         let mut indices: Vec<u32> = Vec::new();
         let stride = VERTICES_PER_SIDE as u32;
         let max = (stride - 1) / resolution;
@@ -235,11 +235,11 @@ fn pos2patch(vertex_distance: f32, position: Vec2) -> (i32, i32) {
 struct TerrainPatch {
     context: Context,
     index: (i32, i32),
-    positions_buffer: VertexBuffer,
-    normals_buffer: VertexBuffer,
+    positions_buffer: VertexBuffer<Vec3>,
+    normals_buffer: VertexBuffer<Vec3>,
     center: Vec2,
     aabb: AxisAlignedBoundingBox,
-    pub index_buffer: Arc<ElementBuffer>,
+    pub index_buffer: Arc<ElementBuffer<u32>>,
 }
 
 impl TerrainPatch {
@@ -247,7 +247,7 @@ impl TerrainPatch {
         context: &Context,
         height_map: impl Fn(f32, f32) -> f32 + Clone,
         index: (i32, i32),
-        index_buffer: Arc<ElementBuffer>,
+        index_buffer: Arc<ElementBuffer<u32>>,
         vertex_distance: f32,
     ) -> Self {
         let patch_size = patch_size(vertex_distance);
@@ -337,56 +337,43 @@ impl TerrainPatch {
 }
 
 impl Geometry for TerrainPatch {
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
-        if required_attributes.normal || required_attributes.tangents {
-            format!(
-                "#define USE_NORMALS\n{}",
-                include_str!("shaders/terrain.vert")
-            )
-        } else {
-            include_str!("shaders/terrain.vert").to_owned()
-        }
+    fn vertex_shader_source(&self) -> String {
+        include_str!("shaders/terrain.vert").to_owned()
     }
 
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        program.use_uniform("viewProjectionMatrix", camera.projection() * camera.view());
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
+        program.use_uniform("viewProjectionMatrix", viewer.projection() * viewer.view());
         program.use_vertex_attribute("position", &self.positions_buffer);
-        if attributes.normal || attributes.tangents {
+        if program.requires_attribute("normal") {
             program.use_vertex_attribute("normal", &self.normals_buffer);
         }
-        program.draw_elements(render_states, camera.viewport(), &self.index_buffer);
+        program.draw_elements(render_states, viewer.viewport(), &self.index_buffer);
     }
 
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
-        GeometryId::TerrainPatch(required_attributes.normal || required_attributes.tangents)
+    fn id(&self) -> GeometryId {
+        GeometryId::TerrainPatch
     }
 
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, &self, material, lights);
+        render_with_material(&self.context, viewer, &self, material, lights);
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,

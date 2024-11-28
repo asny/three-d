@@ -1,10 +1,4 @@
-mod tone_mapping;
-pub use tone_mapping::*;
-
-mod color_space;
-pub use color_space::*;
-
-use crate::core::*;
+use crate::*;
 
 ///
 /// Represents a camera used for viewing 2D and 3D objects.
@@ -16,6 +10,40 @@ pub struct Camera {
     pub tone_mapping: ToneMapping,
     /// This color mapping is applied to the final color of renders using this camera.
     pub color_mapping: ColorMapping,
+}
+
+impl Viewer for Camera {
+    fn position(&self) -> Vec3 {
+        self.camera.position()
+    }
+
+    fn view(&self) -> Mat4 {
+        self.camera.view()
+    }
+
+    fn projection(&self) -> Mat4 {
+        self.camera.projection()
+    }
+
+    fn viewport(&self) -> Viewport {
+        self.camera.viewport()
+    }
+
+    fn z_near(&self) -> f32 {
+        self.camera.z_near()
+    }
+
+    fn z_far(&self) -> f32 {
+        self.camera.z_far()
+    }
+
+    fn color_mapping(&self) -> ColorMapping {
+        self.color_mapping
+    }
+
+    fn tone_mapping(&self) -> ToneMapping {
+        self.tone_mapping
+    }
 }
 
 impl Camera {
@@ -135,10 +163,37 @@ impl Camera {
         self.tone_mapping = ToneMapping::default();
         self.color_mapping = ColorMapping::default();
     }
+
+    ///
+    /// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
+    /// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
+    ///
+    pub fn pick(
+        &self,
+        context: &Context,
+        pixel: impl Into<PhysicalPoint> + Copy,
+        geometries: impl IntoIterator<Item = impl Geometry>,
+    ) -> Option<IntersectionResult> {
+        let pos = self.position_at_pixel(pixel);
+        let dir = self.view_direction_at_pixel(pixel);
+        ray_intersect(
+            context,
+            pos + dir * self.z_near(),
+            dir,
+            self.z_far() - self.z_near(),
+            geometries,
+        )
+    }
+
+    /// Returns the [Frustum] for this camera.
+    pub fn frustum(&self) -> Frustum {
+        Frustum::new(self.projection() * self.view())
+    }
 }
 
-use std::ops::Deref;
-impl Deref for Camera {
+impl std::ops::Deref for Camera {
     type Target = three_d_asset::Camera;
     fn deref(&self) -> &Self::Target {
         &self.camera

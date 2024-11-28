@@ -37,20 +37,13 @@ impl Material for IsosurfaceMaterial {
         source
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            position: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) {
-        camera.tone_mapping.use_uniforms(program);
-        camera.color_mapping.use_uniforms(program);
+    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, lights: &[&dyn Light]) {
+        viewer.tone_mapping().use_uniforms(program);
+        viewer.color_mapping().use_uniforms(program);
         for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(program, i as u32);
         }
-        program.use_uniform("cameraPosition", camera.position());
+        program.use_uniform("cameraPosition", viewer.position());
         program.use_uniform("surfaceColor", self.color.to_linear_srgb());
         program.use_uniform("metallic", self.metallic);
         program.use_uniform_if_required("roughness", self.roughness);

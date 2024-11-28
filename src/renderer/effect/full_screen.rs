@@ -2,7 +2,7 @@ use crate::renderer::*;
 
 ///
 /// Renders a full screen quad with the content of the color and/or depth textures.
-/// The difference from [CopyEffect] is that this effect also applies any mapping set in the [Camera].
+/// The difference from [CopyEffect] is that this effect also applies any tone and color mapping specified in the [Viewer].
 ///
 #[derive(Clone, Debug, Default)]
 pub struct ScreenEffect {
@@ -61,24 +61,17 @@ impl Effect for ScreenEffect {
         EffectMaterialId::ScreenEffect(color_texture, depth_texture)
     }
 
-    fn fragment_attributes(&self) -> FragmentAttributes {
-        FragmentAttributes {
-            uv: true,
-            ..FragmentAttributes::NONE
-        }
-    }
-
     fn use_uniforms(
         &self,
         program: &Program,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         _lights: &[&dyn crate::Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         if let Some(color_texture) = color_texture {
-            camera.tone_mapping.use_uniforms(program);
-            camera.color_mapping.use_uniforms(program);
+            viewer.tone_mapping().use_uniforms(program);
+            viewer.color_mapping().use_uniforms(program);
             color_texture.use_uniforms(program);
         }
         if let Some(depth_texture) = depth_texture {

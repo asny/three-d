@@ -1,8 +1,6 @@
+use super::BaseMesh;
 use crate::core::*;
 use crate::renderer::*;
-use std::collections::HashMap;
-
-use super::BaseMesh;
 
 ///
 /// Used for defining the attributes for each particle in a [ParticleSystem], for example its starting position and velocity.
@@ -72,7 +70,10 @@ impl Particles {
 pub struct ParticleSystem {
     context: Context,
     base_mesh: BaseMesh,
-    instance_buffers: HashMap<String, InstanceBuffer>,
+    start_position: InstanceBuffer<Vec3>,
+    start_velocity: InstanceBuffer<Vec3>,
+    tex_transform: Option<(InstanceBuffer<Vec3>, InstanceBuffer<Vec3>)>,
+    instance_color: Option<InstanceBuffer<Vec4>>,
     /// The acceleration applied to all particles defined in the world coordinate system.
     pub acceleration: Vec3,
     instance_count: u32,
@@ -97,11 +98,14 @@ impl ParticleSystem {
         let mut particles_system = Self {
             context: context.clone(),
             base_mesh: BaseMesh::new(context, cpu_mesh),
-            instance_buffers: HashMap::new(),
             acceleration,
             instance_count: 0,
             transformation: Mat4::identity(),
             time: 0.0,
+            start_position: InstanceBuffer::<Vec3>::new(context),
+            start_velocity: InstanceBuffer::<Vec3>::new(context),
+            tex_transform: None,
+            instance_color: None,
         };
         particles_system.set_particles(particles);
         particles_system
@@ -128,52 +132,43 @@ impl ParticleSystem {
         #[cfg(debug_assertions)]
         particles.validate().expect("invalid particles");
         self.instance_count = particles.count();
-        self.instance_buffers.clear();
 
-        self.instance_buffers.insert(
-            "start_position".to_string(),
-            InstanceBuffer::new_with_data(&self.context, &particles.start_positions),
-        );
-        self.instance_buffers.insert(
-            "start_velocity".to_string(),
-            InstanceBuffer::new_with_data(&self.context, &particles.start_velocities),
-        );
-        if let Some(texture_transforms) = &particles.texture_transforms {
-            let mut instance_tex_transform1 = Vec::new();
-            let mut instance_tex_transform2 = Vec::new();
-            for texture_transform in texture_transforms.iter() {
-                instance_tex_transform1.push(vec3(
-                    texture_transform.x.x,
-                    texture_transform.y.x,
-                    texture_transform.z.x,
-                ));
-                instance_tex_transform2.push(vec3(
-                    texture_transform.x.y,
-                    texture_transform.y.y,
-                    texture_transform.z.y,
-                ));
-            }
-            self.instance_buffers.insert(
-                "tex_transform_row1".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1),
-            );
-            self.instance_buffers.insert(
-                "tex_transform_row2".to_string(),
-                InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2),
-            );
-        }
-        if let Some(instance_colors) = &particles.colors {
-            self.instance_buffers.insert(
-                "instance_color".to_string(),
-                InstanceBuffer::new_with_data(
-                    &self.context,
-                    &instance_colors
-                        .iter()
-                        .map(|c| c.to_linear_srgb())
-                        .collect::<Vec<_>>(),
-                ),
-            );
-        }
+        self.start_position =
+            InstanceBuffer::new_with_data(&self.context, &particles.start_positions);
+        self.start_velocity =
+            InstanceBuffer::new_with_data(&self.context, &particles.start_velocities);
+        self.tex_transform = particles
+            .texture_transforms
+            .as_ref()
+            .map(|texture_transforms| {
+                let mut instance_tex_transform1 = Vec::new();
+                let mut instance_tex_transform2 = Vec::new();
+                for texture_transform in texture_transforms.iter() {
+                    instance_tex_transform1.push(vec3(
+                        texture_transform.x.x,
+                        texture_transform.y.x,
+                        texture_transform.z.x,
+                    ));
+                    instance_tex_transform2.push(vec3(
+                        texture_transform.x.y,
+                        texture_transform.y.y,
+                        texture_transform.z.y,
+                    ));
+                }
+                (
+                    InstanceBuffer::new_with_data(&self.context, &instance_tex_transform1),
+                    InstanceBuffer::new_with_data(&self.context, &instance_tex_transform2),
+                )
+            });
+        self.instance_color = particles.colors.as_ref().map(|instance_colors| {
+            InstanceBuffer::new_with_data(
+                &self.context,
+                &instance_colors
+                    .iter()
+                    .map(|c| c.to_linear_srgb())
+                    .collect::<Vec<_>>(),
+            )
+        });
     }
 }
 
@@ -187,99 +182,64 @@ impl<'a> IntoIterator for &'a ParticleSystem {
 }
 
 impl Geometry for ParticleSystem {
-    fn id(&self, required_attributes: FragmentAttributes) -> GeometryId {
+    fn id(&self) -> GeometryId {
         GeometryId::ParticleSystem(
-            required_attributes.normal,
-            required_attributes.tangents,
-            required_attributes.uv,
-            required_attributes.color && self.base_mesh.colors.is_some(),
-            required_attributes.color && self.instance_buffers.contains_key("instance_color"),
-            required_attributes.uv && self.instance_buffers.contains_key("tex_transform_row1"),
+            self.base_mesh.normals.is_some(),
+            self.base_mesh.tangents.is_some(),
+            self.base_mesh.uvs.is_some(),
+            self.base_mesh.colors.is_some(),
+            self.instance_color.is_some(),
+            self.tex_transform.is_some(),
         )
     }
 
-    fn vertex_shader_source(&self, required_attributes: FragmentAttributes) -> String {
+    fn vertex_shader_source(&self) -> String {
         format!(
-            "#define PARTICLES\n{}{}{}{}{}{}{}{}",
-            if required_attributes.normal {
-                "#define USE_NORMALS\n"
-            } else {
-                ""
-            },
-            if required_attributes.tangents {
-                "#define USE_TANGENTS\n"
-            } else {
-                ""
-            },
-            if required_attributes.uv {
-                "#define USE_UVS\n"
-            } else {
-                ""
-            },
-            if required_attributes.color && self.base_mesh.colors.is_some() {
-                "#define USE_VERTEX_COLORS\n"
-            } else {
-                ""
-            },
-            if required_attributes.color && self.instance_buffers.contains_key("instance_color") {
+            "#define PARTICLES\n{}{}{}",
+            if self.instance_color.is_some() {
                 "#define USE_INSTANCE_COLORS\n"
             } else {
                 ""
             },
-            if required_attributes.uv && self.instance_buffers.contains_key("tex_transform_row1") {
+            if self.tex_transform.is_some() {
                 "#define USE_INSTANCE_TEXTURE_TRANSFORMATION\n"
             } else {
                 ""
             },
-            include_str!("../../core/shared.frag"),
-            include_str!("shaders/mesh.vert"),
+            self.base_mesh.vertex_shader_source()
         )
     }
 
-    fn draw(
-        &self,
-        camera: &Camera,
-        program: &Program,
-        render_states: RenderStates,
-        attributes: FragmentAttributes,
-    ) {
-        if attributes.normal {
-            if let Some(inverse) = self.transformation.invert() {
-                program.use_uniform_if_required("normalMatrix", inverse.transpose());
-            } else {
-                // determinant is float zero
-                return;
-            }
+    fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
+        if let Some(inverse) = self.transformation.invert() {
+            program.use_uniform_if_required("normalMatrix", inverse.transpose());
+        } else {
+            // determinant is float zero
+            return;
         }
-        program.use_uniform("viewProjection", camera.projection() * camera.view());
+        program.use_uniform("viewProjection", viewer.projection() * viewer.view());
         program.use_uniform("modelMatrix", self.transformation);
         program.use_uniform("acceleration", self.acceleration);
         program.use_uniform("time", self.time);
 
-        self.base_mesh.use_attributes(program, attributes);
+        program.use_instance_attribute("start_position", &self.start_position);
+        program.use_instance_attribute("start_velocity", &self.start_velocity);
 
-        for attribute_name in [
-            "start_position",
-            "start_velocity",
-            "tex_transform_row1",
-            "tex_transform_row2",
-            "instance_color",
-        ] {
-            if program.requires_attribute(attribute_name) {
-                program.use_instance_attribute(
-                    attribute_name,
-                    self.instance_buffers
-                    .get(attribute_name).unwrap_or_else(|| panic!("the render call requires the {} instance buffer which is missing on the given geometry", attribute_name))
-                );
+        if program.requires_attribute("tex_transform_row1") {
+            if let Some((row1, row2)) = &self.tex_transform {
+                program.use_instance_attribute("tex_transform_row1", row1);
+                program.use_instance_attribute("tex_transform_row2", row2);
             }
         }
-        self.base_mesh.draw_instanced(
-            program,
-            render_states,
-            camera,
-            attributes,
-            self.instance_count,
-        );
+
+        if program.requires_attribute("instance_color") {
+            if let Some(color) = &self.instance_color {
+                program.use_instance_attribute("instance_color", color);
+            }
+        }
+
+        self.base_mesh
+            .draw_instanced(program, render_states, viewer, self.instance_count);
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -289,23 +249,23 @@ impl Geometry for ParticleSystem {
     fn render_with_material(
         &self,
         material: &dyn Material,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, camera, &self, material, lights)
+        render_with_material(&self.context, viewer, &self, material, lights)
     }
 
     fn render_with_effect(
         &self,
         material: &dyn Effect,
-        camera: &Camera,
+        viewer: &dyn Viewer,
         lights: &[&dyn Light],
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
         render_with_effect(
             &self.context,
-            camera,
+            viewer,
             self,
             material,
             lights,

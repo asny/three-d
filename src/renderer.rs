@@ -37,8 +37,8 @@ pub enum RendererError {
 mod shader_ids;
 pub use shader_ids::*;
 
-mod camera;
-pub use camera::*;
+mod viewer;
+pub use viewer::*;
 
 pub mod material;
 pub use material::*;
@@ -66,43 +66,42 @@ pub use text::*;
 macro_rules! impl_render_target_extensions_body {
     () => {
         ///
-        /// Render the objects using the given camera and lights into this render target.
+        /// Render the objects using the given viewer and lights into this render target.
         /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
-        /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+        /// Also, objects outside the viewer frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
         ///
         pub fn render(
             &self,
-            camera: &Camera,
+            viewer: impl Viewer,
             objects: impl IntoIterator<Item = impl Object>,
             lights: &[&dyn Light],
         ) -> &Self {
-            self.render_partially(self.scissor_box(), camera, objects, lights)
+            self.render_partially(self.scissor_box(), viewer, objects, lights)
         }
 
         ///
-        /// Render the objects using the given camera and lights into the part of this render target defined by the scissor box.
+        /// Render the objects using the given viewer and lights into the part of this render target defined by the scissor box.
         /// Use an empty array for the `lights` argument, if the objects does not require lights to be rendered.
-        /// Also, objects outside the camera frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
+        /// Also, objects outside the viewer frustum are not rendered and the objects are rendered in the order given by [cmp_render_order].
         ///
         pub fn render_partially(
             &self,
             scissor_box: ScissorBox,
-            camera: &Camera,
+            viewer: impl Viewer,
             objects: impl IntoIterator<Item = impl Object>,
             lights: &[&dyn Light],
         ) -> &Self {
+            let frustum = Frustum::new(viewer.projection() * viewer.view());
             let (mut deferred_objects, mut forward_objects): (Vec<_>, Vec<_>) = objects
                 .into_iter()
-                .filter(|o| camera.in_frustum(o.aabb()))
+                .filter(|o| frustum.contains(o.aabb()))
                 .partition(|o| o.material_type() == MaterialType::Deferred);
 
             // Deferred
             if deferred_objects.len() > 0 {
                 // Geometry pass
-                let mut geometry_pass_camera = camera.clone();
-                let viewport =
-                    Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
-                geometry_pass_camera.set_viewport(viewport);
+                let geometry_pass_camera = GeometryPassCamera(&viewer);
+                let viewport = geometry_pass_camera.viewport();
                 deferred_objects.sort_by(|a, b| cmp_render_order(&geometry_pass_camera, a, b));
                 let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
                     &self.context,
@@ -140,7 +139,7 @@ macro_rules! impl_render_target_extensions_body {
                 self.apply_screen_effect_partially(
                     scissor_box,
                     &lighting_pass::LightingPassEffect {},
-                    camera,
+                    &viewer,
                     lights,
                     Some(ColorTexture::Array {
                         texture: &geometry_pass_texture,
@@ -151,10 +150,10 @@ macro_rules! impl_render_target_extensions_body {
             }
 
             // Forward
-            forward_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
+            forward_objects.sort_by(|a, b| cmp_render_order(&viewer, a, b));
             self.write_partially::<RendererError>(scissor_box, || {
                 for object in forward_objects {
-                    object.render(camera, lights);
+                    object.render(&viewer, lights);
                 }
                 Ok(())
             })
@@ -163,43 +162,44 @@ macro_rules! impl_render_target_extensions_body {
         }
 
         ///
-        /// Render the geometries with the given [Material] using the given camera and lights into this render target.
+        /// Render the geometries with the given [Material] using the given viewer and lights into this render target.
         /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
         ///
         pub fn render_with_material(
             &self,
             material: &dyn Material,
-            camera: &Camera,
+            viewer: impl Viewer,
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
         ) -> &Self {
             self.render_partially_with_material(
                 self.scissor_box(),
                 material,
-                camera,
+                viewer,
                 geometries,
                 lights,
             )
         }
 
         ///
-        /// Render the geometries with the given [Material] using the given camera and lights into the part of this render target defined by the scissor box.
+        /// Render the geometries with the given [Material] using the given viewer and lights into the part of this render target defined by the scissor box.
         /// Use an empty array for the `lights` argument, if the material does not require lights to be rendered.
         ///
         pub fn render_partially_with_material(
             &self,
             scissor_box: ScissorBox,
             material: &dyn Material,
-            camera: &Camera,
+            viewer: impl Viewer,
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
         ) -> &Self {
+            let frustum = Frustum::new(viewer.projection() * viewer.view());
             self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|o| camera.in_frustum(o.aabb()))
+                    .filter(|o| frustum.contains(o.aabb()))
                 {
-                    render_with_material(&self.context, camera, geometry, material, lights);
+                    render_with_material(&self.context, &viewer, geometry, material, lights);
                 }
                 Ok(())
             })
@@ -208,13 +208,13 @@ macro_rules! impl_render_target_extensions_body {
         }
 
         ///
-        /// Render the geometries with the given [Effect] using the given camera and lights into this render target.
+        /// Render the geometries with the given [Effect] using the given viewer and lights into this render target.
         /// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
         ///
         pub fn render_with_effect(
             &self,
             effect: &dyn Effect,
-            camera: &Camera,
+            viewer: impl Viewer,
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
@@ -223,7 +223,7 @@ macro_rules! impl_render_target_extensions_body {
             self.render_partially_with_effect(
                 self.scissor_box(),
                 effect,
-                camera,
+                viewer,
                 geometries,
                 lights,
                 color_texture,
@@ -232,27 +232,28 @@ macro_rules! impl_render_target_extensions_body {
         }
 
         ///
-        /// Render the geometries with the given [Effect] using the given camera and lights into the part of this render target defined by the scissor box.
+        /// Render the geometries with the given [Effect] using the given viewer and lights into the part of this render target defined by the scissor box.
         /// Use an empty array for the `lights` argument, if the effect does not require lights to be rendered.
         ///
         pub fn render_partially_with_effect(
             &self,
             scissor_box: ScissorBox,
             effect: &dyn Effect,
-            camera: &Camera,
+            viewer: impl Viewer,
             geometries: impl IntoIterator<Item = impl Geometry>,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
+            let frustum = Frustum::new(viewer.projection() * viewer.view());
             self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
-                    .filter(|o| camera.in_frustum(o.aabb()))
+                    .filter(|o| frustum.contains(o.aabb()))
                 {
                     render_with_effect(
                         &self.context,
-                        camera,
+                        &viewer,
                         geometry,
                         effect,
                         lights,
@@ -273,10 +274,10 @@ macro_rules! impl_render_target_extensions_body {
         pub fn apply_screen_material(
             &self,
             material: &dyn Material,
-            camera: &Camera,
+            viewer: impl Viewer,
             lights: &[&dyn Light],
         ) -> &Self {
-            self.apply_screen_material_partially(self.scissor_box(), material, camera, lights)
+            self.apply_screen_material_partially(self.scissor_box(), material, viewer, lights)
         }
 
         ///
@@ -287,11 +288,11 @@ macro_rules! impl_render_target_extensions_body {
             &self,
             scissor_box: ScissorBox,
             material: &dyn Material,
-            camera: &Camera,
+            viewer: impl Viewer,
             lights: &[&dyn Light],
         ) -> &Self {
             self.write_partially::<RendererError>(scissor_box, || {
-                apply_screen_material(&self.context, material, camera, lights);
+                apply_screen_material(&self.context, material, viewer, lights);
                 Ok(())
             })
             .unwrap();
@@ -305,7 +306,7 @@ macro_rules! impl_render_target_extensions_body {
         pub fn apply_screen_effect(
             &self,
             effect: &dyn Effect,
-            camera: &Camera,
+            viewer: impl Viewer,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
@@ -313,7 +314,7 @@ macro_rules! impl_render_target_extensions_body {
             self.apply_screen_effect_partially(
                 self.scissor_box(),
                 effect,
-                camera,
+                viewer,
                 lights,
                 color_texture,
                 depth_texture,
@@ -328,7 +329,7 @@ macro_rules! impl_render_target_extensions_body {
             &self,
             scissor_box: ScissorBox,
             effect: &dyn Effect,
-            camera: &Camera,
+            viewer: impl Viewer,
             lights: &[&dyn Light],
             color_texture: Option<ColorTexture>,
             depth_texture: Option<DepthTexture>,
@@ -337,7 +338,7 @@ macro_rules! impl_render_target_extensions_body {
                 apply_screen_effect(
                     &self.context,
                     effect,
-                    camera,
+                    viewer,
                     lights,
                     color_texture,
                     depth_texture,
@@ -407,36 +408,26 @@ fn combine_ids(
 ///
 pub fn render_with_material(
     context: &Context,
-    camera: &Camera,
+    viewer: impl Viewer,
     geometry: impl Geometry,
     material: impl Material,
     lights: &[&dyn Light],
 ) {
-    let fragment_attributes = material.fragment_attributes();
-    let id = combine_ids(
-        geometry.id(fragment_attributes),
-        material.id(),
-        lights.iter().map(|l| l.id()),
-    );
+    let id = combine_ids(geometry.id(), material.id(), lights.iter().map(|l| l.id()));
 
     let mut programs = context.programs.write().unwrap();
     let program = programs.entry(id).or_insert_with(|| {
         match Program::from_source(
             context,
-            &geometry.vertex_shader_source(fragment_attributes),
+            &geometry.vertex_shader_source(),
             &material.fragment_shader_source(lights),
         ) {
             Ok(program) => program,
             Err(err) => panic!("{}", err.to_string()),
         }
     });
-    material.use_uniforms(program, camera, lights);
-    geometry.draw(
-        camera,
-        program,
-        material.render_states(),
-        fragment_attributes,
-    );
+    material.use_uniforms(program, &viewer, lights);
+    geometry.draw(&viewer, program, material.render_states());
 }
 
 ///
@@ -446,16 +437,15 @@ pub fn render_with_material(
 ///
 pub fn render_with_effect(
     context: &Context,
-    camera: &Camera,
+    viewer: impl Viewer,
     geometry: impl Geometry,
     effect: impl Effect,
     lights: &[&dyn Light],
     color_texture: Option<ColorTexture>,
     depth_texture: Option<DepthTexture>,
 ) {
-    let fragment_attributes = effect.fragment_attributes();
     let id = combine_ids(
-        geometry.id(fragment_attributes),
+        geometry.id(),
         effect.id(color_texture, depth_texture),
         lights.iter().map(|l| l.id()),
     );
@@ -464,15 +454,15 @@ pub fn render_with_effect(
     let program = programs.entry(id).or_insert_with(|| {
         match Program::from_source(
             context,
-            &geometry.vertex_shader_source(fragment_attributes),
+            &geometry.vertex_shader_source(),
             &effect.fragment_shader_source(lights, color_texture, depth_texture),
         ) {
             Ok(program) => program,
             Err(err) => panic!("{}", err.to_string()),
         }
     });
-    effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
-    geometry.draw(camera, program, effect.render_states(), fragment_attributes);
+    effect.use_uniforms(program, &viewer, lights, color_texture, depth_texture);
+    geometry.draw(&viewer, program, effect.render_states());
 }
 
 ///
@@ -483,13 +473,9 @@ pub fn render_with_effect(
 pub fn apply_screen_material(
     context: &Context,
     material: impl Material,
-    camera: &Camera,
+    viewer: impl Viewer,
     lights: &[&dyn Light],
 ) {
-    let fragment_attributes = material.fragment_attributes();
-    if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
-        panic!("Not possible to use the given material to render full screen, the full screen geometry only provides uv coordinates and color");
-    }
     let id = combine_ids(
         GeometryId::Screen,
         material.id(),
@@ -507,12 +493,12 @@ pub fn apply_screen_material(
             Err(err) => panic!("{}", err.to_string()),
         }
     });
-    material.use_uniforms(program, camera, lights);
+    material.use_uniforms(program, &viewer, lights);
     full_screen_draw(
         context,
         program,
         material.render_states(),
-        camera.viewport(),
+        viewer.viewport(),
     );
 }
 
@@ -524,15 +510,11 @@ pub fn apply_screen_material(
 pub fn apply_screen_effect(
     context: &Context,
     effect: impl Effect,
-    camera: &Camera,
+    viewer: impl Viewer,
     lights: &[&dyn Light],
     color_texture: Option<ColorTexture>,
     depth_texture: Option<DepthTexture>,
 ) {
-    let fragment_attributes = effect.fragment_attributes();
-    if fragment_attributes.normal || fragment_attributes.position || fragment_attributes.tangents {
-        panic!("Not possible to use the given effect to render full screen, the full screen geometry only provides uv coordinates and color");
-    }
     let id = combine_ids(
         GeometryId::Screen,
         effect.id(color_texture, depth_texture),
@@ -550,17 +532,17 @@ pub fn apply_screen_effect(
             Err(err) => panic!("{}", err.to_string()),
         }
     });
-    effect.use_uniforms(program, camera, lights, color_texture, depth_texture);
-    full_screen_draw(context, program, effect.render_states(), camera.viewport());
+    effect.use_uniforms(program, &viewer, lights, color_texture, depth_texture);
+    full_screen_draw(context, program, effect.render_states(), viewer.viewport());
 }
 
 ///
-/// Compare function for sorting objects based on distance from the camera.
-/// The order is opaque objects from nearest to farthest away from the camera,
-/// then transparent objects from farthest away to closest to the camera.
+/// Compare function for sorting objects based on distance from the viewer.
+/// The order is opaque objects from nearest to farthest away from the viewer,
+/// then transparent objects from farthest away to closest to the viewer.
 ///
 pub fn cmp_render_order(
-    camera: &Camera,
+    viewer: impl Viewer,
     obj0: impl Object,
     obj1: impl Object,
 ) -> std::cmp::Ordering {
@@ -573,8 +555,8 @@ pub fn cmp_render_order(
     {
         std::cmp::Ordering::Less
     } else {
-        let distance_a = camera.position().distance2(obj0.aabb().center());
-        let distance_b = camera.position().distance2(obj1.aabb().center());
+        let distance_a = viewer.position().distance2(obj0.aabb().center());
+        let distance_b = viewer.position().distance2(obj1.aabb().center());
         if distance_a.is_nan() || distance_b.is_nan() {
             distance_a.is_nan().cmp(&distance_b.is_nan()) // whatever - just save us from panicing on unwrap below
         } else if obj0.material_type() == MaterialType::Transparent {
@@ -583,29 +565,6 @@ pub fn cmp_render_order(
             distance_a.partial_cmp(&distance_b).unwrap()
         }
     }
-}
-
-///
-/// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
-/// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the bottom left corner of the viewport
-/// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the top right corner.
-/// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
-///
-pub fn pick(
-    context: &Context,
-    camera: &Camera,
-    pixel: impl Into<PhysicalPoint> + Copy,
-    geometries: impl IntoIterator<Item = impl Geometry>,
-) -> Option<IntersectionResult> {
-    let pos = camera.position_at_pixel(pixel);
-    let dir = camera.view_direction_at_pixel(pixel);
-    ray_intersect(
-        context,
-        pos + dir * camera.z_near(),
-        dir,
-        camera.z_far() - camera.z_near(),
-        geometries,
-    )
 }
 
 /// Result from an intersection test
@@ -693,5 +652,41 @@ pub fn ray_intersect(
         })
     } else {
         None
+    }
+}
+
+struct GeometryPassCamera<T>(T);
+
+impl<T: Viewer> Viewer for GeometryPassCamera<T> {
+    fn position(&self) -> Vec3 {
+        self.0.position()
+    }
+
+    fn view(&self) -> Mat4 {
+        self.0.view()
+    }
+
+    fn projection(&self) -> Mat4 {
+        self.0.projection()
+    }
+
+    fn viewport(&self) -> Viewport {
+        Viewport::new_at_origo(self.0.viewport().width, self.0.viewport().height)
+    }
+
+    fn z_near(&self) -> f32 {
+        self.0.z_near()
+    }
+
+    fn z_far(&self) -> f32 {
+        self.0.z_far()
+    }
+
+    fn color_mapping(&self) -> ColorMapping {
+        self.0.color_mapping()
+    }
+
+    fn tone_mapping(&self) -> ToneMapping {
+        self.0.tone_mapping()
     }
 }

@@ -41,7 +41,7 @@ mod environment;
 pub use environment::*;
 
 use crate::core::*;
-use crate::renderer::camera::*;
+use crate::renderer::viewer::*;
 use crate::renderer::LightId;
 
 ///
