@@ -26,7 +26,7 @@ text = ["swash", "lyon"] # Text mesh generation features
 [dependencies]
 glow = "0.14"
 cgmath = "0.18"
-three-d-asset = "0.8"
+three-d-asset = "0.9"
 thiserror = "2"
 open-enum = "0.5"
 winit = {version = "0.28", optional = true}
@@ -51,7 +51,7 @@ instant = "0.1.11"
 
 [dev-dependencies]
 rand = "0.7"
-three-d-asset = {version = "0.8", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
+three-d-asset = {version = "0.9", features = ["hdr", "gltf", "obj", "vol", "pcd", "png", "jpeg", "http", "data-url"] }
 noise = {version = "0.6", default-features = false}
 winit = "0.28"
 
