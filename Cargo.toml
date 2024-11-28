@@ -72,11 +72,6 @@ path = "examples/text/src/main.rs"
 required-features = ["text"]
 
 [[example]]
-name = "text_editor"
-path = "examples/text_editor/src/main.rs"
-required-features = ["text"]
-
-[[example]]
 name = "screen"
 path = "examples/screen/src/main.rs"
 required-features = ["egui-gui"]
