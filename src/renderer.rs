@@ -600,8 +600,6 @@ pub struct IntersectionResult {
     /// The index of the intersected instance in the list of instances, ie. [gl_InstanceID](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_InstanceID.xhtml).
     /// This is 0 if the intersection did not hit an instanced geometry.
     pub instance_id: u32,
-    /// The id of the primitive in the intersected geometry, ie. [gl_PrimitiveId](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_PrimitiveID.xhtml).
-    pub primitive_id: u32,
 }
 
 ///
@@ -671,7 +669,6 @@ pub fn ray_intersect(
             position: position + direction * depth * max_depth,
             geometry_id: result[1].to_bits(),
             instance_id: result[2].to_bits(),
-            primitive_id: result[3].to_bits(),
         })
     } else {
         None

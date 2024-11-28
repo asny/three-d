@@ -12,5 +12,5 @@ layout (location = 0) out vec4 outColor;
 void main()
 {
     float dist = (distance(pos, eye) - minDistance) / (maxDistance - minDistance);
-    outColor = vec4(dist, uintBitsToFloat(geometryId), intBitsToFloat(instance_id), intBitsToFloat(gl_PrimitiveID));
+    outColor = vec4(dist, uintBitsToFloat(geometryId), intBitsToFloat(instance_id), 1.0);
 }
