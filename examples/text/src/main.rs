@@ -73,7 +73,7 @@ pub fn main() {
             match *event {
                 Event::MouseMotion { delta, button, .. } => {
                     if button == Some(MouseButton::Left) {
-                        let speed = 1.3;
+                        let speed = 2.0 / camera.zoom_factor();
                         let right = camera.right_direction();
                         let up = right.cross(camera.view_direction());
                         let delta = -right * speed * delta.0 + up * speed * delta.1;
@@ -83,10 +83,10 @@ pub fn main() {
                 Event::MouseWheel {
                     delta, position, ..
                 } => {
-                    let distance = camera.position().z.abs();
+                    let speed = 0.05 / camera.zoom_factor();
                     let mut target = camera.position_at_pixel(position);
                     target.z = 0.0;
-                    camera.zoom_towards(target, distance * 0.05 * delta.1, 0.1, 10.0);
+                    camera.zoom_towards(target, speed * delta.1, 0.1, 5.0);
                 }
                 Event::KeyPress { kind, .. } => {
                     let zoom = match kind {
