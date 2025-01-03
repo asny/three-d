@@ -131,7 +131,7 @@ impl Texture2D {
                 self.height as i32,
                 format_from_data_type::<T>(),
                 T::data_type(),
-                crate::context::PixelUnpackData::Slice(to_byte_slice(&data)),
+                crate::context::PixelUnpackData::Slice(Some(to_byte_slice(&data))),
             );
         }
         self.generate_mip_maps();
