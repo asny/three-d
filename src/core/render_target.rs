@@ -186,7 +186,7 @@ impl<'a> RenderTarget<'a> {
                 scissor_box.height as i32,
                 format,
                 data_type,
-                crate::context::PixelPackData::Slice(&mut bytes),
+                crate::context::PixelPackData::Slice(Some(&mut bytes)),
             );
         }
         let mut pixels = from_byte_slice(&bytes).to_vec();
@@ -225,7 +225,7 @@ impl<'a> RenderTarget<'a> {
                 scissor_box.height as i32,
                 crate::context::DEPTH_COMPONENT,
                 crate::context::FLOAT,
-                crate::context::PixelPackData::Slice(&mut pixels),
+                crate::context::PixelPackData::Slice(Some(&mut pixels)),
             );
         }
         from_byte_slice(&pixels).to_vec()
