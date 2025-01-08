@@ -103,7 +103,7 @@ impl InstancedMesh {
         for transformation in self.instances.transformations.iter() {
             aabb.expand_with_aabb(
                 self.aabb_local
-                    .transformed(transformation * self.transformation),
+                    .transformed(transformation * self.current_transformation),
             );
         }
         self.aabb = aabb;
@@ -120,7 +120,12 @@ impl InstancedMesh {
                 .instances
                 .transformations
                 .iter()
-                .map(|m| (self.transformation * m).w.truncate().distance2(position))
+                .map(|m| {
+                    (self.current_transformation * m)
+                        .w
+                        .truncate()
+                        .distance2(position)
+                })
                 .collect::<Vec<_>>();
             let mut indices = (0..self.instance_count() as usize).collect::<Vec<usize>>();
             indices.sort_by(|a, b| {
