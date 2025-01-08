@@ -15,11 +15,11 @@ pub struct InstancedMesh {
         InstanceBuffer<Vec4>,
         InstanceBuffer<Vec4>,
     )>,
+    indices: RwLock<Vec<usize>>,
     tex_transform: RwLock<Option<(InstanceBuffer<Vec3>, InstanceBuffer<Vec3>)>>,
     instance_color: RwLock<Option<InstanceBuffer<Vec4>>>,
-    last_camera_position: RwLock<Vec3>,
-    aabb: AxisAlignedBoundingBox,
-    aabb_local: AxisAlignedBoundingBox,
+    last_camera_position: RwLock<Option<Vec3>>,
+    aabb: AxisAlignedBoundingBox, // The AABB for the base mesh without transformations applied
     transformation: Mat4,
     current_transformation: Mat4,
     animation: Option<Box<dyn Fn(f32) -> Mat4 + Send + Sync>>,
@@ -33,8 +33,11 @@ impl InstancedMesh {
     /// The model is rendered in as many instances as there are attributes in [Instances] given as input.
     ///
     pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> Self {
+        #[cfg(debug_assertions)]
+        instances.validate().expect("invalid instances");
+
         let aabb = cpu_mesh.compute_aabb();
-        let mut instanced_mesh = Self {
+        let instanced_mesh = Self {
             context: context.clone(),
             base_mesh: BaseMesh::new(context, cpu_mesh),
             transform: RwLock::new((
@@ -44,15 +47,15 @@ impl InstancedMesh {
             )),
             tex_transform: RwLock::new(None),
             instance_color: RwLock::new(None),
-            last_camera_position: RwLock::new(vec3(0.0, 0.0, 0.0)),
+            last_camera_position: RwLock::new(None),
+            indices: RwLock::new((0..instances.transformations.len()).collect::<Vec<usize>>()),
             aabb,
-            aabb_local: aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
             animation: None,
             instances: instances.clone(),
         };
-        instanced_mesh.set_instances(instances);
+        instanced_mesh.update_instance_buffers();
         instanced_mesh
     }
 
@@ -70,6 +73,7 @@ impl InstancedMesh {
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.current_transformation = transformation;
+        *self.last_camera_position.write().unwrap() = None;
     }
 
     ///
@@ -93,48 +97,18 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         instances.validate().expect("invalid instances");
         self.instances = instances.clone();
-        self.update_aabb();
+        *self.indices.write().unwrap() =
+            (0..instances.transformations.len()).collect::<Vec<usize>>();
+        *self.last_camera_position.write().unwrap() = None;
 
-        self.update_instance_buffers(None);
-    }
-
-    fn update_aabb(&mut self) {
-        let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for transformation in self.instances.transformations.iter() {
-            aabb.expand_with_aabb(
-                self.aabb_local
-                    .transformed(transformation * self.transformation),
-            );
-        }
-        self.aabb = aabb;
+        self.update_instance_buffers();
     }
 
     ///
-    /// This function creates the instance buffers, ordering them by distance to the camera
+    /// This function updates the instance buffers, so the instances are rendered in the order given by the indices
     ///
-    fn update_instance_buffers(&self, viewer: Option<&dyn Viewer>) {
-        let indices = if let Some(position) = viewer.map(|c| c.position()) {
-            *self.last_camera_position.write().unwrap() = position;
-            // Need to order by using the position.
-            let distances = self
-                .instances
-                .transformations
-                .iter()
-                .map(|m| (self.transformation * m).w.truncate().distance2(position))
-                .collect::<Vec<_>>();
-            let mut indices = (0..self.instance_count() as usize).collect::<Vec<usize>>();
-            indices.sort_by(|a, b| {
-                distances[*b]
-                    .partial_cmp(&distances[*a])
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            });
-            indices
-        } else {
-            // No need to order, just return the indices as is.
-            (0..self.instances.transformations.len()).collect::<Vec<usize>>()
-        };
-
-        // Next, we can compute the instance buffers with that ordering.
+    fn update_instance_buffers(&self) {
+        let indices = self.indices.read().unwrap();
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
@@ -196,11 +170,33 @@ impl<'a> IntoIterator for &'a InstancedMesh {
 
 impl Geometry for InstancedMesh {
     fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
-        // Check if we need a reorder, this only applies to transparent materials.
+        // Check if we need a reorder the instance draw order. This only applies to transparent materials.
         if render_states.blend != Blend::Disabled
-            && viewer.position() != *self.last_camera_position.read().unwrap()
+            && self
+                .last_camera_position
+                .read()
+                .unwrap()
+                .map(|p| p.distance2(viewer.position()) > 0.001)
+                .unwrap_or(true)
         {
-            self.update_instance_buffers(Some(viewer));
+            *self.last_camera_position.write().unwrap() = Some(viewer.position());
+            let distances = self
+                .instances
+                .transformations
+                .iter()
+                .map(|m| {
+                    (m * self.current_transformation)
+                        .w
+                        .truncate()
+                        .distance2(viewer.position())
+                })
+                .collect::<Vec<_>>();
+            self.indices.write().unwrap().sort_by(|a, b| {
+                distances[*b]
+                    .partial_cmp(&distances[*a])
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+            self.update_instance_buffers();
         }
 
         program.use_uniform("viewProjection", viewer.projection() * viewer.view());
@@ -257,14 +253,18 @@ impl Geometry for InstancedMesh {
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        let mut aabb = self.aabb;
-        aabb.transform(self.current_transformation);
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        let local_aabb = self.aabb.transformed(self.current_transformation);
+        for transformation in &self.instances.transformations {
+            aabb.expand_with_aabb(local_aabb.transformed(*transformation));
+        }
         aabb
     }
 
     fn animate(&mut self, time: f32) {
         if let Some(animation) = &self.animation {
             self.current_transformation = self.transformation * animation(time);
+            *self.last_camera_position.write().unwrap() = None;
         }
     }
 
