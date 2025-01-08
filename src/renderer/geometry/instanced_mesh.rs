@@ -18,7 +18,7 @@ pub struct InstancedMesh {
     tex_transform: RwLock<Option<(InstanceBuffer<Vec3>, InstanceBuffer<Vec3>)>>,
     instance_color: RwLock<Option<InstanceBuffer<Vec4>>>,
     last_camera_position: RwLock<Vec3>,
-    aabb_local: AxisAlignedBoundingBox,
+    aabb: AxisAlignedBoundingBox, // The AABB for the base mesh without transformations applied
     transformation: Mat4,
     current_transformation: Mat4,
     animation: Option<Box<dyn Fn(f32) -> Mat4 + Send + Sync>>,
@@ -44,7 +44,7 @@ impl InstancedMesh {
             tex_transform: RwLock::new(None),
             instance_color: RwLock::new(None),
             last_camera_position: RwLock::new(vec3(0.0, 0.0, 0.0)),
-            aabb_local: aabb,
+            aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
             animation: None,
@@ -251,7 +251,7 @@ impl Geometry for InstancedMesh {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         for transformation in self.instances.transformations.iter() {
             aabb.expand_with_aabb(
-                self.aabb_local
+                self.aabb
                     .transformed(transformation * self.current_transformation),
             );
         }
