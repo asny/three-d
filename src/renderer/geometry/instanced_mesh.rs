@@ -268,6 +268,7 @@ impl Geometry for InstancedMesh {
     fn animate(&mut self, time: f32) {
         if let Some(animation) = &self.animation {
             self.current_transformation = self.transformation * animation(time);
+            self.update_aabb();
         }
     }
 
