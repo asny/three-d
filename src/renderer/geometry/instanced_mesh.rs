@@ -18,7 +18,6 @@ pub struct InstancedMesh {
     tex_transform: RwLock<Option<(InstanceBuffer<Vec3>, InstanceBuffer<Vec3>)>>,
     instance_color: RwLock<Option<InstanceBuffer<Vec4>>>,
     last_camera_position: RwLock<Vec3>,
-    aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
     current_transformation: Mat4,
@@ -45,7 +44,6 @@ impl InstancedMesh {
             tex_transform: RwLock::new(None),
             instance_color: RwLock::new(None),
             last_camera_position: RwLock::new(vec3(0.0, 0.0, 0.0)),
-            aabb,
             aabb_local: aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
@@ -93,20 +91,8 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         instances.validate().expect("invalid instances");
         self.instances = instances.clone();
-        self.update_aabb();
 
         self.update_instance_buffers(None);
-    }
-
-    fn update_aabb(&mut self) {
-        let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for transformation in self.instances.transformations.iter() {
-            aabb.expand_with_aabb(
-                self.aabb_local
-                    .transformed(transformation * self.current_transformation),
-            );
-        }
-        self.aabb = aabb;
     }
 
     ///
@@ -262,13 +248,19 @@ impl Geometry for InstancedMesh {
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.aabb
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for transformation in self.instances.transformations.iter() {
+            aabb.expand_with_aabb(
+                self.aabb_local
+                    .transformed(transformation * self.current_transformation),
+            );
+        }
+        aabb
     }
 
     fn animate(&mut self, time: f32) {
         if let Some(animation) = &self.animation {
             self.current_transformation = self.transformation * animation(time);
-            self.update_aabb();
         }
     }
 
