@@ -262,9 +262,7 @@ impl Geometry for InstancedMesh {
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        let mut aabb = self.aabb;
-        aabb.transform(self.current_transformation);
-        aabb
+        self.aabb
     }
 
     fn animate(&mut self, time: f32) {
