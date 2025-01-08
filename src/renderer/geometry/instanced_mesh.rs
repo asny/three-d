@@ -33,8 +33,11 @@ impl InstancedMesh {
     /// The model is rendered in as many instances as there are attributes in [Instances] given as input.
     ///
     pub fn new(context: &Context, instances: &Instances, cpu_mesh: &CpuMesh) -> Self {
+        #[cfg(debug_assertions)]
+        instances.validate().expect("invalid instances");
+
         let aabb = cpu_mesh.compute_aabb();
-        let mut instanced_mesh = Self {
+        let instanced_mesh = Self {
             context: context.clone(),
             base_mesh: BaseMesh::new(context, cpu_mesh),
             transform: RwLock::new((
@@ -52,7 +55,7 @@ impl InstancedMesh {
             animation: None,
             instances: instances.clone(),
         };
-        instanced_mesh.set_instances(instances);
+        instanced_mesh.update_instance_buffers();
         instanced_mesh
     }
 
