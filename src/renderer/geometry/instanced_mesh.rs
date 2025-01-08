@@ -18,7 +18,7 @@ pub struct InstancedMesh {
     indices: RwLock<Vec<usize>>,
     tex_transform: RwLock<Option<(InstanceBuffer<Vec3>, InstanceBuffer<Vec3>)>>,
     instance_color: RwLock<Option<InstanceBuffer<Vec4>>>,
-    last_camera_position: RwLock<Vec3>,
+    last_camera_position: RwLock<Option<Vec3>>,
     aabb: AxisAlignedBoundingBox, // The AABB for the base mesh without transformations applied
     transformation: Mat4,
     current_transformation: Mat4,
@@ -44,7 +44,7 @@ impl InstancedMesh {
             )),
             tex_transform: RwLock::new(None),
             instance_color: RwLock::new(None),
-            last_camera_position: RwLock::new(vec3(0.0, 0.0, 0.0)),
+            last_camera_position: RwLock::new(None),
             indices: RwLock::new((0..instances.transformations.len()).collect::<Vec<usize>>()),
             aabb,
             transformation: Mat4::identity(),
@@ -70,6 +70,7 @@ impl InstancedMesh {
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.current_transformation = transformation;
+        *self.last_camera_position.write().unwrap() = None;
     }
 
     ///
@@ -95,6 +96,7 @@ impl InstancedMesh {
         self.instances = instances.clone();
         *self.indices.write().unwrap() =
             (0..instances.transformations.len()).collect::<Vec<usize>>();
+        *self.last_camera_position.write().unwrap() = None;
 
         self.update_instance_buffers();
     }
@@ -167,9 +169,14 @@ impl Geometry for InstancedMesh {
     fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
         // Check if we need a reorder the instance draw order. This only applies to transparent materials.
         if render_states.blend != Blend::Disabled
-            && viewer.position() != *self.last_camera_position.read().unwrap()
+            && self
+                .last_camera_position
+                .read()
+                .unwrap()
+                .map(|p| p.distance2(viewer.position()) > 0.001)
+                .unwrap_or(true)
         {
-            *self.last_camera_position.write().unwrap() = viewer.position();
+            *self.last_camera_position.write().unwrap() = Some(viewer.position());
             let distances = self
                 .instances
                 .transformations
@@ -254,6 +261,7 @@ impl Geometry for InstancedMesh {
     fn animate(&mut self, time: f32) {
         if let Some(animation) = &self.animation {
             self.current_transformation = self.transformation * animation(time);
+            *self.last_camera_position.write().unwrap() = None;
         }
     }
 
