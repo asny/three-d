@@ -249,11 +249,9 @@ impl Geometry for InstancedMesh {
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for transformation in self.instances.transformations.iter() {
-            aabb.expand_with_aabb(
-                self.aabb
-                    .transformed(transformation * self.current_transformation),
-            );
+        let local_aabb = self.aabb.transformed(self.current_transformation);
+        for transformation in &self.instances.transformations {
+            aabb.expand_with_aabb(local_aabb.transformed(*transformation));
         }
         aabb
     }
