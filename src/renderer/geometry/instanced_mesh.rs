@@ -92,40 +92,15 @@ impl InstancedMesh {
         instances.validate().expect("invalid instances");
         self.instances = instances.clone();
 
-        self.update_instance_buffers(None);
+        self.update_instance_buffers(
+            (0..self.instances.transformations.len()).collect::<Vec<usize>>(),
+        );
     }
 
     ///
-    /// This function creates the instance buffers, ordering them by distance to the camera
+    /// This function updates the instance buffers, so the instances are rendered in the order given by the indices
     ///
-    fn update_instance_buffers(&self, viewer: Option<&dyn Viewer>) {
-        let indices = if let Some(position) = viewer.map(|c| c.position()) {
-            *self.last_camera_position.write().unwrap() = position;
-            // Need to order by using the position.
-            let distances = self
-                .instances
-                .transformations
-                .iter()
-                .map(|m| {
-                    (self.current_transformation * m)
-                        .w
-                        .truncate()
-                        .distance2(position)
-                })
-                .collect::<Vec<_>>();
-            let mut indices = (0..self.instance_count() as usize).collect::<Vec<usize>>();
-            indices.sort_by(|a, b| {
-                distances[*b]
-                    .partial_cmp(&distances[*a])
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            });
-            indices
-        } else {
-            // No need to order, just return the indices as is.
-            (0..self.instances.transformations.len()).collect::<Vec<usize>>()
-        };
-
-        // Next, we can compute the instance buffers with that ordering.
+    fn update_instance_buffers(&self, indices: Vec<usize>) {
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
@@ -187,11 +162,29 @@ impl<'a> IntoIterator for &'a InstancedMesh {
 
 impl Geometry for InstancedMesh {
     fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
-        // Check if we need a reorder, this only applies to transparent materials.
+        // Check if we need a reorder the instance draw order. This only applies to transparent materials.
         if render_states.blend != Blend::Disabled
             && viewer.position() != *self.last_camera_position.read().unwrap()
         {
-            self.update_instance_buffers(Some(viewer));
+            *self.last_camera_position.write().unwrap() = viewer.position();
+            let distances = self
+                .instances
+                .transformations
+                .iter()
+                .map(|m| {
+                    (m * self.current_transformation)
+                        .w
+                        .truncate()
+                        .distance2(viewer.position())
+                })
+                .collect::<Vec<_>>();
+            let mut indices = (0..self.instance_count() as usize).collect::<Vec<usize>>();
+            indices.sort_by(|a, b| {
+                distances[*b]
+                    .partial_cmp(&distances[*a])
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+            self.update_instance_buffers(indices);
         }
 
         program.use_uniform("viewProjection", viewer.projection() * viewer.view());
