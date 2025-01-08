@@ -15,6 +15,7 @@ pub struct InstancedMesh {
         InstanceBuffer<Vec4>,
         InstanceBuffer<Vec4>,
     )>,
+    indices: RwLock<Vec<usize>>,
     tex_transform: RwLock<Option<(InstanceBuffer<Vec3>, InstanceBuffer<Vec3>)>>,
     instance_color: RwLock<Option<InstanceBuffer<Vec4>>>,
     last_camera_position: RwLock<Vec3>,
@@ -44,6 +45,7 @@ impl InstancedMesh {
             tex_transform: RwLock::new(None),
             instance_color: RwLock::new(None),
             last_camera_position: RwLock::new(vec3(0.0, 0.0, 0.0)),
+            indices: RwLock::new((0..instances.transformations.len()).collect::<Vec<usize>>()),
             aabb,
             transformation: Mat4::identity(),
             current_transformation: Mat4::identity(),
@@ -91,16 +93,17 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         instances.validate().expect("invalid instances");
         self.instances = instances.clone();
+        *self.indices.write().unwrap() =
+            (0..instances.transformations.len()).collect::<Vec<usize>>();
 
-        self.update_instance_buffers(
-            (0..self.instances.transformations.len()).collect::<Vec<usize>>(),
-        );
+        self.update_instance_buffers();
     }
 
     ///
     /// This function updates the instance buffers, so the instances are rendered in the order given by the indices
     ///
-    fn update_instance_buffers(&self, indices: Vec<usize>) {
+    fn update_instance_buffers(&self) {
+        let indices = self.indices.read().unwrap();
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
@@ -178,13 +181,12 @@ impl Geometry for InstancedMesh {
                         .distance2(viewer.position())
                 })
                 .collect::<Vec<_>>();
-            let mut indices = (0..self.instance_count() as usize).collect::<Vec<usize>>();
-            indices.sort_by(|a, b| {
+            self.indices.write().unwrap().sort_by(|a, b| {
                 distances[*b]
                     .partial_cmp(&distances[*a])
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
-            self.update_instance_buffers(indices);
+            self.update_instance_buffers();
         }
 
         program.use_uniform("viewProjection", viewer.projection() * viewer.view());
