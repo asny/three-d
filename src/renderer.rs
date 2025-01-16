@@ -625,7 +625,7 @@ pub fn ray_intersect(
         position,
         position + direction * max_depth,
         up,
-        0.01,
+        0.1 / max_depth,
         0.0,
         max_depth,
     );
