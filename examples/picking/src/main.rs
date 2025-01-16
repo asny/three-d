@@ -114,7 +114,9 @@ pub async fn run() {
                         position,
                         monkey.into_iter().chain(&cone).chain(&instanced_mesh),
                     ) {
-                        pick_mesh.set_transformation(Mat4::from_translation(pick.position));
+                        pick_mesh.set_transformation(
+                            Mat4::from_translation(pick.position) * Mat4::from_scale(0.1),
+                        );
                         match pick.geometry_id {
                             0 => {
                                 monkey.material.albedo = Srgba::RED;
