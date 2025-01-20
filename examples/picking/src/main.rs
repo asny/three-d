@@ -34,7 +34,7 @@ pub async fn run() {
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
-                albedo: Srgba::new(100, 100, 100, 0),
+                albedo: Srgba::new(255, 255, 0, 255),
                 ..Default::default()
             },
         ),
@@ -114,7 +114,9 @@ pub async fn run() {
                         position,
                         monkey.into_iter().chain(&cone).chain(&instanced_mesh),
                     ) {
-                        pick_mesh.set_transformation(Mat4::from_translation(pick.position));
+                        pick_mesh.set_transformation(
+                            Mat4::from_translation(pick.position) * Mat4::from_scale(0.3),
+                        );
                         match pick.geometry_id {
                             0 => {
                                 monkey.material.albedo = Srgba::RED;
