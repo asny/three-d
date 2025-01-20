@@ -623,7 +623,7 @@ pub fn ray_intersect(
     let camera = Camera::new_orthographic(
         viewport,
         position,
-        position + direction * max_depth,
+        position + direction,
         up,
         0.01,
         0.0,
