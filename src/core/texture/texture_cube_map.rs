@@ -353,7 +353,7 @@ impl TextureCubeMap {
     }
 
     ///
-    /// Fills the cube map texture with the given pixel data for the 6 images.
+    /// Fills the cube map texture with the given pixel data for the 6 images and generate mip maps if specified at construction.
     ///
     /// # Panic
     /// Will panic if the length of the data for all 6 images does not correspond to the width, height and format specified at construction.
@@ -565,6 +565,14 @@ impl TextureCubeMap {
             self.context
                 .bind_texture(crate::context::TEXTURE_CUBE_MAP, Some(self.id));
         }
+    }
+
+    ///
+    /// Returns the low-level graphics id of this texture which can be used to make [core graphics API](crate::context::Context) calls.
+    /// This function is only needed in special cases for example if you want to fill this texture from a special source of texture data.
+    ///
+    pub unsafe fn id(&self) -> crate::context::Texture {
+        self.id
     }
 }
 

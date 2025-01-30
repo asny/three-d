@@ -110,7 +110,7 @@ impl Texture2D {
     }
 
     ///
-    /// Fills this texture with the given data.
+    /// Fills this texture with the given data and generate mip maps if specified at construction.
     ///
     /// # Panic
     /// Will panic if the length of the data does not correspond to the width, height and format specified at construction.
@@ -189,6 +189,14 @@ impl Texture2D {
             self.context
                 .bind_texture(crate::context::TEXTURE_2D, Some(self.id));
         }
+    }
+
+    ///
+    /// Returns the low-level graphics id of this texture which can be used to make [core graphics API](crate::context::Context) calls.
+    /// This function is only needed in special cases for example if you want to fill this texture from a special source of texture data.
+    ///
+    pub unsafe fn id(&self) -> crate::context::Texture {
+        self.id
     }
 }
 

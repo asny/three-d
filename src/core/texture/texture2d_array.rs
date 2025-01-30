@@ -201,7 +201,7 @@ impl Texture2DArray {
     }
 
     ///
-    /// Fills the texture array with the given pixel data.
+    /// Fills the texture array with the given pixel data and generate mip maps if specified at construction.
     ///
     /// # Panic
     /// Will panic if the data does not correspond to the width, height, depth and format specified at construction.
@@ -214,7 +214,7 @@ impl Texture2DArray {
     }
 
     ///
-    /// Fills the given layer in the texture array with the given pixel data.
+    /// Fills the given layer in the texture array with the given pixel data and generate mip maps if specified at construction.
     ///
     /// # Panic
     /// Will panic if the layer number is bigger than the number of layers or if the data does not correspond to the width, height and format specified at construction.
@@ -312,6 +312,14 @@ impl Texture2DArray {
             self.context
                 .bind_texture(crate::context::TEXTURE_2D_ARRAY, Some(self.id));
         }
+    }
+
+    ///
+    /// Returns the low-level graphics id of this texture which can be used to make [core graphics API](crate::context::Context) calls.
+    /// This function is only needed in special cases for example if you want to fill this texture from a special source of texture data.
+    ///
+    pub unsafe fn id(&self) -> crate::context::Texture {
+        self.id
     }
 }
 
