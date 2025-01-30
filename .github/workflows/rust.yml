@@ -32,7 +32,7 @@ jobs:
           components: rustfmt, clippy
           override: true
 
-      - if: startsWith(matrix.os, 'ubuntu')
+      - if: contains('ubuntu', matrix.os)
         run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
 
       - name: Check
