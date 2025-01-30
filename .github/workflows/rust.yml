@@ -83,6 +83,6 @@ jobs:
           toolchain: stable
           override: true
 
-      - run: sudo apt-get update && sudo apt-get install -y xvfb fontconfig
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libfontconfig1-dev
 
       - run: xvfb-run -a cargo run --example headless --features="headless"
