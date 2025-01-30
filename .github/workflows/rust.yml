@@ -32,6 +32,9 @@ jobs:
           components: rustfmt, clippy
           override: true
 
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+
       - name: Check
         uses: actions-rs/cargo@v1
         with:
@@ -83,6 +86,6 @@ jobs:
           toolchain: stable
           override: true
 
-      - run: sudo apt-get update && sudo apt-get install -y xvfb
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libfontconfig1-dev
 
       - run: xvfb-run -a cargo run --example headless --features="headless"
