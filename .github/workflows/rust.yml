@@ -85,6 +85,4 @@ jobs:
 
       - run: sudo apt-get update && sudo apt-get install -y xvfb
 
-      - run: export THREE_D_EXIT=500
-
       - run: xvfb-run -a cargo run --example triangle
