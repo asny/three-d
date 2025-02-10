@@ -159,27 +159,16 @@ impl Window {
                 .map_err(|e| WindowError::CanvasConvertFailed(format!("{:?}", e)))?
             };
 
-            let inner_size = window_settings
-                .initial_size
-                .or(window_settings.max_size)
-                .map(|(width, height)| LogicalSize::new(width as f64, height as f64))
-                .unwrap_or_else(|| {
-                    let browser_window = canvas
-                        .owner_document()
-                        .and_then(|doc| doc.default_view())
-                        .or_else(web_sys::window)
-                        .unwrap();
-                    LogicalSize::new(
-                        browser_window.inner_width().unwrap().as_f64().unwrap(),
-                        browser_window.inner_height().unwrap().as_f64().unwrap(),
-                    )
-                });
-
-            window::Window::default_attributes()
+            let window_attributes = window::Window::default_attributes()
                 .with_title(window_settings.title)
                 .with_canvas(Some(canvas))
-                .with_inner_size(inner_size)
-                .with_prevent_default(true)
+                .with_prevent_default(true);
+
+            if let Some((width, height)) = window_settings.max_size {
+                window_attributes.with_inner_size(LogicalSize::new(width as f64, height as f64))
+            } else {
+                window_attributes
+            }
         };
 
         let winit_window = event_loop
@@ -265,6 +254,13 @@ impl Window {
                 frame_input_generator.handle_winit_window_event(event);
                 match event {
                     WindowEvent::Resized(physical_size) => {
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            use winit::platform::web::WindowExtWebSys;
+                            let canvas = self.window.canvas().unwrap();
+                            canvas.set_width(canvas.client_width() as u32);
+                            canvas.set_height(canvas.client_height() as u32);
+                        }
                         self.gl.resize(*physical_size);
                     }
                     WindowEvent::RedrawRequested => {
