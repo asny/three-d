@@ -276,7 +276,7 @@ impl Program {
     /// Use this function if you want to use a texture which was created using low-level context calls and not using the functionality in the [texture] module.
     /// This function is only needed in special cases for example if you have a special source of texture data.
     ///
-    #[deprecated = "Use the id() function on the textures instead"]
+    #[deprecated = "Instead, create normal textures, eg. Texture2D, using the new_unchecked() methods, eg. Texture2D::new_unchecked()"]
     pub fn use_raw_texture(&self, name: &str, target: u32, id: crate::context::Texture) {
         self.use_texture_internal(name);
         unsafe {
