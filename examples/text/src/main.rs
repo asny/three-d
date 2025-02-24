@@ -69,7 +69,11 @@ pub fn main() {
     // Render loop
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
-        control.handle_events(&mut camera, &mut frame_input.events);
+        control.handle_events(
+            &mut camera,
+            &mut frame_input.events,
+            frame_input.device_pixel_ratio,
+        );
 
         frame_input
             .screen()

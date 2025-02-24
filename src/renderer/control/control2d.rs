@@ -21,7 +21,12 @@ impl Control2D {
     }
 
     /// Handles the events. Must be called each frame.
-    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> bool {
+    pub fn handle_events(
+        &mut self,
+        camera: &mut Camera,
+        events: &mut [Event],
+        device_pixel_ratio: f32,
+    ) -> bool {
         let mut change = false;
         for event in events.iter_mut() {
             match event {
@@ -49,7 +54,7 @@ impl Control2D {
                         {
                             self.zoom(camera, delta.1, *position, 0.005);
                         } else {
-                            self.pan(camera, *delta);
+                            self.pan(camera, *delta, device_pixel_ratio);
                         }
                         *handled = true;
                         change = true;
@@ -62,7 +67,7 @@ impl Control2D {
                     ..
                 } => {
                     if !*handled && Some(MouseButton::Right) == *button {
-                        self.pan(camera, *delta);
+                        self.pan(camera, *delta, device_pixel_ratio);
                         *handled = true;
                         change = true;
                     }
@@ -80,11 +85,11 @@ impl Control2D {
         camera.zoom_towards(target, speed * delta, self.min_distance, self.max_distance);
     }
 
-    fn pan(&self, camera: &mut Camera, delta: (f32, f32)) {
+    fn pan(&self, camera: &mut Camera, delta: (f32, f32), device_pixel_ratio: f32) {
         let origo = camera.position_at_pixel(vec2(0.0, 0.0));
-        let point = camera.position_at_pixel(vec2(delta.0, 0.0));
+        let point = camera.position_at_pixel(vec2(device_pixel_ratio * delta.0, 0.0));
         let x = delta.0.signum() * (point - origo).magnitude();
-        let point = camera.position_at_pixel(vec2(delta.1, 0.0));
+        let point = camera.position_at_pixel(vec2(device_pixel_ratio * delta.1, 0.0));
         let y = delta.1.signum() * (point - origo).magnitude();
         camera.translate(vec3(-x, y, 0.0));
     }
