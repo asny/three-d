@@ -24,7 +24,7 @@ pub use control2d::*;
 
 pub use three_d_asset::PixelPoint as PhysicalPoint;
 
-use three_d_asset::Radians;
+use three_d_asset::prelude::*;
 
 /// Type of mouse button.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]

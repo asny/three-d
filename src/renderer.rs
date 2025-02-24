@@ -575,7 +575,7 @@ pub fn cmp_render_order(
 ///
 pub fn pick(
     context: &Context,
-    camera: &Camera,
+    camera: &three_d_asset::Camera,
     pixel: impl Into<PhysicalPoint> + Copy,
     geometries: impl IntoIterator<Item = impl Geometry>,
 ) -> Option<IntersectionResult> {

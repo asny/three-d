@@ -1,4 +1,4 @@
-use crate::renderer::*;
+use super::*;
 
 ///
 /// A control for 2D camera movements.
@@ -23,7 +23,7 @@ impl Control2D {
     /// Handles the events. Must be called each frame.
     pub fn handle_events(
         &mut self,
-        camera: &mut Camera,
+        camera: &mut three_d_asset::Camera,
         events: &mut [Event],
         device_pixel_ratio: f32,
     ) -> bool {
@@ -78,7 +78,13 @@ impl Control2D {
         change
     }
 
-    fn zoom(&self, camera: &mut Camera, delta: f32, position: PhysicalPoint, speed: f32) {
+    fn zoom(
+        &self,
+        camera: &mut three_d_asset::Camera,
+        delta: f32,
+        position: PhysicalPoint,
+        speed: f32,
+    ) {
         let speed = speed / camera.zoom_factor();
         let mut target = camera.position_at_pixel(position);
         target.z = 0.0;
@@ -90,7 +96,7 @@ impl Control2D {
         );
     }
 
-    fn pan(&self, camera: &mut Camera, delta: (f32, f32), device_pixel_ratio: f32) {
+    fn pan(&self, camera: &mut three_d_asset::Camera, delta: (f32, f32), device_pixel_ratio: f32) {
         let origo = camera.position_at_pixel(vec2(0.0, 0.0));
         let point = camera.position_at_pixel(vec2(device_pixel_ratio * delta.0, 0.0));
         let x = delta.0.signum() * (point - origo).magnitude();

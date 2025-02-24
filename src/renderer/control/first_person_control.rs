@@ -1,4 +1,4 @@
-use crate::renderer::*;
+use super::*;
 
 ///
 /// A control that makes the camera move like it is a person on the ground.
@@ -16,7 +16,11 @@ impl FirstPersonControl {
     }
 
     /// Handles the events. Must be called each frame.
-    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> bool {
+    pub fn handle_events(
+        &mut self,
+        camera: &mut three_d_asset::Camera,
+        events: &mut [Event],
+    ) -> bool {
         let mut change = false;
         for event in events.iter_mut() {
             match event {
