@@ -75,7 +75,7 @@ jobs:
           done
 
   headless:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -86,8 +86,4 @@ jobs:
           toolchain: stable
           override: true
 
-      - run: sudo apt-get update && sudo apt-get install -y xvfb libfontconfig1-dev mesa-utils
-
-      - run: glxinfo | grep "OpenGL version"
-
-      - run: xvfb-run -a cargo run --example headless --features="headless"
+      - run: cargo run --example headless --features="headless"
