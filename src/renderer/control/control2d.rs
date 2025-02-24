@@ -91,6 +91,8 @@ impl Control2D {
         let x = delta.0.signum() * (point - origo).magnitude();
         let point = camera.position_at_pixel(vec2(device_pixel_ratio * delta.1, 0.0));
         let y = delta.1.signum() * (point - origo).magnitude();
-        camera.translate(vec3(-x, y, 0.0));
+        let right = camera.right_direction();
+        let up = right.cross(camera.view_direction());
+        camera.translate(-right * x + up * y);
     }
 }
