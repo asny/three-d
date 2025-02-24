@@ -44,7 +44,7 @@ pub fn main() {
         0.0,
         20.0,
     );
-    let mut control = Control2D::new(0.00001, 10.0);
+    let mut control = Control2D::new(0.5, 10000.0);
 
     let mut mesh = Gm::new(
         Mesh::new(

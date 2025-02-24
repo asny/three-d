@@ -10,7 +10,7 @@ pub fn main() {
 
     let context = window.gl();
     let mut camera = Camera::new_2d(window.viewport());
-    let mut control = Control2D::new(0.1, 5.0);
+    let mut control = Control2D::new(0.5, 100.0);
 
     let text_generator = TextGenerator::new(include_bytes!("font0.ttf"), 0, 30.0).unwrap();
     let text_mesh0 = text_generator.generate("Hello, World!", TextLayoutOptions::default());

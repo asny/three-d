@@ -5,18 +5,18 @@ use crate::renderer::*;
 ///
 #[derive(Clone, Copy, Debug)]
 pub struct Control2D {
-    /// The minimum distance to the target point.
-    pub min_distance: f32,
-    /// The maximum distance to the target point.
-    pub max_distance: f32,
+    /// The minimum zoom factor.
+    pub min_zoom_factor: f32,
+    /// The maximum zoom factor.
+    pub max_zoom_factor: f32,
 }
 
 impl Control2D {
-    /// Creates a new 2D camera control with the given minimum and maximum distance to the target.
-    pub fn new(min_distance: f32, max_distance: f32) -> Self {
+    /// Creates a new 2D camera control with the given minimum and maximum zoom factor.
+    pub fn new(min_zoom_factor: f32, max_zoom_factor: f32) -> Self {
         Self {
-            min_distance,
-            max_distance,
+            min_zoom_factor,
+            max_zoom_factor,
         }
     }
 
@@ -82,7 +82,12 @@ impl Control2D {
         let speed = speed / camera.zoom_factor();
         let mut target = camera.position_at_pixel(position);
         target.z = 0.0;
-        camera.zoom_towards(target, speed * delta, self.min_distance, self.max_distance);
+        camera.zoom_towards(
+            target,
+            speed * delta,
+            1.0 / self.max_zoom_factor,
+            1.0 / self.min_zoom_factor,
+        );
     }
 
     fn pan(&self, camera: &mut Camera, delta: (f32, f32), device_pixel_ratio: f32) {
