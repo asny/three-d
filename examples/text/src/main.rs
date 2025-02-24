@@ -10,6 +10,7 @@ pub fn main() {
 
     let context = window.gl();
     let mut camera = Camera::new_2d(window.viewport());
+    let mut control = Control2D::new(0.5, 100.0);
 
     let text_generator = TextGenerator::new(include_bytes!("font0.ttf"), 0, 30.0).unwrap();
     let text_mesh0 = text_generator.generate("Hello, World!", TextLayoutOptions::default());
@@ -66,43 +67,13 @@ pub fn main() {
     )));
 
     // Render loop
-    window.render_loop(move |frame_input| {
+    window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
-
-        for event in frame_input.events.iter() {
-            match *event {
-                Event::MouseMotion { delta, button, .. } => {
-                    if button == Some(MouseButton::Left) {
-                        let speed = 2.0 / camera.zoom_factor();
-                        let right = camera.right_direction();
-                        let up = right.cross(camera.view_direction());
-                        let delta = -right * speed * delta.0 + up * speed * delta.1;
-                        camera.translate(delta);
-                    }
-                }
-                Event::MouseWheel {
-                    delta, position, ..
-                } => {
-                    let speed = 0.05 / camera.zoom_factor();
-                    let mut target = camera.position_at_pixel(position);
-                    target.z = 0.0;
-                    camera.zoom_towards(target, speed * delta.1, 0.1, 5.0);
-                }
-                Event::KeyPress { kind, .. } => {
-                    let zoom = match kind {
-                        Key::Num1 => Some(1.0),
-                        Key::Num2 => Some(2.0),
-                        Key::Num3 => Some(3.0),
-                        Key::Num4 => Some(4.0),
-                        _ => None,
-                    };
-                    if let Some(zoom) = zoom {
-                        camera.set_zoom_factor(zoom);
-                    }
-                }
-                _ => {}
-            }
-        }
+        control.handle_events(
+            &mut camera,
+            &mut frame_input.events,
+            frame_input.device_pixel_ratio,
+        );
 
         frame_input
             .screen()
