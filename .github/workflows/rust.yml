@@ -88,4 +88,6 @@ jobs:
 
       - run: sudo apt-get update && sudo apt-get install -y xvfb libfontconfig1-dev
 
+      - run: glxinfo | grep 'version'
+
       - run: xvfb-run -a cargo run --example headless --features="headless"
