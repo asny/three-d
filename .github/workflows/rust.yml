@@ -86,7 +86,7 @@ jobs:
           toolchain: stable
           override: true
 
-      - run: sudo apt-get update && sudo apt-get install -y xvfb libfontconfig1-dev mesa-utils
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libfontconfig1-dev mesa-utils libnvidia-egl-wayland1
 
       - run: xvfb-run -a glxinfo | grep "OpenGL version"
 
