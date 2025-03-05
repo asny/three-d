@@ -285,6 +285,25 @@ impl Window {
                             }
                         }
 
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            // NOTE: This is needed because the canvas resize events are not all received.
+                            use winit::platform::web::WindowExtWebSys;
+                            let canvas = self.window.canvas().unwrap();
+                            let canvas_width = canvas.client_width() as u32;
+                            let canvas_height = canvas.client_height() as u32;
+                            if canvas_width != frame_input_generator.window_width()
+                                || canvas_height != frame_input_generator.window_height()
+                            {
+                                let physical_size =
+                                    dpi::PhysicalSize::new(canvas_width, canvas_height);
+                                self.gl.resize(physical_size);
+                                frame_input_generator.handle_winit_window_event(
+                                    &WindowEvent::Resized(physical_size),
+                                );
+                            }
+                        }
+
                         let frame_input = frame_input_generator.generate(&self.gl);
                         let frame_output = callback(frame_input);
                         if frame_output.exit {

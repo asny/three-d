@@ -63,6 +63,16 @@ impl FrameInputGenerator {
         Self::new(window.inner_size(), window.scale_factor())
     }
 
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn window_width(&self) -> u32 {
+        self.window_width
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn window_height(&self) -> u32 {
+        self.window_height
+    }
+
     ///
     /// Generates [FrameInput] for a new frame. This should be called each frame and the generated data should only be used for one frame.
     ///
