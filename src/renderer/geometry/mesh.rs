@@ -11,7 +11,7 @@ pub struct Mesh {
     context: Context,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
-    current_transformation: Mat4,
+    animation_transformation: Mat4,
     animation: Option<Box<dyn Fn(f32) -> Mat4 + Send + Sync>>,
 }
 
@@ -27,7 +27,7 @@ impl Mesh {
             base_mesh: BaseMesh::new(context, cpu_mesh),
             aabb,
             transformation: Mat4::identity(),
-            current_transformation: Mat4::identity(),
+            animation_transformation: Mat4::identity(),
             animation: None,
         }
     }
@@ -66,7 +66,6 @@ impl Mesh {
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
-        self.current_transformation = transformation;
     }
 
     ///
@@ -76,6 +75,7 @@ impl Mesh {
     ///
     pub fn set_animation(&mut self, animation: impl Fn(f32) -> Mat4 + Send + Sync + 'static) {
         self.animation = Some(Box::new(animation));
+        self.animate(0.0);
     }
 
     ///
@@ -145,17 +145,19 @@ impl<'a> IntoIterator for &'a Mesh {
 
 impl Geometry for Mesh {
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.aabb.transformed(self.current_transformation)
+        self.aabb
+            .transformed(self.transformation * self.animation_transformation)
     }
 
     fn animate(&mut self, time: f32) {
         if let Some(animation) = &self.animation {
-            self.current_transformation = self.transformation * animation(time);
+            self.animation_transformation = animation(time);
         }
     }
 
     fn draw(&self, viewer: &dyn Viewer, program: &Program, render_states: RenderStates) {
-        if let Some(inverse) = self.current_transformation.invert() {
+        let local2world = self.transformation * self.animation_transformation;
+        if let Some(inverse) = local2world.invert() {
             program.use_uniform_if_required("normalMatrix", inverse.transpose());
         } else {
             // determinant is float zero
@@ -163,7 +165,7 @@ impl Geometry for Mesh {
         }
 
         program.use_uniform("viewProjection", viewer.projection() * viewer.view());
-        program.use_uniform("modelMatrix", self.current_transformation);
+        program.use_uniform("modelMatrix", local2world);
 
         self.base_mesh.draw(program, render_states, viewer);
     }
