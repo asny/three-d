@@ -8,6 +8,7 @@ use winit::window::Window;
 mod inner {
     use crate::HardwareAcceleration;
     use serde::{Deserialize, Serialize};
+    use three_d_asset::Viewport;
     use wasm_bindgen::JsCast;
     use winit::platform::web::WindowExtWebSys;
 
@@ -33,7 +34,7 @@ mod inner {
             window: &Window,
             settings: SurfaceSettings,
         ) -> Result<Self, WindowError> {
-            let canvas = window.canvas();
+            let canvas = window.canvas().ok_or(WindowError::WindowCreation)?;
 
             // get webgl context and verify extensions
             let webgl_context = canvas
@@ -74,7 +75,12 @@ mod inner {
         }
 
         /// Resizes the context
-        pub fn resize(&self, _physical_size: winit::dpi::PhysicalSize<u32>) {}
+        pub fn resize(&self, physical_size: winit::dpi::PhysicalSize<u32>) {
+            self.context.set_viewport(Viewport::new_at_origo(
+                physical_size.width.max(1),
+                physical_size.height.max(1),
+            ));
+        }
 
         /// Make this context current. Needed when using multiple windows (contexts) on native.
         pub fn make_current(&self) -> Result<(), WindowError> {
@@ -90,7 +96,9 @@ mod inner {
 
 #[cfg(not(target_arch = "wasm32"))]
 mod inner {
-    use glutin::{prelude::PossiblyCurrentContextGlSurfaceAccessor, surface::*};
+    use glutin::{prelude::PossiblyCurrentGlContext, surface::*};
+
+    use crate::WinitError;
 
     use super::*;
     ///
@@ -114,9 +122,15 @@ mod inner {
                 Err(WindowError::InvalidNumberOfMSAASamples)?;
             }
             use glutin::prelude::*;
-            use raw_window_handle::*;
-            let raw_display_handle = window.raw_display_handle();
-            let raw_window_handle = window.raw_window_handle();
+            use winit::raw_window_handle::*;
+            let raw_display_handle = window
+                .display_handle()
+                .map_err(WinitError::HandleError)?
+                .as_raw();
+            let raw_window_handle = window
+                .window_handle()
+                .map_err(WinitError::HandleError)?
+                .as_raw();
 
             // EGL is crossplatform and the official khronos way
             // but sometimes platforms/drivers may not have it, so we use back up options
