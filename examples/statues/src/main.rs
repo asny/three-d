@@ -97,10 +97,12 @@ pub async fn run() {
         Srgba::new_opaque(204, 178, 127),
         vec3(0.0, -1.0, -1.0),
     );
-    directional.generate_shadow_map(
-        1024,
-        models.iter().flat_map(|m| m.into_iter()).chain(&fountain),
-    );
+    directional
+        .generate_shadow_map(
+            1024,
+            models.iter().flat_map(|m| m.into_iter()).chain(&fountain),
+        )
+        .unwrap();
     // Bounding boxes
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     let mut bounding_boxes = Vec::new();

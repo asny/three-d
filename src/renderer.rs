@@ -32,6 +32,8 @@ pub enum RendererError {
     #[cfg(feature = "text")]
     #[error("Failed to find font with index {0} in the given font collection")]
     MissingFont(u32),
+    #[error("CoreError: {0}")]
+    CoreError(#[from] CoreError),
 }
 
 mod shader_ids;
@@ -194,16 +196,17 @@ macro_rules! impl_render_target_extensions_body {
             lights: &[&dyn Light],
         ) -> &Self {
             let frustum = Frustum::new(viewer.projection() * viewer.view());
-            self.write_partially::<RendererError>(scissor_box, || {
+            if let Err(e) = self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
                     .filter(|o| frustum.contains(o.aabb()))
                 {
-                    render_with_material(&self.context, &viewer, geometry, material, lights);
+                    render_with_material(&self.context, &viewer, geometry, material, lights)?;
                 }
                 Ok(())
-            })
-            .unwrap();
+            }) {
+                panic!("{}", e.to_string());
+            }
             self
         }
 
@@ -246,7 +249,7 @@ macro_rules! impl_render_target_extensions_body {
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
             let frustum = Frustum::new(viewer.projection() * viewer.view());
-            self.write_partially::<RendererError>(scissor_box, || {
+            if let Err(e) = self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
                     .filter(|o| frustum.contains(o.aabb()))
@@ -259,11 +262,12 @@ macro_rules! impl_render_target_extensions_body {
                         lights,
                         color_texture,
                         depth_texture,
-                    );
+                    )?;
                 }
                 Ok(())
-            })
-            .unwrap();
+            }) {
+                panic!("{}", e.to_string());
+            }
             self
         }
 
@@ -412,22 +416,25 @@ pub fn render_with_material(
     geometry: impl Geometry,
     material: impl Material,
     lights: &[&dyn Light],
-) {
+) -> Result<(), RendererError> {
     let id = combine_ids(geometry.id(), material.id(), lights.iter().map(|l| l.id()));
 
     let mut programs = context.programs.write().unwrap();
-    let program = programs.entry(id).or_insert_with(|| {
-        match Program::from_source(
-            context,
-            &geometry.vertex_shader_source(),
-            &material.fragment_shader_source(lights),
-        ) {
-            Ok(program) => program,
-            Err(err) => panic!("{}", err.to_string()),
-        }
-    });
+    if !programs.contains_key(&id) {
+        programs.insert(
+            id.clone(),
+            Program::from_source(
+                context,
+                &geometry.vertex_shader_source(),
+                &material.fragment_shader_source(lights),
+            )?,
+        );
+    }
+    let program = programs.get(&id).unwrap();
+
     material.use_uniforms(program, &viewer, lights);
     geometry.draw(&viewer, program, material.render_states());
+    Ok(())
 }
 
 ///
@@ -443,7 +450,7 @@ pub fn render_with_effect(
     lights: &[&dyn Light],
     color_texture: Option<ColorTexture>,
     depth_texture: Option<DepthTexture>,
-) {
+) -> Result<(), RendererError> {
     let id = combine_ids(
         geometry.id(),
         effect.id(color_texture, depth_texture),
@@ -451,18 +458,20 @@ pub fn render_with_effect(
     );
 
     let mut programs = context.programs.write().unwrap();
-    let program = programs.entry(id).or_insert_with(|| {
-        match Program::from_source(
-            context,
-            &geometry.vertex_shader_source(),
-            &effect.fragment_shader_source(lights, color_texture, depth_texture),
-        ) {
-            Ok(program) => program,
-            Err(err) => panic!("{}", err.to_string()),
-        }
-    });
+    if !programs.contains_key(&id) {
+        programs.insert(
+            id.clone(),
+            Program::from_source(
+                context,
+                &geometry.vertex_shader_source(),
+                &effect.fragment_shader_source(lights, color_texture, depth_texture),
+            )?,
+        );
+    }
+    let program = programs.get(&id).unwrap();
     effect.use_uniforms(program, &viewer, lights, color_texture, depth_texture);
     geometry.draw(&viewer, program, effect.render_states());
+    Ok(())
 }
 
 ///
@@ -579,7 +588,7 @@ pub fn pick(
     pixel: impl Into<PhysicalPoint> + Copy,
     geometries: impl IntoIterator<Item = impl Geometry>,
     culling: Cull,
-) -> Option<IntersectionResult> {
+) -> Result<Option<IntersectionResult>, RendererError> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
     ray_intersect(
@@ -615,7 +624,7 @@ pub fn ray_intersect(
     max_depth: f32,
     geometries: impl IntoIterator<Item = impl Geometry>,
     culling: Cull,
-) -> Option<IntersectionResult> {
+) -> Result<Option<IntersectionResult>, RendererError> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
     let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
@@ -661,21 +670,20 @@ pub fn ray_intersect(
     .write::<RendererError>(|| {
         for (id, geometry) in geometries.into_iter().enumerate() {
             material.geometry_id = id as u32;
-            render_with_material(context, &camera, &geometry, &material, &[]);
+            render_with_material(context, &camera, &geometry, &material, &[])?;
         }
         Ok(())
-    })
-    .unwrap()
+    })?
     .read_color::<[f32; 4]>()[0];
     let depth = result[0];
     if depth < 1.0 {
-        Some(IntersectionResult {
+        Ok(Some(IntersectionResult {
             position: position + direction * depth * max_depth,
             geometry_id: result[1].to_bits(),
             instance_id: result[2].to_bits(),
-        })
+        }))
     } else {
-        None
+        Ok(None)
     }
 }
 
