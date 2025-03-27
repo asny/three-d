@@ -55,7 +55,7 @@ impl DirectionalLight {
         &mut self,
         texture_size: u32,
         geometries: impl IntoIterator<Item = impl Geometry> + Clone,
-    ) {
+    ) -> Result<(), RendererError> {
         let up = compute_up_direction(self.direction);
 
         let viewport = Viewport::new_at_origo(texture_size, texture_size);
@@ -64,7 +64,7 @@ impl DirectionalLight {
             aabb.expand_with_aabb(geometry.aabb());
         }
         if aabb.is_empty() {
-            return;
+            return Ok(());
         }
         let position = aabb.center();
         let target = position + self.direction.normalize();
@@ -109,13 +109,13 @@ impl DirectionalLight {
                         &geometry,
                         &depth_material,
                         &[],
-                    );
+                    )?;
                 }
                 Ok(())
-            })
-            .unwrap();
+            })?;
         self.shadow_texture = Some(shadow_texture);
         self.shadow_matrix = shadow_matrix(&shadow_camera);
+        Ok(())
     }
 
     ///

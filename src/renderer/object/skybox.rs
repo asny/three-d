@@ -174,7 +174,9 @@ impl Geometry for Skybox {
         viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, viewer, &self, material, lights)
+        if let Err(e) = render_with_material(&self.context, viewer, &self, material, lights) {
+            panic!("{}", e.to_string());
+        }
     }
 
     fn render_with_effect(
@@ -199,7 +201,9 @@ impl Geometry for Skybox {
 
 impl Object for Skybox {
     fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
-        render_with_material(&self.context, viewer, self, &self.material, lights)
+        if let Err(e) = render_with_material(&self.context, viewer, self, &self.material, lights) {
+            panic!("{}", e.to_string());
+        }
     }
 
     fn material_type(&self) -> MaterialType {

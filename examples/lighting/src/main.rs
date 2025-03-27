@@ -253,9 +253,9 @@ pub async fn run() {
 
         // Draw
         if shadows_enabled {
-            directional0.generate_shadow_map(1024, &model);
-            directional1.generate_shadow_map(1024, &model);
-            spot0.generate_shadow_map(1024, &model);
+            directional0.generate_shadow_map(1024, &model).unwrap();
+            directional1.generate_shadow_map(1024, &model).unwrap();
+            spot0.generate_shadow_map(1024, &model).unwrap();
         }
 
         let lights = [

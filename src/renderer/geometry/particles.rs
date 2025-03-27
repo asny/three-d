@@ -252,7 +252,9 @@ impl Geometry for ParticleSystem {
         viewer: &dyn Viewer,
         lights: &[&dyn Light],
     ) {
-        render_with_material(&self.context, viewer, &self, material, lights)
+        if let Err(e) = render_with_material(&self.context, viewer, &self, material, lights) {
+            panic!("{}", e.to_string());
+        }
     }
 
     fn render_with_effect(

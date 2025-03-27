@@ -114,7 +114,9 @@ pub async fn run() {
                         position,
                         monkey.into_iter().chain(&cone).chain(&instanced_mesh),
                         Cull::Back,
-                    ) {
+                    )
+                    .unwrap()
+                    {
                         pick_mesh.set_transformation(
                             Mat4::from_translation(pick.position) * Mat4::from_scale(0.3),
                         );
