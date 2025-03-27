@@ -196,20 +196,17 @@ macro_rules! impl_render_target_extensions_body {
             lights: &[&dyn Light],
         ) -> &Self {
             let frustum = Frustum::new(viewer.projection() * viewer.view());
-            self.write_partially::<RendererError>(scissor_box, || {
+            if let Err(e) = self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
                     .filter(|o| frustum.contains(o.aabb()))
                 {
-                    if let Err(e) =
-                        render_with_material(&self.context, &viewer, geometry, material, lights)
-                    {
-                        panic!("{}", e.to_string());
-                    }
+                    render_with_material(&self.context, &viewer, geometry, material, lights)?;
                 }
                 Ok(())
-            })
-            .unwrap();
+            }) {
+                panic!("{}", e.to_string());
+            }
             self
         }
 
@@ -252,7 +249,7 @@ macro_rules! impl_render_target_extensions_body {
             depth_texture: Option<DepthTexture>,
         ) -> &Self {
             let frustum = Frustum::new(viewer.projection() * viewer.view());
-            self.write_partially::<RendererError>(scissor_box, || {
+            if let Err(e) = self.write_partially::<RendererError>(scissor_box, || {
                 for geometry in geometries
                     .into_iter()
                     .filter(|o| frustum.contains(o.aabb()))
@@ -265,11 +262,12 @@ macro_rules! impl_render_target_extensions_body {
                         lights,
                         color_texture,
                         depth_texture,
-                    );
+                    )?;
                 }
                 Ok(())
-            })
-            .unwrap();
+            }) {
+                panic!("{}", e.to_string());
+            }
             self
         }
 
@@ -452,7 +450,7 @@ pub fn render_with_effect(
     lights: &[&dyn Light],
     color_texture: Option<ColorTexture>,
     depth_texture: Option<DepthTexture>,
-) {
+) -> Result<(), RendererError> {
     let id = combine_ids(
         geometry.id(),
         effect.id(color_texture, depth_texture),
@@ -460,18 +458,20 @@ pub fn render_with_effect(
     );
 
     let mut programs = context.programs.write().unwrap();
-    let program = programs.entry(id).or_insert_with(|| {
-        match Program::from_source(
-            context,
-            &geometry.vertex_shader_source(),
-            &effect.fragment_shader_source(lights, color_texture, depth_texture),
-        ) {
-            Ok(program) => program,
-            Err(err) => panic!("{}", err.to_string()),
-        }
-    });
+    if !programs.contains_key(&id) {
+        programs.insert(
+            id.clone(),
+            Program::from_source(
+                context,
+                &geometry.vertex_shader_source(),
+                &effect.fragment_shader_source(lights, color_texture, depth_texture),
+            )?,
+        );
+    }
+    let program = programs.get(&id).unwrap();
     effect.use_uniforms(program, &viewer, lights, color_texture, depth_texture);
     geometry.draw(&viewer, program, effect.render_states());
+    Ok(())
 }
 
 ///

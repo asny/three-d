@@ -373,7 +373,7 @@ impl Geometry for TerrainPatch {
         color_texture: Option<ColorTexture>,
         depth_texture: Option<DepthTexture>,
     ) {
-        render_with_effect(
+        if let Err(e) = render_with_effect(
             &self.context,
             viewer,
             self,
@@ -381,7 +381,9 @@ impl Geometry for TerrainPatch {
             lights,
             color_texture,
             depth_texture,
-        )
+        ) {
+            panic!("{}", e.to_string());
+        }
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
