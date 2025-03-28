@@ -99,12 +99,7 @@ pub(crate) fn full_screen_vertex_shader_source() -> &'static str {
 mod data_type;
 use data_type::DataType;
 fn to_byte_slice<T: DataType>(data: &[T]) -> &[u8] {
-    unsafe {
-        std::slice::from_raw_parts(
-            data.as_ptr() as *const _,
-            data.len() * std::mem::size_of::<T>(),
-        )
-    }
+    unsafe { std::slice::from_raw_parts(data.as_ptr() as *const _, std::mem::size_of_val(data)) }
 }
 
 fn from_byte_slice<T: DataType>(data: &[u8]) -> &[T] {

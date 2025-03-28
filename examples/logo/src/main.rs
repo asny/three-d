@@ -85,7 +85,7 @@ impl Material for LogoMaterial<'_> {
     }
 
     fn use_uniforms(&self, program: &Program, _viewer: &dyn Viewer, _lights: &[&dyn Light]) {
-        program.use_texture("image", &self.image);
+        program.use_texture("image", self.image);
     }
 
     fn render_states(&self) -> RenderStates {

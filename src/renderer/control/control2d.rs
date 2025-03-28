@@ -48,10 +48,8 @@ impl Control2D {
                     handled,
                     ..
                 } => {
-                    if !*handled && delta.0.abs() + delta.1.abs() > std::f32::EPSILON {
-                        if delta.0.abs() < std::f32::EPSILON
-                            && delta.1.fract().abs() > std::f32::EPSILON
-                        {
+                    if !*handled && delta.0.abs() + delta.1.abs() > f32::EPSILON {
+                        if delta.0.abs() < f32::EPSILON && delta.1.fract().abs() > f32::EPSILON {
                             self.zoom(camera, delta.1, *position, 0.005);
                         } else {
                             self.pan(camera, *delta, device_pixel_ratio);

@@ -77,7 +77,7 @@ pub fn main() {
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             .render(
-                &Camera::new_2d(frame_input.viewport),
+                Camera::new_2d(frame_input.viewport),
                 line.into_iter().chain(&rectangle).chain(&circle),
                 &[],
             );

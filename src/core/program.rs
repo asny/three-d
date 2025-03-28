@@ -501,7 +501,7 @@ impl Program {
             viewport,
             element_buffer,
             0,
-            element_buffer.count() as u32,
+            element_buffer.count(),
         )
     }
 
@@ -561,7 +561,7 @@ impl Program {
             viewport,
             element_buffer,
             0,
-            element_buffer.count() as u32,
+            element_buffer.count(),
             instance_count,
         )
     }

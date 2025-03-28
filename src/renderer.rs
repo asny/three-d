@@ -402,7 +402,7 @@ fn combine_ids(
     let mut id = geometry.0.to_le_bytes().to_vec();
     id.extend(effect_material.0.to_le_bytes());
     id.extend(lights.map(|l| l.0));
-    return id;
+    id
 }
 
 ///

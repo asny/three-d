@@ -59,20 +59,19 @@ impl GUI {
         device_pixel_ratio: f32,
         callback: impl FnOnce(&egui::Context),
     ) -> bool {
-        self.egui_context
-            .set_pixels_per_point(device_pixel_ratio as f32);
+        self.egui_context.set_pixels_per_point(device_pixel_ratio);
         self.viewport = viewport;
         let egui_input = egui::RawInput {
             screen_rect: Some(egui::Rect {
                 min: egui::Pos2 {
-                    x: viewport.x as f32 / device_pixel_ratio as f32,
-                    y: viewport.y as f32 / device_pixel_ratio as f32,
+                    x: viewport.x as f32 / device_pixel_ratio,
+                    y: viewport.y as f32 / device_pixel_ratio,
                 },
                 max: egui::Pos2 {
-                    x: viewport.x as f32 / device_pixel_ratio as f32
-                        + viewport.width as f32 / device_pixel_ratio as f32,
-                    y: viewport.y as f32 / device_pixel_ratio as f32
-                        + viewport.height as f32 / device_pixel_ratio as f32,
+                    x: viewport.x as f32 / device_pixel_ratio
+                        + viewport.width as f32 / device_pixel_ratio,
+                    y: viewport.y as f32 / device_pixel_ratio
+                        + viewport.height as f32 / device_pixel_ratio,
                 },
             }),
             time: Some(accumulated_time_in_ms * 0.001),
@@ -123,9 +122,8 @@ impl GUI {
                         if !handled {
                             Some(egui::Event::PointerButton {
                                 pos: egui::Pos2 {
-                                    x: position.x / device_pixel_ratio as f32,
-                                    y: (viewport.height as f32 - position.y)
-                                        / device_pixel_ratio as f32,
+                                    x: position.x / device_pixel_ratio,
+                                    y: (viewport.height as f32 - position.y) / device_pixel_ratio,
                                 },
                                 button: button.into(),
                                 pressed: true,
@@ -144,9 +142,8 @@ impl GUI {
                         if !handled {
                             Some(egui::Event::PointerButton {
                                 pos: egui::Pos2 {
-                                    x: position.x / device_pixel_ratio as f32,
-                                    y: (viewport.height as f32 - position.y)
-                                        / device_pixel_ratio as f32,
+                                    x: position.x / device_pixel_ratio,
+                                    y: (viewport.height as f32 - position.y) / device_pixel_ratio,
                                 },
                                 button: button.into(),
                                 pressed: false,
@@ -161,9 +158,8 @@ impl GUI {
                     } => {
                         if !handled {
                             Some(egui::Event::PointerMoved(egui::Pos2 {
-                                x: position.x / device_pixel_ratio as f32,
-                                y: (viewport.height as f32 - position.y)
-                                    / device_pixel_ratio as f32,
+                                x: position.x / device_pixel_ratio,
+                                y: (viewport.height as f32 - position.y) / device_pixel_ratio,
                             }))
                         } else {
                             None
@@ -179,7 +175,7 @@ impl GUI {
                     } => {
                         if !handled {
                             Some(egui::Event::MouseWheel {
-                                delta: egui::Vec2::new(delta.0 as f32, delta.1 as f32),
+                                delta: egui::Vec2::new(delta.0, delta.1),
                                 unit: egui::MouseWheelUnit::Point,
                                 modifiers: modifiers.into(),
                             })

@@ -94,7 +94,7 @@ impl<T: BufferDataType> Buffer<T> {
             );
             self.context.bind_buffer(crate::context::ARRAY_BUFFER, None);
         }
-        self.attribute_count = (offset as u32 + data.len() as u32).max(self.attribute_count);
+        self.attribute_count = (offset + data.len() as u32).max(self.attribute_count);
     }
 
     pub fn attribute_count(&self) -> u32 {

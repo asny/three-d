@@ -62,9 +62,7 @@ fn main() {
     // Render three frames
     for frame_index in 0..3 {
         // Set the current transformation of the triangle
-        model.set_transformation(Mat4::from_angle_y(radians(
-            (frame_index as f32 * 0.6) as f32,
-        )));
+        model.set_transformation(Mat4::from_angle_y(radians(frame_index as f32 * 0.6)));
 
         // Create a render target (a combination of a color and a depth texture) to write into
         let pixels = RenderTarget::new(

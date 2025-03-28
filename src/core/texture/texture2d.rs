@@ -181,7 +181,9 @@ impl Texture2D {
     /// using low-level context calls inside the callback.
     /// This function binds the texture and sets the parameters before calling the callback and generates mip maps afterwards.
     ///
-    /// **Note:** This function is unsafe and should only be used in special cases,
+    /// # Safety
+    ///
+    /// This function is unsafe and should only be used in special cases,
     /// for example when you have an uncommon source of data or the data is in a special format like sRGB.
     ///
     pub unsafe fn new_unchecked<T: TextureDataType>(

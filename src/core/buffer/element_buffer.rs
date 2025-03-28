@@ -95,7 +95,7 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
             self.context
                 .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
         }
-        self.count = (offset as u32 + indices.len() as u32).max(self.count);
+        self.count = (offset + indices.len() as u32).max(self.count);
     }
 
     ///

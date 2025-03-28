@@ -167,12 +167,10 @@ pub async fn run() {
                     ui.add(Slider::new(&mut spot0.intensity, 0.0..=10.0).text("Spot intensity"));
                     ui.add(Slider::new(&mut point0.intensity, 0.0..=1.0).text("Point 0 intensity"));
                     ui.add(Slider::new(&mut point1.intensity, 0.0..=1.0).text("Point 1 intensity"));
-                    if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
-                        if !shadows_enabled {
-                            spot0.clear_shadow_map();
-                            directional0.clear_shadow_map();
-                            directional1.clear_shadow_map();
-                        }
+                    if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() && !shadows_enabled {
+                        spot0.clear_shadow_map();
+                        directional0.clear_shadow_map();
+                        directional1.clear_shadow_map();
                     }
 
                     ui.label("Lighting model");

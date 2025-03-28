@@ -229,7 +229,7 @@ pub trait DataType: std::fmt::Debug + Clone {
     fn send_uniform(context: &Context, location: &UniformLocation, data: &[Self]);
 }
 
-impl<T: DataType + ?Sized> DataType for &T {
+impl<T: DataType> DataType for &T {
     fn internal_format() -> u32 {
         T::internal_format()
     }

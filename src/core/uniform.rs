@@ -25,4 +25,4 @@ impl<T: UniformDataType + PrimitiveDataType> UniformDataType for Matrix2<T> {}
 impl<T: UniformDataType + PrimitiveDataType> UniformDataType for Matrix3<T> {}
 impl<T: UniformDataType + PrimitiveDataType> UniformDataType for Matrix4<T> {}
 
-impl<T: UniformDataType + ?Sized> UniformDataType for &T {}
+impl<T: UniformDataType> UniformDataType for &T {}

@@ -73,7 +73,7 @@ fn build_context_headless<T1: ContextCurrentState>(
     el: &EventLoop<()>,
 ) -> Result<glutin_029::Context<NotCurrent>, CreationError> {
     let size_one = PhysicalSize::new(1, 1);
-    cb.build_headless(&el, size_one)
+    cb.build_headless(el, size_one)
 }
 
 #[cfg(target_os = "linux")]
