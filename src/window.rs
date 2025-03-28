@@ -1,7 +1,6 @@
 //!
 //! Window, event handling and context creation for easy setup.
-//! * Can be avoided fully by setting up a window, event handling etc. and creating a [Context](crate::core::Context)
-//! from a [glow](https://crates.io/crates/glow) OpenGL/WebGL context.
+//! * Can be avoided fully by setting up a window, event handling etc. and creating a [Context](crate::core::Context) from a [glow](https://crates.io/crates/glow) OpenGL/WebGL context.
 //! * If full control over the window and event handling, but not the context creation, is desired, use a [WindowedContext] or [HeadlessContext].
 //! * Finally, for an easy setup, use [Window::new] or [Window::from_winit_window], the latter will provide full control over the creation of the window.
 //!

@@ -78,7 +78,7 @@ pub fn main() {
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
-            .render(&camera, &[&text0, &text1, &text2], &[]);
+            .render(&camera, [&text0, &text1, &text2], &[]);
         FrameOutput::default()
     });
 }

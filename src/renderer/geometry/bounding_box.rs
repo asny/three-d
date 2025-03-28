@@ -30,7 +30,7 @@ impl BoundingBox {
         let max = aabb.max();
         let min = aabb.min();
         let size = aabb.size();
-        let translations = vec![
+        let translations = [
             min,
             vec3(min.x, max.y, max.z),
             vec3(min.x, min.y, max.z),

@@ -38,17 +38,15 @@ impl OrbitControl {
                     handled,
                     ..
                 } => {
-                    if !*handled {
-                        if Some(MouseButton::Left) == *button {
-                            let speed = 0.01;
-                            camera.rotate_around_with_fixed_up(
-                                self.target,
-                                speed * delta.0,
-                                speed * delta.1,
-                            );
-                            *handled = true;
-                            change = true;
-                        }
+                    if !*handled && Some(MouseButton::Left) == *button {
+                        let speed = 0.01;
+                        camera.rotate_around_with_fixed_up(
+                            self.target,
+                            speed * delta.0,
+                            speed * delta.1,
+                        );
+                        *handled = true;
+                        change = true;
                     }
                 }
                 Event::MouseWheel { delta, handled, .. } => {

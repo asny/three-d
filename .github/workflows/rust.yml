@@ -12,9 +12,11 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  RUSTFLAGS: "-Dwarnings"
 
 jobs:
   desktop:
+    name: Check Desktop
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -22,7 +24,7 @@ jobs:
         rust: [stable]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Rust Toolchain
         uses: actions-rs/toolchain@v1
@@ -41,16 +43,22 @@ jobs:
           command: check
           args: --examples --all-features
 
-      - name: Rustfmt
+      - name: Formatting
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: -- --check
+          args: --all -- --check
+
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
 
   web:
+    name: Check Web
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Rust Toolchain
         uses: actions-rs/toolchain@v1
