@@ -1,9 +1,22 @@
 <html>
   <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    <style>
+      #viewer3d {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 50%;
+        height: 50%;
+        max-width: 50%;
+        max-height: 50%;
+      }
+  </style>
   </head>
   <body>
-    <canvas style="position: absolute;top:0;bottom: 0;left: 0;right: 0;margin:auto;"></canvas>
-    <canvas style="position: absolute;top:0;bottom: 0;left: 600;right: 0;margin:auto;"></canvas>
+    <div class="main">
+      <canvas id="viewer3d" ></canvas>
+    </div>
   </body>
 </html>
