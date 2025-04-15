@@ -40,7 +40,7 @@ impl Texture2D {
         cpu_texture: &CpuTexture,
         data: &[T],
     ) -> Self {
-        let mut texture = Self::new_empty::<T>(
+        let texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
             cpu_texture.height,
@@ -101,7 +101,7 @@ impl Texture2D {
     /// Will panic if the length of the data does not correspond to the width, height and format specified at construction.
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
-    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) {
+    pub fn fill<T: TextureDataType>(&self, data: &[T]) {
         check_data_length::<T>(self.width, self.height, 1, self.data_byte_size, data.len());
         self.bind();
         let mut data = data.to_owned();
