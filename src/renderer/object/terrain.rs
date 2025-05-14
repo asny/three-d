@@ -347,7 +347,7 @@ impl Geometry for TerrainPatch {
         if program.requires_attribute("normal") {
             program.use_vertex_attribute("normal", &self.normals_buffer);
         }
-        program.draw_elements(render_states, viewer.viewport(), &self.index_buffer);
+        program.draw_elements(render_states, viewer.viewport(), &self.index_buffer, crate::context::TRIANGLES);
     }
 
     fn id(&self) -> GeometryId {

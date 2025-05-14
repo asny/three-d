@@ -70,6 +70,7 @@ pub fn main() {
                     RenderStates::default(),
                     frame_input.viewport,
                     positions.vertex_count(),
+                    glow::TRIANGLES,
                 );
                 Ok(())
             })
