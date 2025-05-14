@@ -309,20 +309,22 @@ impl BaseMesh {
     pub fn draw(&self, program: &Program, render_states: RenderStates, viewer: &dyn Viewer) {
         self.use_attributes(program);
 
+        let mode = crate::context::TRIANGLES;
+
         match &self.indices {
             IndexBuffer::None => program.draw_arrays(
                 render_states,
                 viewer.viewport(),
-                self.positions.vertex_count(),
+                self.positions.vertex_count(), mode
             ),
             IndexBuffer::U8(element_buffer) => {
-                program.draw_elements(render_states, viewer.viewport(), element_buffer)
+                program.draw_elements(render_states, viewer.viewport(), element_buffer, mode)
             }
             IndexBuffer::U16(element_buffer) => {
-                program.draw_elements(render_states, viewer.viewport(), element_buffer)
+                program.draw_elements(render_states, viewer.viewport(), element_buffer, mode)
             }
             IndexBuffer::U32(element_buffer) => {
-                program.draw_elements(render_states, viewer.viewport(), element_buffer)
+                program.draw_elements(render_states, viewer.viewport(), element_buffer, mode)
             }
         }
     }

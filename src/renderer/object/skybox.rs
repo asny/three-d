@@ -153,7 +153,7 @@ impl Geometry for Skybox {
         program.use_uniform("view", viewer.view());
         program.use_uniform("projection", viewer.projection());
         program.use_vertex_attribute("position", &self.vertex_buffer);
-        program.draw_arrays(render_states, viewer.viewport(), 36);
+        program.draw_arrays(render_states, viewer.viewport(), 36, crate::context::TRIANGLES);
     }
 
     fn vertex_shader_source(&self) -> String {

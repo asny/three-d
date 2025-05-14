@@ -237,7 +237,7 @@ impl Geometry for WaterPatch {
         );
 
         program.use_vertex_attribute("position", &self.position_buffer);
-        program.draw_elements(render_states, viewer.viewport(), &self.index_buffer);
+        program.draw_elements(render_states, viewer.viewport(), &self.index_buffer, crate::context::TRIANGLES);
     }
 
     fn vertex_shader_source(&self) -> String {

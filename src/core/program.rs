@@ -429,13 +429,13 @@ impl Program {
     /// Assumes that the data for the three vertices in a triangle is defined contiguous in each vertex buffer.
     /// If you want to use an [ElementBuffer], see [Program::draw_elements].
     ///
-    pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32) {
+    pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32, mode : u32) {
         self.context.set_viewport(viewport);
         self.context.set_render_states(render_states);
         self.use_program();
         unsafe {
             self.context
-                .draw_arrays(crate::context::TRIANGLES, 0, count as i32);
+                .draw_arrays(mode, 0, count as i32);
             for location in self.attributes.values() {
                 self.context.disable_vertex_attrib_array(*location);
             }
@@ -495,6 +495,7 @@ impl Program {
         render_states: RenderStates,
         viewport: Viewport,
         element_buffer: &ElementBuffer<T>,
+        mode: u32,
     ) {
         self.draw_subset_of_elements(
             render_states,
@@ -502,6 +503,7 @@ impl Program {
             element_buffer,
             0,
             element_buffer.count(),
+            mode,
         )
     }
 
@@ -517,18 +519,15 @@ impl Program {
         element_buffer: &ElementBuffer<T>,
         first: u32,
         count: u32,
+        mode: u32,
     ) {
         self.context.set_viewport(viewport);
         self.context.set_render_states(render_states);
         self.use_program();
         element_buffer.bind();
         unsafe {
-            self.context.draw_elements(
-                crate::context::TRIANGLES,
-                count as i32,
-                T::data_type(),
-                first as i32,
-            );
+            self.context
+                .draw_elements(mode, count as i32, T::data_type(), first as i32);
             self.context
                 .bind_buffer(crate::context::ELEMENT_ARRAY_BUFFER, None);
 
