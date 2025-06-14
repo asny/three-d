@@ -432,7 +432,7 @@ impl TextureCubeMap {
         cpu_texture: &CpuTexture,
     ) -> Self {
         let texture_size = cpu_texture.width / 4;
-        let mut texture = Self::new_empty::<[T; 4]>(
+        let texture = Self::new_empty::<[T; 4]>(
             context,
             texture_size,
             texture_size,
@@ -497,7 +497,7 @@ impl TextureCubeMap {
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     ///
     pub fn as_color_target<'a>(
-        &'a mut self,
+        &'a self,
         sides: &'a [CubeMapSide],
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {

@@ -105,7 +105,7 @@ macro_rules! impl_render_target_extensions_body {
                 let geometry_pass_camera = GeometryPassCamera(&viewer);
                 let viewport = geometry_pass_camera.viewport();
                 deferred_objects.sort_by(|a, b| cmp_render_order(&geometry_pass_camera, a, b));
-                let mut geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
+                let geometry_pass_texture = Texture2DArray::new_empty::<[u8; 4]>(
                     &self.context,
                     viewport.width,
                     viewport.height,
@@ -116,7 +116,7 @@ macro_rules! impl_render_target_extensions_body {
                     Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge,
                 );
-                let mut geometry_pass_depth_texture = DepthTexture2D::new::<f32>(
+                let geometry_pass_depth_texture = DepthTexture2D::new::<f32>(
                     &self.context,
                     viewport.width,
                     viewport.height,
@@ -641,7 +641,7 @@ pub fn ray_intersect(
         0.0,
         max_depth,
     );
-    let mut texture = Texture2D::new_empty::<[f32; 4]>(
+    let texture = Texture2D::new_empty::<[f32; 4]>(
         context,
         viewport.width,
         viewport.height,
@@ -651,7 +651,7 @@ pub fn ray_intersect(
         Wrapping::ClampToEdge,
         Wrapping::ClampToEdge,
     );
-    let mut depth_texture = DepthTexture2D::new::<f32>(
+    let depth_texture = DepthTexture2D::new::<f32>(
         context,
         viewport.width,
         viewport.height,
