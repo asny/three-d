@@ -105,7 +105,7 @@ impl<D: DepthTextureDataType> DepthTargetMultisample<D> {
     /// Use [DepthTargetMultisample::resolve_to] to resolve to a custom non-multisample texture.
     ///
     pub fn resolve(&self) -> DepthTexture2D {
-        let mut depth_texture = DepthTexture2D::new::<D>(
+        let depth_texture = DepthTexture2D::new::<D>(
             &self.context,
             self.width(),
             self.height(),

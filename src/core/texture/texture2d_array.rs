@@ -129,7 +129,7 @@ impl Texture2DArray {
         cpu_texture: &CpuTexture,
         data: &[&[T]],
     ) -> Self {
-        let mut texture = Self::new_empty::<T>(
+        let texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
             cpu_texture.height,
@@ -192,7 +192,7 @@ impl Texture2DArray {
     /// Will panic if the data does not correspond to the width, height, depth and format specified at construction.
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
-    pub fn fill<T: TextureDataType>(&mut self, data: &[&[T]]) {
+    pub fn fill<T: TextureDataType>(&self, data: &[&[T]]) {
         for (i, data) in data.iter().enumerate() {
             self.fill_layer(i as u32, data);
         }
@@ -205,7 +205,7 @@ impl Texture2DArray {
     /// Will panic if the layer number is bigger than the number of layers or if the data does not correspond to the width, height and format specified at construction.
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
-    pub fn fill_layer<T: TextureDataType>(&mut self, layer: u32, data: &[T]) {
+    pub fn fill_layer<T: TextureDataType>(&self, layer: u32, data: &[T]) {
         if layer >= self.depth {
             panic!(
                 "cannot fill the layer {} with data, since there are only {} layers in the texture array",

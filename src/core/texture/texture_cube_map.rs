@@ -276,7 +276,7 @@ impl TextureCubeMap {
         front_data: &[T],
         back_data: &[T],
     ) -> Self {
-        let mut texture = Self::new_empty::<T>(
+        let texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
             cpu_texture.height,
@@ -346,7 +346,7 @@ impl TextureCubeMap {
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(
-        &mut self,
+        &self,
         right_data: &[T],
         left_data: &[T],
         top_data: &[T],
