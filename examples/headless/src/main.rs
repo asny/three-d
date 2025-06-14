@@ -39,7 +39,7 @@ fn main() {
     );
 
     // Create a color texture to render into
-    let mut texture = Texture2D::new_empty::<[u8; 4]>(
+    let texture = Texture2D::new_empty::<[u8; 4]>(
         &context,
         viewport.width,
         viewport.height,
@@ -51,7 +51,7 @@ fn main() {
     );
 
     // Also create a depth texture to support depth testing
-    let mut depth_texture = DepthTexture2D::new::<f32>(
+    let depth_texture = DepthTexture2D::new::<f32>(
         &context,
         viewport.width,
         viewport.height,

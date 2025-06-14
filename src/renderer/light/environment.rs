@@ -41,7 +41,7 @@ impl Environment {
     ) -> Self {
         // Diffuse
         let irradiance_size = 32;
-        let mut irradiance_map = TextureCubeMap::new_empty::<[f16; 4]>(
+        let irradiance_map = TextureCubeMap::new_empty::<[f16; 4]>(
             context,
             irradiance_size,
             irradiance_size,
@@ -71,7 +71,7 @@ impl Environment {
 
         // Prefilter
         let prefilter_size = 128;
-        let mut prefilter_map = TextureCubeMap::new_empty::<[f16; 4]>(
+        let prefilter_map = TextureCubeMap::new_empty::<[f16; 4]>(
             context,
             prefilter_size,
             prefilter_size,
@@ -108,7 +108,7 @@ impl Environment {
         }
 
         // BRDF
-        let mut brdf_map = Texture2D::new_empty::<[f32; 2]>(
+        let brdf_map = Texture2D::new_empty::<[f32; 2]>(
             context,
             512,
             512,

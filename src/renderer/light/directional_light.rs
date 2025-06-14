@@ -80,7 +80,7 @@ impl DirectionalLight {
             z_near,
             z_far,
         );
-        let mut shadow_texture = DepthTexture2D::new::<f32>(
+        let shadow_texture = DepthTexture2D::new::<f32>(
             &self.context,
             texture_size,
             texture_size,

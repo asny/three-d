@@ -276,7 +276,7 @@ impl TextureCubeMap {
         front_data: &[T],
         back_data: &[T],
     ) -> Self {
-        let mut texture = Self::new_empty::<T>(
+        let texture = Self::new_empty::<T>(
             context,
             cpu_texture.width,
             cpu_texture.height,
@@ -346,7 +346,7 @@ impl TextureCubeMap {
     /// It is therefore necessary to create a new texture if the texture size or format has changed.
     ///
     pub fn fill<T: TextureDataType>(
-        &mut self,
+        &self,
         right_data: &[T],
         left_data: &[T],
         top_data: &[T],
@@ -432,7 +432,7 @@ impl TextureCubeMap {
         cpu_texture: &CpuTexture,
     ) -> Self {
         let texture_size = cpu_texture.width / 4;
-        let mut texture = Self::new_empty::<[T; 4]>(
+        let texture = Self::new_empty::<[T; 4]>(
             context,
             texture_size,
             texture_size,
@@ -497,7 +497,7 @@ impl TextureCubeMap {
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     ///
     pub fn as_color_target<'a>(
-        &'a mut self,
+        &'a self,
         sides: &'a [CubeMapSide],
         mip_level: Option<u32>,
     ) -> ColorTarget<'a> {

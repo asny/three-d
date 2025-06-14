@@ -59,7 +59,7 @@ impl DepthTexture2DArray {
     /// Returns a [DepthTarget] which can be used to clear, write to and read from the given layer of this texture.
     /// Combine this together with a [ColorTarget] with [RenderTarget::new] to be able to write to both a depth and color target at the same time.
     ///
-    pub fn as_depth_target(&mut self, layer: u32) -> DepthTarget<'_> {
+    pub fn as_depth_target(&self, layer: u32) -> DepthTarget<'_> {
         DepthTarget::new_texture_2d_array(&self.context, self, layer)
     }
 

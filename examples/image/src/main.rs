@@ -88,7 +88,7 @@ pub async fn run() {
             ..Default::default()
         };
 
-        let mut target = Texture2D::new_empty::<[f16; 4]>(
+        let target = Texture2D::new_empty::<[f16; 4]>(
             &context,
             viewport.width,
             viewport.height,
