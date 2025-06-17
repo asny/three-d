@@ -17,7 +17,6 @@ macro_rules! impl_object_body {
         }
     };
 }
-
 mod gm;
 #[doc(inline)]
 pub use gm::*;
@@ -53,6 +52,10 @@ pub use water::*;
 mod axes;
 #[doc(inline)]
 pub use axes::*;
+
+mod wireframe;
+#[doc(inline)]
+pub use wireframe::*;
 
 use crate::core::*;
 use crate::renderer::*;
