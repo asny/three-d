@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 three-d = { path = "../../" }
-winit = "0.28"
+winit = "0.30"
 web-sys = "0.3"
 wasm-bindgen = "0.2"
 
