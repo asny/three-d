@@ -30,8 +30,8 @@ three-d-asset = "0.9"
 thiserror = "2"
 open-enum = "0.5"
 winit = {version = "0.28", optional = true}
-egui = { version = "0.30", optional = true }
-egui_glow = { version = "0.30", optional = true }
+egui = { version = "0.32", optional = true }
+egui_glow = { version = "0.32", optional = true }
 getrandom = { version = "0.2", features = ["js"], optional = true }
 swash = { version = "0.1", optional = true }
 lyon = { version = "1", optional = true }
