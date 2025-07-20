@@ -132,6 +132,14 @@ impl Mesh {
     pub fn colors_mut(&mut self) -> &mut Option<VertexBuffer<Vec4>> {
         &mut self.base_mesh.colors
     }
+
+    ///
+    /// Used for editing the axis-aligned bounding box.
+    /// Note: Changing this will possibly hide the mesh due to frustum culling.
+    ///
+    pub fn aabb_mut(&mut self) -> &mut AxisAlignedBoundingBox {
+        &mut self.aabb
+    }
 }
 
 impl<'a> IntoIterator for &'a Mesh {
