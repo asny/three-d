@@ -81,19 +81,3 @@ jobs:
               echo "::endgroup::"
             fi
           done
-
-  # headless:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-
-  #     - name: Install Rust Toolchain
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         profile: minimal
-  #         toolchain: stable
-  #         override: true
-
-  #     - run: sudo apt-get update && sudo apt-get install -y xvfb libfontconfig1-dev
-
-  #     - run: xvfb-run -a cargo run --example headless --features="headless"
