@@ -49,7 +49,7 @@ impl FrameInput {
     /// RenderTarget::screen(&frame_input.context, frame_input.viewport.width, frame_input.viewport.height)
     /// ```
     ///
-    pub fn screen(&self) -> RenderTarget {
+    pub fn screen(&self) -> RenderTarget<'_> {
         RenderTarget::screen(&self.context, self.viewport.width, self.viewport.height)
     }
 }
