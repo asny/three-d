@@ -593,7 +593,7 @@ impl Program {
             }
         })
     }
-    
+
     ///
     /// Returns true if this program uses the uniform with the given name.
     ///
