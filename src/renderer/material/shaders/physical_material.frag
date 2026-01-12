@@ -38,9 +38,9 @@ uniform mat3 heightTexTransform;
 uniform float heightScale;
 uniform int heightBaseLayers;
 uniform int heightRefinementIterations;
-uniform float heightLayerScale;   // Precomputed: heightScale-based layer multiplier (0.25-3.0)
-uniform float heightFadeStart;    // Distance where POM starts fading
-uniform float heightFadeEnd;      // Distance where POM is fully off
+uniform float heightLayerScale;     // Precomputed: heightScale-based layer multiplier (0.25-3.0)
+uniform float heightFadeDistStart;  // Distance where POM starts fading
+uniform float heightFadeDistEnd;    // Distance where POM is fully off
 #ifndef USE_NORMAL_TEXTURE
 uniform float heightNormalScale;  // Normal strength when deriving from height (default: 10.0 * heightScale)
 #endif
@@ -78,7 +78,7 @@ vec3 heightToNormal(vec2 texCoords, float strength) {
 // Full quality POM close up, smoothly blends to flat at distance
 vec2 parallaxOcclusionMapping(vec2 texCoords, vec3 viewDirTangent, float dist, out float pomStrength) {
     // Smooth fade based on quality setting
-    pomStrength = 1.0 - smoothstep(heightFadeStart, heightFadeEnd, dist);
+    pomStrength = 1.0 - smoothstep(heightFadeDistStart, heightFadeDistEnd, dist);
 
     // Early out for distant surfaces
     if (pomStrength < 0.001) {

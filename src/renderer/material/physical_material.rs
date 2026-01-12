@@ -24,8 +24,8 @@ pub enum HeightQuality {
 }
 
 impl HeightQuality {
-    /// Returns (base_layers, refinement_iterations, fade_start, fade_end) for this quality level.
-    /// fade_start: distance where POM starts fading, fade_end: distance where POM is fully off.
+    /// Returns (base_layers, refinement_iterations, fade_dist_start, fade_dist_end) for this quality level.
+    /// fade_dist_start: distance where POM starts fading, fade_dist_end: distance where POM is fully off.
     #[inline]
     pub const fn params(self) -> (u32, u32, f32, f32) {
         match self {
@@ -297,7 +297,7 @@ impl Material for PhysicalMaterial {
         }
         if program.requires_uniform("heightTexture") {
             if let Some(ref texture) = self.height_texture {
-                let (base_layers, refinement_iterations, fade_start, fade_end) =
+                let (base_layers, refinement_iterations, fade_dist_start, fade_dist_end) =
                     self.height_quality.params();
                 // Precompute height scale factor on CPU:
                 // 0.001 -> 0.25, 0.02 -> 1.0, 0.1 -> 3.0
@@ -319,9 +319,9 @@ impl Material for PhysicalMaterial {
                 // Layer count multiplier based on height_scale (0.25-3.0)
                 program.use_uniform("heightLayerScale", height_layer_scale);
                 // Distance where POM quality starts fading
-                program.use_uniform("heightFadeStart", fade_start);
+                program.use_uniform("heightFadeDistStart", fade_dist_start);
                 // Distance where POM is fully disabled (falls back to flat UVs)
-                program.use_uniform("heightFadeEnd", fade_end);
+                program.use_uniform("heightFadeDistEnd", fade_dist_end);
                 // Normal strength for height-derived normals (only used when no normal texture)
                 if self.normal_texture.is_none() {
                     program.use_uniform("heightNormalScale", self.height_scale * 10.0);
