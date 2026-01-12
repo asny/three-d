@@ -168,6 +168,7 @@ impl EffectMaterialId {
             occlusion_texture,
             normal_texture,
             emissive_texture,
+            height_texture,
         )
     );
     enum_bitfield!(

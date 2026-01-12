@@ -1,6 +1,43 @@
 use crate::core::*;
 use crate::renderer::*;
 
+/// Quality presets for parallax occlusion mapping.
+/// Controls the number of ray-march layers, secant refinement iterations, and fade distances.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum HeightQuality {
+    /// Minimal quality with short fade range. Use for subtle displacement
+    /// or when many POM surfaces are visible simultaneously.
+    VeryLow,
+    /// Low quality with medium fade range. Use for background surfaces
+    /// or floors where the camera rarely gets close.
+    Low,
+    /// Balanced quality and performance. Suitable for most surfaces that
+    /// the player can approach but won't inspect closely.
+    #[default]
+    Medium,
+    /// High quality with extended range. Use for important surfaces like
+    /// walls or objects the player will examine up close.
+    High,
+    /// Maximum quality. Use sparingly for hero assets or surfaces where
+    /// fine displacement detail is critical.
+    VeryHigh,
+}
+
+impl HeightQuality {
+    /// Returns (base_layers, refinement_iterations, fade_start, fade_end) for this quality level.
+    /// fade_start: distance where POM starts fading, fade_end: distance where POM is fully off.
+    #[inline]
+    pub const fn params(self) -> (u32, u32, f32, f32) {
+        match self {
+            HeightQuality::VeryLow => (4, 0, 5.0, 15.0),
+            HeightQuality::Low => (8, 0, 8.0, 25.0),
+            HeightQuality::Medium => (8, 2, 10.0, 50.0),
+            HeightQuality::High => (12, 3, 15.0, 50.0),
+            HeightQuality::VeryHigh => (16, 4, 15.0, 50.0),
+        }
+    }
+}
+
 ///
 /// A physically-based material that renders a [Geometry] in an approximate correct physical manner based on Physically Based Rendering (PBR).
 /// This material is affected by lights.
@@ -41,6 +78,15 @@ pub struct PhysicalMaterial {
     pub emissive_texture: Option<Texture2DRef>,
     /// The lighting model used when rendering this material
     pub lighting_model: LightingModel,
+    /// Height map texture for parallax occlusion mapping.
+    /// White = raised, 50% gray = surface level, Black = lowered.
+    /// Height values are sampled from the red channel.
+    pub height_texture: Option<Texture2DRef>,
+    /// Height scale (depth) for parallax occlusion mapping.
+    /// Typical range: 0.01 - 0.1. Higher = more depth but more artifacts at glancing angles.
+    pub height_scale: f32,
+    /// Quality preset for parallax occlusion mapping.
+    pub height_quality: HeightQuality,
 }
 
 impl PhysicalMaterial {
@@ -139,6 +185,9 @@ impl PhysicalMaterial {
             emissive: cpu_material.emissive,
             emissive_texture,
             lighting_model: cpu_material.lighting_model,
+            height_texture: None,
+            height_scale: 0.05,
+            height_quality: HeightQuality::default(),
         }
     }
 }
@@ -157,32 +206,42 @@ impl Material for PhysicalMaterial {
             self.occlusion_texture.is_some(),
             self.normal_texture.is_some(),
             self.emissive_texture.is_some(),
+            self.height_texture.is_some(),
         )
     }
 
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         let mut output = lights_shader_source(lights);
-        if self.albedo_texture.is_some()
+        let uses_textures = self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
             || self.occlusion_texture.is_some()
             || self.emissive_texture.is_some()
-        {
+            || self.height_texture.is_some();
+
+        if uses_textures {
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
-                output.push_str("#define USE_ALBEDO_TEXTURE;\n");
+                output.push_str("#define USE_ALBEDO_TEXTURE\n");
             }
             if self.metallic_roughness_texture.is_some() {
-                output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
+                output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE\n");
             }
             if self.occlusion_texture.is_some() {
-                output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
+                output.push_str("#define USE_OCCLUSION_TEXTURE\n");
+            }
+            // Normal texture OR height texture requires tangent/bitangent
+            if self.normal_texture.is_some() || self.height_texture.is_some() {
+                output.push_str("in vec3 tang;\nin vec3 bitang;\n");
             }
             if self.normal_texture.is_some() {
-                output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
+                output.push_str("#define USE_NORMAL_TEXTURE\n");
             }
             if self.emissive_texture.is_some() {
-                output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
+                output.push_str("#define USE_EMISSIVE_TEXTURE\n");
+            }
+            if self.height_texture.is_some() {
+                output.push_str("#define USE_HEIGHT_TEXTURE\n");
             }
         }
         output.push_str(ToneMapping::fragment_shader_source());
@@ -236,6 +295,41 @@ impl Material for PhysicalMaterial {
                 program.use_texture("emissiveTexture", texture);
             }
         }
+        if program.requires_uniform("heightTexture") {
+            if let Some(ref texture) = self.height_texture {
+                let (base_layers, refinement_iterations, fade_start, fade_end) =
+                    self.height_quality.params();
+                // Precompute height scale factor on CPU:
+                // 0.001 -> 0.25, 0.02 -> 1.0, 0.1 -> 3.0
+                let height_layer_scale = if self.height_scale < 0.02 {
+                    let t = ((self.height_scale - 0.001) / (0.02 - 0.001)).clamp(0.0, 1.0);
+                    0.25 + t * 0.75
+                } else {
+                    let t = ((self.height_scale - 0.02) / (0.1 - 0.02)).clamp(0.0, 1.0);
+                    1.0 + t * 2.0
+                };
+                // UV transformation matrix for height texture
+                program.use_uniform("heightTexTransform", texture.transformation);
+                // Depth scale for parallax displacement (typical: 0.01-0.1)
+                program.use_uniform("heightScale", self.height_scale);
+                // Base number of ray-march layers (before quality scaling)
+                program.use_uniform("heightBaseLayers", base_layers as i32);
+                // Secant refinement iterations for sub-layer precision
+                program.use_uniform("heightRefinementIterations", refinement_iterations as i32);
+                // Layer count multiplier based on height_scale (0.25-3.0)
+                program.use_uniform("heightLayerScale", height_layer_scale);
+                // Distance where POM quality starts fading
+                program.use_uniform("heightFadeStart", fade_start);
+                // Distance where POM is fully disabled (falls back to flat UVs)
+                program.use_uniform("heightFadeEnd", fade_end);
+                // Normal strength for height-derived normals (only used when no normal texture)
+                if self.normal_texture.is_none() {
+                    program.use_uniform("heightNormalScale", self.height_scale * 10.0);
+                }
+                // Height map sampler (red channel: white = raised, 50% gray = surface level, black = lowered)
+                program.use_texture("heightTexture", texture);
+            }
+        }
     }
 
     fn render_states(&self) -> RenderStates {
@@ -268,6 +362,9 @@ impl Default for PhysicalMaterial {
             emissive: Srgba::BLACK,
             emissive_texture: None,
             lighting_model: LightingModel::Blinn,
+            height_texture: None,
+            height_scale: 0.05,
+            height_quality: HeightQuality::default(),
         }
     }
 }
