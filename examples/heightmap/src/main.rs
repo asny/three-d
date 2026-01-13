@@ -591,12 +591,12 @@ pub async fn run() {
 }
 
 async fn load_texture_set(name: &str, base_path: &str) -> TextureSet {
-    let albedo_path = format!("{}_albedo.png", base_path);
-    let normal_path = format!("{}_normal.png", base_path);
-    let ao_path = format!("{}_ao.png", base_path);
-    let height_path = format!("{}_height.png", base_path);
-    let roughness_path = format!("{}_roughness.png", base_path);
-    let metallic_path = format!("{}_metallic.png", base_path);
+    let albedo_path = format!("{}_albedo.webp", base_path);
+    let normal_path = format!("{}_normal.webp", base_path);
+    let ao_path = format!("{}_ao.webp", base_path);
+    let height_path = format!("{}_height.webp", base_path);
+    let roughness_path = format!("{}_roughness.webp", base_path);
+    let metallic_path = format!("{}_metallic.webp", base_path);
 
     let mut loaded = three_d_asset::io::load_async(&[
         albedo_path.as_str(),
