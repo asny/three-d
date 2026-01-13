@@ -38,6 +38,21 @@ impl HeightQuality {
     }
 }
 
+/// Computes maximum POM layer count from base layers and height scale.
+/// Smaller height scales need fewer layers; larger scales need more for quality.
+/// Returns at least 2 layers.
+#[inline]
+fn compute_height_max_layers(base_layers: u32, height_scale: f32) -> i32 {
+    let multiplier = if height_scale < 0.02 {
+        let t = ((height_scale - 0.001) / (0.02 - 0.001)).clamp(0.0, 1.0);
+        0.25 + t * 0.75
+    } else {
+        let t = ((height_scale - 0.02) / (0.1 - 0.02)).clamp(0.0, 1.0);
+        1.0 + t * 2.0
+    };
+    (base_layers as f32 * multiplier).round().max(2.0) as i32
+}
+
 ///
 /// A physically-based material that renders a [Geometry] in an approximate correct physical manner based on Physically Based Rendering (PBR).
 /// This material is affected by lights.
@@ -299,25 +314,14 @@ impl Material for PhysicalMaterial {
             if let Some(ref texture) = self.height_texture {
                 let (base_layers, refinement_iterations, fade_dist_start, fade_dist_end) =
                     self.height_quality.params();
-                // Precompute height scale factor on CPU:
-                // 0.001 -> 0.25, 0.02 -> 1.0, 0.1 -> 3.0
-                let height_layer_scale = if self.height_scale < 0.02 {
-                    let t = ((self.height_scale - 0.001) / (0.02 - 0.001)).clamp(0.0, 1.0);
-                    0.25 + t * 0.75
-                } else {
-                    let t = ((self.height_scale - 0.02) / (0.1 - 0.02)).clamp(0.0, 1.0);
-                    1.0 + t * 2.0
-                };
                 // UV transformation matrix for height texture
                 program.use_uniform("heightTexTransform", texture.transformation);
                 // Depth scale for parallax displacement (typical: 0.01-0.1)
                 program.use_uniform("heightScale", self.height_scale);
-                // Base number of ray-march layers (before quality scaling)
-                program.use_uniform("heightBaseLayers", base_layers as i32);
+                // Max number of ray-march layers (will decrease according to POM quality)
+                program.use_uniform("heightMaxLayers", compute_height_max_layers(base_layers, self.height_scale));
                 // Secant refinement iterations for sub-layer precision
                 program.use_uniform("heightRefinementIterations", refinement_iterations as i32);
-                // Layer count multiplier based on height_scale (0.25-3.0)
-                program.use_uniform("heightLayerScale", height_layer_scale);
                 // Distance where POM quality starts fading
                 program.use_uniform("heightFadeDistStart", fade_dist_start);
                 // Distance where POM is fully disabled (falls back to flat UVs)

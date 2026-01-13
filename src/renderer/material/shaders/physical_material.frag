@@ -36,9 +36,8 @@ uniform float normalScale;
 uniform sampler2D heightTexture;
 uniform mat3 heightTexTransform;
 uniform float heightScale;
-uniform int heightBaseLayers;
+uniform int heightMaxLayers;  // Precomputed: base_layers * height_scale-based multiplier
 uniform int heightRefinementIterations;
-uniform float heightLayerScale;     // Precomputed: heightScale-based layer multiplier (0.25-3.0)
 uniform float heightFadeDistStart;  // Distance where POM starts fading
 uniform float heightFadeDistEnd;    // Distance where POM is fully off
 #endif
@@ -65,8 +64,8 @@ vec2 parallaxOcclusionMapping(vec2 texCoords, vec3 viewDirTangent, float dist, o
     mat2 txLinear = mat2(heightTexTransform[0].xy, heightTexTransform[1].xy);
     vec2 txOffset = heightTexTransform[2].xy;
 
-    // Layer count scales with pomStrength - fewer layers at distance (masked by UV fade)
-    float fNumLayers = max(2.0, floor(float(heightBaseLayers) * heightLayerScale * pomStrength));
+    // Layer count scales with pomStrength - fewer layers at distance
+    float fNumLayers = max(2.0, floor(float(heightMaxLayers) * pomStrength + 0.5));
     float invNumLayers = 1.0 / fNumLayers;
 
     // Shift per layer (divide by z for correct view-angle scaling)
