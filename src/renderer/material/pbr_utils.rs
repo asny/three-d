@@ -43,6 +43,22 @@ fn get_height(heights: &[f32], width: u32, height: u32, x: i32, y: i32) -> f32 {
 pub fn heightmap_to_normal(heightmap: &CpuTexture, strength: f32) -> CpuTexture {
     let width = heightmap.width;
     let height = heightmap.height;
+
+    // Handle empty texture
+    if width == 0 || height == 0 {
+        return CpuTexture {
+            name: format!("{}_normal", heightmap.name),
+            data: TextureData::RgbU8(vec![]),
+            width,
+            height,
+            min_filter: heightmap.min_filter,
+            mag_filter: heightmap.mag_filter,
+            mipmap: heightmap.mipmap,
+            wrap_s: heightmap.wrap_s,
+            wrap_t: heightmap.wrap_t,
+        };
+    }
+
     let heights = extract_heights(heightmap);
 
     let mut normals: Vec<[u8; 3]> = Vec::with_capacity((width * height) as usize);
@@ -122,8 +138,8 @@ pub fn heightmap_to_ao(
     let width = heightmap.width;
     let height = heightmap.height;
 
-    // Guard against zero ray count - return white (no occlusion) texture
-    if ray_count == 0 {
+    // Handle empty texture or zero ray count - return white (no occlusion) texture
+    if width == 0 || height == 0 || ray_count == 0 {
         return CpuTexture {
             name: format!("{}_ao", heightmap.name),
             data: TextureData::RU8(vec![255; (width * height) as usize]),
