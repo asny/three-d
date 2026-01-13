@@ -135,6 +135,7 @@ void main()
 #endif
 
     // Calculate parallax-displaced UVs with smooth distance fade
+    // Compiler will optimize-out this assignment if USE_HEIGHT_TEXTURE is false
     vec2 texCoords = uvs;
 #ifdef USE_HEIGHT_TEXTURE
     vec3 toCamera = cameraPosition - pos;
