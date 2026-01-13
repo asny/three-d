@@ -215,13 +215,14 @@ impl FromCpuMaterial for PhysicalMaterial {
 
 impl Material for PhysicalMaterial {
     fn id(&self) -> EffectMaterialId {
+        let use_height = self.height_texture.is_some() && self.height_scale != 0.0;
         EffectMaterialId::PhysicalMaterial(
             self.albedo_texture.is_some(),
             self.metallic_roughness_texture.is_some(),
             self.occlusion_texture.is_some(),
             self.normal_texture.is_some(),
             self.emissive_texture.is_some(),
-            self.height_texture.is_some() && self.height_scale != 0.0,
+            use_height,
         )
     }
 
