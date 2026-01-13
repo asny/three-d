@@ -4,9 +4,9 @@
 
 use crate::core::*;
 
-/// Extracts height values from a CpuTexture as normalized f32 values (0.0 to 1.0).
-/// Reads from the red channel for all supported formats.
-fn extract_heights(cpu_texture: &CpuTexture) -> Vec<f32> {
+/// Extracts the red channel from a CpuTexture as normalized f32 values (0.0 to 1.0).
+/// Works with all supported texture formats.
+fn extract_red_channel(cpu_texture: &CpuTexture) -> Vec<f32> {
     match &cpu_texture.data {
         TextureData::RU8(data) => data.iter().map(|&v| v as f32 / 255.0).collect(),
         TextureData::RgU8(data) => data.iter().map(|v| v[0] as f32 / 255.0).collect(),
@@ -23,12 +23,12 @@ fn extract_heights(cpu_texture: &CpuTexture) -> Vec<f32> {
     }
 }
 
-/// Gets a height value with clamped boundary handling.
+/// Samples a texel from a flat data array with clamped boundary handling.
 #[inline]
-fn get_height(heights: &[f32], width: u32, height: u32, x: i32, y: i32) -> f32 {
+fn get_texel_clamped(data: &[f32], width: u32, height: u32, x: i32, y: i32) -> f32 {
     let x = x.clamp(0, width as i32 - 1) as usize;
     let y = y.clamp(0, height as i32 - 1) as usize;
-    heights[y * width as usize + x]
+    data[y * width as usize + x]
 }
 
 /// Generates a normal map from a heightmap using Sobel filtering.
@@ -59,21 +59,21 @@ pub fn heightmap_to_normal(heightmap: &CpuTexture, strength: f32) -> CpuTexture 
         };
     }
 
-    let heights = extract_heights(heightmap);
+    let heights = extract_red_channel(heightmap);
 
     let mut normals: Vec<[u8; 3]> = Vec::with_capacity((width * height) as usize);
 
     for y in 0..height as i32 {
         for x in 0..width as i32 {
             // Sobel filter for better quality gradients
-            let tl = get_height(&heights, width, height, x - 1, y - 1);
-            let t = get_height(&heights, width, height, x, y - 1);
-            let tr = get_height(&heights, width, height, x + 1, y - 1);
-            let l = get_height(&heights, width, height, x - 1, y);
-            let r = get_height(&heights, width, height, x + 1, y);
-            let bl = get_height(&heights, width, height, x - 1, y + 1);
-            let b = get_height(&heights, width, height, x, y + 1);
-            let br = get_height(&heights, width, height, x + 1, y + 1);
+            let tl = get_texel_clamped(&heights, width, height, x - 1, y - 1);
+            let t = get_texel_clamped(&heights, width, height, x, y - 1);
+            let tr = get_texel_clamped(&heights, width, height, x + 1, y - 1);
+            let l = get_texel_clamped(&heights, width, height, x - 1, y);
+            let r = get_texel_clamped(&heights, width, height, x + 1, y);
+            let bl = get_texel_clamped(&heights, width, height, x - 1, y + 1);
+            let b = get_texel_clamped(&heights, width, height, x, y + 1);
+            let br = get_texel_clamped(&heights, width, height, x + 1, y + 1);
 
             // Sobel operators
             let dx = (tr + 2.0 * r + br) - (tl + 2.0 * l + bl);
@@ -153,7 +153,7 @@ pub fn heightmap_to_ao(
         };
     }
 
-    let heights = extract_heights(heightmap);
+    let heights = extract_red_channel(heightmap);
 
     let mut ao_values: Vec<u8> = Vec::with_capacity((width * height) as usize);
 
@@ -167,7 +167,7 @@ pub fn heightmap_to_ao(
 
     for y in 0..height as i32 {
         for x in 0..width as i32 {
-            let center_height = get_height(&heights, width, height, x, y);
+            let center_height = get_texel_clamped(&heights, width, height, x, y);
             let mut total_occlusion = 0.0;
 
             // Trace rays in each direction
@@ -188,7 +188,7 @@ pub fn heightmap_to_ao(
                         break;
                     }
 
-                    let sample_height = get_height(&heights, width, height, sx, sy);
+                    let sample_height = get_texel_clamped(&heights, width, height, sx, sy);
                     let height_diff = sample_height - center_height;
                     let distance = step as f32;
 
