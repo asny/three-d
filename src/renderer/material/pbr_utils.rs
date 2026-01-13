@@ -193,8 +193,10 @@ pub fn heightmap_to_ao(
                     let distance = step as f32;
 
                     // Calculate horizon angle (atan2 of height difference over distance)
-                    // Using a simpler approximation for speed
-                    let horizon_angle = (height_diff / distance).atan();
+                    // Scale height_diff by max_distance to make height comparable to distance
+                    // This treats the heightmap as if max height difference spans max_distance texels
+                    let scaled_height_diff = height_diff * max_distance as f32;
+                    let horizon_angle = (scaled_height_diff / distance).atan();
                     max_horizon_angle = max_horizon_angle.max(horizon_angle);
                 }
 

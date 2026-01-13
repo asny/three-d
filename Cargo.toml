@@ -192,3 +192,8 @@ path = "examples/multiwindow/src/main.rs"
 [[example]]
 name = "logo"
 path = "examples/logo/src/main.rs"
+
+[[example]]
+name = "heightmap"
+path = "examples/heightmap/src/main.rs"
+required-features = ["egui-gui"]

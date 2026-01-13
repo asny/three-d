@@ -255,7 +255,7 @@ impl Material for PhysicalMaterial {
             if self.emissive_texture.is_some() {
                 output.push_str("#define USE_EMISSIVE_TEXTURE\n");
             }
-            if self.height_texture.is_some() {
+            if self.height_texture.is_some() && self.height_scale != 0.0 {
                 output.push_str("#define USE_HEIGHT_TEXTURE\n");
             }
         }
