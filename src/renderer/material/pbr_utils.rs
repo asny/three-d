@@ -121,6 +121,22 @@ pub fn heightmap_to_ao(
 ) -> CpuTexture {
     let width = heightmap.width;
     let height = heightmap.height;
+
+    // Guard against zero ray count - return white (no occlusion) texture
+    if ray_count == 0 {
+        return CpuTexture {
+            name: format!("{}_ao", heightmap.name),
+            data: TextureData::RU8(vec![255; (width * height) as usize]),
+            width,
+            height,
+            min_filter: heightmap.min_filter,
+            mag_filter: heightmap.mag_filter,
+            mipmap: heightmap.mipmap,
+            wrap_s: heightmap.wrap_s,
+            wrap_t: heightmap.wrap_t,
+        };
+    }
+
     let heights = extract_heights(heightmap);
 
     let mut ao_values: Vec<u8> = Vec::with_capacity((width * height) as usize);
@@ -198,7 +214,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_normal_from_flat_heightmap() {
+    fn test_heightmap_to_normal_flat() {
         // A flat heightmap should produce normals pointing straight up (0, 0, 1)
         let heightmap = CpuTexture {
             name: "test".to_string(),
@@ -226,7 +242,7 @@ mod tests {
     }
 
     #[test]
-    fn test_ao_from_flat_heightmap() {
+    fn test_heightmap_to_ao_flat() {
         // A flat heightmap should produce white AO (no occlusion)
         let heightmap = CpuTexture {
             name: "test".to_string(),
@@ -246,6 +262,32 @@ mod tests {
             for &value in data {
                 // Flat surface should have minimal occlusion (high AO value)
                 assert!(value > 200, "Flat surface should have minimal occlusion");
+            }
+        } else {
+            panic!("Expected RU8 output");
+        }
+    }
+
+    #[test]
+    fn test_heightmap_to_ao_zero_rays() {
+        // Zero rays should return white (no occlusion)
+        let heightmap = CpuTexture {
+            name: "test".to_string(),
+            data: TextureData::RU8(vec![128; 4]),
+            width: 2,
+            height: 2,
+            min_filter: Interpolation::Linear,
+            mag_filter: Interpolation::Linear,
+            mipmap: None,
+            wrap_s: Wrapping::Repeat,
+            wrap_t: Wrapping::Repeat,
+        };
+
+        let ao_map = heightmap_to_ao(&heightmap, 0, 4, 1.0, 0.0);
+
+        if let TextureData::RU8(data) = &ao_map.data {
+            for &value in data {
+                assert_eq!(value, 255, "Zero rays should produce white (no occlusion)");
             }
         } else {
             panic!("Expected RU8 output");
