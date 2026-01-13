@@ -41,9 +41,6 @@ uniform int heightRefinementIterations;
 uniform float heightLayerScale;     // Precomputed: heightScale-based layer multiplier (0.25-3.0)
 uniform float heightFadeDistStart;  // Distance where POM starts fading
 uniform float heightFadeDistEnd;    // Distance where POM is fully off
-#ifndef USE_NORMAL_TEXTURE
-uniform float heightNormalScale;  // Normal strength when deriving from height (default: 10.0 * heightScale)
-#endif
 #endif
 
 in vec3 pos;
@@ -53,27 +50,6 @@ in vec4 col;
 layout (location = 0) out vec4 outColor;
 
 #ifdef USE_HEIGHT_TEXTURE
-#ifndef USE_NORMAL_TEXTURE
-// Derive normal from height map gradient (used when no normal texture)
-vec3 heightToNormal(vec2 texCoords, float strength) {
-    vec2 texelSize = 1.0 / vec2(textureSize(heightTexture, 0));
-    // Transform the texel offsets to account for texture scaling/rotation
-    mat2 txLinear = mat2(heightTexTransform[0].xy, heightTexTransform[1].xy);
-    vec2 dU = txLinear * vec2(texelSize.x, 0.0);
-    vec2 dV = txLinear * vec2(0.0, texelSize.y);
-    vec2 tc = (heightTexTransform * vec3(texCoords, 1.0)).xy;
-
-    float hL = textureLod(heightTexture, tc - dU, 0.0).r;
-    float hR = textureLod(heightTexture, tc + dU, 0.0).r;
-    float hD = textureLod(heightTexture, tc - dV, 0.0).r;
-    float hU = textureLod(heightTexture, tc + dV, 0.0).r;
-
-    vec3 n = vec3(hL - hR, hD - hU, 1.0);
-    n.xy *= strength;
-    return normalize(n);
-}
-#endif
-
 // Parallax Occlusion Mapping with smooth distance fade
 // Full quality POM close up, smoothly blends to flat at distance
 vec2 parallaxOcclusionMapping(vec2 texCoords, vec3 viewDirTangent, float dist, out float pomStrength) {
@@ -197,9 +173,6 @@ void main()
     // Normal mapping
 #if defined(USE_NORMAL_TEXTURE)
     normal = tbn * ((2.0 * texture(normalTexture, (normalTexTransform * vec3(texCoords, 1.0)).xy).xyz - 1.0) * vec3(normalScale, normalScale, 1.0));
-#elif defined(USE_HEIGHT_TEXTURE)
-    // Derive normal from height gradient when no normal texture
-    normal = normalize(tbn * heightToNormal(texCoords, heightNormalScale));
 #endif
 
     vec3 total_emissive = emissive.rgb;
