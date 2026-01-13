@@ -221,20 +221,22 @@ impl Material for PhysicalMaterial {
             self.occlusion_texture.is_some(),
             self.normal_texture.is_some(),
             self.emissive_texture.is_some(),
-            self.height_texture.is_some(),
+            self.height_texture.is_some() && self.height_scale != 0.0,
         )
     }
 
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         let mut output = lights_shader_source(lights);
-        let uses_textures = self.albedo_texture.is_some()
+        // Height texture is only active when scale is non-zero
+        let use_height = self.height_texture.is_some() && self.height_scale != 0.0;
+        let use_textures = self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
             || self.occlusion_texture.is_some()
             || self.emissive_texture.is_some()
-            || self.height_texture.is_some();
+            || use_height;
 
-        if uses_textures {
+        if use_textures {
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
                 output.push_str("#define USE_ALBEDO_TEXTURE\n");
@@ -246,7 +248,7 @@ impl Material for PhysicalMaterial {
                 output.push_str("#define USE_OCCLUSION_TEXTURE\n");
             }
             // Normal texture OR height texture requires tangent/bitangent
-            if self.normal_texture.is_some() || self.height_texture.is_some() {
+            if self.normal_texture.is_some() || use_height {
                 output.push_str("in vec3 tang;\nin vec3 bitang;\n");
             }
             if self.normal_texture.is_some() {
@@ -255,7 +257,7 @@ impl Material for PhysicalMaterial {
             if self.emissive_texture.is_some() {
                 output.push_str("#define USE_EMISSIVE_TEXTURE\n");
             }
-            if self.height_texture.is_some() && self.height_scale != 0.0 {
+            if use_height {
                 output.push_str("#define USE_HEIGHT_TEXTURE\n");
             }
         }

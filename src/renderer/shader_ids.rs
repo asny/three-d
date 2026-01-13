@@ -141,9 +141,9 @@ pub enum EffectMaterialId {
     BrdfMaterial = 0x800E,
     IrradianceMaterial = 0x800F,
     ORMMaterialBase = 0x8010,              // To 0x8013
-    PhysicalMaterialBase = 0x8020,         // To 0x803F
-    DeferredPhysicalMaterialBase = 0x8040, // To 0x807F
-    PrefilterMaterial = 0x8080,
+    PhysicalMaterialBase = 0x8020,         // To 0x805F (6 bits: albedo, metallic_roughness, occlusion, normal, emissive, height)
+    DeferredPhysicalMaterialBase = 0x8060, // To 0x80BF (6 bits: albedo, metallic_roughness, occlusion, normal, emissive, alpha_cutout)
+    PrefilterMaterial = 0x80C0,
 }
 
 impl EffectMaterialId {
