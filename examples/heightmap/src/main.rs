@@ -395,14 +395,17 @@ pub async fn run() {
     let mut control = FlyControl::new(0.05);
 
     // Lighting
-    let ambient = AmbientLight::new(&context, 0.3, Srgba::WHITE);
-    let directional = DirectionalLight::new(&context, 2.0, Srgba::WHITE, vec3(-1.0, -1.0, -1.0));
+    let mut ambient = AmbientLight::new(&context, 0.3, Srgba::WHITE);
+    let mut directional = DirectionalLight::new(&context, 2.0, Srgba::WHITE, vec3(-1.0, -1.0, -1.0));
 
     // GUI
     let mut gui = three_d::GUI::new(&context);
     let mut height_scale = 0.05_f32;
     let mut height_quality_idx = 3_usize; // High
     let mut pom_enabled = true;
+    let mut ambient_intensity = 0.3_f32;
+    let mut directional_intensity = 2.0_f32;
+    let mut light_angle = 225.0_f32; // degrees, 225 = (-1, -1) direction
 
     // Keyboard state for WASD
     let mut move_forward = false;
@@ -472,9 +475,9 @@ pub async fn run() {
 
                     ui.checkbox(&mut pom_enabled, "Enable POM");
 
-                    ui.add(Slider::new(&mut height_scale, 0.0..=0.15).text("Height Scale"));
+                    ui.add(Slider::new(&mut height_scale, 0.0..=0.2).text("Height Scale"));
 
-                    ui.label("Quality:");
+                    ui.label("POM Quality:");
                     ComboBox::from_label("")
                         .selected_text(match height_quality_idx {
                             0 => "Very Low",
@@ -492,12 +495,17 @@ pub async fn run() {
                         });
 
                     ui.separator();
+                    ui.label("Lighting:");
+                    ui.add(Slider::new(&mut ambient_intensity, 0.0..=1.0).text("Ambient"));
+                    ui.add(Slider::new(&mut directional_intensity, 0.0..=5.0).text("Directional"));
+                    ui.add(Slider::new(&mut light_angle, 0.0..=360.0).text("Light Angle"));
+
+                    ui.separator();
                     ui.label("Controls:");
                     ui.label("  W/S: Up/Down");
                     ui.label("  A/D: Left/Right");
                     ui.label("  Scroll: In/Out");
-                    ui.label("  Left-drag: Look");
-                    ui.label("  Right-drag: Pan");
+                    ui.label("  Mouse drag: Look");
                 });
                 panel_width = gui_context.used_rect().width();
             },
@@ -523,6 +531,12 @@ pub async fn run() {
                 }
             }
         }
+
+        // Update lighting
+        ambient.intensity = ambient_intensity;
+        directional.intensity = directional_intensity;
+        let angle_rad = light_angle.to_radians();
+        directional.direction = vec3(angle_rad.cos(), -1.0, angle_rad.sin()).normalize();
 
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,
