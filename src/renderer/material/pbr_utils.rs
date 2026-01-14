@@ -40,7 +40,7 @@ fn get_texel_clamped(data: &[f32], width: u32, height: u32, x: i32, y: i32) -> f
 /// # Returns
 /// A new CpuTexture containing the generated normal map in tangent space (RGB format).
 /// The normals are stored as `(normal * 0.5 + 0.5)` to fit in [0, 1] range.
-pub fn heightmap_to_normal(heightmap: &CpuTexture, strength: f32) -> CpuTexture {
+pub fn create_normal_from_heightmap(heightmap: &CpuTexture, strength: f32) -> CpuTexture {
     let width = heightmap.width;
     let height = heightmap.height;
 
@@ -128,7 +128,7 @@ pub fn heightmap_to_normal(heightmap: &CpuTexture, strength: f32) -> CpuTexture 
 /// # Returns
 /// A new CpuTexture containing the generated ambient occlusion map (grayscale, R channel).
 /// White (1.0) = fully lit, Black (0.0) = fully occluded.
-pub fn heightmap_to_ao(
+pub fn create_ao_from_heightmap(
     heightmap: &CpuTexture,
     ray_count: u32,
     max_distance: u32,
@@ -227,12 +227,67 @@ pub fn heightmap_to_ao(
     }
 }
 
+/// Combines separate metallic and roughness textures into a single glTF-format metallic-roughness texture.
+///
+/// The glTF PBR metallic-roughness format stores: R=unused, G=roughness, B=metallic, A=unused.
+/// This function extracts the red channel from each input texture and combines them accordingly.
+///
+/// # Arguments
+/// * `metallic` - The metallic texture (values read from red channel)
+/// * `roughness` - The roughness texture (values read from red channel)
+///
+/// # Returns
+/// A new CpuTexture in RGBA format with roughness in the green channel and metallic in the blue channel.
+/// If the textures have different dimensions, the metallic texture is sampled using nearest-neighbor interpolation.
+pub fn create_metallic_roughness(metallic: &CpuTexture, roughness: &CpuTexture) -> CpuTexture {
+    let width = roughness.width;
+    let height = roughness.height;
+
+    let roughness_data = extract_red_channel(roughness);
+    let metallic_data = extract_red_channel(metallic);
+
+    // Combine into glTF format, sampling metallic if sizes differ
+    let pixels: Vec<[u8; 4]> = if metallic.width == width && metallic.height == height {
+        roughness_data
+            .iter()
+            .zip(metallic_data.iter())
+            .map(|(&r, &m)| [0, (r * 255.0) as u8, (m * 255.0) as u8, 255])
+            .collect()
+    } else {
+        // Sample metallic with clamped boundaries for different sizes
+        (0..height)
+            .flat_map(|y| {
+                (0..width).map(move |x| {
+                    let r_idx = (y * width + x) as usize;
+                    let m_x = (x as f32 * metallic.width as f32 / width as f32) as i32;
+                    let m_y = (y as f32 * metallic.height as f32 / height as f32) as i32;
+                    let r = roughness_data[r_idx];
+                    let m = get_texel_clamped(&metallic_data, metallic.width, metallic.height, m_x, m_y);
+                    [0, (r * 255.0) as u8, (m * 255.0) as u8, 255]
+                })
+            })
+            .collect()
+    };
+
+    CpuTexture {
+        name: "metallic_roughness".to_string(),
+        data: TextureData::RgbaU8(pixels),
+        width,
+        height,
+        min_filter: roughness.min_filter,
+        mag_filter: roughness.mag_filter,
+        mipmap: roughness.mipmap,
+        wrap_s: roughness.wrap_s,
+        wrap_t: roughness.wrap_t,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_heightmap_to_normal_flat() {
+    fn test_create_normal_from_heightmap_flat() {
         // A flat heightmap should produce normals pointing straight up (0, 0, 1)
         let heightmap = CpuTexture {
             name: "test".to_string(),
@@ -246,7 +301,7 @@ mod tests {
             wrap_t: Wrapping::Repeat,
         };
 
-        let normal_map = heightmap_to_normal(&heightmap, 1.0);
+        let normal_map = create_normal_from_heightmap(&heightmap, 1.0);
 
         if let TextureData::RgbU8(data) = &normal_map.data {
             // Center should be (0.5, 0.5, 1.0) in packed form = (127, 127, 255)
@@ -260,7 +315,7 @@ mod tests {
     }
 
     #[test]
-    fn test_heightmap_to_ao_flat() {
+    fn test_create_ao_from_heightmap_flat() {
         // A flat heightmap should produce white AO (no occlusion)
         let heightmap = CpuTexture {
             name: "test".to_string(),
@@ -274,7 +329,7 @@ mod tests {
             wrap_t: Wrapping::Repeat,
         };
 
-        let ao_map = heightmap_to_ao(&heightmap, 8, 4, 1.0, 0.0);
+        let ao_map = create_ao_from_heightmap(&heightmap, 8, 4, 1.0, 0.0);
 
         if let TextureData::RU8(data) = &ao_map.data {
             for &value in data {
@@ -287,7 +342,7 @@ mod tests {
     }
 
     #[test]
-    fn test_heightmap_to_ao_zero_rays() {
+    fn test_create_ao_from_heightmap_zero_rays() {
         // Zero rays should return white (no occlusion)
         let heightmap = CpuTexture {
             name: "test".to_string(),
@@ -301,7 +356,7 @@ mod tests {
             wrap_t: Wrapping::Repeat,
         };
 
-        let ao_map = heightmap_to_ao(&heightmap, 0, 4, 1.0, 0.0);
+        let ao_map = create_ao_from_heightmap(&heightmap, 0, 4, 1.0, 0.0);
 
         if let TextureData::RU8(data) = &ao_map.data {
             for &value in data {

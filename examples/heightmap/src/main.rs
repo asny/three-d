@@ -591,12 +591,12 @@ pub async fn run() {
 }
 
 async fn load_texture_set(name: &str, base_path: &str) -> TextureSet {
-    let albedo_path = format!("{}_albedo.webp", base_path);
-    let normal_path = format!("{}_normal.webp", base_path);
-    let ao_path = format!("{}_ao.webp", base_path);
-    let height_path = format!("{}_height.webp", base_path);
-    let roughness_path = format!("{}_roughness.webp", base_path);
-    let metallic_path = format!("{}_metallic.webp", base_path);
+    let albedo_path = format!("{}_albedo.jpg", base_path);
+    let normal_path = format!("{}_normal.jpg", base_path);
+    let ao_path = format!("{}_ao.jpg", base_path);
+    let height_path = format!("{}_height.jpg", base_path);
+    let roughness_path = format!("{}_roughness.jpg", base_path);
+    let metallic_path = format!("{}_metallic.jpg", base_path);
 
     let mut loaded = three_d_asset::io::load_async(&[
         albedo_path.as_str(),
@@ -617,12 +617,12 @@ async fn load_texture_set(name: &str, base_path: &str) -> TextureSet {
     let metallic: CpuTexture = loaded.deserialize("metallic").unwrap();
 
     println!("    Generating normal map from heightmap...");
-    let generated_normal = heightmap_to_normal(&heightmap, 2.0);
+    let generated_normal = create_normal_from_heightmap(&heightmap, 2.0);
 
     println!("    Generating AO map from heightmap...");
-    let generated_ao = heightmap_to_ao(&heightmap, 5, 8, 3.0, 0.1);
+    let generated_ao = create_ao_from_heightmap(&heightmap, 5, 8, 3.0, 0.1);
 
-    let metallic_roughness = create_metallic_roughness_texture(&roughness, &metallic);
+    let metallic_roughness = create_metallic_roughness(&metallic, &roughness);
 
     TextureSet {
         name: name.to_string(),
@@ -636,63 +636,3 @@ async fn load_texture_set(name: &str, base_path: &str) -> TextureSet {
     }
 }
 
-/// Create a metallic-roughness texture in glTF format from separate roughness and metallic textures.
-/// glTF stores: R=unused, G=roughness, B=metallic, A=unused
-fn create_metallic_roughness_texture(roughness: &CpuTexture, metallic: &CpuTexture) -> CpuTexture {
-    let width = roughness.width;
-    let height = roughness.height;
-
-    // Extract roughness values (red channel)
-    let roughness_data: Vec<u8> = match &roughness.data {
-        TextureData::RU8(data) => data.clone(),
-        TextureData::RgU8(data) => data.iter().map(|v| v[0]).collect(),
-        TextureData::RgbU8(data) => data.iter().map(|v| v[0]).collect(),
-        TextureData::RgbaU8(data) => data.iter().map(|v| v[0]).collect(),
-        _ => vec![128; (width * height) as usize],
-    };
-
-    // Extract metallic values (red channel), handling different sizes
-    let metallic_data: Vec<u8> = match &metallic.data {
-        TextureData::RU8(data) => data.clone(),
-        TextureData::RgU8(data) => data.iter().map(|v| v[0]).collect(),
-        TextureData::RgbU8(data) => data.iter().map(|v| v[0]).collect(),
-        TextureData::RgbaU8(data) => data.iter().map(|v| v[0]).collect(),
-        _ => vec![0; (metallic.width * metallic.height) as usize],
-    };
-
-    // Combine into glTF format, sampling metallic if sizes differ
-    let pixels: Vec<[u8; 4]> = if metallic.width == width && metallic.height == height {
-        roughness_data
-            .iter()
-            .zip(metallic_data.iter())
-            .map(|(&r, &m)| [0, r, m, 255])
-            .collect()
-    } else {
-        // Simple nearest-neighbor sampling for different sizes
-        let m_width = metallic.width;
-        let m_height = metallic.height;
-        let mut pixels = Vec::with_capacity((width * height) as usize);
-        for y in 0..height {
-            for x in 0..width {
-                let r_idx = (y * width + x) as usize;
-                let m_x = (x as f32 * m_width as f32 / width as f32) as u32;
-                let m_y = (y as f32 * m_height as f32 / height as f32) as u32;
-                let m_idx = (m_y * m_width + m_x) as usize;
-                pixels.push([0, roughness_data[r_idx], metallic_data.get(m_idx).copied().unwrap_or(0), 255]);
-            }
-        }
-        pixels
-    };
-
-    CpuTexture {
-        name: "metallic_roughness".to_string(),
-        data: TextureData::RgbaU8(pixels),
-        width,
-        height,
-        min_filter: roughness.min_filter,
-        mag_filter: roughness.mag_filter,
-        mipmap: roughness.mipmap,
-        wrap_s: roughness.wrap_s,
-        wrap_t: roughness.wrap_t,
-    }
-}
