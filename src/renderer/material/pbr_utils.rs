@@ -255,18 +255,18 @@ pub fn create_metallic_roughness(metallic: &CpuTexture, roughness: &CpuTexture) 
             .collect()
     } else {
         // Sample metallic with clamped boundaries for different sizes
-        (0..height)
-            .flat_map(|y| {
-                (0..width).map(move |x| {
-                    let r_idx = (y * width + x) as usize;
-                    let m_x = (x as f32 * metallic.width as f32 / width as f32) as i32;
-                    let m_y = (y as f32 * metallic.height as f32 / height as f32) as i32;
-                    let r = roughness_data[r_idx];
-                    let m = get_texel_clamped(&metallic_data, metallic.width, metallic.height, m_x, m_y);
-                    [0, (r * 255.0) as u8, (m * 255.0) as u8, 255]
-                })
-            })
-            .collect()
+        let mut pixels = Vec::with_capacity((width * height) as usize);
+        for y in 0..height {
+            for x in 0..width {
+                let r_idx = (y * width + x) as usize;
+                let m_x = (x as f32 * metallic.width as f32 / width as f32) as i32;
+                let m_y = (y as f32 * metallic.height as f32 / height as f32) as i32;
+                let r = roughness_data[r_idx];
+                let m = get_texel_clamped(&metallic_data, metallic.width, metallic.height, m_x, m_y);
+                pixels.push([0, (r * 255.0) as u8, (m * 255.0) as u8, 255]);
+            }
+        }
+        pixels
     };
 
     CpuTexture {
