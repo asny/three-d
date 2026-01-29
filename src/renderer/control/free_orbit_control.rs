@@ -47,10 +47,11 @@ impl FreeOrbitControl {
                 }
                 Event::MouseWheel { delta, handled, .. } => {
                     if !*handled {
-                        let speed = 0.01 * self.target.distance(camera.position()) + 0.001;
+                        let distance = self.target.distance(camera.position());
+                        let zoom_amount = distance * (1.0 - (-delta.1 * 0.01).exp());
                         camera.zoom_towards(
                             self.target,
-                            speed * delta.1,
+                            zoom_amount,
                             self.min_distance,
                             self.max_distance,
                         );

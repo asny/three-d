@@ -81,14 +81,15 @@ impl Control2D {
         camera: &mut three_d_asset::Camera,
         delta: f32,
         position: PhysicalPoint,
-        speed: f32,
+        sensitivity: f32,
     ) {
-        let speed = speed / camera.zoom_factor();
         let mut target = camera.position_at_pixel(position);
         target.z = 0.0;
+        let distance = 1.0 / camera.zoom_factor();
+        let zoom_amount = distance * (1.0 - (-delta * sensitivity).exp());
         camera.zoom_towards(
             target,
-            speed * delta,
+            zoom_amount,
             1.0 / self.max_zoom_factor,
             1.0 / self.min_zoom_factor,
         );
