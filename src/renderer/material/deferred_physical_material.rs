@@ -214,13 +214,9 @@ impl Material for DeferredPhysicalMaterial {
             if self.emissive_texture.is_some() {
                 output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
             }
-            if self.alpha_cutout.is_some() {
+            if let Some(alpha_cutout) = self.alpha_cutout {
                 output.push_str(
-                    format!(
-                        "#define ALPHACUT;\nfloat acut = {};",
-                        self.alpha_cutout.unwrap()
-                    )
-                    .as_str(),
+                    format!("#define ALPHACUT;\nfloat acut = {};", alpha_cutout).as_str(),
                 );
             }
         }
