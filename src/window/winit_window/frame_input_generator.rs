@@ -189,26 +189,28 @@ impl FrameInputGenerator {
             }
             WindowEvent::MouseWheel { delta, .. } => {
                 if let Some(position) = self.cursor_pos {
-                    match delta {
+                    // Normalize scroll deltas so one "tick" produces similar values across platforms.
+                    // Values determined experimentally
+                    const LINE_HEIGHT: f64 = 24.0;
+                    const BROWSER_LINE_HEIGHT: f64 = 100.0;
+                    let (x, y) = match delta {
                         winit::event::MouseScrollDelta::LineDelta(x, y) => {
-                            let line_height = 24.0; // TODO
-                            self.events.push(crate::Event::MouseWheel {
-                                delta: (*x * line_height, *y * line_height),
-                                position: position.into(),
-                                modifiers: self.modifiers,
-                                handled: false,
-                            });
+                            ((*x as f64) * LINE_HEIGHT, (*y as f64) * LINE_HEIGHT)
                         }
                         winit::event::MouseScrollDelta::PixelDelta(delta) => {
-                            let d = delta.to_logical(self.device_pixel_ratio);
-                            self.events.push(crate::Event::MouseWheel {
-                                delta: (d.x, d.y),
-                                position: position.into(),
-                                modifiers: self.modifiers,
-                                handled: false,
-                            });
+                            let d = delta.to_logical::<f64>(self.device_pixel_ratio);
+                            (
+                                d.x * LINE_HEIGHT / BROWSER_LINE_HEIGHT,
+                                d.y * LINE_HEIGHT / BROWSER_LINE_HEIGHT,
+                            )
                         }
-                    }
+                    };
+                    self.events.push(crate::Event::MouseWheel {
+                        delta: (x as f32, y as f32),
+                        position: position.into(),
+                        modifiers: self.modifiers,
+                        handled: false,
+                    });
                 }
             }
             WindowEvent::TouchpadMagnify { delta, .. } => {
