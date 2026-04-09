@@ -24,7 +24,7 @@ macro_rules! bitfield_bit {
     ($field:ident, $($fields:ident),+ << $shift:expr) => {
         // Recursive case, breaking off the first bit and adding one to the shift of the remainder
         bitfield_bit!($field << $shift)
-            | bitfield_bit!($($fields),+ << $shift + 1)
+            | bitfield_bit!($($fields),+ << ($shift + 1))
     };
 }
 
@@ -141,9 +141,9 @@ pub enum EffectMaterialId {
     BrdfMaterial = 0x800E,
     IrradianceMaterial = 0x800F,
     ORMMaterialBase = 0x8010,              // To 0x8013
-    PhysicalMaterialBase = 0x8020,         // To 0x803F
-    DeferredPhysicalMaterialBase = 0x8040, // To 0x807F
-    PrefilterMaterial = 0x8080,
+    PhysicalMaterialBase = 0x8040,         // To 0x807F (6 bits: albedo, metallic_roughness, occlusion, normal, emissive, height)
+    DeferredPhysicalMaterialBase = 0x8080, // To 0x80BF (6 bits: albedo, metallic_roughness, occlusion, normal, emissive, alpha_cutout)
+    PrefilterMaterial = 0x80C0,
 }
 
 impl EffectMaterialId {
@@ -168,6 +168,7 @@ impl EffectMaterialId {
             occlusion_texture,
             normal_texture,
             emissive_texture,
+            height_texture,
         )
     );
     enum_bitfield!(
