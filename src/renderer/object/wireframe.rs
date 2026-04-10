@@ -11,7 +11,7 @@ pub struct Wireframe {
 }
 
 impl Wireframe {
-    pub fn new(context: &Context, mesh: &CpuMesh, line_width: f32) -> Self {
+    pub fn new(context: &Context, mesh: &CpuMesh, line_width: f32, line_color: Srgba) -> Self {
         let positions = VertexBuffer::new_with_data(context, &mesh.positions.to_f32());
         let barycentric = VertexBuffer::new_with_data(
             context,
@@ -20,7 +20,10 @@ impl Wireframe {
                 .collect::<Vec<_>>(),
         );
         Self {
-            material: material::WireframeMaterial { line_width },
+            material: material::WireframeMaterial {
+                line_width,
+                line_color,
+            },
             positions,
             barycentric,
             context: context.clone(),

@@ -145,6 +145,7 @@ pub enum EffectMaterialId {
     PhysicalMaterialBase = 0x8020,         // To 0x803F
     DeferredPhysicalMaterialBase = 0x8040, // To 0x807F
     PrefilterMaterial = 0x8080,
+    WireframeMaterial = 0x8081,
 }
 
 impl EffectMaterialId {
