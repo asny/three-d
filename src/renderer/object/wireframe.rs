@@ -46,8 +46,13 @@ impl Wireframe {
     }
 
     /// Sets the wire thickness in pixels.
-    pub fn set_line_width(&mut self, line_width: f32) {
-        self.material.line_width = line_width;
+    pub fn set_wire_width(&mut self, width: f32) {
+        self.material.line_width = width;
+    }
+
+    /// Sets the wire color.
+    pub fn set_wire_color(&mut self, color: Srgba) {
+        self.material.line_color = color;
     }
 }
 
