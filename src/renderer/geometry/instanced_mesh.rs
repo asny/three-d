@@ -20,6 +20,7 @@ pub struct InstancedMesh {
     instance_color: RwLock<Option<InstanceBuffer<Vec4>>>,
     last_camera_position: RwLock<Option<Vec3>>,
     aabb: AxisAlignedBoundingBox, // The AABB for the base mesh without transformations applied
+    instance_aabb: AxisAlignedBoundingBox, // The AABB for all the instances without the local to world transformation applied
     transformation: Mat4,
     animation_transformation: Mat4,
     animation: Option<Box<dyn Fn(f32) -> Mat4 + Send + Sync>>,
@@ -37,7 +38,7 @@ impl InstancedMesh {
         instances.validate().expect("invalid instances");
 
         let aabb = cpu_mesh.compute_aabb();
-        let instanced_mesh = Self {
+        let mut instanced_mesh = Self {
             context: context.clone(),
             base_mesh: BaseMesh::new(context, cpu_mesh),
             transform: RwLock::new((
@@ -50,11 +51,13 @@ impl InstancedMesh {
             last_camera_position: RwLock::new(None),
             indices: RwLock::new((0..instances.transformations.len()).collect::<Vec<usize>>()),
             aabb,
+            instance_aabb: AxisAlignedBoundingBox::INFINITE,
             transformation: Mat4::identity(),
             animation_transformation: Mat4::identity(),
             animation: None,
             instances: instances.clone(),
         };
+        instanced_mesh.update_instance_aabb();
         instanced_mesh.update_instance_buffers();
         instanced_mesh
     }
@@ -100,8 +103,19 @@ impl InstancedMesh {
         *self.indices.write().unwrap() =
             (0..instances.transformations.len()).collect::<Vec<usize>>();
         *self.last_camera_position.write().unwrap() = None;
-
+        self.update_instance_aabb();
         self.update_instance_buffers();
+    }
+
+    fn update_instance_aabb(&mut self) {
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for instance_transformation in &self.instances.transformations {
+            aabb.expand_with_aabb(
+                self.aabb
+                    .transformed(instance_transformation * self.animation_transformation),
+            );
+        }
+        self.instance_aabb = aabb;
     }
 
     ///
@@ -254,19 +268,14 @@ impl Geometry for InstancedMesh {
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for instance_transformation in &self.instances.transformations {
-            aabb.expand_with_aabb(self.aabb.transformed(
-                self.transformation * instance_transformation * self.animation_transformation,
-            ));
-        }
-        aabb
+        self.instance_aabb.transformed(self.transformation)
     }
 
     fn animate(&mut self, time: f32) {
         if let Some(animation) = &self.animation {
             self.animation_transformation = animation(time);
             *self.last_camera_position.write().unwrap() = None;
+            self.update_instance_aabb();
         }
     }
 
