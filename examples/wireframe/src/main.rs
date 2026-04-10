@@ -48,7 +48,7 @@ pub async fn run() {
     );
     let model = Gm::new(Mesh::new(&context, &cpu_mesh), model_material);
 
-    let wireframe = Wireframe::new(&context, &cpu_mesh, 1.0, Srgba::RED);
+    let wireframe = Wireframe::new_from_cpu_mesh(&context, &cpu_mesh, 1.0, Srgba::RED);
 
     let ambient = AmbientLight::new(&context, 0.7, Srgba::WHITE);
     let directional0 = DirectionalLight::new(&context, 2.0, Srgba::WHITE, vec3(-1.0, -1.0, -1.0));

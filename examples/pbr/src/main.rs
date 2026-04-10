@@ -56,18 +56,7 @@ pub async fn run() {
         .unwrap()
         .remove(0);
 
-    let wireframes = cpu_model
-        .geometries
-        .iter()
-        .filter_map(|g| match &g.geometry {
-            three_d_asset::Geometry::Triangles(mesh) => {
-                let mut wireframe = Wireframe::new(&context, mesh, 1.0, Srgba::RED);
-                wireframe.set_transformation(g.transformation);
-                Some(wireframe)
-            }
-            _ => None,
-        })
-        .collect::<Vec<_>>();
+    let wireframes = Wireframe::new_from_cpu_model(&context, &cpu_model, 1.0, Srgba::RED);
 
     let light = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
 
