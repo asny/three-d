@@ -1,6 +1,10 @@
 use crate::core::*;
 use crate::renderer::*;
 
+/// Renders a triangle mesh as a screen-space wireframe.
+///
+/// The wireframe is generated from per-vertex barycentric coordinates and drawn
+/// on top of triangle faces in the fragment shader.
 pub struct Wireframe {
     material: WireframeMaterial,
     positions: VertexBuffer<Vec3>,
@@ -11,6 +15,10 @@ pub struct Wireframe {
 }
 
 impl Wireframe {
+    /// Creates a new wireframe object from a CPU mesh.
+    ///
+    /// The mesh is uploaded as triangles, and barycentric coordinates are generated
+    /// per triangle to allow edge highlighting in the wireframe shader.
     pub fn new(context: &Context, mesh: &CpuMesh, line_width: f32, line_color: Srgba) -> Self {
         let positions = VertexBuffer::new_with_data(context, &mesh.positions.to_f32());
         let barycentric = VertexBuffer::new_with_data(
@@ -31,9 +39,13 @@ impl Wireframe {
             transformation: Mat4::identity(),
         }
     }
+
+    /// Sets the model transformation applied when rendering.
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation
     }
+
+    /// Sets the wire thickness in pixels.
     pub fn set_line_width(&mut self, line_width: f32) {
         self.material.line_width = line_width;
     }
