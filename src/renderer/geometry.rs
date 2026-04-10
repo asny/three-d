@@ -327,6 +327,16 @@ impl IndexBuffer {
             ),
         }
     }
+
+    /// Returns the number of indices or the number of vertices if no index buffer is defined.
+    pub fn count(&self) -> u32 {
+        match self {
+            IndexBuffer::None { number_of_vertices } => *number_of_vertices,
+            IndexBuffer::U8(element_buffer) => element_buffer.count(),
+            IndexBuffer::U16(element_buffer) => element_buffer.count(),
+            IndexBuffer::U32(element_buffer) => element_buffer.count(),
+        }
+    }
 }
 
 struct BaseMesh {
