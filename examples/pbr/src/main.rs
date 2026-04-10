@@ -56,6 +56,19 @@ pub async fn run() {
         .unwrap()
         .remove(0);
 
+    let wireframes = cpu_model
+        .geometries
+        .iter()
+        .filter_map(|g| match &g.geometry {
+            three_d_asset::Geometry::Triangles(mesh) => {
+                let mut wireframe = Wireframe::new(&context, mesh, 1.0, Srgba::RED);
+                wireframe.set_transformation(g.transformation);
+                Some(wireframe)
+            }
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+
     let light = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
 
     // main loop
@@ -64,6 +77,7 @@ pub async fn run() {
     let mut metallic_roughness_enabled = true;
     let mut albedo_map_enabled = true;
     let mut emissive_map_enabled = true;
+    let mut wireframe_enabled = false;
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
         gui.update(
@@ -80,6 +94,7 @@ pub async fn run() {
                     ui.checkbox(&mut normal_map_enabled, "Normal map");
                     ui.checkbox(&mut occlusion_map_enabled, "Occlusion map");
                     ui.checkbox(&mut emissive_map_enabled, "Emissive map");
+                    ui.checkbox(&mut wireframe_enabled, "Wireframe")
                 });
                 panel_width = gui_context.used_rect().width();
             },
@@ -148,6 +163,10 @@ pub async fn run() {
                 gui.render()
             })
             .unwrap();
+
+        if wireframe_enabled {
+            frame_input.screen().render(&camera, &wireframes, &[&light]);
+        }
 
         FrameOutput::default()
     });
