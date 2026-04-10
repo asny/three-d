@@ -51,6 +51,15 @@ impl Wireframe {
     }
 }
 
+impl<'a> IntoIterator for &'a Wireframe {
+    type Item = &'a dyn Object;
+    type IntoIter = std::iter::Once<&'a dyn Object>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self)
+    }
+}
+
 impl Object for Wireframe {
     fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
         if let Err(e) = render_with_material(&self.context, viewer, self, &self.material, lights) {
