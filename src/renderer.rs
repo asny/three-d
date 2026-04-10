@@ -27,6 +27,8 @@ use thiserror::Error;
 pub enum RendererError {
     #[error("{0} buffer length must be {1}, actual length is {2}")]
     InvalidBufferLength(String, usize, usize),
+    #[error("Failes partially updating the {0} buffer because it does not exist")]
+    PartialUpdateFailedMissingBuffer(String),
     #[error("the material {0} is required by the geometry {1} but could not be found")]
     MissingMaterial(String, String),
     #[cfg(feature = "text")]

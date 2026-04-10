@@ -94,41 +94,268 @@ impl Mesh {
     }
 
     ///
+    /// Update the vertex positions of the mesh.
+    /// Returns an error if the number of positions does not match the number of vertices in the mesh.
+    ///
+    pub fn set_positions(&mut self, positions: &[Vec3]) -> Result<(), RendererError> {
+        if positions.len() as u32 != self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "Position".to_string(),
+                self.vertex_count() as usize,
+                positions.len(),
+            ))?;
+        }
+        self.base_mesh.positions.fill(positions);
+        self.aabb = AxisAlignedBoundingBox::new_with_positions(positions);
+        Ok(())
+    }
+
+    ///
+    /// Partially update the vertex positions of the mesh.
+    /// Returns an error if the number of positions plus the offset is larger than the number of vertices in the mesh.
+    ///
+    pub fn set_positions_partially(
+        &mut self,
+        offset: u32,
+        positions: &[Vec3],
+    ) -> Result<(), RendererError> {
+        if offset + positions.len() as u32 > self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "Position".to_string(),
+                self.vertex_count() as usize,
+                offset as usize + positions.len(),
+            ))?;
+        }
+        self.base_mesh.positions.fill_subset(offset, positions);
+        self.aabb.expand(positions);
+        Ok(())
+    }
+
+    ///
     /// Used for editing the vertex positions.
     /// Note: Changing this will possibly ruin the mesh.
     ///
+    #[deprecated = "use set_positions and set_positions_partially instead"]
     pub fn positions_mut(&mut self) -> &mut VertexBuffer<Vec3> {
         &mut self.base_mesh.positions
+    }
+
+    ///
+    /// Update the vertex normals of the mesh.
+    /// Returns an error if the number of normals does not match the number of vertices in the mesh.
+    ///
+    pub fn set_normals(&mut self, normals: &[Vec3]) -> Result<(), RendererError> {
+        if normals.len() as u32 != self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "Normal".to_string(),
+                self.vertex_count() as usize,
+                normals.len(),
+            ))?;
+        }
+        if let Some(buffer) = self.base_mesh.normals.as_mut() {
+            buffer.fill(normals);
+        } else {
+            self.base_mesh.normals = Some(VertexBuffer::new_with_data(&self.context, normals));
+        }
+        Ok(())
+    }
+
+    ///
+    /// Partially update the vertex normals of the mesh.
+    /// Returns an error if the number of normals plus the offset is larger than the number of vertices in the mesh
+    /// or if the normal buffer is missing.
+    ///
+    pub fn set_normals_partially(
+        &mut self,
+        offset: u32,
+        normals: &[Vec3],
+    ) -> Result<(), RendererError> {
+        if offset + normals.len() as u32 > self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "Normal".to_string(),
+                self.vertex_count() as usize,
+                offset as usize + normals.len(),
+            ))?;
+        }
+        if let Some(buffer) = self.base_mesh.normals.as_mut() {
+            buffer.fill_subset(offset, normals);
+        } else {
+            Err(RendererError::PartialUpdateFailedMissingBuffer(
+                "Normal".to_string(),
+            ))?;
+        }
+        Ok(())
     }
 
     ///
     /// Used for editing the vertex normals.
     /// Note: Changing this will possibly ruin the mesh.
     ///
+    #[deprecated = "use set_normals and set_normals_partially instead"]
     pub fn normals_mut(&mut self) -> &mut Option<VertexBuffer<Vec3>> {
         &mut self.base_mesh.normals
+    }
+
+    ///
+    /// Update the vertex UVs of the mesh.
+    /// Returns an error if the number of UVs does not match the number of vertices in the mesh.
+    ///
+    pub fn set_uvs(&mut self, uvs: &[Vec2]) -> Result<(), RendererError> {
+        if uvs.len() as u32 != self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "UV".to_string(),
+                self.vertex_count() as usize,
+                uvs.len(),
+            ))?;
+        }
+        if let Some(buffer) = self.base_mesh.uvs.as_mut() {
+            buffer.fill(uvs);
+        } else {
+            self.base_mesh.uvs = Some(VertexBuffer::new_with_data(&self.context, uvs));
+        }
+        Ok(())
+    }
+
+    ///
+    /// Partially update the vertex UVs of the mesh.
+    /// Returns an error if the number of UVs plus the offset is larger than the number of vertices in the mesh
+    /// or if the UV buffer is missing.
+    ///
+    pub fn set_uvs_partially(&mut self, offset: u32, uvs: &[Vec2]) -> Result<(), RendererError> {
+        if offset + uvs.len() as u32 > self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "UV".to_string(),
+                self.vertex_count() as usize,
+                offset as usize + uvs.len(),
+            ))?;
+        }
+        if let Some(buffer) = self.base_mesh.uvs.as_mut() {
+            buffer.fill_subset(offset, uvs);
+        } else {
+            Err(RendererError::PartialUpdateFailedMissingBuffer(
+                "UV".to_string(),
+            ))?;
+        }
+        Ok(())
     }
 
     ///
     /// Used for editing the vertex uvs.
     /// Note: Changing this will possibly ruin the mesh.
     ///
+    #[deprecated = "use set_uvs and set_uvs_partially instead"]
     pub fn uvs_mut(&mut self) -> &mut Option<VertexBuffer<Vec2>> {
         &mut self.base_mesh.uvs
+    }
+
+    ///
+    /// Update the vertex tangents of the mesh.
+    /// Returns an error if the number of tangents does not match the number of vertices in the mesh.
+    ///
+    pub fn set_tangents(&mut self, tangents: &[Vec4]) -> Result<(), RendererError> {
+        if tangents.len() as u32 != self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "Tangents".to_string(),
+                self.vertex_count() as usize,
+                tangents.len(),
+            ))?;
+        }
+        if let Some(buffer) = self.base_mesh.tangents.as_mut() {
+            buffer.fill(tangents);
+        } else {
+            self.base_mesh.tangents = Some(VertexBuffer::new_with_data(&self.context, tangents));
+        }
+        Ok(())
+    }
+
+    ///
+    /// Partially update the vertex tangents of the mesh.
+    /// Returns an error if the number of tangents plus the offset is larger than the number of vertices in the mesh
+    /// or if the tangent buffer is missing.
+    ///
+    pub fn set_tangents_partially(
+        &mut self,
+        offset: u32,
+        tangents: &[Vec4],
+    ) -> Result<(), RendererError> {
+        if offset + tangents.len() as u32 > self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "Tangent".to_string(),
+                self.vertex_count() as usize,
+                offset as usize + tangents.len(),
+            ))?;
+        }
+        if let Some(buffer) = self.base_mesh.tangents.as_mut() {
+            buffer.fill_subset(offset, tangents);
+        } else {
+            Err(RendererError::PartialUpdateFailedMissingBuffer(
+                "Tangent".to_string(),
+            ))?;
+        }
+        Ok(())
     }
 
     ///
     /// Used for editing the vertex tangents.
     /// Note: Changing this will possibly ruin the mesh.
     ///
+    #[deprecated = "use set_tangents and set_tangents_partially instead"]
     pub fn tangents_mut(&mut self) -> &mut Option<VertexBuffer<Vec4>> {
         &mut self.base_mesh.tangents
+    }
+
+    ///
+    /// Update the vertex colors of the mesh.
+    /// Returns an error if the number of colors does not match the number of vertices in the mesh.
+    ///
+    pub fn set_colors(&mut self, colors: &[Vec4]) -> Result<(), RendererError> {
+        if colors.len() as u32 != self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "Color".to_string(),
+                self.vertex_count() as usize,
+                colors.len(),
+            ))?;
+        }
+        if let Some(buffer) = self.base_mesh.colors.as_mut() {
+            buffer.fill(colors);
+        } else {
+            self.base_mesh.colors = Some(VertexBuffer::new_with_data(&self.context, colors));
+        }
+        Ok(())
+    }
+
+    ///
+    /// Partially update the vertex colors of the mesh.
+    /// Returns an error if the number of colors plus the offset is larger than the number of vertices in the mesh
+    /// or if the colors buffer is missing.
+    ///
+    pub fn set_colors_partially(
+        &mut self,
+        offset: u32,
+        colors: &[Vec4],
+    ) -> Result<(), RendererError> {
+        if offset + colors.len() as u32 > self.vertex_count() {
+            Err(RendererError::InvalidBufferLength(
+                "Color".to_string(),
+                self.vertex_count() as usize,
+                offset as usize + colors.len(),
+            ))?;
+        }
+        if let Some(buffer) = self.base_mesh.colors.as_mut() {
+            buffer.fill_subset(offset, colors);
+        } else {
+            Err(RendererError::PartialUpdateFailedMissingBuffer(
+                "Color".to_string(),
+            ))?;
+        }
+        Ok(())
     }
 
     ///
     /// Used for editing the vertex colors.
     /// Note: Changing this will possibly ruin the mesh.
     ///
+    #[deprecated = "use set_colors and set_colors_partially instead"]
     pub fn colors_mut(&mut self) -> &mut Option<VertexBuffer<Vec4>> {
         &mut self.base_mesh.colors
     }
