@@ -7,6 +7,7 @@ use crate::renderer::*;
 /// on top of triangle faces in the fragment shader.
 pub struct Wireframe {
     material: WireframeMaterial,
+    indices: IndexBuffer,
     positions: VertexBuffer<Vec3>,
     barycentric: VertexBuffer<Vec3>,
     context: Context,
@@ -16,11 +17,8 @@ pub struct Wireframe {
 
 impl Wireframe {
     /// Creates a new wireframe object from a CPU mesh.
-    ///
-    /// The mesh is uploaded as triangles, and barycentric coordinates are generated
-    /// per triangle to allow edge highlighting in the wireframe shader.
-    pub fn new(context: &Context, mesh: &CpuMesh, line_width: f32, line_color: Srgba) -> Self {
-        let positions = VertexBuffer::new_with_data(context, &mesh.positions.to_f32());
+    pub fn new(context: &Context, cpu_mesh: &CpuMesh, line_width: f32, line_color: Srgba) -> Self {
+        let positions = VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32());
         let barycentric = VertexBuffer::new_with_data(
             context,
             &(0..positions.count() / 3)
@@ -32,10 +30,11 @@ impl Wireframe {
                 line_width,
                 line_color,
             },
+            indices: IndexBuffer::new(context, cpu_mesh),
             positions,
             barycentric,
             context: context.clone(),
-            aabb: mesh.compute_aabb(),
+            aabb: cpu_mesh.compute_aabb(),
             transformation: Mat4::identity(),
         }
     }
@@ -45,7 +44,7 @@ impl Wireframe {
         self.transformation = transformation
     }
 
-    /// Sets the wire thickness in pixels.
+    /// Sets the wire thickness.
     pub fn set_wire_width(&mut self, width: f32) {
         self.material.line_width = width;
     }
@@ -83,7 +82,7 @@ impl Geometry for Wireframe {
         program.use_uniform("modelMatrix", self.transformation);
         program.use_vertex_attribute("position", &self.positions);
         program.use_vertex_attribute("barycentric", &self.barycentric);
-        program.draw_arrays(render_states, viewer.viewport(), self.positions.count());
+        self.indices.draw(program, render_states, viewer);
     }
 
     fn vertex_shader_source(&self) -> String {
