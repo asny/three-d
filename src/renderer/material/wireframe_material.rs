@@ -24,6 +24,7 @@ impl Material for WireframeMaterial {
         RenderStates {
             write_mask: WriteMask::COLOR,
             blend: Blend::TRANSPARENCY,
+            depth_test: DepthTest::LessOrEqual,
             ..Default::default()
         }
     }
