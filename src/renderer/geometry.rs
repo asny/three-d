@@ -249,7 +249,10 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
 ///
 pub enum IndexBuffer {
     /// No index buffer is used, ie. every triangle consist of three consequitive vertices.
-    None { number_of_vertices: u32 },
+    None {
+        /// The number of vertices to draw
+        number_of_vertices: u32,
+    },
     /// Use an index buffer with indices defined in `u8` format.
     U8(ElementBuffer<u8>),
     /// Use an index buffer with indices defined in `u16` format.
@@ -259,6 +262,7 @@ pub enum IndexBuffer {
 }
 
 impl IndexBuffer {
+    /// Create a new index buffer from a [CpuMesh].
     pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
         match &cpu_mesh.indices {
             Indices::U8(ind) => IndexBuffer::U8(ElementBuffer::new_with_data(context, ind)),
@@ -270,6 +274,7 @@ impl IndexBuffer {
         }
     }
 
+    /// Draw triangles using this index buffer.
     pub fn draw(&self, program: &Program, render_states: RenderStates, viewer: &dyn Viewer) {
         match self {
             IndexBuffer::None { number_of_vertices } => {
@@ -287,6 +292,7 @@ impl IndexBuffer {
         }
     }
 
+    /// Draw multiple instances of triangles using this index buffer.
     pub fn draw_instanced(
         &self,
         program: &Program,

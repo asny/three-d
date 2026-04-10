@@ -424,7 +424,8 @@ impl Program {
     }
 
     ///
-    /// Draws `count` number of triangles with the given render states and viewport using this shader program.
+    /// Draws triangles with the given render states and viewport using this shader program.
+    /// The number of vertices to draw is defined by the `count` parameter.
     /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
     /// Assumes that the data for the three vertices in a triangle is defined contiguous in each vertex buffer.
     /// If you want to use an [ElementBuffer], see [Program::draw_elements].
@@ -481,6 +482,7 @@ impl Program {
 
     ///
     /// Draws a subset of the triangles defined by the given [ElementBuffer] with the given render states and viewport using this shader program.
+    /// The number of vertices to draw is defined by the `count` parameter.
     /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
     /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays].
     ///
