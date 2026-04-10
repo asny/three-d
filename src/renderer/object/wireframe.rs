@@ -58,24 +58,7 @@ impl Geometry for Wireframe {
     }
 
     fn vertex_shader_source(&self) -> String {
-        r#"
-uniform mat4 viewProjection;
-uniform mat4 modelMatrix;
-
-in vec3 position;
-in vec3 barycentric;
-
-out vec3 pos;
-out vec3 bary;
-
-void main() {
-    vec4 worldPos = modelMatrix * vec4(position, 1.);
-    pos = worldPos.xyz;
-    bary = barycentric;
-    gl_Position = viewProjection * worldPos;
-}
-        "#
-        .into()
+        include_str!("shaders/wireframe.vert").to_owned()
     }
 
     fn id(&self) -> GeometryId {
