@@ -249,13 +249,78 @@ impl<T: Geometry> Geometry for std::sync::RwLock<T> {
 ///
 pub enum IndexBuffer {
     /// No index buffer is used, ie. every triangle consist of three consequitive vertices.
-    None,
+    None { number_of_vertices: u32 },
     /// Use an index buffer with indices defined in `u8` format.
     U8(ElementBuffer<u8>),
     /// Use an index buffer with indices defined in `u16` format.
     U16(ElementBuffer<u16>),
     /// Use an index buffer with indices defined in `u32` format.
     U32(ElementBuffer<u32>),
+}
+
+impl IndexBuffer {
+    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> Self {
+        match &cpu_mesh.indices {
+            Indices::U8(ind) => IndexBuffer::U8(ElementBuffer::new_with_data(context, ind)),
+            Indices::U16(ind) => IndexBuffer::U16(ElementBuffer::new_with_data(context, ind)),
+            Indices::U32(ind) => IndexBuffer::U32(ElementBuffer::new_with_data(context, ind)),
+            Indices::None => IndexBuffer::None {
+                number_of_vertices: cpu_mesh.positions.len() as u32,
+            },
+        }
+    }
+
+    pub fn draw(&self, program: &Program, render_states: RenderStates, viewer: &dyn Viewer) {
+        match self {
+            IndexBuffer::None { number_of_vertices } => {
+                program.draw_arrays(render_states, viewer.viewport(), *number_of_vertices)
+            }
+            IndexBuffer::U8(element_buffer) => {
+                program.draw_elements(render_states, viewer.viewport(), element_buffer)
+            }
+            IndexBuffer::U16(element_buffer) => {
+                program.draw_elements(render_states, viewer.viewport(), element_buffer)
+            }
+            IndexBuffer::U32(element_buffer) => {
+                program.draw_elements(render_states, viewer.viewport(), element_buffer)
+            }
+        }
+    }
+
+    pub fn draw_instanced(
+        &self,
+        program: &Program,
+        render_states: RenderStates,
+        viewer: &dyn Viewer,
+        instance_count: u32,
+    ) {
+        match self {
+            IndexBuffer::None { number_of_vertices } => program.draw_arrays_instanced(
+                render_states,
+                viewer.viewport(),
+                *number_of_vertices,
+                instance_count,
+            ),
+            IndexBuffer::U8(element_buffer) => program.draw_elements_instanced(
+                render_states,
+                viewer.viewport(),
+                element_buffer,
+                instance_count,
+            ),
+            IndexBuffer::U16(element_buffer) => program.draw_elements_instanced(
+                render_states,
+                viewer.viewport(),
+                element_buffer,
+                instance_count,
+            ),
+            IndexBuffer::U32(element_buffer) => program.draw_elements_instanced(
+                render_states,
+                viewer.viewport(),
+                element_buffer,
+                instance_count,
+            ),
+        }
+    }
 }
 
 struct BaseMesh {
@@ -273,12 +338,7 @@ impl BaseMesh {
         cpu_mesh.validate().expect("invalid cpu mesh");
 
         Self {
-            indices: match &cpu_mesh.indices {
-                Indices::U8(ind) => IndexBuffer::U8(ElementBuffer::new_with_data(context, ind)),
-                Indices::U16(ind) => IndexBuffer::U16(ElementBuffer::new_with_data(context, ind)),
-                Indices::U32(ind) => IndexBuffer::U32(ElementBuffer::new_with_data(context, ind)),
-                Indices::None => IndexBuffer::None,
-            },
+            indices: IndexBuffer::new(context, cpu_mesh),
             positions: VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32()),
             normals: cpu_mesh
                 .normals
@@ -308,23 +368,7 @@ impl BaseMesh {
 
     pub fn draw(&self, program: &Program, render_states: RenderStates, viewer: &dyn Viewer) {
         self.use_attributes(program);
-
-        match &self.indices {
-            IndexBuffer::None => program.draw_arrays(
-                render_states,
-                viewer.viewport(),
-                self.positions.vertex_count(),
-            ),
-            IndexBuffer::U8(element_buffer) => {
-                program.draw_elements(render_states, viewer.viewport(), element_buffer)
-            }
-            IndexBuffer::U16(element_buffer) => {
-                program.draw_elements(render_states, viewer.viewport(), element_buffer)
-            }
-            IndexBuffer::U32(element_buffer) => {
-                program.draw_elements(render_states, viewer.viewport(), element_buffer)
-            }
-        }
+        self.indices.draw(program, render_states, viewer);
     }
 
     pub fn draw_instanced(
@@ -335,33 +379,8 @@ impl BaseMesh {
         instance_count: u32,
     ) {
         self.use_attributes(program);
-
-        match &self.indices {
-            IndexBuffer::None => program.draw_arrays_instanced(
-                render_states,
-                viewer.viewport(),
-                self.positions.vertex_count(),
-                instance_count,
-            ),
-            IndexBuffer::U8(element_buffer) => program.draw_elements_instanced(
-                render_states,
-                viewer.viewport(),
-                element_buffer,
-                instance_count,
-            ),
-            IndexBuffer::U16(element_buffer) => program.draw_elements_instanced(
-                render_states,
-                viewer.viewport(),
-                element_buffer,
-                instance_count,
-            ),
-            IndexBuffer::U32(element_buffer) => program.draw_elements_instanced(
-                render_states,
-                viewer.viewport(),
-                element_buffer,
-                instance_count,
-            ),
-        }
+        self.indices
+            .draw_instanced(program, render_states, viewer, instance_count);
     }
 
     fn use_attributes(&self, program: &Program) {
