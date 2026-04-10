@@ -17,6 +17,7 @@ macro_rules! impl_object_body {
         }
     };
 }
+
 mod gm;
 #[doc(inline)]
 pub use gm::*;
