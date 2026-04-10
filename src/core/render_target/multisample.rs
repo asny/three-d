@@ -129,7 +129,7 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
     /// Use [RenderTargetMultisample::resolve_color_to] to resolve to a custom non-multisample texture.
     ///
     pub fn resolve_color(&self) -> Texture2D {
-        let mut color_texture = Texture2D::new_empty::<C>(
+        let color_texture = Texture2D::new_empty::<C>(
             &self.context,
             self.color.width(),
             self.color.height(),
@@ -148,7 +148,7 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
     /// Use [RenderTargetMultisample::resolve_depth_to] to resolve to a custom non-multisample texture.
     ///
     pub fn resolve_depth(&self) -> DepthTexture2D {
-        let mut depth_texture = DepthTexture2D::new::<D>(
+        let depth_texture = DepthTexture2D::new::<D>(
             &self.context,
             self.width(),
             self.height(),
@@ -164,7 +164,7 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
     /// Use [RenderTargetMultisample::resolve_to] to resolve to custom non-multisample textures.
     ///
     pub fn resolve(&self) -> (Texture2D, DepthTexture2D) {
-        let mut color_texture = Texture2D::new_empty::<C>(
+        let color_texture = Texture2D::new_empty::<C>(
             &self.context,
             self.color.width(),
             self.color.height(),
@@ -174,7 +174,7 @@ impl<C: TextureDataType, D: DepthTextureDataType> RenderTargetMultisample<C, D> 
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
         );
-        let mut depth_texture = DepthTexture2D::new::<D>(
+        let depth_texture = DepthTexture2D::new::<D>(
             &self.context,
             self.width(),
             self.height(),

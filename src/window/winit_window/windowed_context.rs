@@ -95,7 +95,6 @@ mod inner {
     use super::*;
     ///
     /// A windowed graphics context, ie. a graphics context that is associated with a window.
-    /// For a graphics context that is not associated with a window, see [HeadlessContext](crate::HeadlessContext).
     ///
     pub struct WindowedContext {
         pub(super) context: Context,

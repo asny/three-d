@@ -108,7 +108,7 @@ impl<C: TextureDataType> ColorTargetMultisample<C> {
     /// Use [ColorTargetMultisample::resolve_to] to resolve to a custom non-multisample texture.
     ///
     pub fn resolve(&self) -> Texture2D {
-        let mut color_texture = Texture2D::new_empty::<C>(
+        let color_texture = Texture2D::new_empty::<C>(
             &self.context,
             self.width(),
             self.height(),

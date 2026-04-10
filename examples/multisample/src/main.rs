@@ -134,7 +134,7 @@ pub fn main() {
 
             RenderMethod::ToTexture => {
                 // Render the shapes to a non-multisample texture, and copy the color texture to the screen.
-                let mut color_texture = Texture2D::new_empty::<[u8; 4]>(
+                let color_texture = Texture2D::new_empty::<[u8; 4]>(
                     &context,
                     frame_input.viewport.width,
                     frame_input.viewport.height,
@@ -144,7 +144,7 @@ pub fn main() {
                     Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge,
                 );
-                let mut depth_texture = DepthTexture2D::new::<f32>(
+                let depth_texture = DepthTexture2D::new::<f32>(
                     &context,
                     frame_input.viewport.width,
                     frame_input.viewport.height,

@@ -187,7 +187,7 @@ impl ImpostersMaterial {
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
             );
-            let mut depth_texture = DepthTexture2D::new::<f32>(
+            let depth_texture = DepthTexture2D::new::<f32>(
                 &self.context,
                 texture_width,
                 texture_height,

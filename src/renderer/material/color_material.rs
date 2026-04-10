@@ -14,7 +14,9 @@ pub struct ColorMaterial {
     pub texture: Option<Texture2DRef>,
     /// Render states.
     pub render_states: RenderStates,
-    /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).
+    /// Whether this material should be treated as a transparent material (An object needs to be rendered differently
+    /// depending on whether it is transparent or opaque). To ensure correct rendering the `blend` field of the
+    /// `render_states` attribute also needs to be configured correctly. The easiest way to do this is by using [`Self::new_transparent`].
     pub is_transparent: bool,
 }
 
