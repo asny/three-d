@@ -160,13 +160,8 @@ pub enum Key {
     End,
     PageUp,
     PageDown,
-    // also called "Next"
-    NavigateForward,
-    // also called "Prior"
-    NavigateBackward,
     /// Print Screen/SysRq.
     Snapshot,
-    ScrollLock,
 
     Mute,
     VolumeDown,
@@ -175,6 +170,13 @@ pub enum Key {
     Copy,
     Paste,
     Cut,
+
+    /// `=`
+    Equals,
+    /// `-`
+    Minus,
+    /// `+`
+    Plus,
 
     /// Either from the main row or from the numpad.
     Num0,
@@ -249,22 +251,31 @@ pub enum Key {
     F23,
     F24,
 
+    /// `'`
     Apostrophe,
+    /// `*`
     Asterisk,
+    /// `\`
     Backslash,
+    /// `^`
     Caret,
+    /// `:`
     Colon,
+    /// `,`
     Comma,
-    Equals,
+    /// `` ` ``
     Grave,
+    /// `[`
     LBracket,
-    Minus,
+    /// `.`
     Period,
-    Plus,
-    Power,
+    /// `]`
     RBracket,
+    /// `;`
     Semicolon,
+    /// `/`
     Slash,
+    /// `_`
     Underline,
 }
 
