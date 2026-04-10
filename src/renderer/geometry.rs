@@ -328,8 +328,8 @@ impl IndexBuffer {
         }
     }
 
-    /// Returns the number of indices or the number of vertices if no index buffer is defined.
-    pub fn count(&self) -> u32 {
+    /// Returns the number of vertices defined by this index buffer.
+    pub fn vertex_count(&self) -> u32 {
         match self {
             IndexBuffer::None { number_of_vertices } => *number_of_vertices,
             IndexBuffer::U8(element_buffer) => element_buffer.count(),

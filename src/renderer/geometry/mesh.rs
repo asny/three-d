@@ -82,7 +82,7 @@ impl Mesh {
     /// Returns the number of vertices in this mesh.
     ///
     pub fn vertex_count(&self) -> u32 {
-        self.base_mesh.positions.vertex_count()
+        self.base_mesh.indices.vertex_count()
     }
 
     ///
