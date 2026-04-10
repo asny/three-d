@@ -1,27 +1,22 @@
 use crate::core::*;
 use crate::renderer::*;
 
-pub struct Wireframe{
+pub struct Wireframe {
     width: f32,
     positions: VertexBuffer<Vec3>,
     barycentric: VertexBuffer<Vec3>,
-    context:  Context,
+    context: Context,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
 }
 impl Wireframe {
     pub fn new(context: &Context, mesh: &CpuMesh, width: f32) -> Self {
-        let positions = VertexBuffer::new_with_data(
-            context,
-            &mesh.positions.to_f32()
-        );
+        let positions = VertexBuffer::new_with_data(context, &mesh.positions.to_f32());
         let barycentric = VertexBuffer::new_with_data(
             context,
-            &(0..positions.count()/3).flat_map(|_| [
-                vec3(1., 0., 0.),
-                vec3(0., 1., 0.),
-                vec3(0., 0., 1.),
-            ]).collect::<Vec<_>>()
+            &(0..positions.count() / 3)
+                .flat_map(|_| [vec3(1., 0., 0.), vec3(0., 1., 0.), vec3(0., 0., 1.)])
+                .collect::<Vec<_>>(),
         );
         Self {
             width,
@@ -44,7 +39,13 @@ struct WireframeMaterial(f32);
 
 impl Object for Wireframe {
     fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
-        render_with_material(&self.context, viewer, &self, WireframeMaterial(self.width), lights);
+        render_with_material(
+            &self.context,
+            viewer,
+            &self,
+            WireframeMaterial(self.width),
+            lights,
+        );
     }
 
     fn material_type(&self) -> MaterialType {
@@ -68,7 +69,8 @@ void main() {
     float b = min(min(f.x, f.y), f.z);
     outColor = vec4(1.-b);
 }
-            "#.into()
+            "#
+        .into()
     }
 
     fn id(&self) -> EffectMaterialId {
@@ -100,11 +102,7 @@ impl Geometry for Wireframe {
         program.use_uniform("modelMatrix", self.transformation);
         program.use_vertex_attribute("position", &self.positions);
         program.use_vertex_attribute("barycentric", &self.barycentric);
-        program.draw_arrays(
-            render_states,
-            viewer.viewport(),
-            self.positions.count(),
-        );
+        program.draw_arrays(render_states, viewer.viewport(), self.positions.count());
     }
 
     fn vertex_shader_source(&self) -> String {
@@ -124,7 +122,8 @@ void main() {
     bary = barycentric;
     gl_Position = viewProjection * worldPos;
 }
-        "#.into()
+        "#
+        .into()
     }
 
     fn id(&self) -> GeometryId {
