@@ -2,15 +2,16 @@ use crate::core::*;
 use crate::renderer::*;
 
 pub struct Wireframe {
-    width: f32,
+    material: WireframeMaterial,
     positions: VertexBuffer<Vec3>,
     barycentric: VertexBuffer<Vec3>,
     context: Context,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
 }
+
 impl Wireframe {
-    pub fn new(context: &Context, mesh: &CpuMesh, width: f32) -> Self {
+    pub fn new(context: &Context, mesh: &CpuMesh, line_width: f32) -> Self {
         let positions = VertexBuffer::new_with_data(context, &mesh.positions.to_f32());
         let barycentric = VertexBuffer::new_with_data(
             context,
@@ -19,7 +20,7 @@ impl Wireframe {
                 .collect::<Vec<_>>(),
         );
         Self {
-            width,
+            material: material::WireframeMaterial { line_width },
             positions,
             barycentric,
             context: context.clone(),
@@ -27,72 +28,23 @@ impl Wireframe {
             transformation: Mat4::identity(),
         }
     }
-    pub fn transform_mut(&mut self) -> &mut Mat4 {
-        &mut self.transformation
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation
     }
-    pub fn line_width_mut(&mut self) -> &mut f32 {
-        &mut self.width
+    pub fn set_line_width(&mut self, line_width: f32) {
+        self.material.line_width = line_width;
     }
 }
-
-struct WireframeMaterial(f32);
 
 impl Object for Wireframe {
     fn render(&self, viewer: &dyn Viewer, lights: &[&dyn Light]) {
-        render_with_material(
-            &self.context,
-            viewer,
-            &self,
-            WireframeMaterial(self.width),
-            lights,
-        );
-    }
-
-    fn material_type(&self) -> MaterialType {
-        WireframeMaterial(0.).material_type()
-    }
-}
-
-impl Material for WireframeMaterial {
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        r#"
-layout (location = 0) out vec4 outColor;
-
-uniform float u_line_width = 0.5;
-
-in vec3 bary;
-in vec3 pos;
-
-void main() {
-    vec3 d = fwidth(bary);
-    vec3 f = step(d * u_line_width, bary);
-    float b = min(min(f.x, f.y), f.z);
-    outColor = vec4(1.-b);
-}
-            "#
-        .into()
-    }
-
-    fn id(&self) -> EffectMaterialId {
-        //TODO!
-        EffectMaterialId(0)
-    }
-
-    fn use_uniforms(&self, program: &Program, viewer: &dyn Viewer, lights: &[&dyn Light]) {
-        program.use_uniform("u_line_width", self.0);
-    }
-
-    fn render_states(&self) -> RenderStates {
-        RenderStates {
-            depth_test: DepthTest::Always,
-            blend: Blend::TRANSPARENCY,
-            cull: Cull::None,
-            ..Default::default()
+        if let Err(e) = render_with_material(&self.context, viewer, self, &self.material, lights) {
+            panic!("{}", e.to_string());
         }
     }
 
     fn material_type(&self) -> MaterialType {
-        MaterialType::Transparent
+        self.material.material_type()
     }
 }
 
@@ -127,28 +79,39 @@ void main() {
     }
 
     fn id(&self) -> GeometryId {
-        //TODO!
-        GeometryId(0)
+        GeometryId::Wireframe
     }
 
     fn render_with_material(
         &self,
-        _material: &dyn Material,
-        _viewer: &dyn Viewer,
-        _lights: &[&dyn Light],
+        material: &dyn Material,
+        viewer: &dyn Viewer,
+        lights: &[&dyn Light],
     ) {
-        panic!("Wireframes must be rendered with the built-in material.");
+        if let Err(e) = render_with_material(&self.context, viewer, &self, material, lights) {
+            panic!("{}", e.to_string());
+        }
     }
 
     fn render_with_effect(
         &self,
-        _material: &dyn Effect,
-        _viewer: &dyn Viewer,
-        _lights: &[&dyn Light],
-        _color_texture: Option<ColorTexture>,
-        _depth_texture: Option<DepthTexture>,
+        material: &dyn Effect,
+        viewer: &dyn Viewer,
+        lights: &[&dyn Light],
+        color_texture: Option<ColorTexture>,
+        depth_texture: Option<DepthTexture>,
     ) {
-        panic!("Wireframes do not support effects.");
+        if let Err(e) = render_with_effect(
+            &self.context,
+            viewer,
+            self,
+            material,
+            lights,
+            color_texture,
+            depth_texture,
+        ) {
+            panic!("{}", e.to_string());
+        }
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

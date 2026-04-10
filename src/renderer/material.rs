@@ -71,6 +71,10 @@ mod skybox_material;
 #[doc(inline)]
 pub(in crate::renderer) use skybox_material::*;
 
+mod wireframe_material;
+#[doc(inline)]
+pub(in crate::renderer) use wireframe_material::*;
+
 mod isosurface_material;
 #[doc(inline)]
 pub use isosurface_material::*;

@@ -97,6 +97,7 @@ pub enum GeometryId {
     TerrainPatch = 0x8002,
     Sprites = 0x8004,
     WaterPatch = 0x8005,
+    Wireframe = 0x8006,
     MeshBase = 0x8010,           // To 0x801F
     ParticleSystemBase = 0x8040, // To 0x807F
     InstancedMeshBase = 0x8080,  // To 0x80FF
