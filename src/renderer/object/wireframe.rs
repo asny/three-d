@@ -7,7 +7,6 @@ use crate::renderer::*;
 /// on top of triangle faces in the fragment shader.
 pub struct Wireframe {
     material: WireframeMaterial,
-    indices: IndexBuffer,
     positions: VertexBuffer<Vec3>,
     barycentric: VertexBuffer<Vec3>,
     context: Context,
@@ -18,10 +17,18 @@ pub struct Wireframe {
 impl Wireframe {
     /// Creates a new wireframe object from a CPU mesh.
     pub fn new(context: &Context, cpu_mesh: &CpuMesh, line_width: f32, line_color: Srgba) -> Self {
-        let positions = VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32());
+        let positions = if let Some(indices) = cpu_mesh.indices.to_u32() {
+            let source_positions = cpu_mesh.positions.to_f32();
+            indices
+                .into_iter()
+                .map(|index| source_positions[index as usize])
+                .collect()
+        } else {
+            cpu_mesh.positions.to_f32()
+        };
         let barycentric = VertexBuffer::new_with_data(
             context,
-            &(0..positions.count() / 3)
+            &(0..positions.len() / 3)
                 .flat_map(|_| [vec3(1., 0., 0.), vec3(0., 1., 0.), vec3(0., 0., 1.)])
                 .collect::<Vec<_>>(),
         );
@@ -30,11 +37,10 @@ impl Wireframe {
                 line_width,
                 line_color,
             },
-            indices: IndexBuffer::new(context, cpu_mesh),
-            positions,
+            positions: VertexBuffer::new_with_data(context, &positions),
             barycentric,
             context: context.clone(),
-            aabb: cpu_mesh.compute_aabb(),
+            aabb: AxisAlignedBoundingBox::new_with_positions(&positions),
             transformation: Mat4::identity(),
         }
     }
@@ -82,7 +88,11 @@ impl Geometry for Wireframe {
         program.use_uniform("modelMatrix", self.transformation);
         program.use_vertex_attribute("position", &self.positions);
         program.use_vertex_attribute("barycentric", &self.barycentric);
-        self.indices.draw(program, render_states, viewer);
+        program.draw_arrays(
+            render_states,
+            viewer.viewport(),
+            self.positions.vertex_count(),
+        )
     }
 
     fn vertex_shader_source(&self) -> String {
