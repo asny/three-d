@@ -29,12 +29,13 @@ pub async fn run() {
 
     // Source: https://polyhaven.com/
     let mut loaded = if let Ok(loaded) =
-        three_d_asset::io::load_async(&["../assets/chinese_garden_4k.hdr"]).await
+        three_d_asset::io::load_async(&["../assets/chinese_garden_4k.hdr", "../assets/suzanne.obj"])
+            .await
     {
         loaded
     } else {
         three_d_asset::io::load_async(&[
-            "https://asny.github.io/three-d/assets/chinese_garden_4k.hdr",
+            "https://asny.github.io/three-d/assets/chinese_garden_4k.hdr", "https://asny.github.io/three-d/assets/suzanne.obj"
         ])
         .await
         .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
@@ -44,10 +45,20 @@ pub async fn run() {
         &context,
         &loaded.deserialize("chinese_garden_4k").unwrap(),
     );
-    let light = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
 
+    let mut options = EnvironmentOptions::default();
+    let mut current_options = EnvironmentOptions::default();
+
+    let mut light = AmbientLight::new(&context, 1.0, Srgba::WHITE);
+    light.environment = Some(Environment::new_with_options(
+        &context,
+        skybox.texture(),
+        options,
+    ));
+
+    let cpu_mesh: CpuMesh = loaded.deserialize("suzanne.obj").unwrap();
     let mut model = Gm::new(
-        Mesh::new(&context, &CpuMesh::sphere(32)),
+        Mesh::new(&context, &cpu_mesh),
         PhysicalMaterial::new_opaque(
             &context,
             &CpuMaterial {
@@ -72,9 +83,78 @@ pub async fn run() {
                 use three_d::egui::*;
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
+
+                    ui.label("Material");
                     ui.add(Slider::new(&mut model.material.metallic, 0.0..=1.0).text("Metallic"));
                     ui.add(Slider::new(&mut model.material.roughness, 0.0..=1.0).text("Roughness"));
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
+
+                    ui.label("Lighting model");
+                    ui.radio_value(
+                        &mut model.material.lighting_model,
+                        LightingModel::Phong,
+                        "Phong",
+                    );
+                    ui.radio_value(
+                        &mut model.material.lighting_model,
+                        LightingModel::Blinn,
+                        "Blinn",
+                    );
+                    ui.radio_value(
+                        &mut model.material.lighting_model,
+                        LightingModel::Cook(
+                            NormalDistributionFunction::Blinn,
+                            GeometryFunction::SmithSchlickGGX,
+                        ),
+                        "Cook (Blinn)",
+                    );
+                    ui.radio_value(
+                        &mut model.material.lighting_model,
+                        LightingModel::Cook(
+                            NormalDistributionFunction::Beckmann,
+                            GeometryFunction::SmithSchlickGGX,
+                        ),
+                        "Cook (Beckmann)",
+                    );
+                    ui.radio_value(
+                        &mut model.material.lighting_model,
+                        LightingModel::Cook(
+                            NormalDistributionFunction::TrowbridgeReitzGGX,
+                            GeometryFunction::SmithSchlickGGX,
+                        ),
+                        "Cook (Trowbridge-Reitz GGX)",
+                    );
+
+                    ui.label("BRDF");
+                    ui.add(
+                        Slider::new(&mut options.brdf_sample_count, 1..=1024)
+                            .text("BRDF sample count"),
+                    );
+                    ui.add(Slider::new(&mut options.brdf_map_size, 1..=1024).text("BRDF map size"));
+
+                    ui.label("Irradiance");
+                    ui.add(
+                        Slider::new(&mut options.irradiance_sample_count, 1..=1024)
+                            .text("Irradiance sample count"),
+                    );
+                    ui.add(
+                        Slider::new(&mut options.irradiance_map_size, 1..=128)
+                            .text("Irradiance map size"),
+                    );
+
+                    ui.label("Prefilter");
+                    ui.add(
+                        Slider::new(&mut options.prefilter_sample_count, 1..=1024)
+                            .text("Prefilter sample count"),
+                    );
+                    ui.add(
+                        Slider::new(&mut options.prefilter_map_size, 1..=512)
+                            .text("Prefilter map size"),
+                    );
+                    ui.add(
+                        Slider::new(&mut options.prefilter_map_max_mip_levels, 1..=10)
+                            .text("Prefilter max mip levels"),
+                    );
                 });
                 panel_width = gui_context.used_rect().width();
             },
@@ -91,6 +171,14 @@ pub async fn run() {
         camera.set_viewport(viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 
+        if options != current_options {
+            light.environment = Some(Environment::new_with_options(
+                &context,
+                skybox.texture(),
+                options,
+            ));
+            current_options = options;
+        }
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))

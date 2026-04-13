@@ -1,3 +1,5 @@
+uniform uint sampleCount;
+
 in vec2 uvs;
 
 out vec2 FragColor;
@@ -14,12 +16,11 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
 
     vec3 N = vec3(0.0, 0.0, 1.0);
     
-    const uint SAMPLE_COUNT = 1024u;
-    for(uint i = 0u; i < SAMPLE_COUNT; ++i)
+    for(uint i = 0u; i < sampleCount; ++i)
     {
         // generates a sample vector that's biased towards the
         // preferred alignment direction (importance sampling).
-        vec2 Xi = Hammersley(i, SAMPLE_COUNT);
+        vec2 Xi = Hammersley(i, sampleCount);
         vec3 H = ImportanceSampleGGX(Xi, N, roughness);
         vec3 L = normalize(2.0 * dot(V, H) * H - V);
 
@@ -39,8 +40,8 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
             B += Fc * G_Vis;
         }
     }
-    A /= float(SAMPLE_COUNT);
-    B /= float(SAMPLE_COUNT);
+    A /= float(sampleCount);
+    B /= float(sampleCount);
     return vec2(A, B);
 }
 

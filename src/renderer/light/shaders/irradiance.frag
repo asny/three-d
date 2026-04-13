@@ -3,6 +3,7 @@
 uniform samplerCube environmentMap;
 uniform vec3 direction;
 uniform vec3 up;
+uniform uint sampleCount;
 
 in vec2 uvs;
 
@@ -25,7 +26,7 @@ void main()
     right = normalize(cross(up, N));
     up         = normalize(cross(N, right));
        
-    float sampleDelta = 0.005 * PI;
+    float sampleDelta = 2.0 * PI / float(sampleCount);
     float nrSamples = 0.0;
     for(float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta)
     {
