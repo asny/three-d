@@ -89,7 +89,7 @@ impl Mesh {
     /// Used for editing the triangle indices.
     /// Note: Changing this will possibly ruin the mesh.
     ///
-    pub fn indices_mut(&mut self) -> &mut IndexBuffer {
+    pub fn indices_mut(&mut self) -> &mut TriangleBuffer {
         &mut self.base_mesh.indices
     }
 
