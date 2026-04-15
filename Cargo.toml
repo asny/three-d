@@ -19,7 +19,7 @@ targets = ["x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows
 [features]
 default = ["window"]
 window = ["glutin", "winit", "raw-window-handle", "wasm-bindgen", "serde", "serde-wasm-bindgen", "web-sys"] # Window module
-egui-gui = ["egui_glow", "egui", "getrandom"] # Additional GUI features 
+egui-gui = ["egui_glow", "egui"] # Additional GUI features 
 text = ["swash", "lyon"] # Text mesh generation features
 
 [dependencies]
@@ -31,7 +31,6 @@ open-enum = "0.5"
 winit = {version = "0.28", optional = true}
 egui = { version = "0.34", optional = true }
 egui_glow = { version = "0.34", optional = true }
-getrandom = { version = "0.2", features = ["js"], optional = true }
 swash = { version = "0.2", optional = true }
 lyon = { version = "1", optional = true }
 
