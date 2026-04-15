@@ -57,9 +57,9 @@ pub fn main() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |gui_context| {
+            |ui| {
                 use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
+                Panel::left("side_panel").show_inside(ui, |ui| {
                     use three_d::egui::*;
                     ui.heading("Debug Panel");
                     ui.add(
@@ -72,7 +72,7 @@ pub fn main() {
                                        should become smooth again.",
                     ));
                 });
-                panel_width = gui_context.used_rect().width();
+                panel_width = frame_input.window_width as f32 - ui.available_width();
             },
         );
         let viewport = Viewport {

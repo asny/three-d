@@ -47,9 +47,9 @@ pub async fn run() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |gui_context| {
+            |ui| {
                 use three_d::egui::*;
-                SidePanel::right("side_panel").show(gui_context, |ui| {
+                Panel::right("side_panel").show_inside(ui, |ui| {
                     ui.heading("Debug Panel");
                     ui.add(
                         Slider::new(&mut texture_transform_scale, 0.0..=10.0)
@@ -69,7 +69,7 @@ pub async fn run() {
                     ui.radio_value(&mut tone_mapping, ToneMapping::Aces, "Aces");
                     ui.radio_value(&mut tone_mapping, ToneMapping::Filmic, "Filmic");
                 });
-                panel_width = gui_context.used_rect().width();
+                panel_width = frame_input.window_width as f32 - ui.available_width();
             },
         );
 

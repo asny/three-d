@@ -74,9 +74,9 @@ pub async fn run() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |gui_context| {
+            |ui| {
                 use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
+                Panel::left("side_panel").show_inside(ui, |ui| {
                     ui.heading("Debug Panel");
                     ui.checkbox(&mut albedo_map_enabled, "Albedo map");
                     ui.checkbox(&mut metallic_roughness_enabled, "Metallic roughness map");
@@ -85,7 +85,7 @@ pub async fn run() {
                     ui.checkbox(&mut emissive_map_enabled, "Emissive map");
                     ui.checkbox(&mut wireframe_enabled, "Wireframe")
                 });
-                panel_width = gui_context.used_rect().width();
+                panel_width = frame_input.window_width as f32 - ui.available_width();
             },
         );
 

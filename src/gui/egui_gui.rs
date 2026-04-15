@@ -57,7 +57,7 @@ impl GUI {
         accumulated_time_in_ms: f64,
         viewport: Viewport,
         device_pixel_ratio: f32,
-        callback: impl FnOnce(&egui::Context),
+        callback: impl FnMut(&mut egui::Ui),
     ) -> bool {
         self.egui_context.set_pixels_per_point(device_pixel_ratio);
         self.viewport = viewport;
@@ -178,6 +178,7 @@ impl GUI {
                                 delta: egui::Vec2::new(delta.0, delta.1),
                                 unit: egui::MouseWheelUnit::Point,
                                 modifiers: modifiers.into(),
+                                phase: egui::TouchPhase::Move,
                             })
                         } else {
                             None
@@ -196,15 +197,13 @@ impl GUI {
             ..Default::default()
         };
 
-        self.egui_context.begin_pass(egui_input);
-        callback(&self.egui_context);
-        *self.output.borrow_mut() = Some(self.egui_context.end_pass());
+        *self.output.borrow_mut() = Some(self.egui_context.run_ui(egui_input, callback));
 
         for event in events.iter_mut() {
             if let Event::ModifiersChange { modifiers } = event {
                 self.modifiers = *modifiers;
             }
-            if self.egui_context.wants_pointer_input() {
+            if self.egui_context.egui_wants_pointer_input() {
                 match event {
                     Event::MousePress {
                         ref mut handled, ..
@@ -240,7 +239,7 @@ impl GUI {
                 }
             }
 
-            if self.egui_context.wants_keyboard_input() {
+            if self.egui_context.egui_wants_keyboard_input() {
                 match event {
                     Event::KeyRelease {
                         ref mut handled, ..
@@ -256,7 +255,8 @@ impl GUI {
                 }
             }
         }
-        self.egui_context.wants_pointer_input() || self.egui_context.wants_keyboard_input()
+        self.egui_context.egui_wants_pointer_input()
+            || self.egui_context.egui_wants_keyboard_input()
     }
 
     ///

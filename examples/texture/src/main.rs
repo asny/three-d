@@ -147,9 +147,9 @@ pub async fn run() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |gui_context| {
+            |ui| {
                 use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
+                Panel::left("side_panel").show_inside(ui, |ui| {
                     ui.heading("Debug panel for ground texture");
                     ui.label("Wrap s");
                     ui.radio_value(&mut wrap_s, Wrapping::ClampToEdge, "ClampToEdge");
@@ -171,7 +171,7 @@ pub async fn run() {
                     ui.radio_value(&mut mipmap_filter, Interpolation::Nearest, "Nearest");
                     ui.radio_value(&mut mipmap_filter, Interpolation::Linear, "Linear");
                 });
-                panel_width = gui_context.used_rect().width();
+                panel_width = frame_input.window_width as f32 - ui.available_width();
             },
         );
 

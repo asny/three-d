@@ -130,9 +130,9 @@ pub async fn run() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |gui_context| {
+            |ui| {
                 use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
+                Panel::left("side_panel").show_inside(ui, |ui| {
                     ui.heading("Debug Panel");
 
                     ui.label("Surface parameters");
@@ -225,7 +225,7 @@ pub async fn run() {
                     ui.radio_value(&mut material_type, MaterialType::Depth, "Depth");
                     ui.radio_value(&mut material_type, MaterialType::Orm, "ORM");
                 });
-                panel_width = gui_context.used_rect().width();
+                panel_width = frame_input.window_width as f32 - ui.available_width();
             },
         );
 

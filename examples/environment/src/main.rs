@@ -79,9 +79,9 @@ pub async fn run() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |gui_context| {
+            |ui| {
                 use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
+                Panel::left("side_panel").show_inside(ui, |ui| {
                     ui.heading("Debug Panel");
 
                     ui.label("Material");
@@ -156,7 +156,7 @@ pub async fn run() {
                             .text("Prefilter max mip levels"),
                     );
                 });
-                panel_width = gui_context.used_rect().width();
+                panel_width = frame_input.window_width as f32 - ui.available_width();
             },
         );
         model.material.albedo = Srgba::from(color);

@@ -49,9 +49,9 @@ pub async fn run() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |gui_context| {
+            |ui| {
                 use three_d::egui::*;
-                SidePanel::left("side_panel").show(gui_context, |ui| {
+                Panel::left("side_panel").show_inside(ui, |ui| {
                     ui.heading("Debug Panel");
                     ui.add(
                         Slider::new(&mut voxel_grid.material.threshold, 0.0..=1.0)
@@ -59,7 +59,7 @@ pub async fn run() {
                     );
                     ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
-                panel_width = gui_context.used_rect().width();
+                panel_width = frame_input.window_width as f32 - ui.available_width();
             },
         );
         voxel_grid.material.color = Srgba::from(color);
