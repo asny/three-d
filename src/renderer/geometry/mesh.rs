@@ -86,7 +86,7 @@ impl Mesh {
     }
 
     ///
-    /// Used for editing the triangle indices.
+    /// Used for editing the triangle definition in the [TriangleBuffer] for this mesh.
     /// Note: Changing this will possibly ruin the mesh.
     ///
     pub fn indices_mut(&mut self) -> &mut TriangleBuffer {
