@@ -13,4 +13,6 @@ void main() {
     float b = min(min(f.x, f.y), f.z);
     outColor = lineColor;
     outColor.a *= 1.-b;
+    // Move the line a bit closer to the camera to avoid z-fighting when rendering the model as well
+    gl_FragDepth = gl_FragCoord.z - 0.0001; 
 }
