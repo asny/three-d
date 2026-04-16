@@ -203,7 +203,7 @@ impl GUI {
             if let Event::ModifiersChange { modifiers } = event {
                 self.modifiers = *modifiers;
             }
-            if self.egui_context.egui_wants_pointer_input() {
+            if self.egui_context.egui_is_using_pointer() {
                 match event {
                     Event::MousePress {
                         ref mut handled, ..
