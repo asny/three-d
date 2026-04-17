@@ -29,32 +29,26 @@ impl FlyControl {
                     button,
                     handled,
                     ..
-                } => {
-                    if !*handled {
-                        if Some(MouseButton::Left) == *button {
-                            camera.yaw(radians(delta.0 * std::f32::consts::PI / 1800.0));
-                            camera.pitch(radians(delta.1 * std::f32::consts::PI / 1800.0));
-                            *handled = true;
-                            change = true;
-                        }
-                        if Some(MouseButton::Right) == *button {
-                            let right = camera.right_direction();
-                            let up = right.cross(camera.view_direction());
-                            camera.translate(
-                                -right * delta.0 * self.speed + up * delta.1 * self.speed,
-                            );
-                            *handled = true;
-                            change = true;
-                        }
-                    }
-                }
-                Event::MouseWheel { delta, handled, .. } => {
-                    if !*handled {
-                        let v = camera.view_direction() * self.speed * delta.1;
-                        camera.translate(v);
+                } if !*handled => {
+                    if Some(MouseButton::Left) == *button {
+                        camera.yaw(radians(delta.0 * std::f32::consts::PI / 1800.0));
+                        camera.pitch(radians(delta.1 * std::f32::consts::PI / 1800.0));
                         *handled = true;
                         change = true;
                     }
+                    if Some(MouseButton::Right) == *button {
+                        let right = camera.right_direction();
+                        let up = right.cross(camera.view_direction());
+                        camera.translate(-right * delta.0 * self.speed + up * delta.1 * self.speed);
+                        *handled = true;
+                        change = true;
+                    }
+                }
+                Event::MouseWheel { delta, handled, .. } if !*handled => {
+                    let v = camera.view_direction() * self.speed * delta.1;
+                    camera.translate(v);
+                    *handled = true;
+                    change = true;
                 }
                 _ => {}
             }

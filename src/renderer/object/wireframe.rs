@@ -68,7 +68,7 @@ impl Wireframe {
             .filter_map(|g| match &g.geometry {
                 three_d_asset::Geometry::Triangles(mesh) => {
                     let mut wireframe =
-                        Wireframe::new_from_cpu_mesh(&context, mesh, wire_width, wire_color);
+                        Wireframe::new_from_cpu_mesh(context, mesh, wire_width, wire_color);
                     wireframe.set_transformation(g.transformation);
                     Some(wireframe)
                 }

@@ -29,21 +29,17 @@ impl FirstPersonControl {
                     button,
                     handled,
                     ..
-                } => {
-                    if !*handled && Some(MouseButton::Left) == *button {
-                        camera.yaw(radians(delta.0 * std::f32::consts::PI / 1800.0));
-                        camera.pitch(radians(delta.1 * std::f32::consts::PI / 1800.0));
-                        *handled = true;
-                        change = true;
-                    }
+                } if !*handled && Some(MouseButton::Left) == *button => {
+                    camera.yaw(radians(delta.0 * std::f32::consts::PI / 1800.0));
+                    camera.pitch(radians(delta.1 * std::f32::consts::PI / 1800.0));
+                    *handled = true;
+                    change = true;
                 }
-                Event::MouseWheel { delta, handled, .. } => {
-                    if !*handled {
-                        let v = camera.view_direction() * self.speed * delta.1;
-                        camera.translate(v);
-                        *handled = true;
-                        change = true;
-                    }
+                Event::MouseWheel { delta, handled, .. } if !*handled => {
+                    let v = camera.view_direction() * self.speed * delta.1;
+                    camera.translate(v);
+                    *handled = true;
+                    change = true;
                 }
                 _ => {}
             }

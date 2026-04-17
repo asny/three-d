@@ -289,10 +289,10 @@ impl FrameInputGenerator {
                 });
                 self.cursor_pos = Some(position);
             }
-            WindowEvent::ReceivedCharacter(ch) => {
-                if is_printable_char(*ch) && !self.modifiers.ctrl && !self.modifiers.command {
-                    self.events.push(crate::Event::Text(ch.to_string()));
-                }
+            WindowEvent::ReceivedCharacter(ch)
+                if is_printable_char(*ch) && !self.modifiers.ctrl && !self.modifiers.command =>
+            {
+                self.events.push(crate::Event::Text(ch.to_string()));
             }
             WindowEvent::CursorEntered { .. } => {
                 self.events.push(crate::Event::MouseEnter);

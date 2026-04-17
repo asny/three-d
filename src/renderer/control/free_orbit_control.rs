@@ -37,40 +37,34 @@ impl FreeOrbitControl {
                     button,
                     handled,
                     ..
-                } => {
-                    if !*handled && Some(MouseButton::Left) == *button {
-                        let speed = 0.01 * self.target.distance(camera.position()) + 0.001;
-                        camera.rotate_around(self.target, speed * delta.0, speed * delta.1);
-                        *handled = true;
-                        change = true;
-                    }
+                } if !*handled && Some(MouseButton::Left) == *button => {
+                    let speed = 0.01 * self.target.distance(camera.position()) + 0.001;
+                    camera.rotate_around(self.target, speed * delta.0, speed * delta.1);
+                    *handled = true;
+                    change = true;
                 }
-                Event::MouseWheel { delta, handled, .. } => {
-                    if !*handled {
-                        let distance = self.target.distance(camera.position());
-                        let zoom_amount = distance * (1.0 - (-delta.1 * 0.01).exp());
-                        camera.zoom_towards(
-                            self.target,
-                            zoom_amount,
-                            self.min_distance,
-                            self.max_distance,
-                        );
-                        *handled = true;
-                        change = true;
-                    }
+                Event::MouseWheel { delta, handled, .. } if !*handled => {
+                    let distance = self.target.distance(camera.position());
+                    let zoom_amount = distance * (1.0 - (-delta.1 * 0.01).exp());
+                    camera.zoom_towards(
+                        self.target,
+                        zoom_amount,
+                        self.min_distance,
+                        self.max_distance,
+                    );
+                    *handled = true;
+                    change = true;
                 }
-                Event::PinchGesture { delta, handled, .. } => {
-                    if !*handled {
-                        let speed = self.target.distance(camera.position()) + 0.1;
-                        camera.zoom_towards(
-                            self.target,
-                            speed * *delta,
-                            self.min_distance,
-                            self.max_distance,
-                        );
-                        *handled = true;
-                        change = true;
-                    }
+                Event::PinchGesture { delta, handled, .. } if !*handled => {
+                    let speed = self.target.distance(camera.position()) + 0.1;
+                    camera.zoom_towards(
+                        self.target,
+                        speed * *delta,
+                        self.min_distance,
+                        self.max_distance,
+                    );
+                    *handled = true;
+                    change = true;
                 }
                 _ => {}
             }
