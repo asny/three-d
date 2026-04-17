@@ -55,9 +55,6 @@ winit = "0.28"
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
-[patch.crates-io]
-three-d-asset = { git = "https://github.com/asny/three-d-asset" }
-
 [[example]]
 name = "triangle"
 path = "examples/triangle/src/main.rs"

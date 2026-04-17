@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 three-d = { path = "../../" }
+three-d-asset = { version = "0.10",features = ["png", "http"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"
