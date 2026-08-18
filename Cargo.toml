@@ -24,7 +24,7 @@ text = ["swash", "lyon"] # Text mesh generation features
 
 [dependencies]
 glow = "0.17"
-cgmath = "0.18"
+cgmath = { package = "cgmath-next", version = "0.18.1" }
 three-d-asset = { version = "0.10" }
 thiserror = "2"
 open-enum = "0.5"
