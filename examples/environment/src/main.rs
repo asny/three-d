@@ -186,6 +186,60 @@ pub async fn run() {
             .write(|| gui.render())
             .unwrap();
 
+        let secondary_viewport = Viewport {
+            x: viewport.x,
+            y: viewport.y,
+            width: 200,
+            height: 100,
+        };
+        camera.set_viewport(secondary_viewport);
+        frame_input.screen().apply_screen_effect(
+            &CopyEffect::default(),
+            &camera,
+            &[],
+            Some(ColorTexture::CubeMap {
+                texture: skybox.texture(),
+                sides: &[],
+            }),
+            None,
+        );
+
+        let secondary_viewport = Viewport {
+            x: viewport.x,
+            y: viewport.y + 100,
+            width: 200,
+            height: 100,
+        };
+        camera.set_viewport(secondary_viewport);
+        frame_input.screen().apply_screen_effect(
+            &CopyEffect::default(),
+            &camera,
+            &[],
+            Some(ColorTexture::CubeMap {
+                texture: &light.environment.as_ref().unwrap().irradiance_map,
+                sides: &[],
+            }),
+            None,
+        );
+
+        let secondary_viewport = Viewport {
+            x: viewport.x,
+            y: viewport.y + 200,
+            width: 200,
+            height: 100,
+        };
+        camera.set_viewport(secondary_viewport);
+        frame_input.screen().apply_screen_effect(
+            &CopyEffect::default(),
+            &camera,
+            &[],
+            Some(ColorTexture::CubeMap {
+                texture: &light.environment.as_ref().unwrap().prefilter_map,
+                sides: &[],
+            }),
+            None,
+        );
+
         FrameOutput::default()
     });
 }
