@@ -137,7 +137,21 @@ impl ColorTexture<'_> {
                     return texture(colorMap, vec3(uv, colorLayers[index]));
                 }"
             .to_owned(),
-            Self::CubeMap { .. } => todo!(),
+            // Equirectangular projection
+            // SOURCE: https://stackoverflow.com/a/57544913
+            Self::CubeMap { .. } => "
+                #define PI 3.1415926
+                uniform samplerCube cubeMap;
+                vec4 sample_color(vec2 uv) {
+                    float phi=uv.s*PI*2;
+                    float theta=(uv.t-0.5)*PI;
+
+                    vec3 dir = vec3(cos(phi)*cos(theta),sin(theta),sin(phi)*cos(theta));
+
+                    return texture(cubeMap, dir);
+                }
+            "
+            .to_owned(),
         }
     }
 
@@ -148,9 +162,7 @@ impl ColorTexture<'_> {
         match self {
             Self::Single { .. } => 1u16 << 3,
             Self::Array { .. } => 10u16 << 3,
-            Self::CubeMap { .. } => {
-                todo!()
-            }
+            Self::CubeMap { .. } => 100u16 << 3,
         }
     }
 
@@ -169,7 +181,7 @@ impl ColorTexture<'_> {
                 program.use_uniform_array("colorLayers", &la);
                 program.use_texture_array("colorMap", texture);
             }
-            Self::CubeMap { .. } => todo!(),
+            Self::CubeMap { texture, .. } => program.use_texture_cube("cubeMap", texture),
         }
     }
 }
