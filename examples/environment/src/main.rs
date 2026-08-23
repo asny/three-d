@@ -189,8 +189,8 @@ pub async fn run() {
         let secondary_viewport = Viewport {
             x: viewport.x,
             y: viewport.y,
-            width: 200,
-            height: 100,
+            width: (200.0 * frame_input.device_pixel_ratio) as u32,
+            height: (100.0 * frame_input.device_pixel_ratio) as u32,
         };
         camera.set_viewport(secondary_viewport);
         frame_input.screen().apply_screen_effect(
@@ -206,9 +206,27 @@ pub async fn run() {
 
         let secondary_viewport = Viewport {
             x: viewport.x,
-            y: viewport.y + 100,
-            width: 200,
-            height: 100,
+            y: viewport.y + (100.0 * frame_input.device_pixel_ratio) as i32,
+            width: (200.0 * frame_input.device_pixel_ratio) as u32,
+            height: (100.0 * frame_input.device_pixel_ratio) as u32,
+        };
+        camera.set_viewport(secondary_viewport);
+        frame_input.screen().apply_screen_effect(
+            &CopyEffect::default(),
+            &camera,
+            &[],
+            Some(ColorTexture::CubeMap {
+                texture: &light.environment.as_ref().unwrap().prefilter_map,
+                sides: &[],
+            }),
+            None,
+        );
+
+        let secondary_viewport = Viewport {
+            x: viewport.x,
+            y: viewport.y + (200.0 * frame_input.device_pixel_ratio) as i32,
+            width: (200.0 * frame_input.device_pixel_ratio) as u32,
+            height: (100.0 * frame_input.device_pixel_ratio) as u32,
         };
         camera.set_viewport(secondary_viewport);
         frame_input.screen().apply_screen_effect(
@@ -224,19 +242,18 @@ pub async fn run() {
 
         let secondary_viewport = Viewport {
             x: viewport.x,
-            y: viewport.y + 200,
-            width: 200,
-            height: 100,
+            y: viewport.y + (300.0 * frame_input.device_pixel_ratio) as i32,
+            width: (200.0 * frame_input.device_pixel_ratio) as u32,
+            height: (200.0 * frame_input.device_pixel_ratio) as u32,
         };
         camera.set_viewport(secondary_viewport);
         frame_input.screen().apply_screen_effect(
             &CopyEffect::default(),
             &camera,
             &[],
-            Some(ColorTexture::CubeMap {
-                texture: &light.environment.as_ref().unwrap().prefilter_map,
-                sides: &[],
-            }),
+            Some(ColorTexture::Single(
+                &light.environment.as_ref().unwrap().brdf_map,
+            )),
             None,
         );
 
