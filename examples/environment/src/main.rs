@@ -72,6 +72,7 @@ pub async fn run() {
 
     // main loop
     let mut color = [1.0; 4];
+    let mut show_debug = false;
     window.render_loop(move |mut frame_input| {
         let mut panel_width = 0.0;
         gui.update(
@@ -83,6 +84,7 @@ pub async fn run() {
                 use three_d::egui::*;
                 Panel::left("side_panel").show_inside(ui, |ui| {
                     ui.heading("Debug Panel");
+                    ui.checkbox(&mut show_debug, "Show debug");
 
                     ui.label("Material");
                     ui.add(Slider::new(&mut model.material.metallic, 0.0..=1.0).text("Metallic"));
@@ -186,76 +188,78 @@ pub async fn run() {
             .write(|| gui.render())
             .unwrap();
 
-        let secondary_viewport = Viewport {
-            x: viewport.x,
-            y: viewport.y,
-            width: (200.0 * frame_input.device_pixel_ratio) as u32,
-            height: (100.0 * frame_input.device_pixel_ratio) as u32,
-        };
-        camera.set_viewport(secondary_viewport);
-        frame_input.screen().apply_screen_effect(
-            &CopyEffect::default(),
-            &camera,
-            &[],
-            Some(ColorTexture::CubeMap {
-                texture: skybox.texture(),
-                sides: &[],
-            }),
-            None,
-        );
+        if show_debug {
+            let secondary_viewport = Viewport {
+                x: viewport.x,
+                y: viewport.y,
+                width: (200.0 * frame_input.device_pixel_ratio) as u32,
+                height: (100.0 * frame_input.device_pixel_ratio) as u32,
+            };
+            camera.set_viewport(secondary_viewport);
+            frame_input.screen().apply_screen_effect(
+                &CopyEffect::default(),
+                &camera,
+                &[],
+                Some(ColorTexture::CubeMap {
+                    texture: skybox.texture(),
+                    sides: &[],
+                }),
+                None,
+            );
 
-        let secondary_viewport = Viewport {
-            x: viewport.x,
-            y: viewport.y + (100.0 * frame_input.device_pixel_ratio) as i32,
-            width: (200.0 * frame_input.device_pixel_ratio) as u32,
-            height: (100.0 * frame_input.device_pixel_ratio) as u32,
-        };
-        camera.set_viewport(secondary_viewport);
-        frame_input.screen().apply_screen_effect(
-            &CopyEffect::default(),
-            &camera,
-            &[],
-            Some(ColorTexture::CubeMap {
-                texture: &light.environment.as_ref().unwrap().prefilter_map,
-                sides: &[],
-            }),
-            None,
-        );
+            let secondary_viewport = Viewport {
+                x: viewport.x,
+                y: viewport.y + (100.0 * frame_input.device_pixel_ratio) as i32,
+                width: (200.0 * frame_input.device_pixel_ratio) as u32,
+                height: (100.0 * frame_input.device_pixel_ratio) as u32,
+            };
+            camera.set_viewport(secondary_viewport);
+            frame_input.screen().apply_screen_effect(
+                &CopyEffect::default(),
+                &camera,
+                &[],
+                Some(ColorTexture::CubeMap {
+                    texture: &light.environment.as_ref().unwrap().prefilter_map,
+                    sides: &[],
+                }),
+                None,
+            );
 
-        let secondary_viewport = Viewport {
-            x: viewport.x,
-            y: viewport.y + (200.0 * frame_input.device_pixel_ratio) as i32,
-            width: (200.0 * frame_input.device_pixel_ratio) as u32,
-            height: (100.0 * frame_input.device_pixel_ratio) as u32,
-        };
-        camera.set_viewport(secondary_viewport);
-        frame_input.screen().apply_screen_effect(
-            &CopyEffect::default(),
-            &camera,
-            &[],
-            Some(ColorTexture::CubeMap {
-                texture: &light.environment.as_ref().unwrap().irradiance_map,
-                sides: &[],
-            }),
-            None,
-        );
+            let secondary_viewport = Viewport {
+                x: viewport.x,
+                y: viewport.y + (200.0 * frame_input.device_pixel_ratio) as i32,
+                width: (200.0 * frame_input.device_pixel_ratio) as u32,
+                height: (100.0 * frame_input.device_pixel_ratio) as u32,
+            };
+            camera.set_viewport(secondary_viewport);
+            frame_input.screen().apply_screen_effect(
+                &CopyEffect::default(),
+                &camera,
+                &[],
+                Some(ColorTexture::CubeMap {
+                    texture: &light.environment.as_ref().unwrap().irradiance_map,
+                    sides: &[],
+                }),
+                None,
+            );
 
-        let secondary_viewport = Viewport {
-            x: viewport.x,
-            y: viewport.y + (300.0 * frame_input.device_pixel_ratio) as i32,
-            width: (200.0 * frame_input.device_pixel_ratio) as u32,
-            height: (200.0 * frame_input.device_pixel_ratio) as u32,
-        };
-        camera.set_viewport(secondary_viewport);
-        frame_input.screen().apply_screen_effect(
-            &CopyEffect::default(),
-            &camera,
-            &[],
-            Some(ColorTexture::Single(
-                &light.environment.as_ref().unwrap().brdf_map,
-            )),
-            None,
-        );
+            let secondary_viewport = Viewport {
+                x: viewport.x,
+                y: viewport.y + (300.0 * frame_input.device_pixel_ratio) as i32,
+                width: (200.0 * frame_input.device_pixel_ratio) as u32,
+                height: (200.0 * frame_input.device_pixel_ratio) as u32,
+            };
+            camera.set_viewport(secondary_viewport);
+            frame_input.screen().apply_screen_effect(
+                &CopyEffect::default(),
+                &camera,
+                &[],
+                Some(ColorTexture::Single(
+                    &light.environment.as_ref().unwrap().brdf_map,
+                )),
+                None,
+            );
+        }
 
         FrameOutput::default()
     });
