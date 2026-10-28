@@ -106,6 +106,14 @@ mod inner {
     use glutin::{prelude::*, surface::*};
 
     use super::*;
+
+    #[cfg(target_os = "linux")]
+    fn glx_display_api_preference() -> glutin::display::DisplayApiPreference {
+        glutin::display::DisplayApiPreference::Glx(Box::new(
+            winit::platform::x11::register_xlib_error_hook,
+        ))
+    }
+
     ///
     /// A windowed graphics context, ie. a graphics context that is associated with a window.
     ///
@@ -122,24 +130,18 @@ mod inner {
             window: &Window,
             settings: SurfaceSettings,
         ) -> Result<Self, WindowError> {
-            if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
-                Err(WindowError::InvalidNumberOfMSAASamples)?;
-            }
-            use glutin::prelude::*;
-            use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
-            let raw_display_handle = window.display_handle()?.as_raw();
-            let raw_window_handle = window.window_handle()?.as_raw();
+            #[cfg(target_os = "windows")]
+            use raw_window_handle::HasWindowHandle;
 
             // EGL is crossplatform and the official khronos way
             // but sometimes platforms/drivers may not have it, so we use back up options
-            // where possible. TODO: check whether we can expose these options as
-            // "features", so that users can select the relevant backend they want.
-
+            // where possible.
             // try egl and fallback to windows wgl. Windows is the only platform that
             // *requires* window handle to create display.
             #[cfg(target_os = "windows")]
-            let preference =
-                glutin::display::DisplayApiPreference::WglThenEgl(Some(raw_window_handle));
+            let preference = glutin::display::DisplayApiPreference::WglThenEgl(Some(
+                window.window_handle()?.as_raw(),
+            ));
             // try egl and fallback to x11 glx
             #[cfg(target_os = "linux")]
             let preference = glutin::display::DisplayApiPreference::EglThenGlx(Box::new(
@@ -149,6 +151,36 @@ mod inner {
             let preference = glutin::display::DisplayApiPreference::Cgl;
             #[cfg(target_os = "android")]
             let preference = glutin::display::DisplayApiPreference::Egl;
+
+            Self::from_winit_window_with_preference(window, settings, preference)
+        }
+
+        /// Creates a context using the X11 GLX backend instead of the default EGL-first preference.
+        ///
+        /// This can be useful when EGL display creation succeeds but EGL exposes no configuration
+        /// compatible with the window. The default constructor only falls back to GLX if EGL
+        /// display creation itself fails.
+        #[cfg(target_os = "linux")]
+        pub fn from_winit_window_with_glx(
+            window: &Window,
+            settings: SurfaceSettings,
+        ) -> Result<Self, WindowError> {
+            Self::from_winit_window_with_preference(window, settings, glx_display_api_preference())
+        }
+
+        #[allow(unsafe_code)]
+        fn from_winit_window_with_preference(
+            window: &Window,
+            settings: SurfaceSettings,
+            preference: glutin::display::DisplayApiPreference,
+        ) -> Result<Self, WindowError> {
+            if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
+                Err(WindowError::InvalidNumberOfMSAASamples)?;
+            }
+            use glutin::prelude::*;
+            use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
+            let raw_display_handle = window.display_handle()?.as_raw();
+            let raw_window_handle = window.window_handle()?.as_raw();
 
             let gl_display =
                 unsafe { glutin::display::Display::new(raw_display_handle, preference)? };
@@ -245,6 +277,17 @@ mod inner {
             Ok(self
                 .surface
                 .set_swap_interval(&self.glutin_context, swap_interval)?)
+        }
+    }
+
+    #[cfg(all(test, target_os = "linux"))]
+    mod tests {
+        #[test]
+        fn glx_preference_selects_glx_only() {
+            assert!(matches!(
+                super::glx_display_api_preference(),
+                glutin::display::DisplayApiPreference::Glx(_)
+            ));
         }
     }
 }
